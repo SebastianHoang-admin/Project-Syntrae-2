@@ -1,0 +1,1753 @@
+{
+  "schema_version": "1.0.0",
+  "product": {
+    "app_name": "Syntrae",
+    "module_name": "Identity Builder",
+    "module_id": "identity_builder"
+  },
+  "design_principles": {
+    "simplicity": "Concrete, scenario-based questions; minimal jargon.",
+    "stability": "Orthogonal axes; confidence-weighted aggregation; preserve past information.",
+    "scalability": "Append-only growth: new layers/questions can be added without changing existing IDs."
+  },
+  "ui_defaults": {
+    "question_format": "multiple_choice",
+    "answer_scale": {
+      "type": "five_point_bipolar",
+      "options": [
+        { "label": "A", "value": 0.0 },
+        { "label": "B", "value": 0.25 },
+        { "label": "C", "value": 0.5 },
+        { "label": "D", "value": 0.75 },
+        { "label": "E", "value": 1.0 }
+      ]
+    },
+    "confidence_ui": {
+      "type": "horizontal_slider",
+      "prompt": "How confident are you in this answer?",
+      "left_label": "Not confident",
+      "right_label": "Very confident",
+      "slider_min": 0.0,
+      "slider_max": 1.0,
+      "min_confidence_floor": 0.3,
+      "effective_confidence_rule": "effective_confidence = max(slider_value, min_confidence_floor)"
+    }
+  },
+  "scoring_engine": {
+    "axis_aggregation": {
+      "name": "confidence_weighted_mean",
+      "formula": "WeightedScore = Σ(answer_value_i × effective_confidence_i) / Σ(effective_confidence_i)",
+      "rationale": [
+        "Down-weights uncertain answers to reduce noise and identity drift.",
+        "Allows refinement without overwriting: higher-confidence future data can dominate naturally.",
+        "Improves temporal stability and preserves informational continuity."
+      ]
+    },
+    "axis_confidence": {
+      "method": "mean_effective_confidence",
+      "formula": "axis_confidence = clamp( average(effective_confidence_i), 0, 1 )",
+      "note": "Future versions can add variance-aware confidence; v1 uses mean for simplicity."
+    }
+  },
+  "storage_contract": {
+    "axis_state_schema": {
+      "axis_id": "string",
+      "value": "float[0..1]",
+      "confidence": "float[0..1]",
+      "layer_id": "string",
+      "version": "string",
+      "timestamp_iso": "string"
+    },
+    "append_only_policy": {
+      "rule": "Never reuse or change an existing axis_id/question_id. Add new items with new IDs only.",
+      "reason": "Prevents dataset corruption and keeps historical compatibility."
+    },
+    "recommended_persistence": {
+      "store_raw_responses": true,
+      "store_axis_outputs": true,
+      "store_versions": true
+    }
+  },
+  "layers": [
+    {
+      "layer_id": "L1",
+      "name": "Behavioral Signature",
+      "version": "1.0.0",
+      "status": "active",
+      "scope": {
+        "purpose": "Capture externally observable, context-transferable behavioral tendencies as a stable identity component.",
+        "non_goals": [
+          "Clinical diagnosis",
+          "Deterministic prediction",
+          "Inferring internal intent or morality"
+        ],
+        "audience": ["self_report", "observer_report"]
+      },
+      "mechanics": {
+        "questions_per_axis": 3,
+        "total_questions": 18,
+        "answer_scale_ref": "#/ui_defaults/answer_scale",
+        "confidence_ui_ref": "#/ui_defaults/confidence_ui",
+        "question_flow": {
+          "confidence_slider_trigger": "on_answer_selected",
+          "require_confidence_each_question": true
+        }
+      },
+      "axes": [
+        {
+          "axis_id": "L1_A1",
+          "name": "Initiative",
+          "definition": "Does the person act without prompting?",
+          "poles": {
+            "low": { "label": "Waits/Responds", "description": "Tends to wait for others to start or decide; primarily responds." },
+            "high": { "label": "Initiates/Leads", "description": "Tends to start actions, propose ideas, and lead decisions without prompting." }
+          },
+          "questions": [
+            {
+              "question_id": "L1_A1_Q1",
+              "text": "When plans need to be made, this person usually:",
+              "options": [
+                { "label": "A", "text": "Waits for others to decide" },
+                { "label": "B", "text": "Rarely suggests ideas" },
+                { "label": "C", "text": "Sometimes suggests ideas" },
+                { "label": "D", "text": "Often suggests ideas" },
+                { "label": "E", "text": "Usually takes the lead" }
+              ]
+            },
+            {
+              "question_id": "L1_A1_Q2",
+              "text": "In conversations, this person most often:",
+              "options": [
+                { "label": "A", "text": "Responds only when spoken to" },
+                { "label": "B", "text": "Speaks after others start" },
+                { "label": "C", "text": "Participates evenly" },
+                { "label": "D", "text": "Starts topics frequently" },
+                { "label": "E", "text": "Drives the conversation" }
+              ]
+            },
+            {
+              "question_id": "L1_A1_Q3",
+              "text": "If something needs to be done and no one volunteers, they:",
+              "options": [
+                { "label": "A", "text": "Wait" },
+                { "label": "B", "text": "Hesitate" },
+                { "label": "C", "text": "Decide based on context" },
+                { "label": "D", "text": "Step in most of the time" },
+                { "label": "E", "text": "Step in immediately" }
+              ]
+            }
+          ]
+        },
+        {
+          "axis_id": "L1_A2",
+          "name": "Persistence",
+          "definition": "How does this person behave when things get difficult?",
+          "poles": {
+            "low": { "label": "Disengages/Pivots", "description": "Moves on when friction appears; less sustained effort." },
+            "high": { "label": "Persists/Finishes", "description": "Sustains effort under setbacks; more consistent follow-through." }
+          },
+          "questions": [
+            {
+              "question_id": "L1_A2_Q1",
+              "text": "When facing repeated setbacks, they usually:",
+              "options": [
+                { "label": "A", "text": "Stop and move on" },
+                { "label": "B", "text": "Try briefly, then disengage" },
+                { "label": "C", "text": "Decide case by case" },
+                { "label": "D", "text": "Continue with effort" },
+                { "label": "E", "text": "Push through consistently" }
+              ]
+            },
+            {
+              "question_id": "L1_A2_Q2",
+              "text": "If progress is slow, they tend to:",
+              "options": [
+                { "label": "A", "text": "Abandon the effort" },
+                { "label": "B", "text": "Reduce involvement" },
+                { "label": "C", "text": "Reassess and decide" },
+                { "label": "D", "text": "Stay committed" },
+                { "label": "E", "text": "Double down" }
+              ]
+            },
+            {
+              "question_id": "L1_A2_Q3",
+              "text": "After a failure, this person is most likely to:",
+              "options": [
+                { "label": "A", "text": "Let it go completely" },
+                { "label": "B", "text": "Avoid retrying" },
+                { "label": "C", "text": "Consider retrying" },
+                { "label": "D", "text": "Try again" },
+                { "label": "E", "text": "Keep trying until resolved" }
+              ]
+            }
+          ]
+        },
+        {
+          "axis_id": "L1_A3",
+          "name": "Risk Engagement",
+          "definition": "How readily does the person act under uncertainty?",
+          "poles": {
+            "low": { "label": "Waits for Certainty", "description": "Delays or avoids action without clarity; prefers certainty." },
+            "high": { "label": "Acts Under Uncertainty", "description": "Acts with incomplete information; tolerates ambiguity." }
+          },
+          "questions": [
+            {
+              "question_id": "L1_A3_Q1",
+              "text": "When outcomes are unclear, they prefer to:",
+              "options": [
+                { "label": "A", "text": "Avoid acting" },
+                { "label": "B", "text": "Wait for clarity" },
+                { "label": "C", "text": "Decide when needed" },
+                { "label": "D", "text": "Act with partial info" },
+                { "label": "E", "text": "Act quickly despite uncertainty" }
+              ]
+            },
+            {
+              "question_id": "L1_A3_Q2",
+              "text": "When making decisions without guarantees, they:",
+              "options": [
+                { "label": "A", "text": "Avoid deciding" },
+                { "label": "B", "text": "Delay decisions" },
+                { "label": "C", "text": "Balance risk and action" },
+                { "label": "D", "text": "Accept uncertainty" },
+                { "label": "E", "text": "Embrace uncertainty" }
+              ]
+            },
+            {
+              "question_id": "L1_A3_Q3",
+              "text": "In unfamiliar situations, they usually:",
+              "options": [
+                { "label": "A", "text": "Stay away" },
+                { "label": "B", "text": "Observe only" },
+                { "label": "C", "text": "Engage cautiously" },
+                { "label": "D", "text": "Participate actively" },
+                { "label": "E", "text": "Dive in immediately" }
+              ]
+            }
+          ]
+        },
+        {
+          "axis_id": "L1_A4",
+          "name": "Social Energy Direction",
+          "definition": "Where does action energy flow in social settings?",
+          "notes": [
+            "Behavioral output only; not a claim about emotional recharge.",
+            "Observer-legible cues: engagement level, speaking frequency, handling silence."
+          ],
+          "poles": {
+            "low": { "label": "Observes/Conserves", "description": "More reserved behavioral output; observes and listens more." },
+            "high": { "label": "Engages/Projects", "description": "Higher outward behavioral output; actively engages and speaks more." }
+          },
+          "questions": [
+            {
+              "question_id": "L1_A4_Q1",
+              "text": "In group settings, this person usually:",
+              "options": [
+                { "label": "A", "text": "Observes quietly" },
+                { "label": "B", "text": "Speaks occasionally" },
+                { "label": "C", "text": "Engages evenly" },
+                { "label": "D", "text": "Speaks often" },
+                { "label": "E", "text": "Dominates interaction" }
+              ]
+            },
+            {
+              "question_id": "L1_A4_Q2",
+              "text": "During social gatherings, they tend to:",
+              "options": [
+                { "label": "A", "text": "Stay in the background" },
+                { "label": "B", "text": "Engage when approached" },
+                { "label": "C", "text": "Mix observation and action" },
+                { "label": "D", "text": "Actively engage others" },
+                { "label": "E", "text": "Lead group dynamics" }
+              ]
+            },
+            {
+              "question_id": "L1_A4_Q3",
+              "text": "When silence occurs in conversation, they:",
+              "options": [
+                { "label": "A", "text": "Let it remain" },
+                { "label": "B", "text": "Wait for others" },
+                { "label": "C", "text": "Respond if needed" },
+                { "label": "D", "text": "Fill it naturally" },
+                { "label": "E", "text": "Immediately take over" }
+              ]
+            }
+          ]
+        },
+        {
+          "axis_id": "L1_A5",
+          "name": "Conflict Response",
+          "definition": "How does the person behave when tension appears?",
+          "poles": {
+            "low": { "label": "Avoids/Deflects", "description": "Avoids direct engagement with tension; smooths or withdraws." },
+            "high": { "label": "Addresses/Confronts", "description": "Engages directly to address tension; challenges or sets boundaries." }
+          },
+          "questions": [
+            {
+              "question_id": "L1_A5_Q1",
+              "text": "When disagreements arise, they usually:",
+              "options": [
+                { "label": "A", "text": "Avoid them" },
+                { "label": "B", "text": "Deflect them" },
+                { "label": "C", "text": "Handle selectively" },
+                { "label": "D", "text": "Address them" },
+                { "label": "E", "text": "Confront them directly" }
+              ]
+            },
+            {
+              "question_id": "L1_A5_Q2",
+              "text": "If someone crosses a boundary, they:",
+              "options": [
+                { "label": "A", "text": "Ignore it" },
+                { "label": "B", "text": "Let it pass" },
+                { "label": "C", "text": "Decide based on context" },
+                { "label": "D", "text": "Address it calmly" },
+                { "label": "E", "text": "Address it immediately" }
+              ]
+            },
+            {
+              "question_id": "L1_A5_Q3",
+              "text": "Under tension, their response is typically:",
+              "options": [
+                { "label": "A", "text": "Withdrawal" },
+                { "label": "B", "text": "De-escalation" },
+                { "label": "C", "text": "Neutral management" },
+                { "label": "D", "text": "Direct engagement" },
+                { "label": "E", "text": "Firm confrontation" }
+              ]
+            }
+          ]
+        },
+        {
+          "axis_id": "L1_A6",
+          "name": "Adaptation Speed",
+          "definition": "How quickly does behavior change after feedback?",
+          "poles": {
+            "low": { "label": "Slow to Change", "description": "Stays consistent; changes gradually or only under pressure." },
+            "high": { "label": "Fast to Adjust", "description": "Adjusts quickly after signals or feedback; pivots readily." }
+          },
+          "questions": [
+            {
+              "question_id": "L1_A6_Q1",
+              "text": "After receiving feedback, they usually:",
+              "options": [
+                { "label": "A", "text": "Do not change" },
+                { "label": "B", "text": "Change slowly" },
+                { "label": "C", "text": "Change when necessary" },
+                { "label": "D", "text": "Adjust quickly" },
+                { "label": "E", "text": "Adjust immediately" }
+              ]
+            },
+            {
+              "question_id": "L1_A6_Q2",
+              "text": "If they notice something isn’t working, they:",
+              "options": [
+                { "label": "A", "text": "Continue unchanged" },
+                { "label": "B", "text": "Resist adjustment" },
+                { "label": "C", "text": "Reconsider" },
+                { "label": "D", "text": "Modify behavior" },
+                { "label": "E", "text": "Pivot rapidly" }
+              ]
+            },
+            {
+              "question_id": "L1_A6_Q3",
+              "text": "When signals suggest a change is needed, they:",
+              "options": [
+                { "label": "A", "text": "Ignore them" },
+                { "label": "B", "text": "Delay response" },
+                { "label": "C", "text": "Evaluate carefully" },
+                { "label": "D", "text": "Respond promptly" },
+                { "label": "E", "text": "Respond instantly" }
+              ]
+            }
+          ]
+        }
+      ],
+      "output": {
+        "axis_output_fields": ["axis_id", "value", "confidence", "layer_id", "version", "timestamp_iso"],
+        "qualitative_interpretation": {
+          "bucket_rules": [
+            { "range": [0.0, 0.3], "label": "leans_low", "description": "Shows {low_label}: {low_description}. Moves cautiously/slowly on this axis." },
+            { "range": [0.3, 0.7], "label": "mixed", "description": "Mixed expression: balances {low_label} and {high_label}; sometimes shifts with context." },
+            { "range": [0.7, 1.0], "label": "leans_high", "description": "Shows {high_label}: {high_description}. Acts readily/quickly on this axis." }
+          ],
+          "rendering": {
+            "template": "{axis_name}: {bucket_description} (score≈{value})."
+          }
+        },
+        "llm_injection": {
+          "block_title": "BEHAVIORAL SIGNATURE — Layer 1",
+          "usage_rules": [
+            "Treat these as observed behavioral tendencies for the persona you are roleplaying.",
+            "Do not invent traits beyond what is stated; stay within these leanings.",
+            "If a bucket is 'mixed', portray situational flexibility between the two poles."
+          ],
+          "template": [
+            "[BEHAVIORAL SIGNATURE — Layer 1]",
+            "{axis_name}: {bucket_description}"
+          ]
+        }
+      }
+    },
+    {
+      "layer_id": "L2",
+      "name": "Motivational Attractors",
+      "version": "1.0.0",
+      "status": "active",
+      "scope": {
+        "purpose": "Capture stable directional biases that a person's behavior tends to optimize for over time when trade-offs exist.",
+        "non_goals": [
+          "Psychological diagnosis",
+          "Emotional state modeling",
+          "Moral or value judgments",
+          "Behavioral speed or intensity (handled by Layer 1)"
+        ],
+        "audience": ["self_report", "observer_report"]
+      },
+      "mechanics": {
+        "questions_per_axis": 3,
+        "total_questions": 18,
+        "answer_scale_ref": "#/ui_defaults/answer_scale",
+        "confidence_ui_ref": "#/ui_defaults/confidence_ui",
+        "question_flow": {
+          "confidence_slider_trigger": "on_answer_selected",
+          "require_confidence_each_question": true
+        }
+      },
+      "axes": [
+        {
+          "axis_id": "L2_A1",
+          "name": "Stability ↔ Growth",
+          "definition": "Does this person drift toward maintaining stability or pursuing expansion when trade-offs exist?",
+          "poles": {
+            "low": { "label": "Stability", "description": "Prefers predictability, continuity, and maintaining what already works." },
+            "high": { "label": "Growth", "description": "Prefers advancement, improvement, and expansion even at the cost of disruption." }
+          },
+          "questions": [
+            {
+              "question_id": "L2_A1_Q1",
+              "text": "When choosing between a safe option and a challenging one, this person usually prefers:",
+              "options": [
+                { "label": "A", "text": "The safe, predictable option" },
+                { "label": "B", "text": "Slightly safer than challenging" },
+                { "label": "C", "text": "Depends on the situation" },
+                { "label": "D", "text": "Slightly challenging over safe" },
+                { "label": "E", "text": "The challenging, growth-oriented option" }
+              ]
+            },
+            {
+              "question_id": "L2_A1_Q2",
+              "text": "Over long periods, their decisions tend to favor:",
+              "options": [
+                { "label": "A", "text": "Maintaining what already works" },
+                { "label": "B", "text": "Minor improvements only" },
+                { "label": "C", "text": "A balance of maintenance and progress" },
+                { "label": "D", "text": "Regular improvement and advancement" },
+                { "label": "E", "text": "Continuous pushing for growth" }
+              ]
+            },
+            {
+              "question_id": "L2_A1_Q3",
+              "text": "When something is \"good enough,\" they are more likely to:",
+              "options": [
+                { "label": "A", "text": "Keep it as it is" },
+                { "label": "B", "text": "Change it only if necessary" },
+                { "label": "C", "text": "Decide case by case" },
+                { "label": "D", "text": "Improve it further" },
+                { "label": "E", "text": "Replace it with something better" }
+              ]
+            }
+          ]
+        },
+        {
+          "axis_id": "L2_A2",
+          "name": "Autonomy ↔ Coordination",
+          "definition": "Does this person drift toward self-directed control or shared alignment?",
+          "poles": {
+            "low": { "label": "Coordination", "description": "Prefers shared structure, alignment, and group-directed decisions." },
+            "high": { "label": "Autonomy", "description": "Prefers independence, self-direction, and personal control." }
+          },
+          "questions": [
+            {
+              "question_id": "L2_A2_Q1",
+              "text": "When working with others, this person prefers to:",
+              "options": [
+                { "label": "A", "text": "Follow shared structure closely" },
+                { "label": "B", "text": "Mostly align with group decisions" },
+                { "label": "C", "text": "Balance independence and alignment" },
+                { "label": "D", "text": "Retain personal control when possible" },
+                { "label": "E", "text": "Decide independently" }
+              ]
+            },
+            {
+              "question_id": "L2_A2_Q2",
+              "text": "If rules or expectations are unclear, they tend to:",
+              "options": [
+                { "label": "A", "text": "Wait for group guidance" },
+                { "label": "B", "text": "Look to others for direction" },
+                { "label": "C", "text": "Decide collaboratively" },
+                { "label": "D", "text": "Decide for themselves" },
+                { "label": "E", "text": "Act on personal judgment" }
+              ]
+            },
+            {
+              "question_id": "L2_A2_Q3",
+              "text": "When goals conflict between the individual and the group, they usually prioritize:",
+              "options": [
+                { "label": "A", "text": "Group alignment" },
+                { "label": "B", "text": "Slightly favor the group" },
+                { "label": "C", "text": "Balance both" },
+                { "label": "D", "text": "Slightly favor themselves" },
+                { "label": "E", "text": "Personal autonomy" }
+              ]
+            }
+          ]
+        },
+        {
+          "axis_id": "L2_A3",
+          "name": "Immediate ↔ Deferred Reward",
+          "definition": "What payoff horizon does this person naturally optimize for?",
+          "poles": {
+            "low": { "label": "Immediate", "description": "Prefers near-term payoff and fast feedback." },
+            "high": { "label": "Deferred", "description": "Prefers long-term payoff and delayed rewards." }
+          },
+          "questions": [
+            {
+              "question_id": "L2_A3_Q1",
+              "text": "When choosing between a quick benefit and a larger future benefit, they usually prefer:",
+              "options": [
+                { "label": "A", "text": "Immediate benefit" },
+                { "label": "B", "text": "Slightly sooner benefit" },
+                { "label": "C", "text": "Depends on circumstances" },
+                { "label": "D", "text": "Slightly delayed benefit" },
+                { "label": "E", "text": "Long-term benefit" }
+              ]
+            },
+            {
+              "question_id": "L2_A3_Q2",
+              "text": "They are more comfortable investing effort when the payoff is:",
+              "options": [
+                { "label": "A", "text": "Immediate" },
+                { "label": "B", "text": "Soon" },
+                { "label": "C", "text": "Unclear but reasonable" },
+                { "label": "D", "text": "Clearly long-term" },
+                { "label": "E", "text": "Very long-term" }
+              ]
+            },
+            {
+              "question_id": "L2_A3_Q3",
+              "text": "In planning ahead, this person usually thinks in terms of:",
+              "options": [
+                { "label": "A", "text": "Days or weeks" },
+                { "label": "B", "text": "Weeks or months" },
+                { "label": "C", "text": "Both short and long term" },
+                { "label": "D", "text": "Months or years" },
+                { "label": "E", "text": "Years or longer" }
+              ]
+            }
+          ]
+        },
+        {
+          "axis_id": "L2_A4",
+          "name": "Status ↔ Belonging",
+          "definition": "In social trade-offs, does this person drift toward distinction or connection?",
+          "poles": {
+            "low": { "label": "Belonging", "description": "Prioritizes harmony, inclusion, and closeness." },
+            "high": { "label": "Status", "description": "Prioritizes recognition, rank, and distinction." }
+          },
+          "questions": [
+            {
+              "question_id": "L2_A4_Q1",
+              "text": "In social situations, this person seems to care more about:",
+              "options": [
+                { "label": "A", "text": "Being included and accepted" },
+                { "label": "B", "text": "Fitting in comfortably" },
+                { "label": "C", "text": "Both equally" },
+                { "label": "D", "text": "Being respected or admired" },
+                { "label": "E", "text": "Standing out" }
+              ]
+            },
+            {
+              "question_id": "L2_A4_Q2",
+              "text": "When a choice might improve reputation but risk social harmony, they usually:",
+              "options": [
+                { "label": "A", "text": "Protect harmony" },
+                { "label": "B", "text": "Lean toward harmony" },
+                { "label": "C", "text": "Decide case by case" },
+                { "label": "D", "text": "Lean toward reputation" },
+                { "label": "E", "text": "Prioritize reputation" }
+              ]
+            },
+            {
+              "question_id": "L2_A4_Q3",
+              "text": "They appear more motivated by:",
+              "options": [
+                { "label": "A", "text": "Feeling close to others" },
+                { "label": "B", "text": "Being part of a group" },
+                { "label": "C", "text": "A mix of both" },
+                { "label": "D", "text": "Recognition for competence" },
+                { "label": "E", "text": "Status or distinction" }
+              ]
+            }
+          ]
+        },
+        {
+          "axis_id": "L2_A5",
+          "name": "Internal ↔ External Validation",
+          "definition": "Where does this person primarily source what matters?",
+          "poles": {
+            "low": { "label": "External", "description": "Relies on feedback, norms, and others' approval." },
+            "high": { "label": "Internal", "description": "Relies on internal standards and self-validation." }
+          },
+          "questions": [
+            {
+              "question_id": "L2_A5_Q1",
+              "text": "When deciding if something is good enough, they rely more on:",
+              "options": [
+                { "label": "A", "text": "Others’ feedback" },
+                { "label": "B", "text": "External standards" },
+                { "label": "C", "text": "Both equally" },
+                { "label": "D", "text": "Personal judgment" },
+                { "label": "E", "text": "Internal standards" }
+              ]
+            },
+            {
+              "question_id": "L2_A5_Q2",
+              "text": "Praise or criticism affects them most when it comes from:",
+              "options": [
+                { "label": "A", "text": "Almost anyone" },
+                { "label": "B", "text": "People they respect" },
+                { "label": "C", "text": "Depends on context" },
+                { "label": "D", "text": "Few select individuals" },
+                { "label": "E", "text": "Mostly themselves" }
+              ]
+            },
+            {
+              "question_id": "L2_A5_Q3",
+              "text": "If others disagree with their decision, they usually:",
+              "options": [
+                { "label": "A", "text": "Reconsider quickly" },
+                { "label": "B", "text": "Reassess carefully" },
+                { "label": "C", "text": "Weigh both sides" },
+                { "label": "D", "text": "Trust their own reasoning" },
+                { "label": "E", "text": "Stand by their judgment" }
+              ]
+            }
+          ]
+        },
+        {
+          "axis_id": "L2_A6",
+          "name": "Depth ↔ Breadth",
+          "definition": "Does this person drift toward focus or exploration?",
+          "poles": {
+            "low": { "label": "Depth", "description": "Concentrates on fewer domains with sustained focus." },
+            "high": { "label": "Breadth", "description": "Explores widely across many domains and interests." }
+          },
+          "questions": [
+            {
+              "question_id": "L2_A6_Q1",
+              "text": "When learning new things, they usually prefer to:",
+              "options": [
+                { "label": "A", "text": "Focus deeply on one area" },
+                { "label": "B", "text": "Explore a few related areas" },
+                { "label": "C", "text": "Balance depth and variety" },
+                { "label": "D", "text": "Sample many areas" },
+                { "label": "E", "text": "Explore widely" }
+              ]
+            },
+            {
+              "question_id": "L2_A6_Q2",
+              "text": "Over time, their interests tend to:",
+              "options": [
+                { "label": "A", "text": "Narrow and deepen" },
+                { "label": "B", "text": "Slowly refine" },
+                { "label": "C", "text": "Shift occasionally" },
+                { "label": "D", "text": "Change frequently" },
+                { "label": "E", "text": "Rotate across many areas" }
+              ]
+            },
+            {
+              "question_id": "L2_A6_Q3",
+              "text": "When choosing commitments, they usually prefer:",
+              "options": [
+                { "label": "A", "text": "Few, long-term commitments" },
+                { "label": "B", "text": "Mostly stable commitments" },
+                { "label": "C", "text": "A mix of stable and flexible" },
+                { "label": "D", "text": "Mostly flexible commitments" },
+                { "label": "E", "text": "Many short-term commitments" }
+              ]
+            }
+          ]
+        }
+      ],
+      "output": {
+        "axis_output_fields": ["axis_id", "value", "confidence", "layer_id", "version", "timestamp_iso"],
+        "qualitative_interpretation": {
+          "bucket_rules": [
+            { "range": [0.0, 0.3], "label": "leans_low", "description": "Shows {low_label}: {low_description}. Prefers the low pole in trade-offs." },
+            { "range": [0.3, 0.7], "label": "mixed", "description": "Mixed expression: balances {low_label} and {high_label}; adjusts to context." },
+            { "range": [0.7, 1.0], "label": "leans_high", "description": "Shows {high_label}: {high_description}. Prefers the high pole in trade-offs." }
+          ],
+          "rendering": {
+            "template": "{axis_name}: {bucket_description} (score≈{value})."
+          }
+        },
+        "llm_injection": {
+          "block_title": "MOTIVATIONAL ATTRACTORS — Layer 2",
+          "usage_rules": [
+            "Use these as the persona’s default pull in trade-off situations.",
+            "Stay within the stated lean; 'mixed' means switch based on context, not random.",
+            "Do not override other layers; combine with them for richer roleplay."
+          ],
+          "template": [
+            "[MOTIVATIONAL ATTRACTORS — Layer 2]",
+            "{axis_name}: {bucket_description}"
+          ]
+        }
+      }
+    },
+    {
+      "layer_id": "L3",
+      "name": "Constraints & Non-Negotiables",
+      "version": "1.0.0",
+      "status": "active",
+      "scope": {
+        "purpose": "Capture stable boundaries (what the person will not do and/or will not tolerate) that constrain behavior across contexts, even when incentives push otherwise.",
+        "non_goals": [
+          "Psychological diagnosis",
+          "Clinical trigger profiling",
+          "Moral scoring or virtue ranking",
+          "Emotional state modeling",
+          "Preferences that are not boundary-like"
+        ],
+        "audience": ["observer_report"]
+      },
+      "mechanics": {
+        "questions_per_axis": 3,
+        "total_questions": 18,
+        "answer_scale_ref": "#/ui_defaults/answer_scale",
+        "confidence_ui_ref": "#/ui_defaults/confidence_ui",
+        "question_flow": {
+          "confidence_slider_trigger": "on_answer_selected",
+          "require_confidence_each_question": true
+        }
+      },
+      "axes": [
+        {
+          "axis_id": "L3_A1",
+          "name": "Honesty Boundary",
+          "definition": "How rigidly this person avoids deception, omission, or manipulation under pressure.",
+          "poles": {
+            "low": { "label": "Flexible", "description": "More willing to bend the truth or omit information when convenient or pressured." },
+            "high": { "label": "Rigid", "description": "Avoids deception and omission even when it creates personal cost." }
+          },
+          "questions": [
+            {
+              "question_id": "L3_A1_Q1",
+              "text": "When telling the truth could cause trouble, this person usually:",
+              "options": [
+                { "label": "A", "text": "Lies or hides information" },
+                { "label": "B", "text": "Avoids the truth when convenient" },
+                { "label": "C", "text": "Decides based on context" },
+                { "label": "D", "text": "Tries to stay honest" },
+                { "label": "E", "text": "Stays honest even if it causes problems" }
+              ]
+            },
+            {
+              "question_id": "L3_A1_Q2",
+              "text": "In difficult situations, this person is:",
+              "options": [
+                { "label": "A", "text": "Comfortable bending the truth" },
+                { "label": "B", "text": "Somewhat flexible with honesty" },
+                { "label": "C", "text": "Selective about honesty" },
+                { "label": "D", "text": "Mostly straightforward" },
+                { "label": "E", "text": "Strictly truthful" }
+              ]
+            },
+            {
+              "question_id": "L3_A1_Q3",
+              "text": "Others would describe this person as someone who:",
+              "options": [
+                { "label": "A", "text": "Often withholds or distorts facts" },
+                { "label": "B", "text": "Adjusts the truth when needed" },
+                { "label": "C", "text": "Balances honesty and outcomes" },
+                { "label": "D", "text": "Values honesty highly" },
+                { "label": "E", "text": "Refuses to deceive" }
+              ]
+            }
+          ]
+        },
+        {
+          "axis_id": "L3_A2",
+          "name": "Respect / Dignity Boundary",
+          "definition": "How quickly and firmly this person responds to disrespect or being demeaned.",
+          "poles": {
+            "low": { "label": "Flexible", "description": "More tolerant of disrespect; lets things slide longer." },
+            "high": { "label": "Rigid", "description": "Enforces dignity quickly; low tolerance for disrespect." }
+          },
+          "questions": [
+            {
+              "question_id": "L3_A2_Q1",
+              "text": "When treated disrespectfully, this person usually:",
+              "options": [
+                { "label": "A", "text": "Lets it slide" },
+                { "label": "B", "text": "Tolerates it for a while" },
+                { "label": "C", "text": "Responds depending on context" },
+                { "label": "D", "text": "Pushes back calmly" },
+                { "label": "E", "text": "Addresses it immediately" }
+              ]
+            },
+            {
+              "question_id": "L3_A2_Q2",
+              "text": "If someone speaks to them in a demeaning way, they are likely to:",
+              "options": [
+                { "label": "A", "text": "Ignore it" },
+                { "label": "B", "text": "Downplay it" },
+                { "label": "C", "text": "Decide case by case" },
+                { "label": "D", "text": "Set a boundary" },
+                { "label": "E", "text": "Make it clear it’s unacceptable" }
+              ]
+            },
+            {
+              "question_id": "L3_A2_Q3",
+              "text": "People would say this person:",
+              "options": [
+                { "label": "A", "text": "Puts up with disrespect" },
+                { "label": "B", "text": "Is patient with poor treatment" },
+                { "label": "C", "text": "Has mixed tolerance" },
+                { "label": "D", "text": "Expects basic respect" },
+                { "label": "E", "text": "Does not tolerate disrespect" }
+              ]
+            }
+          ]
+        },
+        {
+          "axis_id": "L3_A3",
+          "name": "Loyalty / Commitment Boundary",
+          "definition": "How rigidly this person holds commitments and loyalty obligations to people or groups.",
+          "poles": {
+            "low": { "label": "Flexible", "description": "More willing to change commitments when circumstances shift." },
+            "high": { "label": "Rigid", "description": "Strongly holds commitments; loyalty remains stable under pressure." }
+          },
+          "questions": [
+            {
+              "question_id": "L3_A3_Q1",
+              "text": "When a commitment becomes inconvenient, this person usually:",
+              "options": [
+                { "label": "A", "text": "Walks away easily" },
+                { "label": "B", "text": "Loosens the commitment" },
+                { "label": "C", "text": "Weighs the situation" },
+                { "label": "D", "text": "Tries to honor it" },
+                { "label": "E", "text": "Sticks to it strongly" }
+              ]
+            },
+            {
+              "question_id": "L3_A3_Q2",
+              "text": "If someone they’re close to struggles, this person tends to:",
+              "options": [
+                { "label": "A", "text": "Distance themselves" },
+                { "label": "B", "text": "Offer limited support" },
+                { "label": "C", "text": "Decide based on circumstances" },
+                { "label": "D", "text": "Stay supportive" },
+                { "label": "E", "text": "Remain loyal no matter what" }
+              ]
+            },
+            {
+              "question_id": "L3_A3_Q3",
+              "text": "Others would describe this person as:",
+              "options": [
+                { "label": "A", "text": "Flexible with loyalty" },
+                { "label": "B", "text": "Selective about commitment" },
+                { "label": "C", "text": "Situationally loyal" },
+                { "label": "D", "text": "Generally dependable" },
+                { "label": "E", "text": "Strongly loyal" }
+              ]
+            }
+          ]
+        },
+        {
+          "axis_id": "L3_A4",
+          "name": "Autonomy Intrusion Boundary",
+          "definition": "How strongly this person resists being controlled, directed, or micromanaged.",
+          "poles": {
+            "low": { "label": "Flexible", "description": "More tolerant of oversight and direction from others." },
+            "high": { "label": "Rigid", "description": "Strongly rejects control or intrusion into decisions." }
+          },
+          "questions": [
+            {
+              "question_id": "L3_A4_Q1",
+              "text": "When others try to control their decisions, this person usually:",
+              "options": [
+                { "label": "A", "text": "Accepts it" },
+                { "label": "B", "text": "Goes along with it" },
+                { "label": "C", "text": "Responds depending on context" },
+                { "label": "D", "text": "Pushes back politely" },
+                { "label": "E", "text": "Rejects it firmly" }
+              ]
+            },
+            {
+              "question_id": "L3_A4_Q2",
+              "text": "If someone tells them what to do without asking, they tend to:",
+              "options": [
+                { "label": "A", "text": "Comply" },
+                { "label": "B", "text": "Tolerate it" },
+                { "label": "C", "text": "Evaluate the situation" },
+                { "label": "D", "text": "Assert independence" },
+                { "label": "E", "text": "Shut it down" }
+              ]
+            },
+            {
+              "question_id": "L3_A4_Q3",
+              "text": "People would say this person:",
+              "options": [
+                { "label": "A", "text": "Is comfortable being directed" },
+                { "label": "B", "text": "Rarely resists control" },
+                { "label": "C", "text": "Is mixed about autonomy" },
+                { "label": "D", "text": "Values personal independence" },
+                { "label": "E", "text": "Strongly resists intrusion" }
+              ]
+            }
+          ]
+        },
+        {
+          "axis_id": "L3_A5",
+          "name": "Fairness / Reciprocity Boundary",
+          "definition": "How strictly this person enforces fairness and avoids being taken advantage of.",
+          "poles": {
+            "low": { "label": "Flexible", "description": "More willing to tolerate imbalance; gives without strict reciprocity." },
+            "high": { "label": "Rigid", "description": "Enforces reciprocity; sets limits or withdraws when imbalance persists." }
+          },
+          "questions": [
+            {
+              "question_id": "L3_A5_Q1",
+              "text": "When effort feels one-sided, this person usually:",
+              "options": [
+                { "label": "A", "text": "Continues anyway" },
+                { "label": "B", "text": "Tolerates imbalance" },
+                { "label": "C", "text": "Decides case by case" },
+                { "label": "D", "text": "Addresses the imbalance" },
+                { "label": "E", "text": "Withdraws or sets limits" }
+              ]
+            },
+            {
+              "question_id": "L3_A5_Q2",
+              "text": "If they feel taken advantage of, they tend to:",
+              "options": [
+                { "label": "A", "text": "Ignore it" },
+                { "label": "B", "text": "Accept it quietly" },
+                { "label": "C", "text": "Reevaluate the situation" },
+                { "label": "D", "text": "Speak up" },
+                { "label": "E", "text": "Stop engaging" }
+              ]
+            },
+            {
+              "question_id": "L3_A5_Q3",
+              "text": "Others would describe this person as someone who:",
+              "options": [
+                { "label": "A", "text": "Gives without expecting much" },
+                { "label": "B", "text": "Is generous to a fault" },
+                { "label": "C", "text": "Balances giving and receiving" },
+                { "label": "D", "text": "Expects fairness" },
+                { "label": "E", "text": "Enforces reciprocity" }
+              ]
+            }
+          ]
+        },
+        {
+          "axis_id": "L3_A6",
+          "name": "Risk / Safety Boundary",
+          "definition": "How strictly this person avoids unsafe, illegal, or unnecessarily risky situations.",
+          "poles": {
+            "low": { "label": "Flexible", "description": "More tolerant of questionable or risky situations." },
+            "high": { "label": "Rigid", "description": "Avoids unsafe/illegal situations; refuses high-consequence risk." }
+          },
+          "questions": [
+            {
+              "question_id": "L3_A6_Q1",
+              "text": "When a situation feels unsafe or questionable, this person usually:",
+              "options": [
+                { "label": "A", "text": "Goes along anyway" },
+                { "label": "B", "text": "Accepts some risk" },
+                { "label": "C", "text": "Decides based on context" },
+                { "label": "D", "text": "Proceeds cautiously" },
+                { "label": "E", "text": "Avoids it entirely" }
+              ]
+            },
+            {
+              "question_id": "L3_A6_Q2",
+              "text": "If an activity could lead to serious consequences, they tend to:",
+              "options": [
+                { "label": "A", "text": "Ignore the risk" },
+                { "label": "B", "text": "Downplay it" },
+                { "label": "C", "text": "Weigh pros and cons" },
+                { "label": "D", "text": "Avoid it if possible" },
+                { "label": "E", "text": "Refuse outright" }
+              ]
+            },
+            {
+              "question_id": "L3_A6_Q3",
+              "text": "People would say this person:",
+              "options": [
+                { "label": "A", "text": "Takes serious risks easily" },
+                { "label": "B", "text": "Is relaxed about safety" },
+                { "label": "C", "text": "Is moderately cautious" },
+                { "label": "D", "text": "Values safety" },
+                { "label": "E", "text": "Has strict safety limits" }
+              ]
+            }
+          ]
+        }
+      ],
+      "output": {
+        "axis_output_fields": ["axis_id", "value", "confidence", "layer_id", "version", "timestamp_iso"],
+        "qualitative_interpretation": {
+          "bucket_rules": [
+            { "range": [0.0, 0.3], "label": "leans_low", "description": "Holds {low_label}: {low_description}. Likely to protect/enforce this boundary in that direction." },
+            { "range": [0.3, 0.7], "label": "mixed", "description": "Mixed stance: balances {low_label} and {high_label}; boundary flex depends on context." },
+            { "range": [0.7, 1.0], "label": "leans_high", "description": "Holds {high_label}: {high_description}. Likely to protect/enforce this boundary in that direction." }
+          ],
+          "rendering": {
+            "template": "{axis_name}: {bucket_description} (score≈{value})."
+          }
+        },
+        "llm_injection": {
+          "block_title": "CONSTRAINTS & NON-NEGOTIABLES — Layer 3",
+          "usage_rules": [
+            "Treat these as boundaries the persona is unlikely to cross.",
+            "If 'mixed', allow situational judgment but remain consistent within the stated poles.",
+            "Do not negate or contradict stronger boundaries expressed here."
+          ],
+          "template": [
+            "[CONSTRAINTS & NON-NEGOTIABLES — Layer 3]",
+            "{axis_name}: {bucket_description}"
+          ]
+        }
+      }
+    },
+    {
+      "layer_id": "L4",
+      "name": "Expressive Style (Qualitative)",
+      "version": "1.0.0",
+      "status": "active",
+      "scope": {
+        "purpose": "Capture observer-perceived expressive qualities using scenario-based adjective selection. Stored qualitatively as adjective frequencies per axis with scenario labels and optional observer notes.",
+        "non_goals": [
+          "Quantitative scoring of expressiveness",
+          "Behavioral tendency measurement (Layer 1)",
+          "Motivational optimization measurement (Layer 2)",
+          "Non-negotiable boundary measurement (Layer 3)"
+        ],
+        "audience": ["observer_report"]
+      },
+      "mechanics": {
+        "question_format": "multi_select_adjectives",
+        "max_adjectives_per_question": 3,
+        "min_adjectives_per_question": 1,
+        "allow_neutral_option": true,
+        "optional_observer_notes": {
+          "enabled": true,
+          "prompt": "Optional note (anything helpful you noticed):",
+          "max_chars": 280
+        },
+        "aggregation": {
+          "type": "adjective_frequency",
+          "rule": "For each axis, count each selected adjective once per question selection. Store counts and scenario labels; do not compute a numeric axis score."
+        }
+      },
+      "axes": [
+        {
+          "axis_id": "L4_A1",
+          "name": "Humor ↔ Seriousness",
+          "definition": "How the person comes across in terms of humor vs seriousness in everyday interactions.",
+          "questions": [
+            {
+              "question_id": "L4_A1_Q1",
+              "scenario_label": "casual_conversation",
+              "scenario_text": "You’re having a casual conversation with this person in a relaxed setting. What does it feel like?",
+              "adjectives": [
+                "Funny",
+                "Playful",
+                "Witty",
+                "Lighthearted",
+                "Cheerful",
+                "Joking",
+                "Neutral",
+                "Serious",
+                "Reserved",
+                "No-nonsense",
+                "Straight-laced",
+                "Somber"
+              ]
+            },
+            {
+              "question_id": "L4_A1_Q2",
+              "scenario_label": "awkward_moment",
+              "scenario_text": "Something awkward or mildly uncomfortable happens during a group interaction. How would this person behave?",
+              "adjectives": [
+                "Joking",
+                "Lighthearted",
+                "Playful",
+                "Relaxed",
+                "Easygoing",
+                "Neutral",
+                "Serious",
+                "Tense",
+                "Reserved",
+                "Quiet",
+                "Stiff",
+                "Somber"
+              ]
+            },
+            {
+              "question_id": "L4_A1_Q3",
+              "scenario_label": "storytelling",
+              "scenario_text": "They are telling a story about something that happened to them. What is the vibe of the story?",
+              "adjectives": [
+                "Funny",
+                "Witty",
+                "Animated",
+                "Entertaining",
+                "Playful",
+                "Neutral",
+                "Serious",
+                "Matter-of-fact",
+                "Reserved",
+                "Flat",
+                "Calm",
+                "Straight-laced"
+              ]
+            }
+          ]
+        },
+        {
+          "axis_id": "L4_A2",
+          "name": "Warmth ↔ Coolness",
+          "definition": "How warm, friendly, and approachable the person seems versus distant or detached.",
+          "questions": [
+            {
+              "question_id": "L4_A2_Q1",
+              "scenario_label": "meeting_new_person",
+              "scenario_text": "You introduce this person to someone new. What is their attitude?",
+              "adjectives": [
+                "Warm",
+                "Friendly",
+                "Approachable",
+                "Kind",
+                "Welcoming",
+                "Open",
+                "Neutral",
+                "Distant",
+                "Cold",
+                "Detached",
+                "Aloof",
+                "Unfriendly"
+              ]
+            },
+            {
+              "question_id": "L4_A2_Q2",
+              "scenario_label": "someone_shares_concern",
+              "scenario_text": "Someone shares a small personal concern with them. How would this person behave?",
+              "adjectives": [
+                "Caring",
+                "Supportive",
+                "Warm",
+                "Understanding",
+                "Gentle",
+                "Neutral",
+                "Reserved",
+                "Detached",
+                "Unmoved",
+                "Cold",
+                "Awkward",
+                "Distant"
+              ]
+            },
+            {
+              "question_id": "L4_A2_Q3",
+              "scenario_label": "greeting_familiar_people",
+              "scenario_text": "They greet people they already know in the ways that are?",
+              "adjectives": [
+                "Friendly",
+                "Warm",
+                "Familiar",
+                "Open",
+                "Relaxed",
+                "Neutral",
+                "Polite",
+                "Reserved",
+                "Distant",
+                "Cool",
+                "Formal",
+                "Detached"
+              ]
+            }
+          ]
+        },
+        {
+          "axis_id": "L4_A3",
+          "name": "Directness ↔ Diplomacy",
+          "definition": "How direct/blunt the person seems versus tactful/diplomatic in communication.",
+          "questions": [
+            {
+              "question_id": "L4_A3_Q1",
+              "scenario_label": "disagreement",
+              "scenario_text": "They disagree with someone in conversation. What is their attitude?",
+              "adjectives": [
+                "Blunt",
+                "Direct",
+                "Straightforward",
+                "Honest",
+                "Bold",
+                "Neutral",
+                "Careful",
+                "Polite",
+                "Tactful",
+                "Diplomatic",
+                "Soft-spoken",
+                "Indirect"
+              ]
+            },
+            {
+              "question_id": "L4_A3_Q2",
+              "scenario_label": "pointing_out_mistake",
+              "scenario_text": "They need to point out a mistake someone made. They would do this in ways that are",
+              "adjectives": [
+                "Direct",
+                "Clear",
+                "Blunt",
+                "Honest",
+                "Efficient",
+                "Neutral",
+                "Gentle",
+                "Careful",
+                "Tactful",
+                "Polite",
+                "Indirect",
+                "Avoidant"
+              ]
+            },
+            {
+              "question_id": "L4_A3_Q3",
+              "scenario_label": "sensitive_feedback",
+              "scenario_text": "They’re giving feedback in a sensitive situation. How would this person behave?",
+              "adjectives": [
+                "Straightforward",
+                "Honest",
+                "Clear",
+                "Direct",
+                "Firm",
+                "Neutral",
+                "Gentle",
+                "Soft",
+                "Diplomatic",
+                "Careful",
+                "Polite",
+                "Avoiding conflict"
+              ]
+            }
+          ]
+        },
+        {
+          "axis_id": "L4_A4",
+          "name": "Energy ↔ Calm",
+          "definition": "How energetic/intense the person seems versus calm/low-key in presence.",
+          "questions": [
+            {
+              "question_id": "L4_A4_Q1",
+              "scenario_label": "entering_room",
+              "scenario_text": "They enter a room where people are already talking. How would they feel?",
+              "adjectives": [
+                "Energetic",
+                "Lively",
+                "Intense",
+                "Active",
+                "Excitable",
+                "Neutral",
+                "Calm",
+                "Relaxed",
+                "Steady",
+                "Low-key",
+                "Quiet",
+                "Laid-back"
+              ]
+            },
+            {
+              "question_id": "L4_A4_Q2",
+              "scenario_label": "spending_hours_together",
+              "scenario_text": "You spend several hours with this person. How would you feel?",
+              "adjectives": [
+                "High-energy",
+                "Lively",
+                "Animated",
+                "Active",
+                "Engaging",
+                "Neutral",
+                "Calm",
+                "Relaxed",
+                "Steady",
+                "Low-energy",
+                "Quiet",
+                "Drained"
+              ]
+            },
+            {
+              "question_id": "L4_A4_Q3",
+              "scenario_label": "hectic_environment",
+              "scenario_text": "Things become hectic or busy around them in the ways that are",
+              "adjectives": [
+                "Energetic",
+                "Driven",
+                "Intense",
+                "Fast-paced",
+                "Alert",
+                "Neutral",
+                "Calm",
+                "Grounded",
+                "Steady",
+                "Unbothered",
+                "Slow",
+                "Relaxed"
+              ]
+            }
+          ]
+        },
+        {
+          "axis_id": "L4_A5",
+          "name": "Expressiveness ↔ Composure",
+          "definition": "How emotionally expressive/open the person appears versus composed/controlled/hard-to-read.",
+          "questions": [
+            {
+              "question_id": "L4_A5_Q1",
+              "scenario_label": "reaction_good_news",
+              "scenario_text": "They react to good news in which ways?",
+              "adjectives": [
+                "Expressive",
+                "Animated",
+                "Open",
+                "Emotional",
+                "Excited",
+                "Neutral",
+                "Calm",
+                "Composed",
+                "Controlled",
+                "Reserved",
+                "Subtle",
+                "Hard-to-read"
+              ]
+            },
+            {
+              "question_id": "L4_A5_Q2",
+              "scenario_label": "reaction_bad_news",
+              "scenario_text": "They react to disappointing news in which ways?",
+              "adjectives": [
+                "Expressive",
+                "Emotional",
+                "Reactive",
+                "Open",
+                "Transparent",
+                "Neutral",
+                "Composed",
+                "Controlled",
+                "Reserved",
+                "Stoic",
+                "Quiet",
+                "Hard-to-read"
+              ]
+            },
+            {
+              "question_id": "L4_A5_Q3",
+              "scenario_label": "everyday_emotions",
+              "scenario_text": "During everyday conversation, their emotions are usually:",
+              "adjectives": [
+                "Open",
+                "Expressive",
+                "Transparent",
+                "Easy-to-read",
+                "Animated",
+                "Neutral",
+                "Composed",
+                "Controlled",
+                "Reserved",
+                "Subtle",
+                "Guarded",
+                "Hard-to-read"
+              ]
+            }
+          ]
+        },
+        {
+          "axis_id": "L4_A6",
+          "name": "Formality ↔ Casualness",
+          "definition": "How formal/structured the person seems versus casual/relaxed in style and manner.",
+          "questions": [
+            {
+              "question_id": "L4_A6_Q1",
+              "scenario_label": "relaxed_social_setting",
+              "scenario_text": "They’re talking in a social setting in what ways?",
+              "adjectives": [
+                "Casual",
+                "Relaxed",
+                "Informal",
+                "Easygoing",
+                "Chill",
+                "Unstructured",
+                "Neutral",
+                "Polite",
+                "Proper",
+                "Formal",
+                "Reserved",
+                "Structured"
+              ]
+            },
+            {
+              "question_id": "L4_A6_Q2",
+              "scenario_label": "meeting_acquaintance",
+              "scenario_text": "They meet someone they don’t know very well. How would they greet them?",
+              "adjectives": [
+                "Casual",
+                "Relaxed",
+                "Informal",
+                "Friendly",
+                "Easygoing",
+                "Neutral",
+                "Polite",
+                "Formal",
+                "Proper",
+                "Professional",
+                "Reserved",
+                "Stiff"
+              ]
+            },
+            {
+              "question_id": "L4_A6_Q3",
+              "scenario_label": "official_situation",
+              "scenario_text": "They’re communicating in a more serious or official situation. What is their style?",
+              "adjectives": [
+                "Professional",
+                "Polished",
+                "Formal",
+                "Structured",
+                "Proper",
+                "Neutral",
+                "Casual",
+                "Relaxed",
+                "Informal",
+                "Loose",
+                "Easygoing",
+                "Unstructured"
+              ]
+            }
+          ]
+        }
+      ],
+      "storage": {
+        "store_raw_responses": true,
+        "raw_response_schema": {
+          "question_id": "string",
+          "scenario_label": "string",
+          "selected_adjectives": "string[]",
+          "observer_note": "string (optional)",
+          "timestamp_iso": "string"
+        },
+        "derived_output_schema": {
+          "axis_id": "string",
+          "scenario_labels": "string[]",
+          "adjective_counts": "object<string, number>",
+          "notes_by_question": "object<string, string>"
+        }
+      },
+      "output": {
+        "type": "qualitative_counts",
+        "description": "Objective adjective frequencies per axis with scenario labels and optional observer notes. No numeric axis value is produced.",
+        "fields": ["axis_id", "scenario_labels", "adjective_counts", "notes_by_question", "layer_id", "version", "timestamp_iso"],
+        "llm_injection": {
+          "block_title": "EXPRESSIVE STYLE — Layer 4",
+          "usage_rules": [
+            "Use these adjectives as observed expressive tendencies in similar scenarios.",
+            "Do not fabricate adjectives beyond what is listed; lean on higher-frequency counts first.",
+            "If multiple adjectives tie, pick ones consistent with other layers’ signals."
+          ],
+          "template": [
+            "[EXPRESSIVE STYLE — Layer 4]",
+            "{axis_name}: {adjective_counts} (scenarios: {scenario_labels})"
+          ]
+        }
+      }
+    },
+    {
+      "layer_id": "L5",
+      "name": "Background Profile",
+      "version": "1.0.0",
+      "status": "Active",
+      "scope": {
+        "purpose": "Store observer-known background information to ground the persona for realistic LLM behavior. This layer is qualitative only (no numeric scoring).",
+        "non_goals": [
+          "Appearance capture (handled elsewhere via image input and other layers)",
+          "Personality scoring or trait inference (handled by Layers 1–4)",
+          "Motivational inference (Layer 2)",
+          "Boundary inference (Layer 3)",
+          "Quantitative encoding of background fields"
+        ],
+        "audience": ["observer_report"]
+      },
+      "mechanics": {
+        "question_format": "free_response_only",
+        "all_fields_optional": true,
+        "input_guidance": {
+          "allow_unknown": true,
+          "unknown_examples": ["Not sure", "Unknown", "Prefer not to say"],
+          "observer_rule": "Answer only what you personally know or have directly observed. If you are unsure, write 'Not sure'."
+        },
+        "session_flow": {
+          "default": "reuse_saved_background",
+          "optional_quick_confirm": true,
+          "quick_confirm_prompt": "Use saved background as-is?",
+          "actions": ["use_as_is", "edit_sections"]
+        }
+      },
+      "sections": [
+        {
+          "section_id": "L5_S1",
+          "name": "Culture",
+          "fields": [
+            {
+              "field_id": "L5_S1_F1",
+              "name": "race",
+              "type": "free_text",
+              "prompt": "If known, how would you describe their racial background? (It’s okay to say “Not sure” or leave blank.)",
+              "examples": ["Black", "White", "East Asian", "South Asian", "Mixed", "Not sure"],
+              "unknown_option_label": "I don't know"
+            },
+            {
+              "field_id": "L5_S1_F2",
+              "name": "languages",
+              "type": "free_text",
+              "prompt": "What language(s) do they speak or use regularly?",
+              "examples": ["English", "English and Spanish", "Mandarin", "Bilingual"],
+              "unknown_option_label": "I don't know"
+            },
+            {
+              "field_id": "L5_S1_F3",
+              "name": "religion",
+              "type": "free_text",
+              "prompt": "Do they identify with or practice a religion (if you know)?",
+              "examples": ["Christian", "Muslim", "Jewish", "Buddhist", "Hindu", "Not religious", "Not sure"],
+              "unknown_option_label": "I don't know"
+            }
+          ]
+        },
+        {
+          "section_id": "L5_S2",
+          "name": "Careers & Education",
+          "fields": [
+            {
+              "field_id": "L5_S2_F1",
+              "name": "current_status",
+              "type": "free_text",
+              "prompt": "What is their current education or career situation, as far as you know?",
+              "examples": ["College student", "Working full-time", "Graduate school", "Between jobs", "Not sure"],
+              "unknown_option_label": "I don't know"
+            },
+            {
+              "field_id": "L5_S2_F2",
+              "name": "school_university",
+              "type": "free_text",
+              "prompt": "If applicable, what school or university do they attend or attended?",
+              "examples": ["University of Tennessee", "Community college", "Not sure"],
+              "unknown_option_label": "I don't know"
+            },
+            {
+              "field_id": "L5_S2_F3",
+              "name": "aspirations",
+              "type": "free_text",
+              "prompt": "If you know, what is their dream job, dream field, or dream school?",
+              "examples": ["Doctor", "Software engineer", "Med school", "Start a business", "Not sure"],
+              "unknown_option_label": "I don't know"
+            }
+          ]
+        },
+        {
+          "section_id": "L5_S3",
+          "name": "Social Environment",
+          "fields": [
+            {
+              "field_id": "L5_S3_F1",
+              "name": "communities",
+              "type": "free_text",
+              "prompt": "What communities or environments do they mainly belong to or spend time in?",
+              "examples": ["School and gym", "Mostly work and online communities", "Church and family", "Not sure"],
+              "unknown_option_label": "I don't know"
+            },
+            {
+              "field_id": "L5_S3_F2",
+              "name": "environment_style",
+              "type": "free_text",
+              "prompt": "How does their social life usually happen, from what you’ve observed?",
+              "examples": ["Mostly group-based", "Mostly one-on-one", "Very online", "Mostly in-person", "Hard to tell"],
+              "unknown_option_label": "I don't know"
+            }
+          ]
+        },
+        {
+          "section_id": "L5_S4",
+          "name": "Hobbies",
+          "fields": [
+            {
+              "field_id": "L5_S4_F1",
+              "name": "hobbies",
+              "type": "free_text",
+              "prompt": "What hobbies or activities do they seem to engage in?",
+              "examples": ["Gym, gaming, cooking", "Studying and reading", "Sports and music", "Not sure"],
+              "unknown_option_label": "I don't know"
+            },
+            {
+              "field_id": "L5_S4_F2",
+              "name": "engagement_level",
+              "type": "free_text",
+              "prompt": "Overall, how invested do they seem in their hobbies?",
+              "examples": ["Casual", "Pretty passionate", "Very central to their life", "No turning back", "Hard to tell"],
+              "unknown_option_label": "I don't know"
+            }
+          ]
+        },
+        {
+          "section_id": "L5_S5",
+          "name": "Media & Aesthetic Preferences",
+          "fields": [
+            {
+              "field_id": "L5_S5_F1",
+              "name": "music",
+              "type": "free_text",
+              "prompt": "What kind of music, artists, or genres do they seem to like?",
+              "examples": ["Drake and R&B", "Taylor Swift", "Lo-fi and jazz", "Not sure"],
+              "unknown_option_label": "I don't know"
+            },
+            {
+              "field_id": "L5_S5_F2",
+              "name": "shows_movies",
+              "type": "free_text",
+              "prompt": "What shows, movies, or types of content do they watch or talk about?",
+              "examples": ["Netflix dramas", "Anime", "Marvel movies", "Not sure"],
+              "unknown_option_label": "I don't know"
+            },
+            {
+              "field_id": "L5_S5_F3",
+              "name": "games",
+              "type": "free_text",
+              "prompt": "Do they play or talk about any games (video games, board games, etc.)?",
+              "examples": ["Valorant", "League of Legends", "Chess", "Not into games", "Not sure"],
+              "unknown_option_label": "I don't know"
+            },
+            {
+              "field_id": "L5_S5_F4",
+              "name": "aesthetic_style",
+              "type": "free_text",
+              "prompt": "How would you describe their general style or aesthetic?",
+              "examples": ["Minimal and clean", "Sporty and casual", "Trendy, very online", "Polished and professional", "Not sure"],
+              "unknown_option_label": "I don't know"
+            }
+          ]
+        }
+      ],
+      "storage": {
+        "store_raw_inputs": true,
+        "store_section_last_updated": true,
+        "section_state_schema": {
+          "section_id": "string",
+          "data": "object",
+          "last_updated_iso": "string"
+        }
+      },
+      "output": {
+        "type": "qualitative_background",
+        "description": "Structured, qualitative background fields intended for LLM grounding and realism (no numeric scoring).",
+        "fields": ["sections", "layer_id", "version", "timestamp_iso"]
+      },
+      "llm_injection": {
+        "block_title": "BACKGROUND PROFILE — Layer 5",
+        "usage_rules": [
+          "Use these facts to ground references and topics naturally.",
+          "Do not invent specific details that contradict these fields.",
+          "If a field is unknown or blank, ask a clarifying question."
+        ],
+        "template": [
+          "[BACKGROUND PROFILE — Layer 5]",
+          "Culture: race={culture.race}; languages={culture.languages}; religion={culture.religion}",
+          "Careers & Education: current_status={career.current_status}; school_university={career.school_university}; aspirations={career.aspirations}",
+          "Social Environment: communities={social.communities}; environment_style={social.environment_style}",
+          "Hobbies: hobbies={hobbies.hobbies}; engagement_level={hobbies.engagement_level}",
+          "Media & Aesthetic Preferences: music={media.music}; shows_movies={media.shows_movies}; games={media.games}; aesthetic_style={media.aesthetic_style}"
+        ]
+      }
+    }
+  ],
+  "extra_information": {
+    "label": "Extra Information",
+    "description": "Supplemental free-response fields mirrored from the analyze/edit UI to collect all user inputs in one place.",
+    "fields": [
+      {
+        "id": "extra_time_life",
+        "name": "Time & Life",
+        "type": "free_text",
+        "placeholder": "Age band (e.g., teens, early 20s, late 20s, 30s, etc.)\nLife stage (student, early career, career transition, established career, etc.)",
+        "unknown_option_label": "I don't know"
+      },
+      {
+        "id": "extra_current_context",
+        "name": "Current Dominant Context",
+        "type": "free_text",
+        "placeholder": "Academic pressure\nCareer building\nFinancial instability\nCaretaking\nHealth recovery\nExploration / transition",
+        "unknown_option_label": "I don't know"
+      },
+      {
+        "id": "extra_stressors",
+        "name": "Active Stressors / Transitions",
+        "type": "free_text",
+        "placeholder": "Recent breakup\nRecent move\nJob search\nExam period\nFamily conflict\nMajor decision phase",
+        "unknown_option_label": "I don't know"
+      },
+      {
+        "id": "extra_cultural_moment",
+        "name": "Cultural / Social Moment",
+        "type": "free_text",
+        "placeholder": "Competitive vs supportive environment\nHigh uncertainty vs stable period\nSocially active vs withdrawn phase\nConformist vs experimental moment",
+        "unknown_option_label": "I don't know"
+      },
+      {
+        "id": "extra_relationship_role",
+        "name": "Relationship Role (Relative to the User)",
+        "type": "free_text",
+        "placeholder": "Stranger\nAcquaintance\nFriend\nClose friend\nRomantic interest\nEx-partner\nAuthority figure",
+        "unknown_option_label": "I don't know"
+      }
+    ],
+    "llm_injection": {
+      "block_title": "EXTRA INFORMATION — UI SYNC",
+      "usage_rules": [
+        "Use these supplemental notes to add situational color when roleplaying the persona.",
+        "If a field is blank or unknown, keep responses vague rather than inventing details.",
+        "Keep consistency with Layers 1–5 when describing or acting as the persona."
+      ],
+      "template": [
+        "[EXTRA INFORMATION — UI SYNC]",
+        "Time & Life: {extra_time_life}",
+        "Current Dominant Context: {extra_current_context}",
+        "Active Stressors / Transitions: {extra_stressors}",
+        "Cultural / Social Moment: {extra_cultural_moment}",
+        "Relationship Role (Relative to the User): {extra_relationship_role}"
+      ]
+    }
+  },
+  "layer_templates": {
+    "next_layer_skeleton": {
+      "layer_id": "Lx_TEMPLATE",
+      "name": "Layer Name Here",
+      "version": "0.1.0",
+      "status": "draft",
+      "scope": { "purpose": "", "non_goals": [], "audience": [] },
+      "mechanics": {},
+      "axes": [],
+      "output": {}
+    }
+  }
+}

@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign Out - Syntrae</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            --ink: #0b1224;
+            --glass: rgba(255, 255, 255, 0.06);
+            --border: rgba(255, 255, 255, 0.12);
+            --accent: #22d3ee;
+            --accent-hot: #f97316;
+            --text: #e2e8f0;
+            --muted: #94a3b8;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Space Grotesk', 'Helvetica Neue', Arial, sans-serif;
+        }
+
+        body {
+            min-height: 100vh;
+            background: radial-gradient(circle at 20% 20%, rgba(34, 211, 238, 0.08), transparent 30%),
+                        radial-gradient(circle at 80% 10%, rgba(249, 115, 22, 0.08), transparent 25%),
+                        linear-gradient(145deg, #0a0f1f 0%, #0f172a 60%, #0b1224 100%);
+            color: var(--text);
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            overflow-x: hidden;
+            padding: 24px;
+        }
+
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 16px 18px;
+            background: rgba(0, 0, 0, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            backdrop-filter: blur(6px);
+            box-shadow: 0 12px 28px rgba(0, 0, 0, 0.24);
+        }
+
+        .brand-link { text-decoration: none; color: inherit; display: inline-flex; }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .logo-icon {
+            width: 44px;
+            height: 44px;
+            display: grid;
+            place-items: center;
+            border-radius: 12px;
+            background: linear-gradient(135deg, #f84f25, #b8120e);
+            box-shadow: 0 10px 24px rgba(248, 79, 37, 0.35);
+            padding: 6px;
+        }
+
+        .logo-text {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .logo-text span:first-child {
+            font-size: 18px;
+            font-weight: 700;
+            letter-spacing: 1.5px;
+        }
+
+        .logo-text span:last-child {
+            font-size: 13px;
+            color: var(--muted);
+        }
+
+        .main {
+            flex: 1;
+            display: grid;
+            place-items: center;
+            padding: 32px 0;
+        }
+
+        .card {
+            width: min(520px, 100%);
+            background: rgba(8, 10, 16, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 32px;
+            box-shadow: 0 16px 36px rgba(0, 0, 0, 0.35);
+            backdrop-filter: blur(8px);
+            text-align: center;
+        }
+
+        .card h1 {
+            font-size: 24px;
+            margin-bottom: 12px;
+            letter-spacing: 0.5px;
+        }
+
+        .card p {
+            color: var(--muted);
+            line-height: 1.6;
+            margin-bottom: 0;
+        }
+
+        .footer {
+            text-align: center;
+            color: var(--muted);
+            font-size: 13px;
+            padding: 16px 0;
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <a class="logo brand-link" href="landing.html">
+            <div class="logo-icon" aria-label="Syntrae logo">🧠</div>
+            <div class="logo-text">
+                <span>SYNTRAE</span>
+                <span>Persona Simulation Engine</span>
+            </div>
+        </a>
+    </header>
+
+    <main class="main">
+        <div class="card">
+            <h1>You are now signed out</h1>
+            <p>Please close this tab.</p>
+        </div>
+    </main>
+
+    <div class="footer">© 2026 Syntrae. All rights reserved.</div>
+</body>
+</html>

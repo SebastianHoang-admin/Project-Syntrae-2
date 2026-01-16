@@ -1,0 +1,1112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Edit Persona | Syntrae</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --ink: #0b1224;
+      --panel: rgba(255,255,255,0.04);
+      --panel-strong: rgba(255,255,255,0.08);
+      --border: rgba(255,255,255,0.12);
+      --accent: #22d3ee;
+      --accent-hot: #f97316;
+      --text: #e2e8f0;
+      --muted: #94a3b8;
+      --glow: rgba(34, 211, 238, 0.24);
+    }
+    * { margin:0; padding:0; box-sizing:border-box; font-family:'Space Grotesk','Helvetica Neue',Arial,sans-serif; }
+    body {
+      min-height: 100vh;
+      background: radial-gradient(circle at 20% 20%, rgba(34, 211, 238, 0.08), transparent 32%),
+                  radial-gradient(circle at 80% 10%, rgba(249, 115, 22, 0.08), transparent 26%),
+                  linear-gradient(145deg, #0a0f1f 0%, #0f172a 58%, #0b1224 100%);
+      color: var(--text);
+      padding: 32px 24px 64px;
+    }
+    a { color: inherit; text-decoration: none; }
+    html { scroll-behavior: smooth; }
+    header {
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      margin-bottom:18px;
+      gap: 12px;
+      flex-wrap: wrap;
+      position: sticky;
+      top: 12px;
+      z-index: 20;
+      background: transparent;
+      backdrop-filter: blur(10px);
+      border: none;
+      border-radius: 14px;
+      padding: 8px 12px;
+      width: 100%;
+    }
+    .back-btn {
+      display:inline-flex;
+      align-items:center;
+      gap:10px;
+      padding: 11px 14px;
+      border-radius: 12px;
+      border: 1px solid rgba(255,255,255,0.25);
+      background: transparent;
+      color: var(--text);
+      font-weight: 800;
+      box-shadow: none;
+      white-space: nowrap;
+      align-self: flex-start;
+      transition: transform 180ms ease, box-shadow 200ms ease, border-color 180ms ease, background 200ms ease;
+    }
+    .back-btn:hover {
+      transform: translateY(-1px) scale(1.02);
+      border-color: rgba(34,211,238,0.35);
+      background: rgba(34,211,238,0.06);
+      box-shadow: 0 0 0 6px rgba(34,211,238,0.12);
+    }
+    .back-btn .arrow { font-weight: 900; }
+    .save-btn {
+      display:inline-flex;
+      align-items:center;
+      gap:10px;
+      padding: 14px 20px;
+      border-radius: 14px;
+      border: 1px solid rgba(255,255,255,0.28);
+      background: linear-gradient(135deg, var(--accent), var(--accent-hot));
+      color: #0b1224;
+      font-weight: 900;
+      font-size: 15px;
+      box-shadow: 0 14px 28px rgba(34,211,238,0.28);
+      white-space: nowrap;
+      transition: transform 180ms ease, box-shadow 200ms ease;
+    }
+    .save-btn:hover {
+      transform: translateY(-1px) scale(1.02);
+      box-shadow: 0 0 0 6px rgba(34,211,238,0.20), 0 14px 32px rgba(34,211,238,0.35);
+      animation: pulse 1.4s ease-in-out infinite;
+    }
+    @keyframes pulse {
+      0% { box-shadow: 0 0 0 6px rgba(34,211,238,0.20), 0 14px 32px rgba(34,211,238,0.35); }
+      50% { box-shadow: 0 0 0 10px rgba(34,211,238,0.10), 0 14px 36px rgba(34,211,238,0.38); }
+      100% { box-shadow: 0 0 0 6px rgba(34,211,238,0.20), 0 14px 32px rgba(34,211,238,0.35); }
+    }
+    main { max-width: 900px; margin: 0 auto; display: grid; gap: 18px; }
+    .status {
+      max-width: 1200px;
+      margin: 0 auto 12px;
+      padding: 10px 14px;
+      border-radius: 12px;
+      border: 1px solid rgba(255,255,255,0.12);
+      background: rgba(255,255,255,0.03);
+      color: var(--muted);
+      font-weight: 600;
+    }
+    .questions { display: grid; gap: 16px; }
+    .question-card {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 18px 18px 16px;
+      box-shadow: 0 16px 42px rgba(0,0,0,0.25);
+      display: grid;
+      gap: 12px;
+    }
+    .question-box {
+      background: linear-gradient(135deg, rgba(34,211,238,0.08), rgba(255,255,255,0.02));
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 14px 16px;
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      gap: 12px;
+      min-height: 64px;
+    }
+    .q-num {
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      display: grid;
+      place-items: center;
+      font-weight: 800;
+      background: linear-gradient(135deg, var(--accent), var(--accent-hot));
+      color: #0b1224;
+      box-shadow: 0 8px 18px rgba(34,211,238,0.28);
+      flex-shrink: 0;
+    }
+    .prompt-wrap { display: grid; gap: 6px; }
+    .prompt { font-size: 16px; line-height: 1.5; font-weight: 600; color: #f8fbff; }
+    .category { font-size: 12px; text-transform: uppercase; letter-spacing: 0.7px; color: var(--muted); font-weight: 700; white-space: nowrap; }
+    .clear-btn {
+      justify-self: end;
+      align-self: center;
+      padding: 8px 10px;
+      border-radius: 10px;
+      border: 1px dashed rgba(255,255,255,0.3);
+      background: rgba(255,255,255,0.04);
+      color: var(--muted);
+      font-weight: 700;
+      font-size: 13px;
+      cursor: pointer;
+      transition: border-color 150ms ease, color 150ms ease, background 150ms ease;
+    }
+    .clear-btn:hover { border-color: var(--accent); color: #f8fbff; background: rgba(34,211,238,0.08); }
+    .free-response {
+      display: grid;
+      gap: 10px;
+    }
+    .free-response textarea {
+      width: 100%;
+      min-height: 120px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,0.03);
+      color: var(--text);
+      padding: 12px;
+      resize: vertical;
+      outline: none;
+      transition: border-color 160ms ease, box-shadow 160ms ease;
+    }
+    .free-response textarea:focus {
+      border-color: var(--accent);
+      box-shadow: 0 8px 22px var(--glow);
+    }
+    .helper { color: var(--muted); font-size: 13px; }
+    .options {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 12px;
+    }
+    .option {
+      position: relative;
+      background: rgba(255,255,255,0.03);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 12px;
+      color: var(--text);
+      cursor: pointer;
+      text-align: left;
+      transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease, background 180ms ease;
+      overflow: hidden;
+    }
+    .option:hover {
+      transform: translateY(-2px) scale(1.01);
+      border-color: var(--accent);
+      box-shadow: 0 12px 28px var(--glow);
+      background: rgba(34,211,238,0.06);
+    }
+    .option.selected {
+      border-color: var(--accent);
+      box-shadow: 0 12px 30px var(--glow);
+      background: rgba(34,211,238,0.08);
+    }
+    .option.open, .option:focus-visible {
+      border-color: var(--accent);
+      box-shadow: 0 12px 30px var(--glow);
+      outline: none;
+    }
+    .option-label {
+      font-weight: 700;
+      font-size: 14px;
+      line-height: 1.4;
+      display: block;
+    }
+    .slider-wrap {
+      margin-top: 10px;
+      padding-top: 10px;
+      border-top: 1px dashed rgba(255,255,255,0.15);
+      max-height: 0;
+      opacity: 0;
+      pointer-events: none;
+      transition: max-height 220ms ease, opacity 180ms ease;
+    }
+    .option.open .slider-wrap {
+      max-height: 180px;
+      opacity: 1;
+      pointer-events: auto;
+    }
+    .confidence-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 13px;
+      color: var(--muted);
+      margin-bottom: 8px;
+    }
+    .confidence-value { color: #f8fbff; font-weight: 700; }
+    .range {
+      width: 100%;
+      accent-color: var(--accent);
+      cursor: pointer;
+      --slider-fill: 0%;
+      -webkit-appearance: none;
+      appearance: none;
+      height: 10px;
+      border-radius: 999px;
+      background: linear-gradient(90deg, var(--accent) 0%, var(--accent) var(--slider-fill), rgba(255,255,255,0.12) var(--slider-fill), rgba(255,255,255,0.12) 100%);
+    }
+    .range::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: #0b1224;
+      border: 2px solid var(--accent);
+      box-shadow: 0 0 0 4px rgba(34,211,238,0.18);
+      transition: transform 140ms ease, box-shadow 140ms ease;
+    }
+    .range:active::-webkit-slider-thumb {
+      transform: scale(1.08);
+      box-shadow: 0 0 0 6px rgba(34,211,238,0.28);
+    }
+    .range::-moz-range-track {
+      height: 10px;
+      border-radius: 999px;
+      background: linear-gradient(90deg, var(--accent) 0%, var(--accent) var(--slider-fill), rgba(255,255,255,0.12) var(--slider-fill), rgba(255,255,255,0.12) 100%);
+    }
+    .range::-moz-range-thumb {
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: #0b1224;
+      border: 2px solid var(--accent);
+      box-shadow: 0 0 0 4px rgba(34,211,238,0.18);
+      transition: transform 140ms ease, box-shadow 140ms ease;
+    }
+    .range:active::-moz-range-thumb {
+      transform: scale(1.08);
+      box-shadow: 0 0 0 6px rgba(34,211,238,0.28);
+    }
+    .ticks {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      font-size: 11px;
+      color: var(--muted);
+      margin-top: 6px;
+      gap: 6px;
+    }
+    .ticks span:first-child::after { content: " unsure"; color: var(--muted); }
+    .ticks span:last-child::after { content: " I'm sure"; color: var(--muted); }
+    .question-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-top: 8px;
+      flex-wrap: wrap;
+    }
+    .question-actions {
+      display: inline-flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .nav-btn {
+      padding: 10px 14px;
+      border-radius: 12px;
+      border: 1px solid rgba(255,255,255,0.25);
+      background: rgba(255,255,255,0.04);
+      color: var(--text);
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .nav-btn:hover:not(:disabled) {
+      border-color: var(--accent);
+      background: rgba(34,211,238,0.08);
+      transform: translateY(-1px);
+    }
+    .nav-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+    .pager {
+      color: var(--muted);
+      font-weight: 700;
+      font-size: 13px;
+      letter-spacing: 0.3px;
+    }
+    @media (max-width: 640px) {
+      body { padding: 22px 18px 48px; }
+      header { flex-direction: column; align-items: flex-start; }
+      .options { grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); }
+      .question-box { padding: 12px 14px; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <a id="backToAnalyze" class="back-btn" href="analyze.html"><span class="arrow">←</span><span>Back to Analyze</span></a>
+    <div class="pager" id="pager"></div>
+    <button id="reviewBtn" class="nav-btn" type="button">Review all answers</button>
+  </header>
+
+  <div id="status" class="status" aria-live="polite">Loading questions…</div>
+
+  <main>
+    <div id="personality" class="questions" style="scroll-margin-top: 120px;"></div>
+  </main>
+
+  <script>
+    const DATASET_PATH = '/data/identitybuilder.json';
+    const personalityRoot = document.getElementById('personality');
+    const backToAnalyze = document.getElementById('backToAnalyze');
+    const pagerEl = document.getElementById('pager');
+    const reviewBtn = document.getElementById('reviewBtn');
+    const STORAGE_KEY = 'persona-answers';
+    const SESSION_KEY = 'persona-visible-session';
+    const statusEl = document.getElementById('status');
+
+    const fallbackQuestions = [];
+    let allQuestions = [];
+    let questionMap = new Map();
+    let visibleIds = [];
+    let currentIndex = 0;
+    let hasUnsaved = false;
+    let reviewMode = false;
+    let axisMeta = { L1: {}, L2: {}, L3: {} };
+
+    // Utility: persist combined user input for LLM wiring
+    function saveUsersInput() {
+      const payload = {
+        answers: currentAnswers,
+        savedAt: new Date().toISOString()
+      };
+      localStorage.setItem('users-input', JSON.stringify(payload));
+    }
+
+    function loadStoredAnswers() {
+      try {
+        const parsed = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+        return parsed && typeof parsed === 'object' ? parsed : {};
+      } catch (e) {
+        return {};
+      }
+    }
+
+    let currentAnswers = loadStoredAnswers();
+    // refresh aggregates on load
+    saveAxisAggregates();
+
+    function saveAnswers() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(currentAnswers));
+    }
+
+    function saveAxisAggregates() {
+      // Compute averages per axis for layers 1-3
+      const layerBuckets = { L1: {}, L2: {}, L3: {} };
+      Object.values(currentAnswers).forEach(ans => {
+        if (!ans || !ans.axisId || !ans.layerId) return;
+        if (!layerBuckets[ans.layerId]) return;
+        const bucket = layerBuckets[ans.layerId];
+        if (!bucket[ans.axisId]) bucket[ans.axisId] = [];
+        if (typeof ans.value === 'number') bucket[ans.axisId].push(ans.value);
+      });
+      ['L1','L2','L3'].forEach(layerId => {
+        const result = {};
+        const bucket = layerBuckets[layerId];
+        Object.keys(bucket).forEach(axisId => {
+          const vals = bucket[axisId];
+          if (vals.length) {
+            const avg = vals.reduce((a,b)=>a+b,0)/vals.length;
+            result[axisId] = { value: avg };
+          }
+        });
+        localStorage.setItem(`identity-layer-${layerId}`, JSON.stringify(result));
+      });
+    }
+
+    function updateFill(slider, val, confidenceValue) {
+      const percent = ((Number(val) - 1) / 4) * 100;
+      slider.style.setProperty('--slider-fill', `${percent}%`);
+      confidenceValue.textContent = `${val}/5`;
+    }
+
+    function saveSession(session) {
+      localStorage.setItem(SESSION_KEY, JSON.stringify(session));
+    }
+
+    function loadSession() {
+      try {
+        const parsed = JSON.parse(localStorage.getItem(SESSION_KEY) || '{}');
+        return parsed && typeof parsed === 'object' ? parsed : {};
+      } catch (e) {
+        return {};
+      }
+    }
+
+    function renderCurrentQuestion() {
+      const visibleQuestions = visibleIds.map((id) => questionMap.get(id)).filter(Boolean);
+      personalityRoot.innerHTML = '';
+
+      if (!visibleQuestions.length) {
+        statusEl.textContent = 'No questions available. If you opened this file directly, try running a local server (e.g., python3 -m http.server) and reload.';
+        return;
+      }
+
+      if (reviewMode) {
+        statusEl.textContent = `Reviewing all ${visibleQuestions.length} questions`;
+        pagerEl.textContent = 'Review Mode';
+        renderAllQuestions(visibleQuestions);
+        return;
+      }
+
+      const total = visibleQuestions.length;
+      const safeIndex = Math.min(Math.max(0, currentIndex), total - 1);
+      currentIndex = safeIndex;
+      const q = visibleQuestions[safeIndex];
+      const stored = currentAnswers[q.id];
+      hasUnsaved = false;
+
+      statusEl.textContent = `Question ${safeIndex + 1} of ${total}`;
+      pagerEl.textContent = `Question ${safeIndex + 1} of ${total}`;
+
+      const card = document.createElement('section');
+      card.className = 'question-card';
+
+      const box = document.createElement('div');
+      box.className = 'question-box';
+      box.innerHTML = `
+        <div class="q-num">${safeIndex + 1}</div>
+        <div class="prompt-wrap">
+          <div class="prompt">${q.prompt}</div>
+          <div class="category">${q.category || ''}</div>
+        </div>
+        <button class="clear-btn" type="button">Clear answer</button>
+      `;
+
+      const footer = document.createElement('div');
+      footer.className = 'question-footer';
+      const statusSpan = document.createElement('span');
+      statusSpan.className = 'pager';
+      const saveBtn = document.createElement('button');
+      saveBtn.type = 'button';
+      saveBtn.className = 'save-btn';
+      saveBtn.textContent = safeIndex === total - 1 ? 'Save & Finish' : 'Save & Next';
+      const prevBtn = document.createElement('button');
+      prevBtn.type = 'button';
+      prevBtn.className = 'nav-btn';
+      prevBtn.textContent = 'Save & Previous Question';
+      prevBtn.disabled = safeIndex === 0;
+
+      const updateSaveState = (enabled, message) => {
+        saveBtn.disabled = !enabled;
+        saveBtn.style.opacity = enabled ? '1' : '0.5';
+        statusSpan.textContent = message;
+      };
+
+      const options = document.createElement('div');
+      options.className = q.type === 'free' ? 'free-response' : 'options';
+      const optionButtons = [];
+
+      if (q.type === 'choice') {
+        q.options.forEach((optionData, optIndex) => {
+          const label = optionData.label || optionData.text || optionData;
+          const detail = optionData.text || '';
+          const option = document.createElement('button');
+          option.type = 'button';
+          option.className = 'option';
+          option.setAttribute('aria-label', `${label}, confidence slider 1 to 5`);
+          option.dataset.question = q.id;
+          option.dataset.option = optIndex + 1;
+          const sliderId = `${q.id}_opt${optIndex + 1}_slider`;
+          const isStoredSelection = stored && stored.option === optIndex + 1;
+          const startingConfidence = isStoredSelection && stored.confidence ? stored.confidence : 1;
+
+          option.innerHTML = `
+            <span class="option-label"><strong>${label}</strong>${detail ? ` — ${detail}` : ''}</span>
+            <div class="slider-wrap">
+              <div class="confidence-row">
+                <span>Confidence</span>
+                <span class="confidence-value">1/5</span>
+              </div>
+              <input class="range" id="${sliderId}" type="range" min="1" max="5" step="1" value="${startingConfidence}" aria-label="Confidence from 1 unsure to 5 sure">
+              <div class="ticks">
+                <span>1</span>
+                <span>2</span>
+                <span>3</span>
+                <span>4</span>
+                <span>5</span>
+              </div>
+            </div>
+          `;
+
+          const sliderWrap = option.querySelector('.slider-wrap');
+          const slider = option.querySelector('.range');
+          const confidenceValue = option.querySelector('.confidence-value');
+
+          option.addEventListener('click', () => {
+            // Single-choice behavior (Layers 1–3): clear any other selection and slider state
+            optionButtons.forEach(btn => btn.option.classList.remove('selected', 'open'));
+            option.classList.add('selected');
+            option.classList.toggle('open');
+            currentAnswers[q.id] = {
+              option: optIndex + 1,
+              confidence: Number(slider.value),
+              value: optionData.value != null ? optionData.value : null,
+              axisId: q.axisId || null,
+              layerId: q.layerId || null
+            };
+            hasUnsaved = true;
+            saveAnswers();
+            saveUsersInput();
+            saveAxisAggregates();
+            updateSaveState(true, 'Answer ready to save');
+          });
+
+          sliderWrap.addEventListener('click', (e) => e.stopPropagation());
+          sliderWrap.addEventListener('mousedown', (e) => e.stopPropagation());
+          sliderWrap.addEventListener('touchstart', (e) => e.stopPropagation(), { passive: true });
+
+          slider.addEventListener('input', (e) => {
+            updateFill(slider, e.target.value, confidenceValue);
+            const existing = currentAnswers[q.id];
+            currentAnswers[q.id] = {
+              option: existing ? existing.option : optIndex + 1,
+              confidence: Number(e.target.value),
+              value: optionData.value != null ? optionData.value : null,
+              axisId: q.axisId || null,
+              layerId: q.layerId || null
+            };
+            hasUnsaved = true;
+            saveAnswers();
+            saveUsersInput();
+            saveAxisAggregates();
+            updateSaveState(true, 'Answer ready to save');
+          });
+          updateFill(slider, slider.value, confidenceValue);
+
+          if (isStoredSelection) {
+            option.classList.add('selected', 'open');
+          }
+
+          optionButtons.push({ option, slider, confidenceValue });
+          options.appendChild(option);
+        });
+      } else if (q.type === 'multi') {
+        const selected = (stored && Array.isArray(stored.selected)) ? new Set(stored.selected) : new Set();
+        const limit = q.layerId === 'L4' ? 3 : Infinity;
+        q.options.forEach((label, idx) => {
+          const option = document.createElement('button');
+          option.type = 'button';
+          option.className = 'option';
+          option.textContent = label;
+          option.dataset.question = q.id;
+          option.dataset.option = idx + 1;
+          if (selected.has(label)) option.classList.add('selected');
+          option.addEventListener('click', () => {
+            if (selected.has(label)) {
+              selected.delete(label);
+            } else {
+              if (selected.size >= limit) {
+                statusSpan.textContent = `Choose up to ${limit} (currently ${selected.size})`;
+                return;
+              }
+              selected.add(label);
+            }
+            option.classList.toggle('selected');
+            currentAnswers[q.id] = {
+              type: 'multi',
+              selected: Array.from(selected),
+              axisId: q.axisId || null,
+              layerId: q.layerId || null
+            };
+            hasUnsaved = true;
+            saveAnswers();
+            saveUsersInput();
+            updateSaveState(selected.size > 0, selected.size ? `Answer ready ( ${selected.size}/${isFinite(limit) ? limit : '∞'} )` : 'Provide an answer to enable saving');
+          });
+          options.appendChild(option);
+        });
+        // Add small helper for limit notice
+        if (isFinite(limit)) {
+          const helper = document.createElement('div');
+          helper.className = 'helper';
+          helper.textContent = `Choose up to ${limit} adjectives.`;
+          options.appendChild(helper);
+        }
+      } else if (q.type === 'free') {
+        const textarea = document.createElement('textarea');
+        textarea.placeholder = q.placeholder || '';
+        textarea.value = stored && stored.text ? stored.text : '';
+        textarea.addEventListener('input', () => {
+          currentAnswers[q.id] = {
+            type: 'free',
+            text: textarea.value,
+            sectionId: q.sectionId || null,
+            layerId: q.layerId || null
+          };
+          hasUnsaved = true;
+          saveAnswers();
+          saveUsersInput();
+          if (q.extraField) {
+            localStorage.setItem(`extra-${q.extraField}`, textarea.value);
+          }
+          const hasText = textarea.value && textarea.value.trim().length > 0;
+          updateSaveState(hasText, hasText ? 'Answer ready to save' : 'Provide an answer to enable saving');
+        });
+        options.appendChild(textarea);
+        if (q.helper) {
+          const helper = document.createElement('div');
+          helper.className = 'helper';
+          helper.textContent = q.helper;
+          options.appendChild(helper);
+        }
+      }
+
+      const clearBtn = box.querySelector('.clear-btn');
+      clearBtn.addEventListener('click', () => {
+        optionButtons.forEach(({ option, slider, confidenceValue }) => {
+          option.classList.remove('open', 'selected');
+          if (slider) {
+            slider.value = 1;
+            if (confidenceValue) updateFill(slider, 1, confidenceValue);
+          }
+        });
+        delete currentAnswers[q.id];
+        hasUnsaved = true;
+        saveAnswers();
+        updateSaveState(false, 'Provide an answer to enable saving');
+      });
+      const isAnswered = !!currentAnswers[q.id] && ((q.type === 'choice' && currentAnswers[q.id].option) || (q.type === 'multi' && currentAnswers[q.id].selected && currentAnswers[q.id].selected.length) || (q.type === 'free' && currentAnswers[q.id].text && currentAnswers[q.id].text.trim().length));
+      updateSaveState(isAnswered, isAnswered ? 'Answer ready to save' : 'Provide an answer to enable saving');
+
+      saveBtn.addEventListener('click', () => {
+        hasUnsaved = false;
+        saveAnswers();
+        saveUsersInput();
+        saveAxisAggregates();
+        updateSaveState(true, 'Saved locally');
+        if (safeIndex < total - 1) {
+          currentIndex = safeIndex + 1;
+          saveSession({ visibleIds, currentIndex });
+          renderCurrentQuestion();
+        } else {
+          statusEl.textContent = 'All questions saved locally.';
+        }
+      });
+
+      prevBtn.addEventListener('click', () => {
+        if (safeIndex > 0) {
+          saveAnswers();
+          saveUsersInput();
+          saveAxisAggregates();
+          hasUnsaved = false;
+          currentIndex = safeIndex - 1;
+          saveSession({ visibleIds, currentIndex });
+          renderCurrentQuestion();
+        }
+      });
+
+      const actions = document.createElement('div');
+      actions.className = 'question-actions';
+      actions.appendChild(prevBtn);
+      actions.appendChild(saveBtn);
+
+      footer.appendChild(statusSpan);
+      footer.appendChild(actions);
+
+      card.appendChild(box);
+      card.appendChild(options);
+      card.appendChild(footer);
+      personalityRoot.appendChild(card);
+    }
+
+    function renderAllQuestions(list) {
+      const visibleQuestions = list || visibleIds.map((id) => questionMap.get(id)).filter(Boolean);
+      personalityRoot.innerHTML = '';
+
+      if (!visibleQuestions.length) {
+        statusEl.textContent = 'No questions available. If you opened this file directly, try running a local server (e.g., python3 -m http.server) and reload.';
+        return;
+      }
+
+      statusEl.textContent = `Extended view — ${visibleQuestions.length} questions`;
+      pagerEl.textContent = 'Extended view';
+
+      visibleQuestions.forEach((q, safeIndex) => {
+        const stored = currentAnswers[q.id];
+
+        const card = document.createElement('section');
+        card.className = 'question-card';
+
+        const box = document.createElement('div');
+        box.className = 'question-box';
+        box.innerHTML = `
+          <div class="q-num">${safeIndex + 1}</div>
+          <div class="prompt-wrap">
+            <div class="prompt">${q.prompt}</div>
+            <div class="category">${q.category || ''}</div>
+          </div>
+          <button class="clear-btn" type="button">Clear answer</button>
+        `;
+
+        const footer = document.createElement('div');
+        footer.className = 'question-footer';
+        const statusSpan = document.createElement('span');
+        statusSpan.className = 'pager';
+        const saveBtn = document.createElement('button');
+        saveBtn.type = 'button';
+        saveBtn.className = 'save-btn';
+        saveBtn.textContent = 'Save';
+        const updateSaveState = (enabled, message) => {
+          saveBtn.disabled = !enabled;
+          saveBtn.style.opacity = enabled ? '1' : '0.5';
+          statusSpan.textContent = message;
+        };
+
+        const options = document.createElement('div');
+        options.className = q.type === 'free' ? 'free-response' : 'options';
+        const optionButtons = [];
+
+      if (q.type === 'choice') {
+        q.options.forEach((optionData, optIndex) => {
+          const label = optionData.label || optionData.text || optionData;
+          const detail = optionData.text || '';
+          const option = document.createElement('button');
+          option.type = 'button';
+          option.className = 'option';
+          option.setAttribute('aria-label', `${label}, confidence slider 1 to 5`);
+          option.dataset.question = q.id;
+            option.dataset.option = optIndex + 1;
+
+            const sliderId = `${q.id}_opt${optIndex + 1}_slider_review`;
+            const isStoredSelection = stored && stored.option === optIndex + 1;
+            const startingConfidence = isStoredSelection && stored.confidence ? stored.confidence : 1;
+
+            option.innerHTML = `
+            <span class="option-label"><strong>${label}</strong>${detail ? ` — ${detail}` : ''}</span>
+            <div class="slider-wrap">
+              <div class="confidence-row">
+                <span>Confidence</span>
+                  <span class="confidence-value">1/5</span>
+                </div>
+                <input class="range" id="${sliderId}" type="range" min="1" max="5" step="1" value="${startingConfidence}" aria-label="Confidence from 1 unsure to 5 sure">
+                <div class="ticks">
+                  <span>1</span>
+                  <span>2</span>
+                  <span>3</span>
+                  <span>4</span>
+                  <span>5</span>
+                </div>
+              </div>
+            `;
+
+            const sliderWrap = option.querySelector('.slider-wrap');
+            const slider = option.querySelector('.range');
+            const confidenceValue = option.querySelector('.confidence-value');
+
+            option.addEventListener('click', () => {
+              optionButtons.forEach(btn => btn.option.classList.remove('selected', 'open'));
+              option.classList.add('selected');
+              option.classList.toggle('open');
+              currentAnswers[q.id] = {
+                option: optIndex + 1,
+                confidence: Number(slider.value),
+                value: optionData.value != null ? optionData.value : null,
+                axisId: q.axisId || null,
+                layerId: q.layerId || null
+              };
+              hasUnsaved = true;
+              saveAnswers();
+              saveUsersInput();
+              saveAxisAggregates();
+              updateSaveState(true, 'Answer ready to save');
+            });
+
+            sliderWrap.addEventListener('click', (e) => e.stopPropagation());
+            sliderWrap.addEventListener('mousedown', (e) => e.stopPropagation());
+            sliderWrap.addEventListener('touchstart', (e) => e.stopPropagation(), { passive: true });
+
+            slider.addEventListener('input', (e) => {
+              updateFill(slider, e.target.value, confidenceValue);
+              const existing = currentAnswers[q.id];
+              currentAnswers[q.id] = {
+                option: existing ? existing.option : optIndex + 1,
+                confidence: Number(e.target.value),
+                value: optionData.value != null ? optionData.value : null,
+                axisId: q.axisId || null,
+                layerId: q.layerId || null
+              };
+              hasUnsaved = true;
+              saveAnswers();
+              saveUsersInput();
+              saveAxisAggregates();
+              updateSaveState(true, 'Answer ready to save');
+            });
+            updateFill(slider, slider.value, confidenceValue);
+
+            if (isStoredSelection) {
+              option.classList.add('selected', 'open');
+            }
+
+            optionButtons.push({ option, slider, confidenceValue });
+            options.appendChild(option);
+          });
+        } else if (q.type === 'multi') {
+          const selected = (stored && Array.isArray(stored.selected)) ? new Set(stored.selected) : new Set();
+          const limit = q.layerId === 'L4' ? 3 : Infinity;
+          q.options.forEach((label, idx) => {
+            const option = document.createElement('button');
+            option.type = 'button';
+            option.className = 'option';
+            option.textContent = label;
+            option.dataset.question = q.id;
+            option.dataset.option = idx + 1;
+            if (selected.has(label)) option.classList.add('selected');
+            option.addEventListener('click', () => {
+              if (selected.has(label)) {
+                selected.delete(label);
+              } else {
+                if (selected.size >= limit) {
+                  statusSpan.textContent = `Choose up to ${limit} (currently ${selected.size})`;
+                  return;
+                }
+                selected.add(label);
+              }
+              option.classList.toggle('selected');
+              currentAnswers[q.id] = { type: 'multi', selected: Array.from(selected), axisId: q.axisId || null, layerId: q.layerId || null };
+              hasUnsaved = true;
+              saveAnswers();
+              saveUsersInput();
+              updateSaveState(selected.size > 0, selected.size ? `Answer ready ( ${selected.size}/${isFinite(limit) ? limit : '∞'} )` : 'Provide an answer to enable saving');
+            });
+            options.appendChild(option);
+          });
+          if (isFinite(limit)) {
+            const helper = document.createElement('div');
+            helper.className = 'helper';
+            helper.textContent = `Choose up to ${limit} adjectives.`;
+            options.appendChild(helper);
+          }
+        } else if (q.type === 'free') {
+          const textarea = document.createElement('textarea');
+          textarea.placeholder = q.placeholder || '';
+          textarea.value = stored && stored.text ? stored.text : '';
+          textarea.addEventListener('input', () => {
+            currentAnswers[q.id] = {
+              type: 'free',
+              text: textarea.value,
+              sectionId: q.sectionId || null,
+              layerId: q.layerId || null
+            };
+            hasUnsaved = true;
+            saveAnswers();
+            saveUsersInput();
+            if (q.extraField) {
+              localStorage.setItem(`extra-${q.extraField}`, textarea.value);
+            }
+            const hasText = textarea.value && textarea.value.trim().length > 0;
+            updateSaveState(hasText, hasText ? 'Answer ready to save' : 'Provide an answer to enable saving');
+          });
+          options.appendChild(textarea);
+          if (q.helper) {
+            const helper = document.createElement('div');
+            helper.className = 'helper';
+            helper.textContent = q.helper;
+            options.appendChild(helper);
+          }
+        }
+
+        const clearBtn = box.querySelector('.clear-btn');
+        clearBtn.addEventListener('click', () => {
+          optionButtons.forEach(({ option, slider, confidenceValue }) => {
+            option.classList.remove('open', 'selected');
+            slider.value = 1;
+            updateFill(slider, 1, confidenceValue);
+          });
+          delete currentAnswers[q.id];
+          hasUnsaved = true;
+          saveAnswers();
+          updateSaveState(false, 'Provide an answer to enable saving');
+        });
+
+        const isAnswered = !!currentAnswers[q.id] && ((q.type === 'choice' && currentAnswers[q.id].option) || (q.type === 'multi' && currentAnswers[q.id].selected && currentAnswers[q.id].selected.length) || (q.type === 'free' && currentAnswers[q.id].text && currentAnswers[q.id].text.trim().length));
+        updateSaveState(isAnswered, isAnswered ? 'Answer ready to save' : 'Provide an answer to enable saving');
+
+        saveBtn.addEventListener('click', () => {
+          hasUnsaved = false;
+          saveAnswers();
+          saveUsersInput();
+          saveAxisAggregates();
+          updateSaveState(!!currentAnswers[q.id], 'Saved locally');
+        });
+
+        const actions = document.createElement('div');
+        actions.className = 'question-actions';
+        actions.appendChild(saveBtn);
+
+        footer.appendChild(statusSpan);
+        footer.appendChild(actions);
+
+        card.appendChild(box);
+        card.appendChild(options);
+        card.appendChild(footer);
+        personalityRoot.appendChild(card);
+      });
+    }
+
+    async function loadQuestions() {
+      try {
+        statusEl.textContent = 'Loading questions…';
+        const res = await fetch(DATASET_PATH, { cache: 'no-store' });
+        if (!res.ok) throw new Error(`Fetch failed (${res.status}) for ${DATASET_PATH}`);
+        const data = await res.json();
+        const answerScale = (data.ui_defaults && data.ui_defaults.answer_scale && data.ui_defaults.answer_scale.options) || [];
+        const labelToValue = {};
+        answerScale.forEach(o => { if (o.label != null && o.value != null) labelToValue[o.label] = o.value; });
+
+        const questions = [];
+        const layers = Array.isArray(data.layers) ? data.layers : [];
+
+        layers.forEach(layer => {
+          if (['L1','L2','L3'].includes(layer.layer_id) && Array.isArray(layer.axes)) {
+            layer.axes.forEach(axis => {
+              (axis.questions || []).forEach(q => {
+                const opts = (q.options || []).map(o => ({
+                  label: o.label || o,
+                  text: o.text || '',
+                  value: labelToValue[o.label] != null ? labelToValue[o.label] : null
+                }));
+                questions.push({
+                  id: q.question_id,
+                  prompt: q.text,
+                  category: axis.name || '',
+                  type: 'choice',
+                  options: opts,
+                  axisId: axis.axis_id,
+                  layerId: layer.layer_id
+                });
+              });
+            });
+          } else if (layer.layer_id === 'L4') {
+            (layer.axes || []).forEach(axis => {
+              (axis.questions || []).forEach(q => {
+                questions.push({
+                  id: q.question_id,
+                  prompt: q.scenario_text || q.scenario_label || axis.name || 'Select adjectives',
+                  category: '',
+                  type: 'multi',
+                  options: q.adjectives || [],
+                  axisId: axis.axis_id,
+                  layerId: layer.layer_id
+                });
+              });
+            });
+          } else if (layer.layer_id === 'L5') {
+            (layer.sections || []).forEach(section => {
+              (section.fields || []).forEach(field => {
+                questions.push({
+                  id: field.field_id,
+                  prompt: field.prompt || field.name,
+                  category: section.name || '',
+                  type: 'free',
+                  placeholder: field.placeholder || (field.examples ? field.examples.join(', ') : ''),
+                  sectionId: section.section_id,
+                  layerId: layer.layer_id
+                });
+              });
+            });
+          }
+        });
+
+        if (data.extra_information && Array.isArray(data.extra_information.fields)) {
+          data.extra_information.fields.forEach(f => {
+            questions.push({
+              id: f.id,
+              prompt: f.name,
+              category: 'Extra Information',
+              type: 'free',
+              placeholder: f.placeholder || '',
+              extraField: f.id.replace(/^extra_/, '').replace(/_/g, '-'),
+              layerId: 'EXTRA'
+            });
+          });
+        }
+
+        if (!questions.length) throw new Error('Malformed databank');
+
+        allQuestions = questions;
+        questionMap = new Map(allQuestions.map((q) => [q.id, q]));
+        const session = loadSession();
+        visibleIds = Array.isArray(session.visibleIds) && session.visibleIds.length
+          ? session.visibleIds.filter(id => questionMap.has(id))
+          : questions.map(q => q.id);
+        currentIndex = Number.isInteger(session.currentIndex) ? Math.max(0, Math.min(session.currentIndex, visibleIds.length - 1)) : 0;
+        saveSession({ visibleIds, currentIndex });
+        renderCurrentQuestion();
+      } catch (err) {
+        console.warn('Could not load databank:', err);
+        const msg = err && err.message ? err.message : err;
+        statusEl.textContent = `Question set unavailable — ensure a local server is running and data/identitybuilder.json is reachable. (${msg})`;
+        allQuestions = [];
+        questionMap = new Map();
+        visibleIds = [];
+        personalityRoot.innerHTML = '';
+        console.error('Load failure details:', err);
+      }
+    }
+
+    // Surface unexpected runtime errors to the UI for debugging
+    window.addEventListener('error', (e) => {
+      if (statusEl) statusEl.textContent = `Error: ${e.message}`;
+    });
+    window.addEventListener('unhandledrejection', (e) => {
+      if (statusEl) statusEl.textContent = `Unhandled: ${e.reason}`;
+    });
+    reviewBtn.addEventListener('click', () => {
+      // Toggle between compact (one-at-a-time) and extended (all-at-once) views
+      reviewMode = !reviewMode;
+      reviewBtn.textContent = reviewMode ? 'Return to compact view' : 'Review all answers';
+      if (reviewMode) renderAllQuestions(); else renderCurrentQuestion();
+    });
+
+    loadQuestions().catch((e) => {
+      console.error('loadQuestions rejected:', e);
+      if (statusEl) statusEl.textContent = `Load failed: ${e && e.message ? e.message : e}`;
+    });
+  </script>
+  <script>
+    // Helper to prompt for saving when navigating away
+    function promptSaveIfNeeded(next) {
+      if (!hasUnsaved) {
+        next();
+        return;
+      }
+      const doSave = confirm('You have unsaved changes. Save before continuing?');
+      if (doSave) {
+        saveAnswers();
+        saveUsersInput();
+        saveAxisAggregates();
+        hasUnsaved = false;
+      }
+      next();
+    }
+
+    // Apply to Back to Analyze navigation — auto-save without prompting
+    backToAnalyze.addEventListener('click', (e) => {
+      e.preventDefault();
+      if (hasUnsaved) {
+        saveAnswers();
+        saveUsersInput();
+        saveAxisAggregates();
+        hasUnsaved = false;
+      }
+      window.location.href = backToAnalyze.href;
+    });
+
+    // Apply on tab close / reload
+    window.addEventListener('beforeunload', () => {
+      if (!hasUnsaved) return;
+      // Auto-save without prompting so both “stay” and “leave” paths persist data.
+      saveAnswers();
+      saveUsersInput();
+      saveAxisAggregates();
+      hasUnsaved = false;
+    });
+  </script>
+</body>
+</html>

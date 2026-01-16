@@ -1,0 +1,654 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Syntrae - Persona Simulation Engine</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            --ink: #0b1224;
+            --glass: rgba(255, 255, 255, 0.06);
+            --glass-strong: rgba(255, 255, 255, 0.12);
+            --border: rgba(255, 255, 255, 0.12);
+            --accent: #22d3ee;
+            --accent-hot: #f97316;
+            --text: #e2e8f0;
+            --muted: #94a3b8;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Space Grotesk', 'Helvetica Neue', Arial, sans-serif;
+        }
+
+        body {
+            min-height: 100vh;
+            background: radial-gradient(circle at 20% 20%, rgba(34, 211, 238, 0.08), transparent 30%),
+                        radial-gradient(circle at 80% 10%, rgba(249, 115, 22, 0.08), transparent 25%),
+                        linear-gradient(145deg, #0a0f1f 0%, #0f172a 60%, #0b1224 100%);
+            color: var(--text);
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            overflow-x: hidden;
+            padding-bottom: 20px;
+        }
+
+        /* Decorative animation layers removed */
+
+        .header {
+            position: sticky;
+            top: 0;
+            z-index: 2;
+            background: rgba(0, 0, 0, 0.06);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.14);
+            backdrop-filter: blur(4px);
+            padding: 20px 32px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+        .brand-link { text-decoration: none; color: inherit; display: inline-flex; }
+
+        .logo-icon {
+            width: 56px;
+            height: 56px;
+            display: grid;
+            place-items: center;
+            border-radius: 14px;
+            background: linear-gradient(135deg, #f84f25, #b8120e);
+            box-shadow: 0 12px 30px rgba(248, 79, 37, 0.35);
+            padding: 6px;
+        }
+
+        .logo-text {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .logo-text span:first-child {
+            font-size: 22px;
+            font-weight: 700;
+            letter-spacing: 2px;
+        }
+
+        .logo-text span:last-child {
+            font-size: 14px;
+            color: var(--muted);
+        }
+
+        .more-menu {
+            position: relative;
+            z-index: 20;
+        }
+
+        .more-btn {
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.14);
+            border-radius: 14px;
+            padding: 10px;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            width: 52px;
+            height: 52px;
+            justify-content: center;
+            align-items: center;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+        }
+
+        .more-btn:hover {
+            transform: translateY(-2px) scale(1.01);
+            border-color: rgba(34, 211, 238, 0.5);
+            box-shadow: 0 14px 40px rgba(34, 211, 238, 0.25);
+        }
+
+        .more-btn .line {
+            width: 22px;
+            height: 2px;
+            background: linear-gradient(90deg, var(--accent), var(--accent-hot));
+            border-radius: 999px;
+            transition: all 0.3s ease;
+        }
+
+        .dropdown-menu {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            margin-top: 12px;
+            background: rgba(15, 23, 42, 0.7);
+            border: 1px solid rgba(255, 255, 255, 0.14);
+            border-radius: 14px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
+            min-width: 240px;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(-8px);
+            transition: all 0.25s ease;
+            overflow: hidden;
+            z-index: 50;
+        }
+
+        .dropdown-menu.active {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+
+        .dropdown-item {
+            padding: 14px 18px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: var(--text);
+            text-decoration: none;
+            transition: all 0.2s ease;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .dropdown-item:hover {
+            background: rgba(34, 211, 238, 0.08);
+            padding-left: 22px;
+        }
+
+        .dropdown-item:last-child {
+            border-bottom: none;
+        }
+
+        .dropdown-item.sign-out {
+            color: #fca5a5;
+        }
+
+        .dropdown-item.sign-out i {
+            color: #fca5a5;
+        }
+
+        .container {
+            position: relative;
+            z-index: 1;
+            display: flex;
+            flex: 1;
+            padding: 32px;
+            gap: 26px;
+            max-width: 1600px;
+            width: 100%;
+            margin: 0 auto;
+        }
+
+        .persona-column,
+        .chat-column {
+            background: rgba(255, 255, 255, 0.03);
+            border: 4px solid rgba(255, 255, 255, 0.1);
+            border-radius: 22px;
+            padding: 28px;
+            box-shadow: 4px 20px rgba(0, 0, 0, 0.2);
+            backdrop-filter: blur(4px);
+        }
+
+        .persona-column {
+            flex: 0 0 25%;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .chat-column {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .column-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--text);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .column-title i {
+            color: var(--accent);
+        }
+
+        .persona-samples {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .persona-card {
+            background: linear-gradient(135deg, rgba(34, 211, 238, 0.12), rgba(249, 115, 22, 0.14));
+            border-radius: 14px;
+            padding: 16px 18px;
+            border: 1px solid var(--border);
+            color: var(--text);
+            font-weight: 600;
+            letter-spacing: 0.4px;
+            cursor: pointer;
+            transition: transform 0.25s ease, box-shadow 0.25s ease;
+        }
+
+        .persona-card:hover {
+            transform: scale(1.04);
+            box-shadow: 0 18px 36px rgba(34, 211, 238, 0.3);
+        }
+
+        .chat-header {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .agent-avatar {
+            width: 52px;
+            height: 52px;
+            background: linear-gradient(145deg, var(--accent), var(--accent-hot));
+            border-radius: 16px;
+            display: grid;
+            place-items: center;
+            color: #0b1224;
+            font-size: 20px;
+            font-weight: 800;
+            box-shadow: 0 12px 30px rgba(34, 211, 238, 0.35);
+        }
+
+        .agent-info h3 {
+            color: var(--text);
+            margin-bottom: 4px;
+            font-size: 17px;
+        }
+
+        .agent-info p {
+            color: var(--muted);
+            font-size: 13px;
+        }
+
+        .status-indicator {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            background: #34d399;
+            border-radius: 50%;
+            margin-right: 8px;
+            animation: pulse 2s infinite;
+            box-shadow: 0 0 0 0 rgba(52, 211, 153, 0.35);
+        }
+
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(52, 211, 153, 0.35); }
+            70% { box-shadow: 0 0 0 10px rgba(52, 211, 153, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(52, 211, 153, 0); }
+        }
+
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            position: relative;
+        }
+
+        .message {
+            max-width: 78%;
+            display: flex;
+            flex-direction: column;
+            opacity: 0;
+            transform: translateY(8px);
+            animation: pop-in 0.35s ease forwards;
+        }
+
+        .message.agent .message-content {
+            background: rgba(255, 255, 255, 0.04);
+            color: var(--text);
+            border: 1px solid var(--border);
+            border-radius: 16px 16px 16px 8px;
+        }
+
+        .message.user {
+            margin-left: auto;
+        }
+
+        .message.user .message-content {
+            background: linear-gradient(135deg, var(--accent), var(--accent-hot));
+            color: #0b1224;
+            border-radius: 16px 16px 8px 16px;
+            border: none;
+            box-shadow: 0 12px 30px rgba(34, 211, 238, 0.35);
+        }
+
+        .message-content {
+            padding: 15px 18px;
+            font-size: 15px;
+            line-height: 1.6;
+            border: 1px solid transparent;
+        }
+
+        .message-time {
+            font-size: 12px;
+            color: var(--muted);
+            margin-top: 8px;
+        }
+
+        @keyframes pop-in {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .chat-input-container {
+            display: flex;
+            gap: 12px;
+            padding-top: 18px;
+            border-top: 1px solid var(--border);
+        }
+
+        .chat-input {
+            flex: 1;
+            padding: 14px 16px;
+            background: rgba(255, 255, 255, 0.04);
+            color: var(--text);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            font-size: 15px;
+            transition: all 0.25s ease;
+            outline: none;
+        }
+
+        .chat-input:focus {
+            border-color: rgba(34, 211, 238, 0.6);
+            box-shadow: 0 0 0 4px rgba(34, 211, 238, 0.12);
+        }
+
+        .send-btn {
+            background: linear-gradient(135deg, var(--accent), var(--accent-hot));
+            color: #0b1224;
+            border: none;
+            border-radius: 14px;
+            padding: 0 26px;
+            font-size: 15px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 14px 28px rgba(34, 211, 238, 0.28);
+        }
+
+        .send-btn:hover {
+            transform: translateY(-1px) scale(1.01);
+            box-shadow: 0 16px 34px rgba(249, 115, 22, 0.25);
+        }
+
+        .loading-wrap {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 14px;
+            border-radius: 14px;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid var(--border);
+            box-shadow: 0 10px 24px rgba(0, 0, 0, 0.25);
+        }
+
+        .loading-bar {
+            position: relative;
+            width: 160px;
+            height: 8px;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.08);
+            overflow: hidden;
+            border: 1px solid var(--border);
+        }
+
+        .loading-bar::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(90deg, var(--accent), var(--accent-hot));
+            transform: translateX(-100%);
+            animation: load 3s ease forwards;
+        }
+
+        @keyframes load {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(0); }
+        }
+
+        .footer {
+            position: relative;
+            z-index: 1;
+            text-align: center;
+            padding: 18px;
+            color: var(--muted);
+            font-size: 13px;
+            letter-spacing: 0.2px;
+            margin-top: 10px;
+        }
+
+        @media (max-width: 1200px) {
+            .container {
+                flex-direction: column;
+            }
+            .persona-column {
+                width: 100%;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 18px;
+            }
+            .header {
+                padding: 16px 18px;
+            }
+            .logo-text span:first-child {
+                font-size: 18px;
+            }
+            .message {
+                max-width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    
+    <header class="header">
+        <div class="logo">
+            <div class="logo-icon" aria-label="Syntrae logo">
+                <svg viewBox="0 0 512 512" aria-hidden="true">
+                    <defs>
+                        <linearGradient id="logoGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" stop-color="#ff6a3d"/>
+                            <stop offset="100%" stop-color="#a30017"/>
+                        </linearGradient>
+                    </defs>
+                    <path fill="url(#logoGradient)" d="M256 480c-8.5 0-17-3-23.8-9.1L92.9 358.2C35.5 304.7 24.4 213 70.1 147.5 111.8 88 184.3 72 256 122.6 327.7 72 400.2 88 441.9 147.5c45.7 65.5 34.6 157.2-22.8 210.7L279.8 470.9c-6.8 6.1-15.3 9.1-23.8 9.1z"/>
+                    <path fill="none" stroke="#fff" stroke-width="16" stroke-linecap="round" stroke-linejoin="round" opacity="0.35" d="M140 206c26-18 58-24 87-12m0 0c17 7 33 19 42 36 6 11 9 24 6 36-9 43-77 32-94-6-8-17-3-38 8-52l38-43c7-8 19-10 28-4l33 22c11 7 15 22 7 33l-21 30m44-67 53-24c10-5 22 1 24 12l7 40c2 10-5 20-16 22l-72 11"/>
+                </svg>
+            </div>
+            <div class="logo-text">
+                <span>SYNTRAE</span>
+                <span>Persona Simulation Engine</span>
+            </div>
+        </div>
+
+        <div class="more-menu">
+            <button class="more-btn" id="moreBtn" aria-label="More options">
+                <span class="line"></span>
+                <span class="line"></span>
+                <span class="line"></span>
+            </button>
+            <div class="dropdown-menu" id="dropdownMenu">
+                <a href="./analyze.html" class="dropdown-item" data-destination="analyze"><i class="fas fa-robot"></i>Analyze and Edit Your Persona</a>
+                <a href="#" class="dropdown-item" data-destination="history"><i class="fas fa-history"></i>Simulation History</a>
+                <a href="#" class="dropdown-item" data-destination="subscription"><i class="fas fa-crown"></i>Manage Subscription</a>
+                <a href="sign-out.html" class="dropdown-item sign-out"><i class="fas fa-sign-out-alt"></i>Sign Out</a>
+            </div>
+        </div>
+    </header>
+
+    <main class="container">
+        <section class="persona-column">
+            <h2 class="column-title"><i class="fas fa-user-circle"></i>Your Persona</h2>
+            <div class="persona-samples">
+                <div class="persona-card">Persona 1</div>
+            </div>
+        </section>
+
+        <section class="chat-column">
+            <div class="chat-header">
+                <div class="agent-avatar">AI</div>
+                <div class="agent-info">
+                    <h3>Syntrae assistant <span class="status-indicator"></span></h3>
+                    <p>Ask me anything about your persona or run simulations</p>
+                </div>
+            </div>
+
+            <h2 class="column-title"><i class="fas fa-comments"></i>Your Chat</h2>
+
+            <div class="chat-messages" id="chatMessages"></div>
+
+            <div class="chat-input-container">
+                <input type="text" class="chat-input" id="chatInput" placeholder="Type your message here...">
+                <button class="send-btn" id="sendBtn"><i class="fas fa-paper-plane"></i>Send</button>
+            </div>
+        </section>
+    </main>
+
+    <footer class="footer">
+        © 2026 Syntrae - Persona Simulation Engine. Predicting human interaction outcomes with AI.
+    </footer>
+
+    <script>
+        const moreBtn = document.getElementById('moreBtn');
+        const dropdownMenu = document.getElementById('dropdownMenu');
+        const chatInput = document.getElementById('chatInput');
+        const chatMessages = document.getElementById('chatMessages');
+        const sendBtn = document.getElementById('sendBtn');
+        const personaCards = document.querySelectorAll('.persona-card');
+        const personaNameStorage = localStorage.getItem('persona-name') || 'Persona 1';
+        personaCards.forEach(card => { card.textContent = personaNameStorage; });
+
+        moreBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            dropdownMenu.classList.toggle('active');
+        });
+
+        document.addEventListener('click', () => dropdownMenu.classList.remove('active'));
+        dropdownMenu.addEventListener('click', (e) => e.stopPropagation());
+
+        dropdownMenu.addEventListener('click', (e) => {
+            const link = e.target.closest('.dropdown-item');
+            if (!link) return;
+            dropdownMenu.classList.remove('active');
+            const href = link.getAttribute('href');
+            if (!href || href === '#') {
+                e.preventDefault();
+                alert('Navigation coming soon.');
+            } else {
+                e.preventDefault();
+                const dest = link.dataset.destination;
+                if (dest === 'analyze') {
+                    window.location.href = 'analyze.html';
+                    return;
+                }
+                // Keep navigation relative to the current directory to avoid 404s when deep-linked
+                const base = window.location.pathname.replace(/[^/]+$/, '');
+                const target = new URL(href, window.location.origin + base);
+                window.location.href = target.toString();
+            }
+        });
+
+        function addMessage(text, sender, delaySeconds = 0) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${sender}`;
+            messageDiv.style.animationDelay = `${delaySeconds}s`;
+            const now = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            messageDiv.innerHTML = `
+                <div class="message-content">${text}</div>
+                <div class="message-time">${now}</div>
+            `;
+            chatMessages.appendChild(messageDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        function generateAIResponse(userMessage) {
+            const lower = userMessage.toLowerCase();
+            if (lower.includes('hello') || lower.includes('hi')) {
+                return "Hello! How can I help you understand your persona better today?";
+            }
+            if (lower.includes('simulate') || lower.includes('simulation')) {
+                return "Probability is 82% they'd say yes. Offer a specific time and a low-effort plan to maximize odds.";
+            }
+            return `I heard: "${userMessage}". Probability ~78% they'd engage. Offer one clear next step.`;
+        }
+
+        function showLoadingThenRespond(responseText) {
+            const loadingWrapper = document.createElement('div');
+            loadingWrapper.className = 'message agent';
+            const content = document.createElement('div');
+            content.className = 'loading-wrap';
+            content.innerHTML = `<div class="loading-bar"></div><span class="message-time">processing...</span>`;
+            loadingWrapper.appendChild(content);
+            chatMessages.appendChild(loadingWrapper);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+
+            setTimeout(() => {
+                loadingWrapper.remove();
+                addMessage(responseText, 'agent');
+            }, 3000);
+        }
+
+        function sendMessage() {
+            const text = chatInput.value.trim();
+            if (!text) return;
+            addMessage(text, 'user');
+            chatInput.value = '';
+            const response = generateAIResponse(text);
+            setTimeout(() => addMessage(response, 'agent'), 1000);
+        }
+
+        sendBtn.addEventListener('click', sendMessage);
+        chatInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') sendMessage();
+        });
+
+        personaCards.forEach(card => {
+            card.addEventListener('click', () => {
+                const name = card.textContent.trim();
+                alert(`Open persona space for: ${name}`);
+            });
+        });
+
+        function playIntroConversation() {
+            chatMessages.innerHTML = '';
+            const personaLabel = personaNameStorage;
+            addMessage("Hello! I'm your Syntrae assistant. I can help you understand your persona better, run simulations, and predict outcomes. How can I assist you today?", 'agent', 0);
+            setTimeout(() => addMessage(`Can you run a simulation for me? I want to know how ${personaLabel} would respond if someone asked them to study together this weekend.`, 'user'), 1000);
+            setTimeout(() => showLoadingThenRespond(`Based on ${personaLabel}'s traits, there's an 87% probability they'd agree to study together. Suggest proposing a clear time and place—${personaLabel} responds best to specific, low-friction plans.`), 2000);
+        }
+
+        playIntroConversation();
+    </script>
+</body>
+</html>

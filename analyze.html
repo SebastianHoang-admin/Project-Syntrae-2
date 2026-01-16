@@ -1,0 +1,1809 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analyze & Edit Persona | Syntrae</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="js/three.min.js"></script>
+    <style>
+        :root {
+            --ink: #0b1224;
+            --panel: rgba(255, 255, 255, 0.04);
+            --panel-strong: rgba(255, 255, 255, 0.08);
+            --border: rgba(255, 255, 255, 0.12);
+            --accent: #22d3ee;
+            --accent-hot: #f97316;
+            --text: #e2e8f0;
+            --muted: #94a3b8;
+            --positive: #16c47f;
+            --neutral: #e2e8f0;
+            --negative: #ef4444;
+        }
+        * { margin:0; padding:0; box-sizing:border-box; font-family:'Space Grotesk','Helvetica Neue',Arial,sans-serif; }
+        body {
+            min-height: 100vh;
+            background: radial-gradient(circle at 20% 20%, rgba(34, 211, 238, 0.08), transparent 30%),
+                        radial-gradient(circle at 80% 10%, rgba(249, 115, 22, 0.08), transparent 25%),
+                        linear-gradient(145deg, #0a0f1f 0%, #0f172a 60%, #0b1224 100%);
+            color: var(--text);
+            padding: 32px 24px 64px;
+        }
+        header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 28px;
+        }
+        .brand {
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+            text-decoration: none;
+            color: inherit;
+        }
+        .logo-icon {
+            width: 46px; height: 46px;
+            border-radius: 12px;
+            display: grid; place-items: center;
+            background: linear-gradient(135deg, #f84f25, #b8120e);
+            box-shadow: 0 10px 24px rgba(248, 79, 37, 0.35);
+        }
+        .brand-text { display: flex; flex-direction: column; gap: 2px; }
+        .brand-text span:first-child { font-weight: 800; letter-spacing: 1.4px; }
+        .brand-text span:last-child { color: var(--muted); font-size: 12px; }
+        .primary-btn {
+            padding: 12px 16px;
+            border-radius: 14px;
+            border: 1px solid rgba(255,255,255,0.2);
+            background: linear-gradient(135deg, var(--accent), var(--accent-hot));
+            background-size: 200% 200%;
+            color: #0b1224;
+            font-weight: 800;
+            text-decoration: none;
+            box-shadow: 0 12px 26px rgba(34,211,238,0.3);
+            transition: transform 220ms ease, box-shadow 260ms ease, background-position 360ms ease;
+        }
+        .primary-btn:hover, .primary-btn:focus-visible {
+            transform: translateY(-2px) scale(1.12);
+            box-shadow: 0 16px 34px rgba(34,211,238,0.34);
+            background-position: 100% 0;
+            outline: none;
+        }
+        .panel {
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 28px;
+            display: grid;
+            grid-template-columns: minmax(360px, 0.9fr) minmax(640px, 1.1fr);
+            gap: 32px;
+            box-shadow: 0 18px 48px rgba(0,0,0,0.28);
+            align-items: stretch;
+        }
+        @media (max-width: 1180px) {
+            .panel {
+                grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+            }
+        }
+        .portrait {
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            min-height: 360px;
+            background: var(--panel-strong);
+            position: relative;
+            overflow: hidden;
+            height: 100%;
+            display: grid;
+            place-items: center;
+            perspective: 1200px;
+            transition: box-shadow 0.25s ease, border-color 0.25s ease;
+        }
+        .portrait:hover {
+            box-shadow: 0 18px 38px rgba(0,0,0,0.28);
+            border-color: rgba(255,255,255,0.18);
+        }
+        .portrait img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: none;
+        }
+        .portrait canvas {
+            width: 100%;
+            height: 100%;
+            display: none;
+        }
+        .portrait input {
+            display: none;
+        }
+        .portrait .placeholder {
+            text-align: center;
+            color: var(--muted);
+            pointer-events: none;
+            padding: 16px;
+        }
+        .photo-menu {
+            position: fixed;
+            inset: 0;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            background: rgba(0,0,0,0.35);
+            z-index: 30;
+        }
+        .photo-menu .panel {
+            background: linear-gradient(145deg, rgba(34,211,238,0.18), rgba(15,23,42,0.9));
+            border: 1px solid rgba(255,255,255,0.18);
+            box-shadow: 0 18px 48px rgba(0,0,0,0.35);
+            border-radius: 14px;
+            padding: 16px;
+            min-width: 220px;
+            color: #e7edf8;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .photo-menu .panel h4 {
+            margin: 0 0 10px;
+            font-size: 14px;
+            letter-spacing: 0.4px;
+            color: #f1f5f9;
+        }
+        .photo-menu .panel button {
+            width: 100%;
+            text-align: left;
+            padding: 10px 12px;
+            border-radius: 10px;
+            border: 1px solid rgba(255,255,255,0.15);
+            background: rgba(255,255,255,0.06);
+            color: #e2e8f0;
+            font-weight: 700;
+            font-size: 13px;
+            cursor: pointer;
+            transition: transform 0.15s ease, box-shadow 0.2s ease, border-color 0.2s ease, background 0.2s ease;
+        }
+        .photo-menu .panel button + button { margin-top: 8px; }
+        .photo-menu .panel button:hover, .photo-menu .panel button:focus-visible {
+            transform: translateY(-1px);
+            box-shadow: 0 10px 26px rgba(0,0,0,0.25);
+            border-color: rgba(255,255,255,0.35);
+            background: rgba(34,211,238,0.15);
+            outline: none;
+        }
+        .info-column {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            height: 100%;
+        }
+        .persona-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+        }
+        .persona-tag {
+            font-weight: 800;
+            letter-spacing: 0.8px;
+            color: #f8fbff;
+            padding: 4px 8px;
+            border-radius: 10px;
+            transition: border 160ms ease, background 160ms ease;
+        }
+        .persona-tag.editing {
+            border: 1px dashed rgba(34,211,238,0.4);
+            background: rgba(34,211,238,0.08);
+        }
+        .name-controls { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+        .name-btn { padding: 8px 10px; border-radius: 10px; border: 1px dashed rgba(255,255,255,0.35); background: rgba(255,255,255,0.05); color: var(--text); font-weight: 700; font-size: 12px; cursor: pointer; transition: border-color 160ms ease, background 160ms ease, transform 160ms ease; }
+        .name-btn:hover, .name-btn:focus-visible { border-color: var(--accent); background: rgba(34,211,238,0.08); transform: translateY(-1px); outline: none; }
+        .edit-btn {
+            padding: 10px 14px;
+            border-radius: 12px;
+            border: 1px solid rgba(255,255,255,0.2);
+            background: linear-gradient(135deg, var(--accent), var(--accent-hot));
+            background-size: 200% 200%;
+            color: #0b1224;
+            font-weight: 800;
+            text-decoration: none;
+            box-shadow: 0 10px 22px rgba(34,211,238,0.25);
+            transition: transform 220ms ease, box-shadow 260ms ease, background-position 360ms ease;
+        }
+        .edit-btn:hover, .edit-btn:focus-visible {
+            transform: translateY(-2px) scale(1.12);
+            box-shadow: 0 14px 34px rgba(34,211,238,0.32);
+            background-position: 100% 0;
+            outline: none;
+        }
+        .backgrounds {
+            background: var(--panel-strong);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 16px;
+            display: grid;
+            gap: 12px;
+        }
+        .backgrounds h4 {
+            margin: 0;
+            font-size: 15px;
+            color: #dfe7f5;
+        }
+        .backgrounds .item {
+            padding: 0;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            background: linear-gradient(135deg, rgba(34,211,238,0.05), rgba(255,255,255,0.01));
+            position: relative;
+            overflow: hidden;
+            transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+            transform: translateY(0);
+            color: inherit;
+        }
+        .backgrounds .item:focus-visible {
+            outline: 2px solid var(--accent);
+            outline-offset: 2px;
+        }
+        .backgrounds .item .flip-inner {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            min-height: 140px;
+            overflow: hidden;
+        }
+        .backgrounds .item .flip-face {
+            position: absolute;
+            inset: 0;
+            border-radius: 12px;
+            padding: 14px;
+            background: rgba(255,255,255,0.01);
+            border: 1px solid var(--border);
+            display: grid;
+            align-content: start;
+            transition: opacity 0.35s ease, transform 0.35s ease;
+            overflow: hidden;
+        }
+        .backgrounds .item .flip-face.front {
+            justify-items: center;
+            align-content: center;
+            text-align: center;
+            opacity: 1;
+            transform: translateY(0);
+            cursor: pointer;
+        }
+        .backgrounds .item .flip-face.back {
+            opacity: 0;
+            transform: translateY(10px);
+            gap: 12px;
+            padding: 16px;
+        }
+        .backgrounds .item.flipped .flip-face.front {
+            opacity: 0;
+            transform: translateY(-10px);
+            pointer-events: none;
+        }
+        .backgrounds .item.flipped .flip-face.back {
+            opacity: 1;
+            transform: translateY(0);
+            pointer-events: auto;
+        }
+        .backgrounds .front-title {
+            font-size: 32px;
+            font-weight: 800;
+            color: #e7edf8;
+            width: 100%;
+            text-align: center;
+            line-height: 1.2;
+        }
+        .backgrounds .value-back {
+            color: var(--muted);
+            font-size: 15px;
+            line-height: 1.6;
+            white-space: pre-line;
+            border: 1px dashed transparent;
+            border-radius: 8px;
+            padding: 10px 12px;
+            overflow-wrap: break-word;
+            word-break: break-word;
+            width: 100%;
+        }
+        .backgrounds .item.editing .value-back {
+            border-color: rgba(255,255,255,0.2);
+        }
+        .backgrounds .back-actions {
+            display: flex;
+            justify-content: flex-end;
+        }
+        .backgrounds .item .edit-tag {
+            border: 1px solid rgba(255,255,255,0.2);
+            background: rgba(255,255,255,0.06);
+            color: var(--text);
+            border-radius: 8px;
+            padding: 4px 8px;
+            font-size: 11px;
+            cursor: pointer;
+            transition: opacity 0.18s ease, background 0.18s ease, border-color 0.18s ease;
+        }
+        .backgrounds .item .edit-tag:hover,
+        .backgrounds .item .edit-tag:focus-visible {
+            background: rgba(255,255,255,0.12);
+            border-color: rgba(255,255,255,0.35);
+            opacity: 0.7;
+            outline: none;
+        }
+        .backgrounds .item:hover {
+            transform: translateY(-6px);
+            box-shadow: 0 16px 36px rgba(0,0,0,0.28), 0 0 24px rgba(34,211,238,0.16);
+            border-color: rgba(34,211,238,0.35);
+            background: linear-gradient(135deg, rgba(34,211,238,0.12), rgba(249,115,22,0.06));
+        }
+        .backgrounds .item::after {
+            content: '';
+            position: absolute;
+            inset: -40%;
+            background: radial-gradient(circle at 30% 30%, rgba(34,211,238,0.12), transparent 45%),
+                        radial-gradient(circle at 80% 20%, rgba(249,115,22,0.10), transparent 50%);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            pointer-events: none;
+        }
+        .backgrounds .item:hover::after {
+            opacity: 1;
+        }
+        /* keep glow overlay clipped */
+        .backgrounds .item::after {
+            clip-path: inset(0 round 12px);
+        }
+        .conclusion {
+            background: var(--panel-strong);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 16px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 12px 32px rgba(0,0,0,0.25);
+            animation: popIn 650ms ease-out both;
+        }
+        .bars {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 10px 12px;
+            margin-top: 16px;
+        }
+        .bar-row {
+            background: rgba(255,255,255,0.02);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 8px 10px;
+            display: grid;
+            gap: 6px;
+        }
+        .bar-head {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 12px;
+            color: #cfd8ea;
+            gap: 10px;
+        }
+        .bar-title {
+            font-weight: 800;
+            color: #e7edf8;
+            font-size: 13px;
+        }
+        .bar-scale {
+            position: relative;
+            height: 10px;
+            border-radius: 999px;
+            background: linear-gradient(90deg, rgba(34,211,238,0.15), rgba(249,115,22,0.15));
+            overflow: hidden;
+            border: 1px solid rgba(255,255,255,0.08);
+        }
+        .bar-fill {
+            position: absolute;
+            top: 0; left: 0; bottom: 0;
+            border-radius: 999px;
+            background: linear-gradient(90deg, #22d3ee, #f97316);
+            box-shadow: 0 0 12px rgba(34,211,238,0.25);
+        }
+        .bar-extremes {
+            display: flex;
+            justify-content: space-between;
+            font-size: 11px;
+            color: var(--muted);
+            gap: 8px;
+        }
+        .radar {
+            background: var(--panel-strong);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 18px;
+            box-shadow: 0 12px 32px rgba(0,0,0,0.25);
+            width: 100%;
+            max-width: 100%;
+        }
+        .radar header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 0 0 10px;
+            padding: 0;
+        }
+        .radar-title { font-weight: 800; letter-spacing: 0.6px; }
+        .radar-subtitle { color: var(--muted); font-size: 13px; }
+        .radar canvas { width: 100%; max-width: 960px; aspect-ratio: 1; display: block; margin: 0 auto; }
+        .radar-content { display: flex; flex-direction: column; gap: 10px; }
+        .conclusion::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background:
+                radial-gradient(circle at 20% 30%, rgba(255,255,255,0.30) 0%, rgba(255,255,255,0) 45%),
+                radial-gradient(circle at 70% 25%, rgba(34,211,238,0.36) 0%, rgba(34,211,238,0) 40%),
+                radial-gradient(circle at 50% 70%, rgba(249,115,22,0.30) 0%, rgba(249,115,22,0) 40%),
+                radial-gradient(circle at 80% 80%, rgba(255,255,255,0.22) 0%, rgba(255,255,255,0) 38%);
+            mix-blend-mode: screen;
+            opacity: 0;
+            animation: sparkle 10s ease-in-out infinite;
+            pointer-events: none;
+            filter: blur(0px);
+        }
+        .conclusion::after {
+            content: "";
+            position: absolute;
+            inset: -120%;
+            background: conic-gradient(from 45deg, rgba(34,211,238,0.18), rgba(249,115,22,0.12), rgba(34,211,238,0.18));
+            transform: rotate(0deg);
+            opacity: 0;
+            animation: sweep 10s ease-out 120ms forwards;
+            pointer-events: none;
+        }
+        .conclusion h4 {
+            margin: 0 0 8px;
+            font-size: 15px;
+            color: #dfe7f5;
+        }
+        .conclusion p {
+            margin: 0;
+            color: #e7edf8;
+            line-height: 1.7;
+        }
+        @keyframes popIn {
+            0% { transform: translateY(18px) scale(0.96); opacity: 0; }
+            60% { transform: translateY(-4px) scale(1.02); opacity: 1; }
+            100% { transform: translateY(0) scale(1); opacity: 1; }
+        }
+        @keyframes sweep {
+            0% { opacity: 0; transform: rotate(0deg); }
+            40% { opacity: 0.45; transform: rotate(6deg); }
+            100% { opacity: 0; transform: rotate(12deg); }
+        }
+        @keyframes sparkle {
+            0% { opacity: 0; transform: scale(0.98); }
+            10% { opacity: 0.75; transform: scale(1.01); }
+            20% { opacity: 0.45; transform: scale(0.99); }
+            40% { opacity: 0.85; transform: scale(1.02); }
+            60% { opacity: 0.50; transform: scale(0.99); }
+            80% { opacity: 0.9; transform: scale(1.03); }
+            100% { opacity: 0; transform: scale(0.98); }
+        }
+        /* Persona check modal */
+        .persona-check-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.6);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 50;
+        }
+        .persona-check {
+            background: linear-gradient(135deg, rgba(34,211,238,0.16), rgba(15,23,42,0.92));
+            border: 1px solid rgba(255,255,255,0.16);
+            border-radius: 16px;
+            padding: 20px;
+            max-width: 420px;
+            width: 90%;
+            color: #e7edf8;
+            box-shadow: 0 18px 48px rgba(0,0,0,0.35);
+            text-align: center;
+        }
+        .persona-check h4 {
+            margin: 0 0 10px;
+            font-size: 18px;
+            letter-spacing: 0.6px;
+        }
+        .persona-check p {
+            margin: 0 0 18px;
+            color: #cdd6e4;
+            line-height: 1.6;
+        }
+        .persona-check .actions {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+        }
+        .persona-check button {
+            padding: 10px 14px;
+            border-radius: 12px;
+            border: 1px solid rgba(255,255,255,0.2);
+            background: rgba(255,255,255,0.06);
+            color: #f8fbff;
+            font-weight: 800;
+            cursor: pointer;
+            transition: transform 0.18s ease, box-shadow 0.2s ease, border-color 0.2s ease, background 0.2s ease;
+        }
+        .persona-check button:hover, .persona-check button:focus-visible {
+            transform: translateY(-1px);
+            box-shadow: 0 12px 28px rgba(0,0,0,0.3);
+            border-color: rgba(34,211,238,0.35);
+            background: rgba(34,211,238,0.14);
+            outline: none;
+        }
+        .persona-check .yes {
+            background: linear-gradient(135deg, var(--accent), var(--accent-hot));
+            color: #0b1224;
+            box-shadow: 0 12px 24px rgba(34,211,238,0.28);
+        }
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="persona-check-overlay" id="personaCheckOverlay" role="dialog" aria-modal="true" aria-labelledby="personaCheckTitle">
+        <div class="persona-check" id="personaStepChoice">
+            <h4 id="personaCheckTitle">No persona found</h4>
+            <p>You don't have an existing persona yet. Do you want to create one?</p>
+            <div class="actions">
+                <button class="yes" type="button" id="personaYesBtn">Yes</button>
+                <button type="button" id="personaNoBtn">No</button>
+            </div>
+        </div>
+        <div class="persona-check" id="personaStepAvatar" style="display:none;">
+            <h4>Add a persona avatar?</h4>
+            <p>Do you want to upload a persona avatar now?</p>
+            <div class="actions" style="justify-content:center; flex-wrap:wrap;">
+                <button class="yes" type="button" id="avatarUploadNow">Yes</button>
+                <button type="button" id="avatarLater">I'll do it later</button>
+            </div>
+            <div style="margin-top:12px;">
+                <div style="border:1px dashed rgba(255,255,255,0.2); border-radius:12px; padding:12px;">
+                    <img id="avatarOverlayPreview" alt="Avatar preview" style="max-width:100%; border-radius:10px; display:none;">
+                    <div id="avatarOverlayPlaceholder" style="color:#cdd6e4;">No image selected yet</div>
+                </div>
+                <div style="display:flex; gap:10px; margin-top:12px; flex-wrap:wrap; justify-content:center;">
+                    <button id="avatarChangePhoto" type="button" class="ghost" style="flex:1;">Change Photo</button>
+                    <button id="avatarConfirmAndContinue" class="yes" type="button" style="flex:1;" disabled>Continue</button>
+                </div>
+                <input type="file" accept="image/*" id="avatarOverlayInput" aria-label="Upload persona avatar" style="display:none;">
+            </div>
+        </div>
+        <div class="persona-check" id="personaStepRedirect" style="display:none;">
+            <h4>Redirecting…</h4>
+            <p>You don't have a valid persona, redirecting you now to Chat.</p>
+            <div style="margin:12px auto; width:48px; height:48px; border-radius:50%; border:4px solid rgba(255,255,255,0.25); border-top-color: #22d3ee; animation: spin 1.8s linear infinite;"></div>
+        </div>
+    </div>
+    <header>
+        <a class="brand" href="Chat.html">
+            <div class="logo-icon">🧠</div>
+            <div class="brand-text">
+                <span>SYNTRAE</span>
+                <span>Persona Prediction</span>
+            </div>
+        </a>
+        <a class="primary-btn" href="Chat.html">Back to Chat</a>
+        <button id="personaCheckBtn" type="button" style="margin-left:12px; padding:8px 12px; border-radius:10px; border:1px solid rgba(255,255,255,0.25); background:rgba(255,255,255,0.08); color:#e7edf8; font-weight:700; cursor:pointer;">persona_check</button>
+    </header>
+
+    <main class="panel">
+        <div class="portrait" id="portraitBox">
+            <div class="placeholder">Upload persona portrait (click to select)</div>
+            <canvas id="holoCanvas"></canvas>
+            <img id="portraitPreview" alt="Persona portrait preview">
+            <input type="file" accept="image/*" aria-label="Upload persona portrait" id="portraitInput">
+        </div>
+        <div class="photo-menu" id="photoMenu" aria-hidden="true">
+            <div class="panel">
+                <h4>Photo Options</h4>
+                <button type="button" id="menuChangePhoto">Change photo</button>
+                <button type="button" id="menuRemovePhoto">Remove photo</button>
+            </div>
+        </div>
+        <div class="info-column">
+            <div class="persona-header">
+                <div class="name-controls">
+                    <span class="persona-tag" id="personaName">Persona 1</span>
+                    <button class="name-btn" type="button" id="editNameBtn">Edit name</button>
+                </div>
+                <a class="edit-btn" href="edit-persona.html">Edit Your Persona</a>
+            </div>
+            <div class="radar">
+                <header>
+                    <span class="radar-title">Persona Chart</span>
+                    <span class="radar-subtitle"></span>
+                </header>
+                <div class="radar-content">
+                    <canvas id="radarCanvas" width="640" height="640" aria-label="L1 hexagon radar chart"></canvas>
+                </div>
+                <div class="bars" id="personaBars"></div>
+            </div>
+            <div class="backgrounds">
+                <h4>Extra Information</h4>
+                <div class="item" data-field="time-life" tabindex="0">
+                    <div class="label">
+                        <span>Time &amp; Life</span>
+                        <button class="edit-tag" type="button">Edit</button>
+                    </div>
+                    <div class="value">Age band (e.g., teens, early 20s, late 20s, 30s, etc.)
+Life stage (student, early career, career transition, established career, etc.)</div>
+                </div>
+                <div class="item" data-field="current-context" tabindex="0">
+                    <div class="label">
+                        <span>Current Dominant Context</span>
+                        <button class="edit-tag" type="button">Edit</button>
+                    </div>
+                    <div class="value">Academic pressure
+Career building
+Financial instability
+Caretaking
+Health recovery
+Exploration / transition</div>
+                </div>
+                <div class="item" data-field="stressors" tabindex="0">
+                    <div class="label">
+                        <span>Active Stressors / Transitions</span>
+                        <button class="edit-tag" type="button">Edit</button>
+                    </div>
+                    <div class="value">Recent breakup
+Recent move
+Job search
+Exam period
+Family conflict
+Major decision phase</div>
+                </div>
+                <div class="item" data-field="cultural-moment" tabindex="0">
+                    <div class="label">
+                        <span>Cultural / Social Moment</span>
+                        <button class="edit-tag" type="button">Edit</button>
+                    </div>
+                    <div class="value">Competitive vs supportive environment
+High uncertainty vs stable period
+Socially active vs withdrawn phase
+Conformist vs experimental moment</div>
+                </div>
+                <div class="item" data-field="relationship-role" tabindex="0">
+                    <div class="label">
+                        <span>Relationship Role (Relative to the User)</span>
+                        <button class="edit-tag" type="button">Edit</button>
+                    </div>
+                    <div class="value">Stranger
+Acquaintance
+Friend
+Close friend
+Romantic interest
+Ex-partner
+Authority figure</div>
+                </div>
+            </div>
+            <div class="conclusion">
+                <h4>Conclusion</h4>
+                <p data-field="conclusion">Three-sentence summary of this persona capturing their core traits and tendencies.</p>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        const portraitInput = document.getElementById('portraitInput');
+        const portraitPreview = document.getElementById('portraitPreview');
+        const placeholder = document.querySelector('.portrait .placeholder');
+        const holoCanvas = document.getElementById('holoCanvas');
+        const portraitBox = document.getElementById('portraitBox');
+        const photoMenu = document.getElementById('photoMenu');
+        const menuChangePhoto = document.getElementById('menuChangePhoto');
+        const menuRemovePhoto = document.getElementById('menuRemovePhoto');
+        const personaNameEl = document.getElementById('personaName');
+        const editNameBtn = document.getElementById('editNameBtn');
+        function setupBackgroundCards() {
+            const items = document.querySelectorAll('.backgrounds .item');
+            items.forEach(item => {
+                const field = item.dataset.field;
+                const titleEl = item.querySelector('.label span');
+                const valueEl = item.querySelector('.value');
+                const title = titleEl ? titleEl.textContent.trim() : '';
+            const content = valueEl ? valueEl.textContent.trim() : '';
+            item.innerHTML = `
+                <div class="flip-inner">
+                        <div class="flip-face front">
+                            <div class="front-title">${title}</div>
+                        </div>
+                        <div class="flip-face back">
+                            <div class="value-back" contenteditable="false">${content}</div>
+                            <div class="back-actions">
+                                <button class="edit-tag" type="button">Edit</button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                if (field) item.dataset.field = field;
+            });
+            return document.querySelectorAll('.backgrounds .item');
+        }
+        let backgroundFields = setupBackgroundCards();
+
+        function adjustCardHeights() {
+            backgroundFields.forEach(item => {
+                const inner = item.querySelector('.flip-inner');
+                const front = item.querySelector('.flip-face.front');
+                const back = item.querySelector('.flip-face.back');
+                if (!inner || !front || !back) return;
+                const targetHeight = Math.max(front.scrollHeight, back.scrollHeight, 140);
+                inner.style.height = `${targetHeight}px`;
+            });
+        }
+        let holoCtx = holoCanvas.getContext('2d');
+        const radarCanvas = document.getElementById('radarCanvas');
+        const radarCtx = radarCanvas ? radarCanvas.getContext('2d') : null;
+        const radarConfig = {
+            datasetPath: 'data/identitybuilder.json',
+            layers: [
+                { layerId: 'L1', label: 'Behavioral Signature', radiusScale: 0.37, gradient: ['#22d3ee', '#f97316'], rotationOffsetRad: 0 },
+                {
+                    layerId: 'L2',
+                    label: 'Motivational Attractors',
+                    radiusScale: 0.32,
+                    gradient: ['#b6f09c', '#f6d365'],
+                    color: '#f6d365',
+                    lineDash: [5, 7],
+                    shadowColor: 'rgba(182, 240, 156, 0.35)',
+                    shadowBlur: 10,
+                    rotationOffsetRad: Math.PI / 6 // 30°
+                },
+                {
+                    layerId: 'L3',
+                    label: 'Constraints & Non-Negotiables',
+                    radiusScale: 0.28,
+                    gradient: ['#9dd6ff', '#7c8cff'],
+                    color: '#7c8cff',
+                    lineDash: [3, 6],
+                    shadowColor: 'rgba(124, 140, 255, 0.5)',
+                    shadowBlur: 14,
+                    textColor: 'rgba(124, 140, 255, 0.7)',
+                    textFont: '11px \"Space Grotesk\", sans-serif',
+                    rotationOffsetRad: Math.PI / 3 // 60°
+                }
+            ]
+        };
+        let radarLayers = [];
+        let radarBaseAxes = null;
+        let radarDataCache = null;
+        let radarBallFrame = null;
+        const radarBall = {
+            pos: { x: 0, y: 0 },
+            target: { x: 0, y: 0 },
+            strength: 0,
+            targetStrength: 0,
+            radiusFactor: 0.135,
+            pushFactor: 0.05
+        };
+        const radarRenderOptions = {
+            showLabels: true,
+            spinSpeed: 0 // no spin; static after assembly
+        };
+        const personaBarsEl = document.getElementById('personaBars');
+        const personaAxes = [
+            { layer: 'L1', id: 'L1_A1', name: 'Initiative' },
+            { layer: 'L1', id: 'L1_A2', name: 'Persistence' },
+            { layer: 'L1', id: 'L1_A3', name: 'Risk Engagement' },
+            { layer: 'L1', id: 'L1_A4', name: 'Social Energy Direction' },
+            { layer: 'L1', id: 'L1_A5', name: 'Conflict Response' },
+            { layer: 'L1', id: 'L1_A6', name: 'Adaptation Speed' },
+            { layer: 'L2', id: 'L2_A1', name: 'Stability ↔ Growth' },
+            { layer: 'L2', id: 'L2_A2', name: 'Autonomy ↔ Coordination' },
+            { layer: 'L2', id: 'L2_A3', name: 'Immediate ↔ Deferred Reward' },
+            { layer: 'L2', id: 'L2_A4', name: 'Status ↔ Belonging' },
+            { layer: 'L2', id: 'L2_A5', name: 'Internal ↔ External Validation' },
+            { layer: 'L2', id: 'L2_A6', name: 'Depth ↔ Breadth' },
+            { layer: 'L3', id: 'L3_A1', name: 'Honesty Boundary' },
+            { layer: 'L3', id: 'L3_A2', name: 'Respect / Dignity Boundary' },
+            { layer: 'L3', id: 'L3_A3', name: 'Loyalty / Commitment Boundary' },
+            { layer: 'L3', id: 'L3_A4', name: 'Autonomy Intrusion Boundary' },
+            { layer: 'L3', id: 'L3_A5', name: 'Fairness / Reciprocity Boundary' },
+            { layer: 'L3', id: 'L3_A6', name: 'Risk / Safety Boundary' }
+        ];
+        const axisExtremes = {
+            L1_A1: ['Waits', 'Acts first'],
+            L1_A2: ['Gives up quickly', 'Keeps going'],
+            L1_A3: ['Risk averse', 'Risk seeking'],
+            L1_A4: ['Prefers small/solo', 'Energized by groups'],
+            L1_A5: ['Avoids conflict', 'Engages directly'],
+            L1_A6: ['Slow to adapt', 'Adapts instantly'],
+            L2_A1: ['Stability', 'Growth'],
+            L2_A2: ['Autonomy', 'Coordination'],
+            L2_A3: ['Immediate reward', 'Deferred reward'],
+            L2_A4: ['Status', 'Belonging'],
+            L2_A5: ['Internal validation', 'External validation'],
+            L2_A6: ['Depth', 'Breadth'],
+            L3_A1: ['Flexible honesty', 'Strict honesty'],
+            L3_A2: ['Low dignity sensitivity', 'High dignity sensitivity'],
+            L3_A3: ['Loose commitment', 'Strict commitment'],
+            L3_A4: ['Accepts intrusion', 'Rejects intrusion'],
+            L3_A5: ['Permissive fairness', 'Strict fairness'],
+            L3_A6: ['Risk tolerant', 'Risk averse']
+        };
+
+        // Load saved backgrounds from the persona builder (localStorage)
+        function loadBackgroundsFromStorage() {
+            backgroundFields.forEach(item => {
+                const field = item.dataset.field;
+                const valueEl = item.querySelector('.value-back');
+                let saved = localStorage.getItem(`extra-${field}`);
+                // Legacy fallback for older key name
+                if (!saved && field === 'cultural-moment') {
+                    saved = localStorage.getItem('extra-cultural');
+                }
+                if (saved) valueEl.textContent = saved;
+            });
+        }
+        loadBackgroundsFromStorage();
+        adjustCardHeights();
+        window.addEventListener('resize', adjustCardHeights);
+
+        function renderPersonaBars() {
+            if (!personaBarsEl) return;
+            personaBarsEl.innerHTML = '';
+            const layerCache = {};
+            ['L1','L2','L3'].forEach(layerId => {
+                const raw = localStorage.getItem(`identity-layer-${layerId}`);
+                if (raw) {
+                    try { layerCache[layerId] = JSON.parse(raw); } catch { layerCache[layerId] = {}; }
+                } else {
+                    layerCache[layerId] = {};
+                }
+            });
+            personaAxes.forEach(axis => {
+                const obj = layerCache[axis.layer] || {};
+                const entry = obj[axis.id] || {};
+                const v = typeof entry.value === 'number' ? entry.value : 0.5;
+                const pct = Math.max(0, Math.min(1, v));
+                const bar = document.createElement('div');
+                bar.className = 'bar-row';
+                const extremes = axisExtremes[axis.id];
+                const lowLabel = extremes ? extremes[0] : (axis.name.includes('↔') ? axis.name.split('↔')[0].trim() : 'Low');
+                const highLabel = extremes ? extremes[1] : (axis.name.includes('↔') ? axis.name.split('↔')[1].trim() : 'High');
+                bar.innerHTML = `
+                  <div class="bar-head">
+                    <span class="bar-title">${axis.name}</span>
+                  </div>
+                  <div class="bar-scale"><div class="bar-fill" style="width:${pct * 100}%;"></div></div>
+                  <div class="bar-extremes"><span>${lowLabel}</span><span>${highLabel}</span></div>
+                `;
+                personaBarsEl.appendChild(bar);
+            });
+
+        }
+        renderPersonaBars();
+
+        // Persona name (inline edit)
+        function loadPersonaName() {
+            const saved = localStorage.getItem('persona-name') || 'Persona 1';
+            personaNameEl.textContent = saved;
+            personaNameEl.dataset.label = 'Persona 1';
+            personaNameEl.dataset.actualName = saved;
+        }
+        loadPersonaName();
+
+        function savePersonaName(value) {
+            const name = value && value.trim() ? value.trim() : 'Persona 1';
+            localStorage.setItem('persona-name', name);
+            personaNameEl.textContent = name;
+            personaNameEl.dataset.actualName = name;
+            personaNameEl.classList.remove('editing');
+            personaNameEl.removeAttribute('contenteditable');
+        }
+
+        editNameBtn.addEventListener('click', () => {
+            personaNameEl.classList.add('editing');
+            personaNameEl.setAttribute('contenteditable', 'true');
+            // focus and select text
+            const range = document.createRange();
+            range.selectNodeContents(personaNameEl);
+            const sel = window.getSelection();
+            sel.removeAllRanges();
+            sel.addRange(range);
+            personaNameEl.focus();
+        });
+
+        personaNameEl.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                savePersonaName(personaNameEl.textContent);
+            }
+            if (e.key === 'Escape') {
+                e.preventDefault();
+                personaNameEl.textContent = personaNameEl.dataset.actualName || 'Persona 1';
+                personaNameEl.classList.remove('editing');
+                personaNameEl.removeAttribute('contenteditable');
+            }
+        });
+
+        personaNameEl.addEventListener('blur', () => {
+            if (!personaNameEl.classList.contains('editing')) return;
+            savePersonaName(personaNameEl.textContent);
+        });
+
+        // Persona existence check on first arrival
+        const personaCheckOverlay = document.getElementById('personaCheckOverlay');
+        const personaYesBtn = document.getElementById('personaYesBtn');
+        const personaNoBtn = document.getElementById('personaNoBtn');
+        const personaStepChoice = document.getElementById('personaStepChoice');
+        const personaStepAvatar = document.getElementById('personaStepAvatar');
+        const personaStepRedirect = document.getElementById('personaStepRedirect');
+        const avatarOverlayInput = document.getElementById('avatarOverlayInput');
+        const avatarOverlayPreview = document.getElementById('avatarOverlayPreview');
+        const avatarOverlayPlaceholder = document.getElementById('avatarOverlayPlaceholder');
+        const avatarUploadNow = document.getElementById('avatarUploadNow');
+        const avatarLater = document.getElementById('avatarLater');
+        const avatarChangePhoto = document.getElementById('avatarChangePhoto');
+        const avatarConfirmAndContinue = document.getElementById('avatarConfirmAndContinue');
+        const personaCheckBtn = document.getElementById('personaCheckBtn');
+        const editPersonaLink = document.querySelector('.edit-btn');
+
+        function personaExists() {
+            return Boolean(localStorage.getItem('persona-name'));
+        }
+
+        function showPersonaCheck() {
+            if (personaCheckOverlay) {
+                personaCheckOverlay.style.display = 'flex';
+            }
+        }
+
+        function hidePersonaCheck() {
+            if (personaCheckOverlay) {
+                personaCheckOverlay.style.display = 'none';
+            }
+        }
+
+        if (!personaExists()) {
+            showPersonaCheck();
+        }
+
+        function goToQuestions() {
+            hidePersonaCheck();
+            window.location.href = 'edit-persona.html';
+        }
+
+        function showAvatarStep() {
+            if (personaStepChoice) personaStepChoice.style.display = 'none';
+            if (personaStepAvatar) personaStepAvatar.style.display = 'block';
+            if (personaStepRedirect) personaStepRedirect.style.display = 'none';
+            showPersonaCheck();
+        }
+
+        if (personaYesBtn) {
+            personaYesBtn.addEventListener('click', () => {
+                showAvatarStep();
+            });
+        }
+
+        if (personaNoBtn) {
+            personaNoBtn.addEventListener('click', () => {
+                if (personaStepChoice) personaStepChoice.style.display = 'none';
+                if (personaStepAvatar) personaStepAvatar.style.display = 'none';
+                if (personaStepRedirect) personaStepRedirect.style.display = 'block';
+                showPersonaCheck();
+                setTimeout(() => { window.location.href = 'Chat.html'; }, 2000);
+            });
+        }
+
+        if (avatarUploadNow && avatarOverlayInput) {
+            avatarUploadNow.addEventListener('click', () => avatarOverlayInput.click());
+        }
+
+        if (avatarChangePhoto && avatarOverlayInput) {
+            avatarChangePhoto.addEventListener('click', () => avatarOverlayInput.click());
+        }
+
+        if (avatarOverlayInput) {
+            avatarOverlayInput.addEventListener('change', (e) => {
+                const file = e.target.files && e.target.files[0];
+                if (!file) return;
+                const reader = new FileReader();
+                reader.onload = (ev) => {
+                    const dataUrl = ev.target.result;
+                    localStorage.setItem('persona-portrait', dataUrl);
+                    localStorage.setItem('persona-avatar-present', 'yes');
+                    if (avatarOverlayPreview) {
+                        avatarOverlayPreview.src = dataUrl;
+                        avatarOverlayPreview.style.display = 'block';
+                    }
+                    if (avatarOverlayPlaceholder) avatarOverlayPlaceholder.style.display = 'none';
+                    avatarConfirmAndContinue.disabled = false;
+                    // Also update main portrait immediately
+                    showPortrait(dataUrl);
+                };
+                reader.readAsDataURL(file);
+            });
+        }
+
+        if (avatarConfirmAndContinue) {
+            avatarConfirmAndContinue.addEventListener('click', () => {
+                goToQuestions();
+            });
+        }
+
+        if (avatarLater) {
+            avatarLater.addEventListener('click', () => {
+                goToQuestions();
+            });
+        }
+
+        if (personaCheckBtn) {
+            personaCheckBtn.addEventListener('click', () => {
+                showPersonaCheck();
+            });
+        }
+
+        // Seesaw tilt + flip cards for Extra Information with inline edit on back face
+        backgroundFields.forEach(item => {
+            const valueEl = item.querySelector('.value-back');
+            const editBtn = item.querySelector('.edit-tag');
+            const field = item.dataset.field;
+            const flipInner = item.querySelector('.flip-inner');
+
+            item.addEventListener('click', (e) => {
+                if (e.target.closest('.edit-tag')) return;
+                item.classList.toggle('flipped');
+            });
+
+            item.addEventListener('mousemove', (e) => {
+                const rect = item.getBoundingClientRect();
+                const midX = rect.left + rect.width / 2;
+                const delta = (e.clientX - midX) / rect.width; // -0.5 .. 0.5
+                const tilt = Math.max(-1, Math.min(1, -delta * 2)) * 8; // tilt opposite side
+                item.style.setProperty('--tilt', `${tilt}deg`);
+            });
+            item.addEventListener('mouseleave', () => {
+                item.style.setProperty('--tilt', '0deg');
+            });
+
+            function saveValue() {
+                const text = valueEl.textContent.trim();
+                localStorage.setItem(`extra-${field}`, text);
+                valueEl.removeAttribute('contenteditable');
+                valueEl.classList.remove('editing');
+                item.classList.remove('editing');
+            }
+
+            if (editBtn && valueEl) {
+                editBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const editing = valueEl.isContentEditable;
+                    if (editing) {
+                        saveValue();
+                        editBtn.textContent = 'Edit';
+                        return;
+                    }
+                    valueEl.setAttribute('contenteditable', 'true');
+                    valueEl.classList.add('editing');
+                    item.classList.add('editing');
+                    editBtn.textContent = 'Save';
+                    valueEl.focus();
+                    document.execCommand('selectAll', false, null);
+                });
+
+                valueEl.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                        e.preventDefault();
+                        saveValue();
+                        if (editBtn) editBtn.textContent = 'Edit';
+                    }
+                });
+                valueEl.addEventListener('blur', () => {
+                    if (valueEl.isContentEditable) {
+                        saveValue();
+                        if (editBtn) editBtn.textContent = 'Edit';
+                    }
+                });
+            }
+        });
+
+        // 3D spherical point cloud (left column)
+        function ensureThree() {
+            return new Promise((resolve, reject) => {
+                if (typeof THREE !== 'undefined') {
+                    resolve();
+                    return;
+                }
+                // fallback to CDN if local script failed
+                const cdn = document.createElement('script');
+                cdn.src = 'https://unpkg.com/three@0.158.0/build/three.min.js';
+                cdn.onload = () => (typeof THREE !== 'undefined' ? resolve() : reject(new Error('CDN loaded but THREE undefined')));
+                cdn.onerror = () => reject(new Error('Failed to load three.js'));
+                document.head.appendChild(cdn);
+            });
+        }
+
+        // Simple procedural hologram (body proxy + base rings)
+        function buildHologram() {
+            const group = new THREE.Group();
+
+            // Base rings
+            const baseMat = new THREE.MeshBasicMaterial({ color: 0x22d3ee, transparent: true, opacity: 0.28, side: THREE.DoubleSide });
+            const ring1 = new THREE.Mesh(new THREE.TorusGeometry(1.4, 0.04, 16, 64), baseMat.clone());
+            ring1.rotation.x = Math.PI / 2;
+            ring1.position.y = -1.4;
+            group.add(ring1);
+            const ring2 = new THREE.Mesh(new THREE.TorusGeometry(1.1, 0.03, 16, 64), baseMat.clone());
+            ring2.rotation.x = Math.PI / 2;
+            ring2.position.y = -1.4;
+            group.add(ring2);
+
+            // Body proxy (capsule-like)
+            const bodyMat = new THREE.MeshPhongMaterial({
+                color: 0x44e6ff,
+                emissive: 0x116677,
+                transparent: true,
+                opacity: 0.32,
+                shininess: 110,
+                side: THREE.DoubleSide
+            });
+            const torso = new THREE.Mesh(new THREE.CylinderGeometry(0.32, 0.38, 1.35, 24, 1, true), bodyMat.clone());
+            torso.position.y = -0.05;
+            group.add(torso);
+
+            const head = new THREE.Mesh(new THREE.SphereGeometry(0.28, 24, 18), bodyMat.clone());
+            head.position.y = 0.95;
+            group.add(head);
+
+            const neck = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.12, 0.25, 16, 1, true), bodyMat.clone());
+            neck.position.y = 0.7;
+            group.add(neck);
+
+            const legs = new THREE.Mesh(new THREE.CylinderGeometry(0.24, 0.2, 1.0, 18, 1, true), bodyMat.clone());
+            legs.position.y = -0.95;
+            group.add(legs);
+
+            // Arms
+            const armMat = bodyMat.clone(); armMat.opacity = 0.26;
+            const upperArmL = new THREE.Mesh(new THREE.CylinderGeometry(0.11, 0.12, 0.6, 16, 1, true), armMat);
+            upperArmL.position.set(-0.42, 0.45, 0);
+            upperArmL.rotation.z = Math.PI / 7;
+            group.add(upperArmL);
+            const upperArmR = upperArmL.clone();
+            upperArmR.position.x *= -1;
+            upperArmR.rotation.z = -Math.PI / 7;
+            group.add(upperArmR);
+
+            // Simple hands/glow discs
+            const handMat = new THREE.MeshBasicMaterial({ color: 0x55f0ff, transparent: true, opacity: 0.35 });
+            const handL = new THREE.Mesh(new THREE.SphereGeometry(0.09, 14, 10), handMat);
+            handL.position.set(-0.75, 0.15, 0.05);
+            group.add(handL);
+            const handR = handL.clone();
+            handR.position.x *= -1;
+            handR.position.z *= -1;
+            group.add(handR);
+
+            // Floating shard
+            const shardGeo = new THREE.TetrahedronGeometry(0.25, 0);
+            const shardMat = new THREE.MeshBasicMaterial({ color: 0x55f0ff, transparent: true, opacity: 0.6, wireframe: true });
+            const shard = new THREE.Mesh(shardGeo, shardMat);
+            shard.position.set(0.45, 0.35, 0);
+            group.add(shard);
+
+            // Vertical beam
+            const beamGeo = new THREE.CylinderGeometry(0.07, 0.07, 3.2, 16, 1, true);
+            const beamMat = new THREE.MeshBasicMaterial({ color: 0x22d3ee, transparent: true, opacity: 0.08, side: THREE.DoubleSide });
+            const beam = new THREE.Mesh(beamGeo, beamMat);
+            beam.position.y = 0;
+            group.add(beam);
+
+            // Light sweep plane
+            const sweepGeo = new THREE.PlaneGeometry(1.5, 2.4);
+            const sweepMat = new THREE.MeshBasicMaterial({ color: 0x66f2ff, transparent: true, opacity: 0.06, side: THREE.DoubleSide });
+            const sweep = new THREE.Mesh(sweepGeo, sweepMat);
+            sweep.rotation.y = Math.PI / 6;
+            sweep.position.z = -0.1;
+            group.add(sweep);
+
+            return group;
+        }
+
+        // portrait hologram handled below
+
+        function showPortrait(src) {
+            const img = new Image();
+            img.onload = () => {
+                portraitPreview.src = src;
+                portraitPreview.style.display = 'none';
+                placeholder.style.display = 'none';
+                applyHologram(img);
+            };
+            img.src = src;
+        }
+
+        const savedPortrait = localStorage.getItem('persona-portrait');
+        if (savedPortrait) showPortrait(savedPortrait);
+
+        portraitInput.addEventListener('change', (e) => {
+            const file = e.target.files && e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = (ev) => {
+                const dataUrl = ev.target.result;
+                localStorage.setItem('persona-portrait', dataUrl);
+                showPortrait(dataUrl);
+            };
+            reader.readAsDataURL(file);
+        });
+        function showMenu() {
+            if (!photoMenu) return;
+            photoMenu.style.display = 'flex';
+            photoMenu.setAttribute('aria-hidden', 'false');
+        }
+        function hideMenu() {
+            if (!photoMenu) return;
+            photoMenu.style.display = 'none';
+            photoMenu.setAttribute('aria-hidden', 'true');
+        }
+
+        portraitBox.addEventListener('click', (e) => {
+            e.stopPropagation();
+            showMenu();
+        });
+        photoMenu?.addEventListener('click', (e) => {
+            if (e.target === photoMenu) hideMenu();
+        });
+        menuChangePhoto?.addEventListener('click', () => {
+            hideMenu();
+            portraitInput?.click();
+        });
+        menuRemovePhoto?.addEventListener('click', () => {
+            hideMenu();
+            localStorage.removeItem('persona-portrait');
+            placeholder.style.display = 'block';
+            portraitPreview.style.display = 'none';
+            holoCanvas.style.display = 'none';
+            holoCtx.clearRect(0,0,holoCanvas.width,holoCanvas.height);
+        });
+        // suppress default hover tooltips with file name
+        portraitBox.setAttribute('title', '');
+        portraitInput.setAttribute('title', '');
+
+        function applyHologram(img) {
+            const boxW = portraitBox.clientWidth || 360;
+            const boxH = portraitBox.clientHeight || boxW;
+            holoCanvas.width = boxW;
+            holoCanvas.height = boxH;
+            holoCanvas.style.display = 'block';
+            const ctx = holoCtx;
+            ctx.clearRect(0, 0, boxW, boxH);
+            const ratio = Math.max(boxW / img.width, boxH / img.height);
+            const w = img.width * ratio;
+            const h = img.height * ratio;
+            const x = (boxW - w) / 2;
+            const y = (boxH - h) / 2;
+            ctx.drawImage(img, x, y, w, h);
+
+            ctx.globalCompositeOperation = 'screen';
+            const tint = ctx.createLinearGradient(0, 0, boxW, boxH);
+            tint.addColorStop(0, 'rgba(34,211,238,0.35)');
+            tint.addColorStop(1, 'rgba(249,115,22,0.15)');
+            ctx.fillStyle = tint;
+            ctx.fillRect(0, 0, boxW, boxH);
+
+            ctx.globalCompositeOperation = 'overlay';
+            ctx.fillStyle = 'rgba(255,255,255,0.08)';
+            for (let i = 0; i < boxH; i += 4) {
+                ctx.fillRect(0, i, boxW, 1);
+            }
+
+            ctx.globalCompositeOperation = 'screen';
+            const radial = ctx.createRadialGradient(boxW/2, boxH*0.45, boxW*0.1, boxW/2, boxH/2, boxW*0.7);
+            radial.addColorStop(0, 'rgba(102,242,255,0.35)');
+            radial.addColorStop(1, 'rgba(102,242,255,0)');
+            ctx.fillStyle = radial;
+            ctx.fillRect(0, 0, boxW, boxH);
+
+            ctx.globalCompositeOperation = 'source-over';
+        }
+
+        let isDragging = false;
+        function applyTilt(x, y) {
+            const rect = portraitBox.getBoundingClientRect();
+            const cx = rect.left + rect.width / 2;
+            const cy = rect.top + rect.height / 2;
+            const dx = (x - cx) / rect.width;
+            const dy = (y - cy) / rect.height;
+            // deadzone near edges/corners
+            const dead = 0.08; // lighter deadzone to bring back sensitivity
+            if (Math.abs(dx) > 0.5 + dead || Math.abs(dy) > 0.5 + dead) {
+                portraitBox.style.transform = 'perspective(1200px) rotateX(0deg) rotateY(0deg)';
+                return;
+            }
+            const rotX = dy * -10;
+            const rotY = dx * 10;
+            portraitBox.style.transform = `perspective(1200px) rotateX(${rotX}deg) rotateY(${rotY}deg)`;
+        }
+        portraitBox.addEventListener('pointerdown', (e) => {
+            isDragging = true;
+            portraitBox.setPointerCapture(e.pointerId);
+        });
+        portraitBox.addEventListener('pointermove', (e) => {
+            if (!isDragging) {
+                applyTilt(e.clientX, e.clientY);
+                return;
+            }
+            applyTilt(e.clientX, e.clientY);
+        });
+        portraitBox.addEventListener('pointerup', (e) => {
+            isDragging = false;
+            portraitBox.releasePointerCapture(e.pointerId);
+            portraitBox.style.transform = 'perspective(1200px) rotateX(0deg) rotateY(0deg)';
+        });
+        portraitBox.addEventListener('pointerleave', () => {
+            if (!isDragging) portraitBox.style.transform = 'perspective(1200px) rotateX(0deg) rotateY(0deg)';
+        });
+
+        // Ball-under-cloth hover for radar polygon
+        if (radarCanvas) {
+            const updateBallFromEvent = (e) => {
+                const rect = radarCanvas.getBoundingClientRect();
+                setBallTarget(e.clientX - rect.left, e.clientY - rect.top, 1);
+            };
+            radarCanvas.addEventListener('pointermove', updateBallFromEvent);
+            radarCanvas.addEventListener('pointerenter', updateBallFromEvent);
+            radarCanvas.addEventListener('pointerleave', () => {
+                const rect = radarCanvas.getBoundingClientRect();
+                setBallTarget(rect.width / 2, rect.height / 2, 0);
+            });
+        }
+
+        function getFallbackAxes() {
+            return [
+                { axis_id: 'A1', name: 'Axis 1' },
+                { axis_id: 'A2', name: 'Axis 2' },
+                { axis_id: 'A3', name: 'Axis 3' },
+                { axis_id: 'A4', name: 'Axis 4' },
+                { axis_id: 'A5', name: 'Axis 5' },
+                { axis_id: 'A6', name: 'Axis 6' }
+            ];
+        }
+
+        async function loadDataset() {
+            if (radarDataCache) return radarDataCache;
+            try {
+                const res = await fetch(radarConfig.datasetPath);
+                radarDataCache = await res.json();
+            } catch (err) {
+                console.warn('Could not load identity builder dataset, using fallback axes.', err);
+                radarDataCache = {};
+            }
+            return radarDataCache;
+        }
+
+        async function loadLayerAxes(layerId) {
+            const data = await loadDataset();
+            const layer = (data.layers || []).find(l => l.layer_id === layerId);
+            const axes = layer && Array.isArray(layer.axes) ? layer.axes : [];
+            if (axes.length) return axes;
+            return getFallbackAxes();
+        }
+
+        function loadAxisValues(layerId, axes) {
+            let saved = {};
+            try {
+                saved = JSON.parse(localStorage.getItem(`identity-layer-${layerId}`) || '{}');
+            } catch (e) {
+                saved = {};
+            }
+            const values = {};
+            axes.forEach(axis => {
+                const raw = saved[axis.axis_id] || saved[axis.name];
+                let val = 0;
+                if (raw && typeof raw === 'object' && typeof raw.value === 'number') {
+                    val = raw.value;
+                } else if (typeof raw === 'number') {
+                    val = raw;
+                }
+                if (val <= 1) val = val * 100;
+                values[axis.axis_id] = Math.max(0, Math.min(100, Math.round(val)));
+            });
+            return values;
+        }
+
+        function resizeRadarCanvas() {
+            if (!radarCanvas) return;
+            const containerWidth = radarCanvas.parentElement ? radarCanvas.parentElement.clientWidth : radarCanvas.clientWidth;
+            const size = Math.min(containerWidth, 1100);
+            const needsResize = radarCanvas.width !== size || radarCanvas.height !== size;
+            if (!needsResize) return;
+            radarCanvas.width = size;
+            radarCanvas.height = size;
+            if (radarBall.targetStrength === 0) {
+                const center = size / 2;
+                radarBall.pos.x = center;
+                radarBall.pos.y = center;
+                radarBall.target.x = center;
+                radarBall.target.y = center;
+            }
+        }
+
+        function applyBulge(point, ball, size) {
+            if (!ball || !ball.radiusFactor) return { x: point.x, y: point.y, lift: 0 };
+            const dx = point.x - ball.pos.x;
+            const dy = point.y - ball.pos.y;
+            const dist = Math.hypot(dx, dy);
+            if (ball.strength <= 0.001) return { x: point.x, y: point.y, lift: 0 };
+            const influence = size * ball.radiusFactor;
+            const norm = influence > 0 ? dist / (influence * 1.35) : 1;
+            const falloff = 1 / (1 + Math.pow(norm, 2.2)); // gentler tail so center hover still tugs outer edges
+            const lift = ball.strength * falloff;
+            const push = lift * size * ball.pushFactor;
+            const nx = dx / (dist || 1);
+            const ny = dy / (dist || 1);
+            return {
+                x: point.x + nx * push,
+                y: point.y + ny * push,
+                lift
+            };
+        }
+
+        function drawBulgeLighting(ctx, ball, size, polygonVertices) {
+            if (!ball || ball.strength < 0.01 || !polygonVertices || !polygonVertices.length) return;
+            const r = size * (0.14 + ball.radiusFactor);
+            const intensity = Math.max(0, Math.min(1, ball.strength));
+            ctx.save();
+            ctx.beginPath();
+            ctx.moveTo(polygonVertices[0].x, polygonVertices[0].y);
+            for (let i = 1; i < polygonVertices.length; i++) ctx.lineTo(polygonVertices[i].x, polygonVertices[i].y);
+            ctx.closePath();
+            ctx.clip();
+
+            const highlight = ctx.createRadialGradient(
+                ball.pos.x - r * 0.18,
+                ball.pos.y - r * 0.22,
+                r * 0.18,
+                ball.pos.x,
+                ball.pos.y,
+                r
+            );
+            highlight.addColorStop(0, `rgba(255,255,255,${0.16 * intensity})`);
+            highlight.addColorStop(0.4, `rgba(34,211,238,${0.14 * intensity})`);
+            highlight.addColorStop(1, 'rgba(255,255,255,0)');
+            ctx.globalCompositeOperation = 'screen';
+            ctx.fillStyle = highlight;
+            ctx.fillRect(0, 0, size, size);
+
+            const shadow = ctx.createRadialGradient(
+                ball.pos.x + r * 0.18,
+                ball.pos.y + r * 0.24,
+                r * 0.18,
+                ball.pos.x + r * 0.18,
+                ball.pos.y + r * 0.24,
+                r * 1.2
+            );
+            shadow.addColorStop(0, 'rgba(0,0,0,0)');
+            shadow.addColorStop(0.5, `rgba(0,0,0,${0.25 * intensity})`);
+            shadow.addColorStop(1, 'rgba(0,0,0,0)');
+            ctx.globalCompositeOperation = 'multiply';
+            ctx.fillStyle = shadow;
+            ctx.fillRect(0, 0, size, size);
+
+            ctx.restore();
+            ctx.globalCompositeOperation = 'source-over';
+        }
+
+        function drawHexRing(ctx, center, startAngle, step, radius, layer, axesCount, progress, size, baseAxes, ball) {
+            if (progress <= 0) return;
+            const vertices = [];
+            for (let i = 0; i < axesCount; i++) {
+                const angle = startAngle + step * i;
+                const basePoint = {
+                    x: center + Math.cos(angle) * radius,
+                    y: center + Math.sin(angle) * radius
+                };
+                vertices.push(applyBulge(basePoint, ball, size));
+            }
+            const totalEdges = axesCount;
+            const travel = Math.min(progress, 1) * totalEdges;
+            const strokeBase = 'rgba(255,255,255,0.28)'; // neutral line so radar highlights stand out
+            const axesList = layer.axes && layer.axes.length ? layer.axes : baseAxes || [];
+            ctx.setLineDash([]);
+            ctx.shadowColor = 'transparent';
+            ctx.shadowBlur = 0;
+            ctx.shadowOffsetX = 0;
+            ctx.shadowOffsetY = 0;
+
+            for (let i = 0; i < totalEdges; i++) {
+                const edgeProgress = Math.max(0, Math.min(1, travel - i));
+                if (edgeProgress <= 0) continue;
+                const start = vertices[i];
+                const end = vertices[(i + 1) % totalEdges];
+                const px = start.x + (end.x - start.x) * edgeProgress;
+                const py = start.y + (end.y - start.y) * edgeProgress;
+                const alpha = 1; // fixed full opacity per request
+                ctx.beginPath();
+                ctx.moveTo(start.x, start.y);
+                ctx.lineTo(px, py);
+                ctx.strokeStyle = strokeBase;
+                ctx.lineWidth = layer.lineWidth || 2;
+                ctx.globalAlpha = alpha;
+                ctx.stroke();
+            }
+
+            ctx.setLineDash([]);
+            ctx.shadowColor = 'transparent';
+            ctx.shadowBlur = 0;
+            ctx.globalAlpha = 1;
+
+            // Draw filled polygon for this layer based on axis values
+            let polygonVertices = [];
+            if (layer.values) {
+                for (let i = 0; i < axesCount; i++) {
+                    const axisId = axesList[i] && (axesList[i].axis_id || axesList[i].axisId);
+                    const val = layer.values[axisId] != null ? Math.max(0, Math.min(100, layer.values[axisId])) : 50;
+                    const norm = val / 100;
+                    const angle = startAngle + step * i;
+                    const r = radius * norm;
+                    const warped = applyBulge({
+                        x: center + Math.cos(angle) * r,
+                        y: center + Math.sin(angle) * r
+                    }, ball, size);
+                    polygonVertices.push(warped);
+                }
+                if (polygonVertices.length) {
+                    ctx.beginPath();
+                    ctx.moveTo(polygonVertices[0].x, polygonVertices[0].y);
+                    for (let i = 1; i < polygonVertices.length; i++) ctx.lineTo(polygonVertices[i].x, polygonVertices[i].y);
+                    ctx.closePath();
+                    // Syntrae gradient fill + glowing edge
+                    const grad = ctx.createRadialGradient(center, center, radius * 0.05, center, center, radius);
+                    grad.addColorStop(0, 'rgba(34,211,238,0.40)');
+                    grad.addColorStop(0.55, 'rgba(34,211,238,0.28)');
+                    grad.addColorStop(1, 'rgba(249,115,22,0.22)');
+                    ctx.fillStyle = grad;
+                    ctx.globalAlpha = 1;
+                    ctx.fill();
+                    ctx.lineWidth = 4;
+                    const strokeGrad = ctx.createLinearGradient(0, 0, size, size);
+                    strokeGrad.addColorStop(0, '#22d3ee');
+                    strokeGrad.addColorStop(1, '#f97316');
+                    ctx.strokeStyle = strokeGrad;
+                    ctx.shadowColor = 'rgba(34,211,238,0.7)';
+                    ctx.shadowBlur = 20;
+                    ctx.stroke();
+                    ctx.shadowColor = 'transparent';
+                }
+            }
+            return { ringVertices: vertices, polygonVertices };
+        }
+
+        function drawLayerLabels(ctx, baseAxes, layer, center, startAngle, step, size, ball) {
+            if (!radarRenderOptions.showLabels) return;
+            if (!layer || !layer.axes || !layer.axes.length) return;
+            const axes = layer.axes;
+            const axesCount = Math.min(baseAxes.length, axes.length);
+            const labelRadius = size * ((layer.radiusScale || 0.42) + 0.07);
+            ctx.fillStyle = layer.textColor || layer.color || 'rgba(255,255,255,0.9)';
+            ctx.font = '12px \"Space Grotesk\", sans-serif';
+            for (let i = 0; i < axesCount; i++) {
+                const angle = startAngle + step * i;
+                const basePoint = {
+                    x: center + Math.cos(angle) * labelRadius,
+                    y: center + Math.sin(angle) * labelRadius
+                };
+                const warped = applyBulge(basePoint, ball, size);
+                const lx = basePoint.x + (warped.x - basePoint.x) * 0.65;
+                const ly = basePoint.y + (warped.y - basePoint.y) * 0.65;
+                const name = axes[i].name || `Axis ${i + 1}`;
+                ctx.save();
+                ctx.translate(lx, ly);
+                ctx.rotate(angle);
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(name, 0, 0);
+                ctx.restore();
+            }
+        }
+
+        function drawOuterLabels(ctx, baseAxes, layerRings, center, startAngle, step, size) {
+            if (!radarRenderOptions.showLabels) return;
+            const maxRadiusScale = layerRings.reduce((m, l) => Math.max(m, l.radiusScale || 0), 0.42);
+            const labelRadius = size * maxRadiusScale + size * 0.022;
+            const vertices = [];
+            baseAxes.forEach((axis, i) => {
+                const angle = startAngle + step * i;
+                const x = center + Math.cos(angle) * labelRadius;
+                const y = center + Math.sin(angle) * labelRadius;
+                vertices.push({ x, y });
+            });
+            ctx.fillStyle = 'rgba(255,255,255,0.9)';
+            ctx.font = '13px \"Space Grotesk\", sans-serif';
+            baseAxes.forEach((axis, i) => {
+                const p1 = vertices[i];
+                const p2 = vertices[(i + 1) % vertices.length];
+                const mid = { x: (p1.x + p2.x) / 2, y: (p1.y + p2.y) / 2 };
+                const normal = { x: mid.x - center, y: mid.y - center };
+                const nLen = Math.hypot(normal.x, normal.y) || 1;
+                const offset = 18;
+                const labelPos = {
+                    x: mid.x + (normal.x / nLen) * offset,
+                    y: mid.y + (normal.y / nLen) * offset
+                };
+                const angle = Math.atan2(p2.y - p1.y, p2.x - p1.x);
+                const name = axis.name || `Axis ${i + 1}`;
+                ctx.save();
+                ctx.translate(labelPos.x, labelPos.y);
+                ctx.rotate(angle);
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(name, 0, 0);
+                ctx.restore();
+            });
+        }
+
+        function computeVertices(center, startAngle, step, radius, count) {
+            const verts = [];
+            for (let i = 0; i < count; i++) {
+                const angle = startAngle + step * i;
+                const x = center + Math.cos(angle) * radius;
+                const y = center + Math.sin(angle) * radius;
+                verts.push({ x, y });
+            }
+            return verts;
+        }
+
+        function drawCenterWeb(ctx, center, vertices) {
+            if (!vertices.length) return;
+            ctx.save();
+            ctx.strokeStyle = 'rgba(255,255,255,0.18)';
+            ctx.lineWidth = 1;
+            vertices.forEach(p => {
+                ctx.beginPath();
+                ctx.moveTo(center, center);
+                ctx.lineTo(p.x, p.y);
+                ctx.stroke();
+            });
+            ctx.restore();
+        }
+
+        function drawFullWeb(ctx, vertices) {
+            if (vertices.length < 2) return;
+            ctx.save();
+            ctx.strokeStyle = 'rgba(255,255,255,0.08)';
+            ctx.lineWidth = 0.6;
+            for (let i = 0; i < vertices.length; i++) {
+                for (let j = i + 1; j < vertices.length; j++) {
+                    const p1 = vertices[i];
+                    const p2 = vertices[j];
+                    ctx.beginPath();
+                    ctx.moveTo(p1.x, p1.y);
+                    ctx.lineTo(p2.x, p2.y);
+                    ctx.stroke();
+                }
+            }
+            ctx.restore();
+        }
+
+        function animateRadar(baseAxes, layer, ball) {
+            if (!radarCtx || !radarCanvas || !baseAxes.length || !layer) return;
+            resizeRadarCanvas();
+            const ctx = radarCtx;
+            const size = radarCanvas.width;
+            const center = size / 2;
+            const startAngle = -Math.PI / 2;
+            const step = (Math.PI * 2) / baseAxes.length;
+            ctx.clearRect(0, 0, size, size);
+            const axesCount = baseAxes.length;
+            const radius = size * (layer.radiusScale || 0.42);
+            const ringData = drawHexRing(ctx, center, startAngle, step, radius, layer, axesCount, 1, size, baseAxes, ball);
+            const ringVerts = ringData && ringData.ringVertices && ringData.ringVertices.length
+                ? ringData.ringVertices
+                : computeVertices(center, startAngle, step, radius, axesCount);
+            drawCenterWeb(ctx, center, ringVerts);
+            drawFullWeb(ctx, ringVerts);
+            drawBulgeLighting(ctx, ball, size, ringData ? (ringData.polygonVertices || ringVerts) : ringVerts);
+            drawLayerLabels(ctx, baseAxes, layer, center, startAngle, step, size, ball);
+        }
+
+        function setBallTarget(x, y, strength) {
+            radarBall.target.x = x;
+            radarBall.target.y = y;
+            radarBall.targetStrength = Math.max(0, Math.min(1, strength));
+            ensureRadarLoop();
+        }
+
+        function ensureRadarLoop() {
+            if (radarBallFrame) return;
+            radarBallFrame = requestAnimationFrame(radarStep);
+        }
+
+        function radarStep() {
+            const baseAxes = radarLayers.length && radarLayers[0].axes ? radarLayers[0].axes : (radarBaseAxes || getFallbackAxes());
+            const layer = radarLayers[0] || (baseAxes ? { axes: baseAxes, values: {}, radiusScale: 0.315 } : null);
+            if (!radarCanvas || !radarCtx || !baseAxes || !layer) {
+                radarBallFrame = null;
+                return;
+            }
+
+            const size = radarCanvas.width || radarCanvas.clientWidth || 0;
+            if (!radarBall.pos.x && !radarBall.pos.y && size > 0) {
+                const center = size / 2;
+                radarBall.pos.x = center;
+                radarBall.pos.y = center;
+                radarBall.target.x = center;
+                radarBall.target.y = center;
+            }
+
+            radarBall.pos.x += (radarBall.target.x - radarBall.pos.x) * 0.16;
+            radarBall.pos.y += (radarBall.target.y - radarBall.pos.y) * 0.16;
+            radarBall.strength += (radarBall.targetStrength - radarBall.strength) * 0.1;
+
+            animateRadar(baseAxes, layer, radarBall);
+
+            const drifting = Math.hypot(radarBall.target.x - radarBall.pos.x, radarBall.target.y - radarBall.pos.y) > 0.6;
+            const pulsing = Math.abs(radarBall.targetStrength - radarBall.strength) > 0.01;
+            if (drifting || pulsing || radarBall.targetStrength > 0.02) {
+                radarBallFrame = requestAnimationFrame(radarStep);
+            } else {
+                radarBallFrame = null;
+            }
+        }
+
+        async function initRadar() {
+            const baseAxes = personaAxes.map(a => ({
+                axis_id: a.id,
+                name: (axisExtremes[a.id] && axisExtremes[a.id][1]) || a.name
+            }));
+            const combinedValues = {};
+            ['L1','L2','L3'].forEach(layerId => {
+                const raw = localStorage.getItem(`identity-layer-${layerId}`);
+                if (!raw) return;
+                try {
+                    const parsed = JSON.parse(raw);
+                    Object.keys(parsed).forEach(axisId => {
+                        const val = parsed[axisId] && typeof parsed[axisId].value === 'number' ? parsed[axisId].value : null;
+                        if (typeof val === 'number') combinedValues[axisId] = Math.max(0, Math.min(100, val <= 1 ? val * 100 : val));
+                    });
+                } catch (e) { /* ignore */ }
+            });
+            const layer = {
+                axes: baseAxes,
+                values: combinedValues,
+                radiusScale: 0.315, // reduced ~25% from 0.42 to shrink polygon
+                gradient: ['rgba(102,242,255,0.6)', 'rgba(34,211,238,0.6)'],
+                color: '#22d3ee',
+                lineWidth: 1.5,
+                textColor: 'rgba(255,255,255,0.9)',
+                textFont: '12px "Space Grotesk", sans-serif'
+            };
+            radarLayers = [layer];
+            radarBaseAxes = baseAxes;
+            animateRadar(baseAxes, layer, radarBall);
+            const rect = radarCanvas.getBoundingClientRect();
+            setBallTarget(rect.width / 2, rect.height / 2, 0);
+        }
+
+        window.addEventListener('resize', () => {
+            const baseAxes = radarLayers.length && radarLayers[0].axes ? radarLayers[0].axes : getFallbackAxes();
+            animateRadar(baseAxes, radarLayers[0] || { axes: baseAxes, values: {}, radiusScale: 0.315 }, radarBall);
+            if (radarBall.targetStrength === 0 && radarCanvas) {
+                const rect = radarCanvas.getBoundingClientRect();
+                setBallTarget(rect.width / 2, rect.height / 2, 0);
+            }
+            const saved = localStorage.getItem('persona-portrait');
+            if (saved) showPortrait(saved);
+            ensureRadarLoop();
+        });
+        initRadar();
+    </script>
+</body>
+</html>
