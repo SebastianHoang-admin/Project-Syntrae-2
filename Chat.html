@@ -592,15 +592,18 @@
             chatMessages.scrollTop = chatMessages.scrollHeight;
         }
 
-        function generateAIResponse(userMessage) {
-            const lower = userMessage.toLowerCase();
-            if (lower.includes('hello') || lower.includes('hi')) {
-                return "Hello! How can I help you understand your persona better today?";
+                async function sendToAssistant(messages) {
+            const res = await fetch('/api/chat', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ messages })
+            });
+            if (!res.ok) {
+                const txt = await res.text().catch(() => '');
+                throw new Error(`Assistant error (${res.status}): ${txt}`);
             }
-            if (lower.includes('simulate') || lower.includes('simulation')) {
-                return "Probability is 82% they'd say yes. Offer a specific time and a low-effort plan to maximize odds.";
-            }
-            return `I heard: "${userMessage}". Probability ~78% they'd engage. Offer one clear next step.`;
+            const data = await res.json();
+            return data.choices?.[0]?.message?.content || 'No reply';
         }
 
         function showLoadingThenRespond(responseText) {
@@ -619,13 +622,32 @@
             }, 3000);
         }
 
-        function sendMessage() {
+        async function sendMessage() {
             const text = chatInput.value.trim();
             if (!text) return;
             addMessage(text, 'user');
             chatInput.value = '';
-            const response = generateAIResponse(text);
-            setTimeout(() => addMessage(response, 'agent'), 1000);
+                    const loadingWrapper = document.createElement('div');
+            loadingWrapper.className = 'message agent';
+            const content = document.createElement('div');
+            content.className = 'loading-wrap';
+            content.innerHTML = `<div class="loading-bar"></div><span class="message-time">processing...</span>`;
+            loadingWrapper.appendChild(content);
+            chatMessages.appendChild(loadingWrapper);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+
+            try {
+                const messages = [
+                    { role: 'system', content: 'You are Syntrae assistant. Be concise, helpful, and persona-aware.' },
+                    { role: 'user', content: text }
+                ];
+                const response = await sendToAssistant(messages);
+                loadingWrapper.remove();
+                addMessage(response, 'agent');
+            } catch (err) {
+                loadingWrapper.remove();
+                addMessage(`Error contacting assistant: ${err.message}`, 'agent');
+            }
         }
 
         sendBtn.addEventListener('click', sendMessage);
