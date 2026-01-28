@@ -664,10 +664,7 @@
 
         function playIntroConversation() {
             chatMessages.innerHTML = '';
-            const personaLabel = personaNameStorage;
             addMessage("Hello! I'm your Syntrae assistant. I can help you understand your persona better, run simulations, and predict outcomes. How can I assist you today?", 'agent', 0);
-            setTimeout(() => addMessage(`Can you run a simulation for me? I want to know how ${personaLabel} would respond if someone asked them to study together this weekend.`, 'user'), 1000);
-            setTimeout(() => showLoadingThenRespond(`Based on ${personaLabel}'s traits, there's an 87% probability they'd agree to study together. Suggest proposing a clear time and place—${personaLabel} responds best to specific, low-friction plans.`), 2000);
         }
 
         playIntroConversation();
