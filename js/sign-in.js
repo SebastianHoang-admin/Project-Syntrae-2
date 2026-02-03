@@ -36,3 +36,9 @@ async function handleSignIn(event) {
 
 redirectIfSignedIn();
 form.addEventListener('submit', handleSignIn);
+
+// If the verification link redirected here, show a friendly note.
+const params = new URLSearchParams(window.location.search);
+if (params.get('verified') === 'true') {
+  showMessage('Email verified! You can now sign in with your credentials.', 'success');
+}

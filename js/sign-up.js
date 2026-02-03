@@ -26,7 +26,8 @@ async function handleSignUp(event) {
 
   const options = {
     data: { full_name: fullName },
-    emailRedirectTo: `${window.location.origin}/sign-in.html`
+    // After the user clicks the verification link, they land on sign-in with a flag.
+    emailRedirectTo: `${window.location.origin}/sign-in.html?verified=true`
   };
 
   const result = await withButtonState(submitButton, () => supabase.auth.signUp({ email, password, options }))();
@@ -38,7 +39,7 @@ async function handleSignUp(event) {
 
   // If email confirmation is on, session is null; otherwise user is signed in.
   if (!result.data.session) {
-    showMessage('Check your email to confirm your account. Once confirmed, you can sign in.', 'success');
+    showMessage('Almost there! Check your email for a verification link. Open it, verify, then return here to sign in.', 'success');
   } else {
     showMessage('Account created! Redirecting…', 'success');
     setTimeout(() => { window.location.href = 'Chat.html'; }, 800);
