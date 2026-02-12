@@ -37,6 +37,14 @@ async function handleSignUp(event) {
     return;
   }
 
+  // Supabase can return a user with empty identities when the email already exists.
+  // In that case, do not show the verification success message.
+  const existingUser = Array.isArray(result.data?.user?.identities) && result.data.user.identities.length === 0;
+  if (existingUser) {
+    showMessage('There is an account associated with this email already, please sign in.', 'error');
+    return;
+  }
+
   // If email confirmation is on, session is null; otherwise user is signed in.
   if (!result.data.session) {
     showMessage('Almost there! Check your email for a verification link. Open it, verify, then return here to sign in.', 'success');
