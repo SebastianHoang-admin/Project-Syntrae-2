@@ -25,7 +25,7 @@ async function handleSignUp(event) {
   const password = formData.get('password');
 
   const options = {
-    data: { full_name: fullName },
+    data: { full_name: fullName, profile_completed: false },
     // After the user clicks the verification link, they land on sign-in with a flag.
     emailRedirectTo: `${window.location.origin}/sign-in.html?verified=true`
   };

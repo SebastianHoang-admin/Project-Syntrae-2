@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Complete Your Profile - Syntrae</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root { --ink:#0b1224; --glass:rgba(255,255,255,0.06); --border:rgba(255,255,255,0.12); --accent:#22d3ee; --accent-hot:#f97316; --text:#e2e8f0; --muted:#94a3b8; }
+        * { margin:0; padding:0; box-sizing:border-box; font-family:'Space Grotesk','Helvetica Neue',Arial,sans-serif; }
+        body { min-height:100vh; background: radial-gradient(circle at 20% 20%, rgba(34,211,238,0.08), transparent 30%), radial-gradient(circle at 80% 10%, rgba(249,115,22,0.08), transparent 25%), linear-gradient(145deg,#0a0f1f 0%,#0f172a 60%,#0b1224 100%); color:var(--text); display:flex; flex-direction:column; padding:24px; }
+        .brand { display:flex; align-items:center; justify-content:center; gap:12px; margin-bottom:18px; }
+        .brand-link { text-decoration:none; color:inherit; display:inline-flex; }
+        .logo-icon { width:44px; height:44px; display:grid; place-items:center; border-radius:12px; background:linear-gradient(135deg,#f84f25,#b8120e); box-shadow:0 10px 24px rgba(248,79,37,0.35); padding:6px; }
+        .logo-text { display:flex; flex-direction:column; gap:2px; align-items:flex-start; }
+        .logo-text span:first-child { font-size:18px; font-weight:700; letter-spacing:1.5px; }
+        .logo-text span:last-child { font-size:12px; color:var(--muted); }
+        .main { flex:1; display:grid; place-items:center; padding:24px 0; }
+        .card { width:min(640px,100%); background:rgba(8,10,16,0.6); border:1px solid rgba(255,255,255,0.1); border-radius:20px; padding:32px; box-shadow:0 16px 36px rgba(0,0,0,0.35); backdrop-filter:blur(8px); }
+        .card h1 { font-size:24px; margin-bottom:8px; letter-spacing:0.5px; }
+        .card p { color:var(--muted); margin-bottom:20px; }
+        .grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:14px; }
+        .field { display:flex; flex-direction:column; gap:8px; margin-bottom:12px; }
+        .field label { font-weight:600; color:var(--text); }
+        .field input { padding:12px 14px; border-radius:12px; border:1px solid var(--border); background:rgba(255,255,255,0.04); color:var(--text); font-size:15px; outline:none; transition:all 0.2s ease; }
+        .field input:focus { border-color:rgba(34,211,238,0.6); box-shadow:0 0 0 3px rgba(34,211,238,0.12); }
+        .actions { display:flex; gap:12px; margin-top:12px; flex-wrap:wrap; }
+        .btn { display:inline-flex; align-items:center; justify-content:center; gap:8px; padding:12px 18px; border-radius:14px; font-weight:700; font-size:14px; cursor:pointer; border:none; text-decoration:none; transition:all 0.2s ease; }
+        .btn-primary { background:linear-gradient(135deg,var(--accent),var(--accent-hot)); color:#0b1224; box-shadow:0 12px 26px rgba(34,211,238,0.3); }
+        .btn-ghost { background:rgba(255,255,255,0.04); color:var(--text); border:1px solid rgba(255,255,255,0.08); }
+        .btn:hover { transform:translateY(-1px); box-shadow:0 16px 30px rgba(34,211,238,0.18); }
+        .status { margin: 8px 0 12px; padding: 10px 12px; border-radius: 12px; font-weight: 600; border: 1px solid rgba(255, 255, 255, 0.08); background: rgba(255, 255, 255, 0.04); }
+        .status[data-type=\"error\"] { color:#fecdd3; border-color:rgba(248,79,37,0.35); }
+        .status[data-type=\"success\"] { color:#bbf7d0; border-color:rgba(74,222,128,0.35); }
+        .status[data-type=\"info\"] { color:var(--text); }
+        .footer { text-align:center; color:var(--muted); font-size:13px; padding:16px 0; }
+    </style>
+</head>
+<body>
+    <main class="main">
+        <a class="brand brand-link" href="landing.html">
+            <div class="logo-icon" aria-label="Syntrae logo">🧠</div>
+            <div class="logo-text">
+                <span>SYNTRAE</span>
+                <span>Persona Simulation Engine</span>
+            </div>
+        </a>
+        <div class="card">
+            <h1>Welcome! Tell us a bit about you</h1>
+            <p>This helps personalize your workspace. You can edit it anytime.</p>
+            <div id="status" class="status" hidden></div>
+            <form id="profile-form">
+                <div class="grid">
+                    <div class="field">
+                        <label for="first_name">First name</label>
+                        <input id="first_name" name="first_name" autocomplete="given-name" required>
+                    </div>
+                    <div class="field">
+                        <label for="last_name">Last name</label>
+                        <input id="last_name" name="last_name" autocomplete="family-name" required>
+                    </div>
+                </div>
+                <div class="grid">
+                    <div class="field">
+                        <label for="occupation">Occupation</label>
+                        <input id="occupation" name="occupation" placeholder="Product Manager, Researcher, etc.">
+                    </div>
+                    <div class="field">
+                        <label for="organization">Organization</label>
+                        <input id="organization" name="organization" placeholder="Company or team">
+                    </div>
+                </div>
+                <div class="field">
+                    <label for="location">Location</label>
+                    <input id="location" name="location" placeholder="City, Country">
+                </div>
+                <div class="actions">
+                    <button type="submit" class="btn btn-primary"><i class="fas fa-check"></i>Save profile</button>
+                    <button type="button" id="skipBtn" class="btn btn-ghost">Skip for now</button>
+                </div>
+            </form>
+        </div>
+    </main>
+
+    <div class="footer">
+        © 2026 Syntrae. All rights reserved.
+    </div>
+
+    <script src="js/supabase-config.js"></script>
+    <script type="module" src="js/profile.js"></script>
+</body>
+</html>
