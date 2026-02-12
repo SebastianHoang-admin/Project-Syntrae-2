@@ -178,6 +178,26 @@
             color: #fca5a5;
         }
 
+        .account-indicator {
+            margin-right: 14px;
+            padding: 8px 12px;
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            color: var(--text);
+            font-size: 12px;
+            font-weight: 600;
+            white-space: nowrap;
+            max-width: 260px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .account-indicator[data-state="signed-out"] {
+            color: #fca5a5;
+            border-color: rgba(248, 79, 37, 0.35);
+        }
+
         .container {
             position: relative;
             z-index: 1;
@@ -492,6 +512,8 @@
             </div>
         </div>
 
+        <div class="account-indicator" id="accountIndicator" title="Current account">Checking session…</div>
+
         <div class="more-menu">
             <button class="more-btn" id="moreBtn" aria-label="More options">
                 <span class="line"></span>
@@ -499,10 +521,10 @@
                 <span class="line"></span>
             </button>
             <div class="dropdown-menu" id="dropdownMenu">
-                <a href="./analyze.html" class="dropdown-item" data-destination="analyze"><i class="fas fa-robot"></i>Analyze and Edit Your Persona</a>
+                <a href="./analyze.html" class="dropdown-item" data-destination="analyze"><i class="fas fa-user-pen"></i>Analyze and Edit Your Persona</a>
                 <a href="#" class="dropdown-item" data-destination="history"><i class="fas fa-history"></i>Simulation History</a>
                 <a href="#" class="dropdown-item" data-destination="subscription"><i class="fas fa-crown"></i>Manage Subscription</a>
-                <a href="sign-out.html" class="dropdown-item sign-out"><i class="fas fa-sign-out-alt"></i>Sign Out</a>
+                <a href="sign-out.html" class="dropdown-item sign-out" id="signOutLink"><i class="fas fa-sign-out-alt"></i>Sign Out</a>
             </div>
         </div>
     </header>
@@ -539,15 +561,50 @@
         © 2026 Syntrae - Persona Simulation Engine. Predicting human interaction outcomes with AI.
     </footer>
 
-    <script>
+    <script src="js/supabase-config.js"></script>
+    <script type="module">
+        import { supabase } from './js/supabase-client.js';
+
         const moreBtn = document.getElementById('moreBtn');
         const dropdownMenu = document.getElementById('dropdownMenu');
+        const signOutLink = document.getElementById('signOutLink');
+        const accountIndicator = document.getElementById('accountIndicator');
         const chatInput = document.getElementById('chatInput');
         const chatMessages = document.getElementById('chatMessages');
         const sendBtn = document.getElementById('sendBtn');
         const personaCards = document.querySelectorAll('.persona-card');
         const personaNameStorage = localStorage.getItem('persona-name') || 'Persona 1';
         personaCards.forEach(card => { card.textContent = personaNameStorage; });
+
+        async function loadSession() {
+            try {
+                const { data, error } = await supabase.auth.getSession();
+                if (error || !data.session) {
+                    accountIndicator.textContent = 'Not signed in';
+                    accountIndicator.dataset.state = 'signed-out';
+                    window.location.href = 'sign-in.html';
+                    return;
+                }
+                const email = data.session.user.email || 'Unknown user';
+                accountIndicator.textContent = email;
+                accountIndicator.dataset.state = 'signed-in';
+            } catch (err) {
+                accountIndicator.textContent = 'Session check failed';
+                accountIndicator.dataset.state = 'signed-out';
+                console.error(err);
+            }
+        }
+
+        signOutLink.addEventListener('click', async (e) => {
+            e.preventDefault();
+            try {
+                await supabase.auth.signOut();
+            } catch (err) {
+                console.error('Sign-out error', err);
+            } finally {
+                window.location.href = 'sign-out.html';
+            }
+        });
 
         moreBtn.addEventListener('click', (e) => {
             e.stopPropagation();
@@ -592,7 +649,7 @@
             chatMessages.scrollTop = chatMessages.scrollHeight;
         }
 
-                async function sendToAssistant(messages) {
+        async function sendToAssistant(messages) {
             const res = await fetch('/api/chat', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -627,7 +684,7 @@
             if (!text) return;
             addMessage(text, 'user');
             chatInput.value = '';
-                    const loadingWrapper = document.createElement('div');
+            const loadingWrapper = document.createElement('div');
             loadingWrapper.className = 'message agent';
             const content = document.createElement('div');
             content.className = 'loading-wrap';
@@ -667,6 +724,7 @@
             addMessage("Hello! I'm your Syntrae assistant. I can help you understand your persona better, run simulations, and predict outcomes. How can I assist you today?", 'agent', 0);
         }
 
+        await loadSession();
         playIntroConversation();
     </script>
 </body>
