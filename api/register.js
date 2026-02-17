@@ -164,13 +164,13 @@ module.exports = async function handler(req, res) {
     });
   }
 
-  const { fullName, email, password, website } = req.body || {};
+  const { fullName, email, password, website, captchaToken } = req.body || {};
   if (website) {
     // Honeypot field for simple bot traffic.
     return res.status(400).json({ error: 'Invalid request' });
   }
-  if (!fullName || !email || !password) {
-    return res.status(400).json({ error: 'fullName, email, and password are required' });
+  if (!fullName || !email || !password || !captchaToken) {
+    return res.status(400).json({ error: 'fullName, email, password, and captchaToken are required' });
   }
 
   const normalizedEmail = String(email).trim().toLowerCase();
@@ -230,9 +230,13 @@ module.exports = async function handler(req, res) {
       body: JSON.stringify({
         email: normalizedEmail,
         password: trimmedPassword,
+        gotrue_meta_security: {
+          captcha_token: String(captchaToken)
+        },
         options: {
           data: { full_name: normalizedName, profile_completed: false },
-          emailRedirectTo
+          emailRedirectTo,
+          captchaToken: String(captchaToken)
         }
       })
     });

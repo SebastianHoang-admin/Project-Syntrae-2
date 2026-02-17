@@ -47,6 +47,7 @@
         .status[data-type="error"] { color: #fecdd3; border-color: rgba(248, 79, 37, 0.35); }
         .status[data-type="success"] { color: #bbf7d0; border-color: rgba(74, 222, 128, 0.35); }
         .status[data-type="info"] { color: var(--text); }
+        .captcha-wrap { margin: 8px 0 4px; }
     </style>
 </head>
 <body>
@@ -75,6 +76,7 @@
                     <label for="password">Password</label>
                     <input id="password" name="password" type="password" placeholder="••••••••" required>
                 </div>
+                <div id="turnstile-widget" class="captcha-wrap" aria-label="CAPTCHA verification"></div>
                 <input type="text" name="website" tabindex="-1" autocomplete="off" hidden>
                 <div class="actions">
                     <button type="submit" class="btn btn-primary"><i class="fas fa-user-plus"></i>Sign up</button>
@@ -93,6 +95,7 @@
     </div>
 
     <script src="js/supabase-config.js"></script>
+    <script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit" async defer></script>
     <script type="module" src="js/sign-up.js"></script>
 </body>
 </html>
