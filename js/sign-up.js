@@ -1,4 +1,4 @@
-import { supabase, withButtonState, redirectIfSignedIn } from './supabase-client.js';
+import { withButtonState, redirectIfSignedIn } from './supabase-client.js';
 
 const form = document.getElementById('signup-form');
 const messageEl = document.getElementById('auth-message');

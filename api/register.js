@@ -4,8 +4,11 @@ const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const WINDOW_MS = 15 * 60 * 1000;
 const IP_LIMIT = 20;
 const EMAIL_LIMIT = 3;
+const DOMAIN_LIMIT = 10;
+const ADMIN_PAGE_SIZE = 200;
 const ipHits = new Map();
 const emailHits = new Map();
+const domainHits = new Map();
 
 // Minimal high-risk disposable domains. Extend over time as needed.
 const DISPOSABLE_DOMAINS = new Set([
@@ -55,28 +58,92 @@ function getIp(req) {
 }
 
 async function emailExists(supabaseUrl, serviceRoleKey, email) {
-  const url = `${supabaseUrl}/auth/v1/admin/users?email=${encodeURIComponent(email)}`;
-  const r = await fetch(url, {
-    method: 'GET',
-    headers: {
-      apikey: serviceRoleKey,
-      Authorization: `Bearer ${serviceRoleKey}`
+  // Some Auth versions ignore ?email filter on admin/users, so we page and compare explicitly.
+  for (let page = 1; ; page += 1) {
+    const url = `${supabaseUrl}/auth/v1/admin/users?page=${page}&per_page=${ADMIN_PAGE_SIZE}`;
+    const r = await fetch(url, {
+      method: 'GET',
+      headers: {
+        apikey: serviceRoleKey,
+        Authorization: `Bearer ${serviceRoleKey}`
+      }
+    });
+    if (!r.ok) {
+      const txt = await r.text().catch(() => '');
+      throw new Error(`Admin lookup failed (${r.status}): ${txt}`);
     }
-  });
-  if (!r.ok) {
-    const txt = await r.text().catch(() => '');
-    throw new Error(`Admin lookup failed (${r.status}): ${txt}`);
+    const data = await r.json();
+    const users = Array.isArray(data?.users) ? data.users : [];
+    if (users.some((user) => String(user.email || '').toLowerCase() === email)) {
+      return true;
+    }
+    if (users.length < ADMIN_PAGE_SIZE) {
+      return false;
+    }
   }
-  const data = await r.json();
-  return Array.isArray(data?.users) && data.users.length > 0;
 }
 
-async function domainHasMx(domain) {
+function isDnsMissingError(err) {
+  return ['ENOTFOUND', 'ENODATA', 'NODATA', 'ENONAME', 'NOTFOUND', 'NXDOMAIN'].includes(err?.code);
+}
+
+function isDnsTemporaryError(err) {
+  return ['ETIMEOUT', 'SERVFAIL', 'EAI_AGAIN', 'REFUSED', 'TIMEOUT', 'ESERVFAIL'].includes(err?.code);
+}
+
+function isPlausibleEmail(email) {
+  if (!EMAIL_RE.test(email)) return false;
+  if (email.length > 254) return false;
+  const [local, domain] = email.split('@');
+  if (!local || !domain) return false;
+  if (local.length > 64) return false;
+  if (local.startsWith('.') || local.endsWith('.') || local.includes('..')) return false;
+  if (domain.length > 253 || domain.includes('..')) return false;
+  const labels = domain.split('.');
+  if (labels.some((label) => !label || label.length > 63)) return false;
+  if (labels.some((label) => label.startsWith('-') || label.endsWith('-'))) return false;
+  const tld = labels[labels.length - 1];
+  if (!/^[a-z]{2,63}$/i.test(tld)) return false;
+  return true;
+}
+
+async function domainHasAddressRecord(domain) {
+  const [a4, a6] = await Promise.allSettled([dns.resolve4(domain), dns.resolve6(domain)]);
+  const hasA4 = a4.status === 'fulfilled' && Array.isArray(a4.value) && a4.value.length > 0;
+  const hasA6 = a6.status === 'fulfilled' && Array.isArray(a6.value) && a6.value.length > 0;
+  if (hasA4 || hasA6) return { ok: true };
+
+  const err4 = a4.status === 'rejected' ? a4.reason : null;
+  const err6 = a6.status === 'rejected' ? a6.reason : null;
+  const temporary = [err4, err6].some((err) => isDnsTemporaryError(err));
+  if (temporary) return { ok: false, reason: 'dns-temporary' };
+  return { ok: false, reason: 'missing' };
+}
+
+async function classifyEmailDomain(domain) {
   try {
     const records = await dns.resolveMx(domain);
-    return Array.isArray(records) && records.length > 0;
-  } catch {
-    return false;
+    if (!Array.isArray(records) || records.length === 0) {
+      const addressFallback = await domainHasAddressRecord(domain);
+      if (addressFallback.ok) return { ok: true };
+      if (addressFallback.reason === 'dns-temporary') return { ok: false, reason: 'unverifiable' };
+      return { ok: false, reason: 'undeliverable' };
+    }
+    if (records.some((mx) => mx.exchange === '.')) {
+      return { ok: false, reason: 'undeliverable' };
+    }
+    return { ok: true };
+  } catch (err) {
+    if (isDnsMissingError(err)) {
+      const addressFallback = await domainHasAddressRecord(domain);
+      if (addressFallback.ok) return { ok: true };
+      if (addressFallback.reason === 'dns-temporary') return { ok: false, reason: 'unverifiable' };
+      return { ok: false, reason: 'undeliverable' };
+    }
+    if (isDnsTemporaryError(err)) {
+      return { ok: false, reason: 'unverifiable' };
+    }
+    return { ok: false, reason: 'unverifiable' };
   }
 }
 
@@ -109,7 +176,7 @@ module.exports = async function handler(req, res) {
   const normalizedEmail = String(email).trim().toLowerCase();
   const normalizedName = String(fullName).trim();
   const trimmedPassword = String(password);
-  if (!EMAIL_RE.test(normalizedEmail)) {
+  if (!isPlausibleEmail(normalizedEmail)) {
     return res.status(400).json({ error: 'Please enter a valid email address.' });
   }
   if (trimmedPassword.length < 8) {
@@ -125,12 +192,18 @@ module.exports = async function handler(req, res) {
   }
 
   const [, domain = ''] = normalizedEmail.split('@');
+  if (!hitAndCheck(domainHits, domain, DOMAIN_LIMIT)) {
+    return res.status(429).json({ error: 'Too many attempts for this email domain. Please try again later.' });
+  }
   if (DISPOSABLE_DOMAINS.has(domain)) {
     return res.status(400).json({ error: 'Disposable email domains are not allowed.' });
   }
-  const hasMx = await domainHasMx(domain);
-  if (!hasMx) {
-    return res.status(400).json({ error: 'Email domain is not configured to receive mail.' });
+  const domainStatus = await classifyEmailDomain(domain);
+  if (!domainStatus.ok) {
+    if (domainStatus.reason === 'undeliverable') {
+      return res.status(400).json({ error: 'This email domain cannot receive mail.' });
+    }
+    return res.status(503).json({ error: 'Email domain could not be verified right now. Please try again.' });
   }
 
   try {
