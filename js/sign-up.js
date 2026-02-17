@@ -4,8 +4,12 @@ const form = document.getElementById('signup-form');
 const messageEl = document.getElementById('auth-message');
 const submitButton = form.querySelector('button[type="submit"]');
 
-function showMessage(text, type = 'info') {
-  messageEl.textContent = text;
+function showMessage(text, type = 'info', asHtml = false) {
+  if (asHtml) {
+    messageEl.innerHTML = text;
+  } else {
+    messageEl.textContent = text;
+  }
   messageEl.dataset.type = type;
   messageEl.hidden = false;
 }
@@ -20,38 +24,37 @@ async function handleSignUp(event) {
   event.preventDefault();
   clearMessage();
   const formData = new FormData(form);
-  const fullName = formData.get('name');
-  const email = formData.get('email');
-  const password = formData.get('password');
-
-  const options = {
-    data: { full_name: fullName, profile_completed: false },
-    // After the user clicks the verification link, they land on sign-in with a flag.
-    emailRedirectTo: `${window.location.origin}/sign-in.html?verified=true`
+  const payload = {
+    fullName: (formData.get('name') || '').trim(),
+    email: (formData.get('email') || '').trim().toLowerCase(),
+    password: formData.get('password'),
+    website: (formData.get('website') || '').trim()
   };
 
-  const result = await withButtonState(submitButton, () => supabase.auth.signUp({ email, password, options }))();
+  const response = await withButtonState(submitButton, async () => {
+    return fetch('/api/register', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+  })();
 
-  if (result.error) {
-    showMessage(result.error.message, 'error');
+  const body = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    if (response.status === 409 || body.code === 'email_exists') {
+      const html = 'There is an account associated with this email already, please <a href="sign-in.html" style="color:inherit;text-decoration:underline;">sign in</a>.';
+      showMessage(html, 'error', true);
+      return;
+    }
+    if (body.error === 'Server auth configuration missing' && Array.isArray(body.missing) && body.missing.length > 0) {
+      showMessage(`${body.error}: ${body.missing.join(', ')}`, 'error');
+      return;
+    }
+    showMessage(body.error || 'Sign-up failed. Please try again.', 'error');
     return;
   }
 
-  // Supabase can return a user with empty identities when the email already exists.
-  // In that case, do not show the verification success message.
-  const existingUser = Array.isArray(result.data?.user?.identities) && result.data.user.identities.length === 0;
-  if (existingUser) {
-    showMessage('There is an account associated with this email already, please sign in.', 'error');
-    return;
-  }
-
-  // If email confirmation is on, session is null; otherwise user is signed in.
-  if (!result.data.session) {
-    showMessage('Almost there! Check your email for a verification link. Open it, verify, then return here to sign in.', 'success');
-  } else {
-    showMessage('Account created! Redirecting…', 'success');
-    setTimeout(() => { window.location.href = 'Chat.html'; }, 800);
-  }
+  showMessage('Almost there! Check your email for a verification link. Open it, verify, then return here to sign in.', 'success');
 }
 
 redirectIfSignedIn();
