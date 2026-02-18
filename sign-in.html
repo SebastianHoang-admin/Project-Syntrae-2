@@ -148,6 +148,7 @@
         .status[data-type="error"] { color: #fecdd3; border-color: rgba(248, 79, 37, 0.35); }
         .status[data-type="success"] { color: #bbf7d0; border-color: rgba(74, 222, 128, 0.35); }
         .status[data-type="info"] { color: var(--text); }
+        .captcha-wrap { margin: 8px 0 4px; }
     </style>
 </head>
 <body>
@@ -172,6 +173,7 @@
                     <label for="password">Password</label>
                     <input id="password" name="password" type="password" placeholder="••••••••" required>
                 </div>
+                <div id="turnstile-widget" class="captcha-wrap" aria-label="CAPTCHA verification"></div>
                 <div class="actions">
                     <button type="submit" class="btn btn-primary"><i class="fas fa-sign-in-alt"></i>Sign in with email</button>
                     <button type="button" class="btn btn-ghost"><i class="fab fa-apple"></i>Continue with Apple</button>
@@ -187,6 +189,7 @@
 
     <div class="footer">© 2026 Syntrae. All rights reserved.</div>
     <script src="js/supabase-config.js"></script>
+    <script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit" async defer></script>
     <script type="module" src="js/sign-in.js"></script>
 </body>
 </html>
