@@ -604,15 +604,9 @@
             }
         }
 
-        signOutLink.addEventListener('click', async (e) => {
+        signOutLink.addEventListener('click', (e) => {
             e.preventDefault();
-            try {
-                await supabase.auth.signOut();
-            } catch (err) {
-                console.error('Sign-out error', err);
-            } finally {
-                window.location.href = 'sign-out.html';
-            }
+            window.location.href = 'sign-out.html';
         });
 
         moreBtn.addEventListener('click', (e) => {
