@@ -77,4 +77,6 @@ if (params.get('verified') === 'true') {
   showMessage('Email verified! You can now sign in with your credentials.', 'success');
 } else if (params.get('reset') === 'success') {
   showMessage('Password updated. Sign in with your new password.', 'success');
+} else if (params.get('signed_out') === 'true') {
+  showMessage('You have signed out successfully.', 'success');
 }
