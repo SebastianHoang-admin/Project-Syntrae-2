@@ -220,7 +220,8 @@ module.exports = async function handler(req, res) {
 
   try {
     const signupKey = anonKey || serviceRoleKey;
-    const signupRes = await fetch(`${supabaseUrl}/auth/v1/signup`, {
+    const signupUrl = `${supabaseUrl}/auth/v1/signup?redirect_to=${encodeURIComponent(emailRedirectTo)}`;
+    const signupRes = await fetch(signupUrl, {
       method: 'POST',
       headers: {
         apikey: signupKey,
@@ -235,7 +236,6 @@ module.exports = async function handler(req, res) {
         },
         options: {
           data: { full_name: normalizedName, profile_completed: false },
-          emailRedirectTo,
           captchaToken: String(captchaToken)
         }
       })
