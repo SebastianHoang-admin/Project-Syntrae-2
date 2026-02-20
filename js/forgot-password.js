@@ -1,4 +1,4 @@
-import { supabase, withButtonState } from './supabase-client.js';
+import { withButtonState } from './supabase-client.js';
 
 const form = document.getElementById('forgot-password-form');
 const messageEl = document.getElementById('auth-message');
@@ -47,15 +47,21 @@ async function handleSubmit(event) {
     return;
   }
 
-  const result = await withButtonState(submitButton, () => {
-    return supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${window.location.origin}/sign-in.html`,
-      captchaToken
+  const response = await withButtonState(submitButton, () => {
+    return fetch('/api/password-recovery', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        email,
+        captchaToken,
+        origin: window.location.origin
+      })
     });
   })();
 
-  if (result.error) {
-    showMessage(result.error.message, 'error');
+  const payload = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    showMessage(payload.error || 'Could not request password reset right now.', 'error');
     if (captchaWidgetId !== null && window.turnstile) {
       window.turnstile.reset(captchaWidgetId);
     }
@@ -64,6 +70,9 @@ async function handleSubmit(event) {
 
   // Keep response neutral to avoid account enumeration.
   showMessage('If an account exists for this email, reset instructions have been sent.', 'success');
+  if (captchaWidgetId !== null && window.turnstile) {
+    window.turnstile.reset(captchaWidgetId);
+  }
 }
 
 window.addEventListener('load', () => {

@@ -75,4 +75,6 @@ window.addEventListener('load', () => {
 const params = new URLSearchParams(window.location.search);
 if (params.get('verified') === 'true') {
   showMessage('Email verified! You can now sign in with your credentials.', 'success');
+} else if (params.get('reset') === 'success') {
+  showMessage('Password updated. Sign in with your new password.', 'success');
 }
