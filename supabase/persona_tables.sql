@@ -10,12 +10,16 @@ create table if not exists public.personas (
   persona_key text not null default 'default',
   name text not null default 'Persona 1',
   portrait_data_url text,
+  portrait_storage_path text,
   state jsonb not null default '{}'::jsonb,
   traits jsonb not null default '{}'::jsonb,
   created_at timestamptz not null default timezone('utc', now()),
   updated_at timestamptz not null default timezone('utc', now()),
   constraint personas_user_key_unique unique (user_id, persona_key)
 );
+
+alter table public.personas
+  add column if not exists portrait_storage_path text;
 
 create index if not exists personas_user_id_idx on public.personas (user_id);
 create index if not exists personas_updated_at_idx on public.personas (updated_at desc);
@@ -175,3 +179,52 @@ using (auth.uid() = user_id);
 grant select, insert, update, delete on public.personas to authenticated;
 grant select, insert, update, delete on public.persona_chat_sessions to authenticated;
 grant select, insert, update, delete on public.persona_chat_messages to authenticated;
+
+-- Persona portrait storage bucket + owner-scoped policies.
+insert into storage.buckets (id, name, public)
+values ('persona-portraits', 'persona-portraits', true)
+on conflict (id) do nothing;
+
+drop policy if exists persona_portraits_select_own on storage.objects;
+create policy persona_portraits_select_own
+on storage.objects
+for select
+to authenticated
+using (
+  bucket_id = 'persona-portraits'
+  and (storage.foldername(name))[1] = auth.uid()::text
+);
+
+drop policy if exists persona_portraits_insert_own on storage.objects;
+create policy persona_portraits_insert_own
+on storage.objects
+for insert
+to authenticated
+with check (
+  bucket_id = 'persona-portraits'
+  and (storage.foldername(name))[1] = auth.uid()::text
+);
+
+drop policy if exists persona_portraits_update_own on storage.objects;
+create policy persona_portraits_update_own
+on storage.objects
+for update
+to authenticated
+using (
+  bucket_id = 'persona-portraits'
+  and (storage.foldername(name))[1] = auth.uid()::text
+)
+with check (
+  bucket_id = 'persona-portraits'
+  and (storage.foldername(name))[1] = auth.uid()::text
+);
+
+drop policy if exists persona_portraits_delete_own on storage.objects;
+create policy persona_portraits_delete_own
+on storage.objects
+for delete
+to authenticated
+using (
+  bucket_id = 'persona-portraits'
+  and (storage.foldername(name))[1] = auth.uid()::text
+);

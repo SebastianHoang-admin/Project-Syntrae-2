@@ -277,6 +277,46 @@
             box-shadow: 0 18px 36px rgba(34, 211, 238, 0.35);
         }
 
+        .persona-card-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+        }
+
+        .persona-card-name {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            flex: 1;
+        }
+
+        .persona-card-actions {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .mini-icon-btn {
+            border: 1px solid rgba(255,255,255,0.18);
+            border-radius: 8px;
+            background: rgba(255,255,255,0.06);
+            color: var(--text);
+            width: 28px;
+            height: 28px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: border-color .2s ease, background .2s ease, transform .2s ease;
+        }
+
+        .mini-icon-btn:hover {
+            border-color: rgba(34,211,238,0.5);
+            background: rgba(34,211,238,0.18);
+            transform: translateY(-1px);
+        }
+
         .persona-create {
             width: 100%;
             text-align: left;
@@ -361,6 +401,13 @@
             color: var(--muted);
             font-size: 11px;
             white-space: nowrap;
+        }
+
+        .chat-session-actions {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            margin-left: auto;
         }
 
         .nav-btn {
@@ -702,6 +749,7 @@
         const PERSONA_TABLE = 'personas';
         const CHAT_SESSION_TABLE = 'persona_chat_sessions';
         const CHAT_MESSAGE_TABLE = 'persona_chat_messages';
+        const PERSONA_PORTRAITS_BUCKET = 'persona-portraits';
         const ACTIVE_PERSONA_KEY_STORAGE = 'active-persona-key';
         const PERSONA_QUERY_PARAM = 'persona';
         const CHAT_QUERY_PARAM = 'chat';
@@ -786,6 +834,7 @@
                 savedAt: new Date().toISOString(),
                 personaName: name,
                 personaPortrait: '',
+                personaPortraitPath: '',
                 personaAvatarPresent: '',
                 answers: {},
                 session: {},
@@ -799,6 +848,7 @@
             const keys = [
                 'persona-name',
                 'persona-portrait',
+                'persona-portrait-storage-path',
                 'persona-avatar-present',
                 'persona-answers',
                 'persona-visible-session',
@@ -819,6 +869,9 @@
             localStorage.setItem('persona-name', state.personaName || persona.name || 'Persona');
             if (state.personaPortrait || persona.portrait_data_url) {
                 localStorage.setItem('persona-portrait', state.personaPortrait || persona.portrait_data_url);
+            }
+            if (state.personaPortraitPath || persona.portrait_storage_path) {
+                localStorage.setItem('persona-portrait-storage-path', state.personaPortraitPath || persona.portrait_storage_path);
             }
             if (state.personaAvatarPresent) localStorage.setItem('persona-avatar-present', String(state.personaAvatarPresent));
             if (state.answers && typeof state.answers === 'object') {
@@ -901,9 +954,27 @@
             personas.forEach((persona) => {
                 const card = document.createElement('div');
                 card.className = `persona-card${persona.persona_key === activeKey ? ' active' : ''}`;
-                card.textContent = persona.name || 'Persona';
+                card.innerHTML = `
+                    <div class="persona-card-row">
+                        <span class="persona-card-name">${persona.name || 'Persona'}</span>
+                        <span class="persona-card-actions">
+                            <button type="button" class="mini-icon-btn" data-action="rename" title="Rename persona"><i class="fas fa-pen"></i></button>
+                            <button type="button" class="mini-icon-btn" data-action="delete" title="Delete persona"><i class="fas fa-trash"></i></button>
+                        </span>
+                    </div>
+                `;
                 card.addEventListener('click', () => {
                     void selectPersona(persona);
+                });
+                const renameBtn = card.querySelector('[data-action="rename"]');
+                const deleteBtn = card.querySelector('[data-action="delete"]');
+                renameBtn?.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    void renamePersona(persona);
+                });
+                deleteBtn?.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    void deletePersona(persona);
                 });
                 personaListEl.appendChild(card);
             });
@@ -933,9 +1004,23 @@
                 item.innerHTML = `
                     <span class="chat-session-title">${session.title || 'New chat'}</span>
                     <span class="chat-session-time">${formatSessionTime(session.updated_at || session.created_at)}</span>
+                    <span class="chat-session-actions">
+                        <span class="mini-icon-btn" data-action="rename" title="Rename chat window"><i class="fas fa-pen"></i></span>
+                        <span class="mini-icon-btn" data-action="delete" title="Delete chat window"><i class="fas fa-trash"></i></span>
+                    </span>
                 `;
                 item.addEventListener('click', () => {
                     void openChatSession(session.id);
+                });
+                const renameBtn = item.querySelector('[data-action="rename"]');
+                const deleteBtn = item.querySelector('[data-action="delete"]');
+                renameBtn?.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    void renameChatSession(session);
+                });
+                deleteBtn?.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    void deleteChatSession(session);
                 });
                 chatSessionListEl.appendChild(item);
             });
@@ -1084,7 +1169,7 @@
         async function loadPersonasForUser(userId) {
             const { data, error } = await supabase
                 .from(PERSONA_TABLE)
-                .select('id, persona_key, name, updated_at, state, portrait_data_url')
+                .select('id, persona_key, name, updated_at, state, portrait_data_url, portrait_storage_path')
                 .eq('user_id', userId)
                 .order('updated_at', { ascending: false });
 
@@ -1128,7 +1213,8 @@
                 name,
                 state,
                 traits,
-                portrait_data_url: null
+                portrait_data_url: null,
+                portrait_storage_path: null
             });
 
             if (error) {
@@ -1138,6 +1224,141 @@
 
             localStorage.setItem(ACTIVE_PERSONA_KEY_STORAGE, personaKey);
             await loadPersonasForUser(currentUser.id);
+        }
+
+        async function renamePersona(persona) {
+            if (!persona || !currentUser?.id) return;
+            const currentName = String(persona.name || 'Persona').trim() || 'Persona';
+            const input = window.prompt('Rename persona:', currentName);
+            if (input === null) return;
+            const nextName = input.trim().slice(0, 120);
+            if (!nextName || nextName === currentName) return;
+
+            const nextState = {
+                ...(persona.state && typeof persona.state === 'object' ? persona.state : {}),
+                personaName: nextName,
+                savedAt: new Date().toISOString()
+            };
+
+            const { error } = await supabase
+                .from(PERSONA_TABLE)
+                .update({ name: nextName, state: nextState })
+                .eq('id', persona.id)
+                .eq('user_id', currentUser.id);
+
+            if (error) {
+                alert(`Could not rename persona: ${error.message || error}`);
+                return;
+            }
+
+            if (activePersona?.id === persona.id) {
+                localStorage.setItem('persona-name', nextName);
+            }
+
+            await loadPersonasForUser(currentUser.id);
+        }
+
+        async function deletePersona(persona) {
+            if (!persona || !currentUser?.id) return;
+            const personaName = persona.name || 'this persona';
+            const confirmed = window.confirm(`Delete "${personaName}" and all of its chat windows/messages? This cannot be undone.`);
+            if (!confirmed) return;
+
+            const portraitPath = String(
+                persona.portrait_storage_path
+                || (persona.state && persona.state.personaPortraitPath)
+                || ''
+            ).trim();
+
+            if (portraitPath) {
+                await supabase.storage.from(PERSONA_PORTRAITS_BUCKET).remove([portraitPath]);
+            }
+
+            const deletedActive = activePersona?.id === persona.id;
+            const { error } = await supabase
+                .from(PERSONA_TABLE)
+                .delete()
+                .eq('id', persona.id)
+                .eq('user_id', currentUser.id);
+
+            if (error) {
+                alert(`Could not delete persona: ${error.message || error}`);
+                return;
+            }
+
+            localStorage.removeItem(getSessionStorageKeyForPersona(persona.persona_key));
+            if (deletedActive) {
+                clearPersonaLocalState();
+                localStorage.removeItem(ACTIVE_PERSONA_KEY_STORAGE);
+            }
+
+            await loadPersonasForUser(currentUser.id);
+            if (!personas.length) {
+                updateChatUrl('default', '');
+            }
+        }
+
+        async function renameChatSession(session) {
+            if (!session || !currentUser?.id) return;
+            const currentTitle = String(session.title || 'New chat').trim() || 'New chat';
+            const input = window.prompt('Rename chat window:', currentTitle);
+            if (input === null) return;
+            const nextTitle = input.trim().slice(0, 80);
+            if (!nextTitle || nextTitle === currentTitle) return;
+
+            const { error } = await supabase
+                .from(CHAT_SESSION_TABLE)
+                .update({ title: nextTitle })
+                .eq('id', session.id)
+                .eq('user_id', currentUser.id);
+
+            if (error) {
+                alert(`Could not rename chat window: ${error.message || error}`);
+                return;
+            }
+
+            chatSessions = chatSessions.map((row) => row.id === session.id ? { ...row, title: nextTitle } : row);
+            if (activeSession?.id === session.id) {
+                activeSession = { ...activeSession, title: nextTitle };
+            }
+            renderChatSessionList();
+        }
+
+        async function deleteChatSession(session) {
+            if (!session || !currentUser?.id || !activePersona) return;
+            const title = session.title || 'this chat window';
+            const confirmed = window.confirm(`Delete "${title}"? This cannot be undone.`);
+            if (!confirmed) return;
+
+            const wasActive = activeSession?.id === session.id;
+            const { error } = await supabase
+                .from(CHAT_SESSION_TABLE)
+                .delete()
+                .eq('id', session.id)
+                .eq('user_id', currentUser.id);
+
+            if (error) {
+                alert(`Could not delete chat window: ${error.message || error}`);
+                return;
+            }
+
+            chatSessions = chatSessions.filter((row) => row.id !== session.id);
+            if (!chatSessions.length) {
+                activeSession = null;
+                activeMessages = [];
+                setStoredActiveSessionId(activePersona.persona_key, '');
+                updateChatUrl(activePersona.persona_key, '');
+                renderChatSessionList();
+                renderMessages();
+                return;
+            }
+
+            if (wasActive) {
+                await openChatSession(chatSessions[0].id);
+                return;
+            }
+
+            renderChatSessionList();
         }
 
         async function loadSession() {

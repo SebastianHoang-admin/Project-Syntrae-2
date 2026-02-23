@@ -5,7 +5,7 @@ This project now writes persona data to `public.personas` (instead of only Auth 
 ## 1) Create tables + RLS
 
 Run `supabase/persona_tables.sql` in **Supabase Dashboard -> SQL Editor**.
-You can safely re-run it later; it is idempotent and also applies chat-session upgrades.
+You can safely re-run it later; it is idempotent and also applies chat-session upgrades, the `portrait_storage_path` column, and Storage bucket policies for persona portraits.
 
 ## 2) Optional backfill from old metadata storage
 
@@ -72,9 +72,24 @@ order by s.updated_at desc
 limit 100;
 ```
 
+Use this query to confirm portrait storage keys are persisted per persona:
+
+```sql
+select
+  p.user_id,
+  p.persona_key,
+  p.name,
+  p.portrait_storage_path,
+  p.updated_at
+from public.personas p
+order by p.updated_at desc
+limit 100;
+```
+
 ## 4) Current structure
 
 - `auth.users` -> account identities
 - `public.personas` -> per-account persona records (`user_id` foreign key)
+- `storage.objects` in bucket `persona-portraits` -> portrait files at path `user_id/persona_key/...`
 - `public.persona_chat_sessions` -> chat windows per persona
 - `public.persona_chat_messages` -> messages in each chat window (`session_id`)

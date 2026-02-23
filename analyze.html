@@ -201,6 +201,18 @@
         .name-controls { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
         .name-btn { padding: 8px 10px; border-radius: 10px; border: 1px dashed rgba(255,255,255,0.35); background: rgba(255,255,255,0.05); color: var(--text); font-weight: 700; font-size: 12px; cursor: pointer; transition: border-color 160ms ease, background 160ms ease, transform 160ms ease; }
         .name-btn:hover, .name-btn:focus-visible { border-color: var(--accent); background: rgba(34,211,238,0.08); transform: translateY(-1px); outline: none; }
+        .persona-select {
+            border: 1px solid rgba(255,255,255,0.22);
+            border-radius: 10px;
+            background: rgba(11, 18, 36, 0.9);
+            color: var(--text);
+            padding: 8px 10px;
+            min-width: 170px;
+            font-weight: 700;
+            font-size: 12px;
+            cursor: pointer;
+        }
+        .persona-select:focus-visible { outline: 2px solid rgba(34,211,238,0.4); outline-offset: 1px; }
         .edit-btn {
             padding: 10px 14px;
             border-radius: 12px;
@@ -619,6 +631,7 @@
             <div class="persona-header">
                 <div class="name-controls">
                     <span class="persona-tag" id="personaName">Persona 1</span>
+                    <select id="personaSelector" class="persona-select" aria-label="Select persona workspace"></select>
                     <button class="name-btn" type="button" id="editNameBtn">Edit name</button>
                 </div>
                 <a class="edit-btn" href="edit-persona.html">Edit Your Persona</a>
@@ -716,16 +729,20 @@ Authority figure</div>
         const menuChangePhoto = document.getElementById('menuChangePhoto');
         const menuRemovePhoto = document.getElementById('menuRemovePhoto');
         const personaNameEl = document.getElementById('personaName');
+        const personaSelectorEl = document.getElementById('personaSelector');
         const editNameBtn = document.getElementById('editNameBtn');
         const PERSONA_TABLE = 'personas';
         const ACTIVE_PERSONA_KEY_STORAGE = 'active-persona-key';
         const PERSONA_QUERY_PARAM = 'persona';
+        const PERSONA_PORTRAITS_BUCKET = 'persona-portraits';
+        const PORTRAIT_STORAGE_KEY = 'persona-portrait-storage-path';
         const syntraeSupabase = window.syntraeSupabaseClient || null;
         let cloudHydrated = false;
         let cloudHydrating = false;
         let cloudSaveTimer = null;
         let lastCloudPayload = '';
         let personaKey = 'default';
+        let currentUserId = '';
 
         function sanitizePersonaKey(value) {
             const normalized = String(value || '').trim().toLowerCase();
@@ -743,8 +760,95 @@ Authority figure</div>
             return key;
         }
 
-        function buildPersonaUrl(path) {
-            return `${path}?${PERSONA_QUERY_PARAM}=${encodeURIComponent(personaKey)}`;
+        function buildPersonaUrl(path, key = personaKey) {
+            const safeKey = sanitizePersonaKey(key) || 'default';
+            return `${path}?${PERSONA_QUERY_PARAM}=${encodeURIComponent(safeKey)}`;
+        }
+
+        async function getCurrentUserId() {
+            if (currentUserId) return currentUserId;
+            if (!syntraeSupabase) return '';
+            const { data, error } = await syntraeSupabase.auth.getUser();
+            if (error || !data?.user) return '';
+            currentUserId = data.user.id;
+            return currentUserId;
+        }
+
+        async function loadPersonaSelectorOptions() {
+            if (!syntraeSupabase || !personaSelectorEl) return;
+            try {
+                const userId = await getCurrentUserId();
+                if (!userId) return;
+                const { data, error } = await syntraeSupabase
+                    .from(PERSONA_TABLE)
+                    .select('persona_key, name, updated_at')
+                    .eq('user_id', userId)
+                    .order('updated_at', { ascending: false });
+
+                if (error) {
+                    console.warn('Could not load personas for selector:', error.message || error);
+                    return;
+                }
+                const rows = Array.isArray(data) ? data : [];
+                personaSelectorEl.innerHTML = '';
+                if (!rows.length) {
+                    const option = document.createElement('option');
+                    option.value = personaKey;
+                    option.textContent = 'Default persona';
+                    personaSelectorEl.appendChild(option);
+                    return;
+                }
+                const hasCurrent = rows.some((row) => sanitizePersonaKey(row.persona_key) === personaKey);
+                if (!hasCurrent) {
+                    const fallback = sanitizePersonaKey(rows[0].persona_key) || 'default';
+                    localStorage.setItem(ACTIVE_PERSONA_KEY_STORAGE, fallback);
+                    window.location.href = buildPersonaUrl('analyze.html', fallback);
+                    return;
+                }
+                rows.forEach((row) => {
+                    const option = document.createElement('option');
+                    option.value = sanitizePersonaKey(row.persona_key) || 'default';
+                    option.textContent = row.name || option.value;
+                    personaSelectorEl.appendChild(option);
+                });
+                personaSelectorEl.value = personaKey;
+            } catch (err) {
+                console.warn('Could not load personas for selector:', err);
+            }
+        }
+
+        function getSafeFileExt(file) {
+            const byName = String(file?.name || '').split('.').pop() || '';
+            const ext = byName.toLowerCase().replace(/[^a-z0-9]/g, '');
+            if (ext) return ext;
+            const byType = String(file?.type || '').split('/').pop() || 'png';
+            return byType.toLowerCase().replace(/[^a-z0-9]/g, '') || 'png';
+        }
+
+        async function uploadPortraitToStorage(file) {
+            if (!syntraeSupabase) throw new Error('Supabase client missing');
+            const userId = await getCurrentUserId();
+            if (!userId) throw new Error('Please sign in again.');
+            const ext = getSafeFileExt(file);
+            const path = `${userId}/${personaKey}/portrait-${Date.now()}.${ext}`;
+            const { error: uploadError } = await syntraeSupabase.storage
+                .from(PERSONA_PORTRAITS_BUCKET)
+                .upload(path, file, {
+                    upsert: true,
+                    contentType: file.type || undefined
+                });
+            if (uploadError) throw uploadError;
+            const { data } = syntraeSupabase.storage.from(PERSONA_PORTRAITS_BUCKET).getPublicUrl(path);
+            return { path, publicUrl: data?.publicUrl || '' };
+        }
+
+        async function removePortraitFromStorage(path) {
+            if (!syntraeSupabase || !path) return;
+            try {
+                await syntraeSupabase.storage.from(PERSONA_PORTRAITS_BUCKET).remove([path]);
+            } catch (err) {
+                console.warn('Could not remove portrait from storage:', err);
+            }
         }
 
         function normalizePersonaName(name) {
@@ -770,6 +874,7 @@ Authority figure</div>
         function clearPersonaLocalState() {
             localStorage.removeItem('persona-name');
             localStorage.removeItem('persona-portrait');
+            localStorage.removeItem(PORTRAIT_STORAGE_KEY);
             localStorage.removeItem('persona-avatar-present');
             localStorage.removeItem('persona-answers');
             localStorage.removeItem('persona-visible-session');
@@ -787,6 +892,7 @@ Authority figure</div>
                 savedAt: new Date().toISOString(),
                 personaName: localStorage.getItem('persona-name') || '',
                 personaPortrait: localStorage.getItem('persona-portrait') || '',
+                personaPortraitPath: localStorage.getItem(PORTRAIT_STORAGE_KEY) || '',
                 personaAvatarPresent: localStorage.getItem('persona-avatar-present') || '',
                 answers: (() => {
                     try {
@@ -823,6 +929,7 @@ Authority figure</div>
             if (!state || typeof state !== 'object') return;
             if (state.personaName) localStorage.setItem('persona-name', state.personaName);
             if (state.personaPortrait) localStorage.setItem('persona-portrait', state.personaPortrait);
+            if (state.personaPortraitPath) localStorage.setItem(PORTRAIT_STORAGE_KEY, state.personaPortraitPath);
             if (state.personaAvatarPresent) localStorage.setItem('persona-avatar-present', state.personaAvatarPresent);
             if (state.answers && typeof state.answers === 'object') {
                 localStorage.setItem('persona-answers', JSON.stringify(state.answers));
@@ -858,10 +965,11 @@ Authority figure</div>
                 const { data, error } = await syntraeSupabase.auth.getUser();
                 if (error || !data?.user) return;
                 const user = data.user;
+                currentUserId = user.id;
 
                 const { data: personaRow, error: personaError } = await syntraeSupabase
                     .from(PERSONA_TABLE)
-                    .select('state, name, portrait_data_url')
+                    .select('state, name, portrait_data_url, portrait_storage_path')
                     .eq('user_id', user.id)
                     .eq('persona_key', personaKey)
                     .maybeSingle();
@@ -875,6 +983,9 @@ Authority figure</div>
                     if (personaRow.name && !cloudState.personaName) cloudState.personaName = personaRow.name;
                     if (personaRow.portrait_data_url && !cloudState.personaPortrait) {
                         cloudState.personaPortrait = personaRow.portrait_data_url;
+                    }
+                    if (personaRow.portrait_storage_path && !cloudState.personaPortraitPath) {
+                        cloudState.personaPortraitPath = personaRow.portrait_storage_path;
                     }
                     applyPersonaState(cloudState);
                     lastCloudPayload = JSON.stringify(cloudState);
@@ -903,6 +1014,7 @@ Authority figure</div>
                     if (serialized === lastCloudPayload) return;
                     const personaName = normalizePersonaName(payload.personaName);
                     const portraitDataUrl = payload.personaPortrait || null;
+                    const portraitStoragePath = payload.personaPortraitPath || null;
                     const traits = extractTraitsFromState(payload);
 
                     const { error } = await syntraeSupabase.from(PERSONA_TABLE).upsert({
@@ -910,6 +1022,7 @@ Authority figure</div>
                         persona_key: personaKey,
                         name: personaName,
                         portrait_data_url: portraitDataUrl,
+                        portrait_storage_path: portraitStoragePath,
                         state: payload,
                         traits
                     }, {
@@ -1168,6 +1281,14 @@ Authority figure</div>
         const editPersonaLink = document.querySelector('.edit-btn');
         personaKey = resolvePersonaKey();
         if (editPersonaLink) editPersonaLink.href = buildPersonaUrl('edit-persona.html');
+        if (personaSelectorEl) {
+            personaSelectorEl.addEventListener('change', () => {
+                const selectedKey = sanitizePersonaKey(personaSelectorEl.value) || 'default';
+                if (selectedKey === personaKey) return;
+                localStorage.setItem(ACTIVE_PERSONA_KEY_STORAGE, selectedKey);
+                window.location.href = buildPersonaUrl('analyze.html', selectedKey);
+            });
+        }
 
         function personaExists() {
             return Boolean(localStorage.getItem('persona-name'));
@@ -1247,25 +1368,32 @@ Authority figure</div>
         }
 
         if (avatarOverlayInput) {
-            avatarOverlayInput.addEventListener('change', (e) => {
+            avatarOverlayInput.addEventListener('change', async (e) => {
                 const file = e.target.files && e.target.files[0];
                 if (!file) return;
-                const reader = new FileReader();
-                reader.onload = (ev) => {
-                    const dataUrl = ev.target.result;
-                    localStorage.setItem('persona-portrait', dataUrl);
+                try {
+                    const previousPath = localStorage.getItem(PORTRAIT_STORAGE_KEY) || '';
+                    const { path, publicUrl } = await uploadPortraitToStorage(file);
+                    if (previousPath && previousPath !== path) {
+                        await removePortraitFromStorage(previousPath);
+                    }
+                    localStorage.setItem('persona-portrait', publicUrl);
+                    localStorage.setItem(PORTRAIT_STORAGE_KEY, path);
                     localStorage.setItem('persona-avatar-present', 'yes');
                     queueCloudSave();
                     if (avatarOverlayPreview) {
-                        avatarOverlayPreview.src = dataUrl;
+                        avatarOverlayPreview.src = publicUrl;
                         avatarOverlayPreview.style.display = 'block';
                     }
                     if (avatarOverlayPlaceholder) avatarOverlayPlaceholder.style.display = 'none';
                     avatarConfirmAndContinue.disabled = false;
-                    // Also update main portrait immediately
-                    showPortrait(dataUrl);
-                };
-                reader.readAsDataURL(file);
+                    showPortrait(publicUrl);
+                } catch (err) {
+                    console.warn('Portrait upload failed:', err);
+                    alert(`Could not upload portrait: ${err.message || err}`);
+                } finally {
+                    avatarOverlayInput.value = '';
+                }
             });
         }
 
@@ -1461,17 +1589,26 @@ Authority figure</div>
             img.src = src;
         }
 
-        portraitInput.addEventListener('change', (e) => {
+        portraitInput.addEventListener('change', async (e) => {
             const file = e.target.files && e.target.files[0];
             if (!file) return;
-            const reader = new FileReader();
-            reader.onload = (ev) => {
-                const dataUrl = ev.target.result;
-                localStorage.setItem('persona-portrait', dataUrl);
+            try {
+                const previousPath = localStorage.getItem(PORTRAIT_STORAGE_KEY) || '';
+                const { path, publicUrl } = await uploadPortraitToStorage(file);
+                if (previousPath && previousPath !== path) {
+                    await removePortraitFromStorage(previousPath);
+                }
+                localStorage.setItem('persona-portrait', publicUrl);
+                localStorage.setItem(PORTRAIT_STORAGE_KEY, path);
+                localStorage.setItem('persona-avatar-present', 'yes');
                 queueCloudSave();
-                showPortrait(dataUrl);
-            };
-            reader.readAsDataURL(file);
+                showPortrait(publicUrl);
+            } catch (err) {
+                console.warn('Portrait upload failed:', err);
+                alert(`Could not upload portrait: ${err.message || err}`);
+            } finally {
+                portraitInput.value = '';
+            }
         });
         function showMenu() {
             if (!photoMenu) return;
@@ -1495,9 +1632,13 @@ Authority figure</div>
             hideMenu();
             portraitInput?.click();
         });
-        menuRemovePhoto?.addEventListener('click', () => {
+        menuRemovePhoto?.addEventListener('click', async () => {
             hideMenu();
+            const existingPath = localStorage.getItem(PORTRAIT_STORAGE_KEY) || '';
+            await removePortraitFromStorage(existingPath);
             localStorage.removeItem('persona-portrait');
+            localStorage.removeItem(PORTRAIT_STORAGE_KEY);
+            localStorage.removeItem('persona-avatar-present');
             queueCloudSave();
             placeholder.style.display = 'block';
             portraitPreview.style.display = 'none';
@@ -2037,6 +2178,7 @@ Authority figure</div>
 
         async function startAnalyzePage() {
             await hydrateFromAccount();
+            await loadPersonaSelectorOptions();
             refreshPersonaUiFromStorage();
             await initRadar();
         }
