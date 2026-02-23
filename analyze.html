@@ -561,7 +561,8 @@
             <p>You don't have an existing persona yet. Do you want to create one?</p>
             <div class="actions">
                 <button class="yes" type="button" id="personaYesBtn">Yes</button>
-                <button type="button" id="personaNoBtn">No</button>
+                <button type="button" id="personaNoBtn">Back to Chat</button>
+                <button type="button" id="personaLaterBtn">I'll do it later</button>
             </div>
         </div>
         <div class="persona-check" id="personaStepAvatar" style="display:none;">
@@ -598,7 +599,6 @@
             </div>
         </a>
         <a class="primary-btn" href="Chat.html">Back to Chat</a>
-        <button id="personaCheckBtn" type="button" style="margin-left:12px; padding:8px 12px; border-radius:10px; border:1px solid rgba(255,255,255,0.25); background:rgba(255,255,255,0.08); color:#e7edf8; font-weight:700; cursor:pointer;">persona_check</button>
     </header>
 
     <main class="panel">
@@ -1060,6 +1060,7 @@ Authority figure</div>
         const personaCheckOverlay = document.getElementById('personaCheckOverlay');
         const personaYesBtn = document.getElementById('personaYesBtn');
         const personaNoBtn = document.getElementById('personaNoBtn');
+        const personaLaterBtn = document.getElementById('personaLaterBtn');
         const personaStepChoice = document.getElementById('personaStepChoice');
         const personaStepAvatar = document.getElementById('personaStepAvatar');
         const personaStepRedirect = document.getElementById('personaStepRedirect');
@@ -1070,7 +1071,6 @@ Authority figure</div>
         const avatarLater = document.getElementById('avatarLater');
         const avatarChangePhoto = document.getElementById('avatarChangePhoto');
         const avatarConfirmAndContinue = document.getElementById('avatarConfirmAndContinue');
-        const personaCheckBtn = document.getElementById('personaCheckBtn');
         const editPersonaLink = document.querySelector('.edit-btn');
 
         function personaExists() {
@@ -1079,6 +1079,9 @@ Authority figure</div>
 
         function showPersonaCheck() {
             if (personaCheckOverlay) {
+                if (personaStepChoice) personaStepChoice.style.display = 'block';
+                if (personaStepAvatar) personaStepAvatar.style.display = 'none';
+                if (personaStepRedirect) personaStepRedirect.style.display = 'none';
                 personaCheckOverlay.style.display = 'flex';
             }
         }
@@ -1133,6 +1136,15 @@ Authority figure</div>
             });
         }
 
+        if (personaLaterBtn) {
+            personaLaterBtn.addEventListener('click', () => {
+                if (personaStepChoice) personaStepChoice.style.display = 'block';
+                if (personaStepAvatar) personaStepAvatar.style.display = 'none';
+                if (personaStepRedirect) personaStepRedirect.style.display = 'none';
+                hidePersonaCheck();
+            });
+        }
+
         if (avatarUploadNow && avatarOverlayInput) {
             avatarUploadNow.addEventListener('click', () => avatarOverlayInput.click());
         }
@@ -1173,12 +1185,6 @@ Authority figure</div>
         if (avatarLater) {
             avatarLater.addEventListener('click', () => {
                 goToQuestions();
-            });
-        }
-
-        if (personaCheckBtn) {
-            personaCheckBtn.addEventListener('click', () => {
-                showPersonaCheck();
             });
         }
 
