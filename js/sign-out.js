@@ -28,11 +28,13 @@ function clearAuthStorage() {
   const shouldRemovePersona = (key) => {
     if (!key) return false;
     return key === 'persona-name'
+      || key === 'active-persona-key'
       || key === 'persona-portrait'
       || key === 'persona-avatar-present'
       || key === 'persona-answers'
       || key === 'persona-visible-session'
       || key === 'users-input'
+      || key.startsWith('active-chat-session:')
       || key.startsWith('identity-layer-')
       || key.startsWith('extra-');
   };

@@ -368,7 +368,8 @@
     const SESSION_KEY = 'persona-visible-session';
     const statusEl = document.getElementById('status');
     const PERSONA_TABLE = 'personas';
-    const PERSONA_KEY = 'default';
+    const ACTIVE_PERSONA_KEY_STORAGE = 'active-persona-key';
+    const PERSONA_QUERY_PARAM = 'persona';
     const syntraeSupabase = window.syntraeSupabaseClient || null;
 
     const fallbackQuestions = [];
@@ -383,6 +384,98 @@
     let cloudHydrating = false;
     let cloudSaveTimer = null;
     let lastCloudPayload = '';
+    let personaKey = '';
+
+    function sanitizePersonaKey(value) {
+      const normalized = String(value || '').trim().toLowerCase();
+      if (!normalized) return '';
+      const cleaned = normalized.replace(/[^a-z0-9_-]/g, '');
+      return cleaned || '';
+    }
+
+    function createPersonaKeyFromSeed(name, seed = '') {
+      const source = String(name || '').replace(/\s+/g, '-');
+      let slug = sanitizePersonaKey(source).slice(0, 24) || 'persona';
+      if (slug === 'default') slug = 'persona';
+      const safeSeed = sanitizePersonaKey(seed).replace(/-/g, '').slice(0, 10) || Date.now().toString(36);
+      return `${slug}-${safeSeed}`;
+    }
+
+    function resolvePersonaKey() {
+      const params = new URLSearchParams(window.location.search);
+      const fromQuery = sanitizePersonaKey(params.get(PERSONA_QUERY_PARAM));
+      const fromStorage = sanitizePersonaKey(localStorage.getItem(ACTIVE_PERSONA_KEY_STORAGE));
+      const key = fromQuery || fromStorage || '';
+      if (key) localStorage.setItem(ACTIVE_PERSONA_KEY_STORAGE, key);
+      else localStorage.removeItem(ACTIVE_PERSONA_KEY_STORAGE);
+      return key;
+    }
+
+    function buildPersonaUrl(path, key = personaKey) {
+      const safeKey = sanitizePersonaKey(key);
+      if (!safeKey) return path;
+      return `${path}?${PERSONA_QUERY_PARAM}=${encodeURIComponent(safeKey)}`;
+    }
+
+    async function migrateLegacyDefaultPersonaKeys() {
+      if (!syntraeSupabase) return;
+      const { data, error } = await syntraeSupabase.auth.getUser();
+      if (error || !data?.user) return;
+      const userId = data.user.id;
+      const { data: rows, error: lookupError } = await syntraeSupabase
+        .from(PERSONA_TABLE)
+        .select('id, name, state')
+        .eq('user_id', userId)
+        .eq('persona_key', 'default');
+
+      if (lookupError || !Array.isArray(rows) || !rows.length) return;
+      const hadDefault = personaKey === 'default';
+      let replacement = '';
+      for (const row of rows) {
+        const baseName = row?.name || row?.state?.personaName || 'persona';
+        const nextKey = createPersonaKeyFromSeed(baseName, row.id);
+        const { error: updateError } = await syntraeSupabase
+          .from(PERSONA_TABLE)
+          .update({ persona_key: nextKey })
+          .eq('id', row.id)
+          .eq('user_id', userId);
+        if (!updateError && !replacement) replacement = nextKey;
+      }
+
+      if (hadDefault && replacement) {
+        personaKey = replacement;
+        localStorage.setItem(ACTIVE_PERSONA_KEY_STORAGE, replacement);
+        window.history.replaceState({}, '', buildPersonaUrl('edit-persona.html', replacement));
+      }
+    }
+
+    async function ensureWorkingPersonaKey() {
+      if (personaKey) return personaKey;
+      if (!syntraeSupabase) {
+        personaKey = createPersonaKeyFromSeed(localStorage.getItem('persona-name') || 'persona');
+        localStorage.setItem(ACTIVE_PERSONA_KEY_STORAGE, personaKey);
+        return personaKey;
+      }
+      const { data, error } = await syntraeSupabase.auth.getUser();
+      if (error || !data?.user) return '';
+      const userId = data.user.id;
+      const { data: rows, error: lookupError } = await syntraeSupabase
+        .from(PERSONA_TABLE)
+        .select('persona_key')
+        .eq('user_id', userId)
+        .order('updated_at', { ascending: false })
+        .limit(1);
+      if (!lookupError && Array.isArray(rows) && rows.length) {
+        personaKey = sanitizePersonaKey(rows[0].persona_key);
+      } else {
+        personaKey = createPersonaKeyFromSeed(localStorage.getItem('persona-name') || 'persona');
+      }
+      if (personaKey) {
+        localStorage.setItem(ACTIVE_PERSONA_KEY_STORAGE, personaKey);
+        window.history.replaceState({}, '', buildPersonaUrl('edit-persona.html', personaKey));
+      }
+      return personaKey;
+    }
 
     function normalizePersonaName(name) {
       const trimmed = String(name || '').trim();
@@ -404,12 +497,28 @@
       return traits;
     }
 
+    function clearPersonaLocalState() {
+      localStorage.removeItem('persona-name');
+      localStorage.removeItem('persona-portrait');
+      localStorage.removeItem('persona-portrait-storage-path');
+      localStorage.removeItem('persona-avatar-present');
+      localStorage.removeItem(STORAGE_KEY);
+      localStorage.removeItem(SESSION_KEY);
+      localStorage.removeItem('users-input');
+      Object.keys(localStorage).forEach((key) => {
+        if (key.startsWith('identity-layer-') || key.startsWith('extra-')) {
+          localStorage.removeItem(key);
+        }
+      });
+    }
+
     function collectPersonaState() {
       const state = {
         version: 1,
         savedAt: new Date().toISOString(),
         personaName: localStorage.getItem('persona-name') || '',
         personaPortrait: localStorage.getItem('persona-portrait') || '',
+        personaPortraitPath: localStorage.getItem('persona-portrait-storage-path') || '',
         personaAvatarPresent: localStorage.getItem('persona-avatar-present') || '',
         answers: loadStoredAnswers(),
         session: loadSession(),
@@ -432,6 +541,7 @@
       if (!state || typeof state !== 'object') return;
       if (state.personaName) localStorage.setItem('persona-name', state.personaName);
       if (state.personaPortrait) localStorage.setItem('persona-portrait', state.personaPortrait);
+      if (state.personaPortraitPath) localStorage.setItem('persona-portrait-storage-path', state.personaPortraitPath);
       if (state.personaAvatarPresent) localStorage.setItem('persona-avatar-present', state.personaAvatarPresent);
 
       if (state.answers && typeof state.answers === 'object') {
@@ -471,9 +581,9 @@
 
         const { data: personaRow, error: personaError } = await syntraeSupabase
           .from(PERSONA_TABLE)
-          .select('state, name, portrait_data_url')
+          .select('state, name, portrait_data_url, portrait_storage_path')
           .eq('user_id', user.id)
-          .eq('persona_key', PERSONA_KEY)
+          .eq('persona_key', personaKey)
           .maybeSingle();
 
         if (personaError) {
@@ -486,10 +596,15 @@
           if (personaRow.portrait_data_url && !cloudState.personaPortrait) {
             cloudState.personaPortrait = personaRow.portrait_data_url;
           }
+          if (personaRow.portrait_storage_path && !cloudState.personaPortraitPath) {
+            cloudState.personaPortraitPath = personaRow.portrait_storage_path;
+          }
           applyPersonaState(cloudState);
           lastCloudPayload = JSON.stringify(cloudState);
           return;
         }
+        clearPersonaLocalState();
+        lastCloudPayload = '';
 
       } catch (err) {
         console.warn('Persona hydrate failed:', err);
@@ -509,13 +624,15 @@
         if (serialized === lastCloudPayload) return;
         const personaName = normalizePersonaName(payload.personaName);
         const portraitDataUrl = payload.personaPortrait || null;
+        const portraitStoragePath = payload.personaPortraitPath || null;
         const traits = extractTraitsFromState(payload);
 
         const { error } = await syntraeSupabase.from(PERSONA_TABLE).upsert({
           user_id: data.user.id,
-          persona_key: PERSONA_KEY,
+          persona_key: personaKey,
           name: personaName,
           portrait_data_url: portraitDataUrl,
+          portrait_storage_path: portraitStoragePath,
           state: payload,
           traits
         }, {
@@ -543,6 +660,9 @@
       }, 650);
       return Promise.resolve();
     }
+
+    personaKey = resolvePersonaKey();
+    backToAnalyze.href = buildPersonaUrl('analyze.html');
 
     // Utility: persist combined user input for LLM wiring
     function saveUsersInput() {
@@ -1130,6 +1250,10 @@
 
     async function loadQuestions() {
       try {
+        await ensureWorkingPersonaKey();
+        await migrateLegacyDefaultPersonaKeys();
+        await ensureWorkingPersonaKey();
+        backToAnalyze.href = buildPersonaUrl('analyze.html');
         await hydrateFromAccount();
         currentAnswers = loadStoredAnswers();
         saveAxisAggregates();

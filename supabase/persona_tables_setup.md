@@ -5,6 +5,7 @@ This project now writes persona data to `public.personas` (instead of only Auth 
 ## 1) Create tables + RLS
 
 Run `supabase/persona_tables.sql` in **Supabase Dashboard -> SQL Editor**.
+You can safely re-run it later; it is idempotent and also applies chat-session upgrades, the `portrait_storage_path` column, storage bucket policies for persona portraits, and migrates any legacy `persona_key = 'default'` rows to generated slug keys.
 
 ## 2) Optional backfill from old metadata storage
 
@@ -14,7 +15,7 @@ If you already have personas stored in `auth.users.raw_user_meta_data.persona_st
 insert into public.personas (user_id, persona_key, name, portrait_data_url, state, traits)
 select
   u.id as user_id,
-  'default' as persona_key,
+  'persona-' || substr(replace(u.id::text, '-', ''), 1, 6) as persona_key,
   coalesce(
     nullif(trim(u.raw_user_meta_data->'persona_state_v1'->>'personaName'), ''),
     'Persona 1'
@@ -57,9 +58,38 @@ order by p.updated_at desc
 limit 100;
 ```
 
+Use this query to confirm chat windows are linked to persona + account:
+
+```sql
+select
+  s.user_id,
+  s.persona_id,
+  s.id as session_id,
+  s.title,
+  s.updated_at
+from public.persona_chat_sessions s
+order by s.updated_at desc
+limit 100;
+```
+
+Use this query to confirm portrait storage keys are persisted per persona:
+
+```sql
+select
+  p.user_id,
+  p.persona_key,
+  p.name,
+  p.portrait_storage_path,
+  p.updated_at
+from public.personas p
+order by p.updated_at desc
+limit 100;
+```
+
 ## 4) Current structure
 
 - `auth.users` -> account identities
 - `public.personas` -> per-account persona records (`user_id` foreign key)
-- `public.persona_chat_messages` -> per-persona chat logs (ready for future use)
-
+- `storage.objects` in bucket `persona-portraits` -> portrait files at path `user_id/persona_key/...`
+- `public.persona_chat_sessions` -> chat windows per persona
+- `public.persona_chat_messages` -> messages in each chat window (`session_id`)
