@@ -753,6 +753,7 @@
         const ACTIVE_PERSONA_KEY_STORAGE = 'active-persona-key';
         const PERSONA_QUERY_PARAM = 'persona';
         const CHAT_QUERY_PARAM = 'chat';
+        const EMPTY_PERSONA_SCOPE = '__none__';
 
         let currentUser = null;
         let personas = [];
@@ -769,13 +770,57 @@
             return cleaned || '';
         }
 
+        function createPersonaKeyFromSeed(name, seed = '') {
+            const source = String(name || '').replace(/\s+/g, '-');
+            let slug = sanitizePersonaKey(source).slice(0, 24) || 'persona';
+            if (slug === 'default') slug = 'persona';
+            const safeSeed = sanitizePersonaKey(seed).replace(/-/g, '').slice(0, 10) || Date.now().toString(36);
+            return `${slug}-${safeSeed}`;
+        }
+
         function createPersonaKey(name) {
-            const slug = sanitizePersonaKey(String(name || '').replace(/\s+/g, '-')).slice(0, 24) || 'persona';
-            return `${slug}-${Date.now().toString(36)}`;
+            return createPersonaKeyFromSeed(name, Date.now().toString(36));
+        }
+
+        async function migrateLegacyDefaultPersonaKeys(userId) {
+            if (!userId) return;
+            const { data, error } = await supabase
+                .from(PERSONA_TABLE)
+                .select('id, name, state')
+                .eq('user_id', userId)
+                .eq('persona_key', 'default');
+
+            if (error || !Array.isArray(data) || !data.length) return;
+
+            const hadDefaultInUrl = getUrlPersonaKey() === 'default';
+            const hadDefaultInStorage = getActivePersonaKey() === 'default';
+            let replacementForCurrent = '';
+
+            for (const row of data) {
+                const baseName = row?.name || row?.state?.personaName || 'persona';
+                const nextKey = createPersonaKeyFromSeed(baseName, row.id);
+                const { error: updateError } = await supabase
+                    .from(PERSONA_TABLE)
+                    .update({ persona_key: nextKey })
+                    .eq('id', row.id)
+                    .eq('user_id', userId);
+                if (!updateError && !replacementForCurrent) {
+                    replacementForCurrent = nextKey;
+                }
+            }
+
+            if (!replacementForCurrent) return;
+            if (hadDefaultInStorage) {
+                localStorage.setItem(ACTIVE_PERSONA_KEY_STORAGE, replacementForCurrent);
+            }
+            if (hadDefaultInUrl) {
+                updateChatUrl(replacementForCurrent, getUrlChatId());
+            }
         }
 
         function buildPersonaUrl(path, key) {
-            const safeKey = sanitizePersonaKey(key) || 'default';
+            const safeKey = sanitizePersonaKey(key);
+            if (!safeKey) return path;
             return `${path}?${PERSONA_QUERY_PARAM}=${encodeURIComponent(safeKey)}`;
         }
 
@@ -795,16 +840,18 @@
 
         function updateChatUrl(personaKey, sessionId = '') {
             const params = new URLSearchParams(window.location.search);
-            const safePersona = sanitizePersonaKey(personaKey) || 'default';
-            params.set(PERSONA_QUERY_PARAM, safePersona);
+            const safePersona = sanitizePersonaKey(personaKey);
+            if (safePersona) params.set(PERSONA_QUERY_PARAM, safePersona);
+            else params.delete(PERSONA_QUERY_PARAM);
             if (sessionId) params.set(CHAT_QUERY_PARAM, sessionId);
             else params.delete(CHAT_QUERY_PARAM);
-            const next = `${window.location.pathname}?${params.toString()}`;
+            const query = params.toString();
+            const next = query ? `${window.location.pathname}?${query}` : window.location.pathname;
             window.history.replaceState({}, '', next);
         }
 
         function getSessionStorageKeyForPersona(personaKey) {
-            return `active-chat-session:${sanitizePersonaKey(personaKey) || 'default'}`;
+            return `active-chat-session:${sanitizePersonaKey(personaKey) || EMPTY_PERSONA_SCOPE}`;
         }
 
         function getStoredActiveSessionId(personaKey) {
@@ -1294,7 +1341,7 @@
 
             await loadPersonasForUser(currentUser.id);
             if (!personas.length) {
-                updateChatUrl('default', '');
+                updateChatUrl('', '');
             }
         }
 
@@ -1371,6 +1418,7 @@
                     return;
                 }
                 currentUser = data.session.user;
+                await migrateLegacyDefaultPersonaKeys(currentUser.id);
                 const meta = currentUser.user_metadata || {};
 
                 const first = meta.first_name || '';
@@ -1418,7 +1466,7 @@
             e.preventDefault();
             const dest = link.dataset.destination;
             if (dest === 'analyze') {
-                const activeKey = activePersona?.persona_key || getActivePersonaKey() || 'default';
+                const activeKey = activePersona?.persona_key || getActivePersonaKey();
                 window.location.href = buildPersonaUrl('analyze.html', activeKey);
                 return;
             }

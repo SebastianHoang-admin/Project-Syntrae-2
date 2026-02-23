@@ -741,7 +741,7 @@ Authority figure</div>
         let cloudHydrating = false;
         let cloudSaveTimer = null;
         let lastCloudPayload = '';
-        let personaKey = 'default';
+        let personaKey = '';
         let currentUserId = '';
 
         function sanitizePersonaKey(value) {
@@ -751,17 +751,27 @@ Authority figure</div>
             return cleaned || '';
         }
 
+        function createPersonaKeyFromSeed(name, seed = '') {
+            const source = String(name || '').replace(/\s+/g, '-');
+            let slug = sanitizePersonaKey(source).slice(0, 24) || 'persona';
+            if (slug === 'default') slug = 'persona';
+            const safeSeed = sanitizePersonaKey(seed).replace(/-/g, '').slice(0, 10) || Date.now().toString(36);
+            return `${slug}-${safeSeed}`;
+        }
+
         function resolvePersonaKey() {
             const params = new URLSearchParams(window.location.search);
             const fromQuery = sanitizePersonaKey(params.get(PERSONA_QUERY_PARAM));
             const fromStorage = sanitizePersonaKey(localStorage.getItem(ACTIVE_PERSONA_KEY_STORAGE));
-            const key = fromQuery || fromStorage || 'default';
-            localStorage.setItem(ACTIVE_PERSONA_KEY_STORAGE, key);
+            const key = fromQuery || fromStorage || '';
+            if (key) localStorage.setItem(ACTIVE_PERSONA_KEY_STORAGE, key);
+            else localStorage.removeItem(ACTIVE_PERSONA_KEY_STORAGE);
             return key;
         }
 
         function buildPersonaUrl(path, key = personaKey) {
-            const safeKey = sanitizePersonaKey(key) || 'default';
+            const safeKey = sanitizePersonaKey(key);
+            if (!safeKey) return path;
             return `${path}?${PERSONA_QUERY_PARAM}=${encodeURIComponent(safeKey)}`;
         }
 
@@ -772,6 +782,65 @@ Authority figure</div>
             if (error || !data?.user) return '';
             currentUserId = data.user.id;
             return currentUserId;
+        }
+
+        async function migrateLegacyDefaultPersonaKeys() {
+            if (!syntraeSupabase) return;
+            const userId = await getCurrentUserId();
+            if (!userId) return;
+            const { data, error } = await syntraeSupabase
+                .from(PERSONA_TABLE)
+                .select('id, name, state')
+                .eq('user_id', userId)
+                .eq('persona_key', 'default');
+
+            if (error || !Array.isArray(data) || !data.length) return;
+            const hadDefault = personaKey === 'default';
+            let replacement = '';
+
+            for (const row of data) {
+                const baseName = row?.name || row?.state?.personaName || 'persona';
+                const nextKey = createPersonaKeyFromSeed(baseName, row.id);
+                const { error: updateError } = await syntraeSupabase
+                    .from(PERSONA_TABLE)
+                    .update({ persona_key: nextKey })
+                    .eq('id', row.id)
+                    .eq('user_id', userId);
+                if (!updateError && !replacement) replacement = nextKey;
+            }
+
+            if (hadDefault && replacement) {
+                personaKey = replacement;
+                localStorage.setItem(ACTIVE_PERSONA_KEY_STORAGE, replacement);
+                window.history.replaceState({}, '', buildPersonaUrl('analyze.html', replacement));
+            }
+        }
+
+        async function ensureWorkingPersonaKey() {
+            if (personaKey) return personaKey;
+            if (!syntraeSupabase) {
+                personaKey = createPersonaKeyFromSeed(localStorage.getItem('persona-name') || 'persona');
+                localStorage.setItem(ACTIVE_PERSONA_KEY_STORAGE, personaKey);
+                return personaKey;
+            }
+            const userId = await getCurrentUserId();
+            if (!userId) return '';
+            const { data, error } = await syntraeSupabase
+                .from(PERSONA_TABLE)
+                .select('persona_key')
+                .eq('user_id', userId)
+                .order('updated_at', { ascending: false })
+                .limit(1);
+            if (!error && Array.isArray(data) && data.length) {
+                personaKey = sanitizePersonaKey(data[0].persona_key);
+            } else {
+                personaKey = createPersonaKeyFromSeed(localStorage.getItem('persona-name') || 'persona');
+            }
+            if (personaKey) {
+                localStorage.setItem(ACTIVE_PERSONA_KEY_STORAGE, personaKey);
+                window.history.replaceState({}, '', buildPersonaUrl('analyze.html', personaKey));
+            }
+            return personaKey;
         }
 
         async function loadPersonaSelectorOptions() {
@@ -792,22 +861,19 @@ Authority figure</div>
                 const rows = Array.isArray(data) ? data : [];
                 personaSelectorEl.innerHTML = '';
                 if (!rows.length) {
-                    const option = document.createElement('option');
-                    option.value = personaKey;
-                    option.textContent = 'Default persona';
-                    personaSelectorEl.appendChild(option);
+                    personaSelectorEl.innerHTML = '';
                     return;
                 }
                 const hasCurrent = rows.some((row) => sanitizePersonaKey(row.persona_key) === personaKey);
                 if (!hasCurrent) {
-                    const fallback = sanitizePersonaKey(rows[0].persona_key) || 'default';
+                    const fallback = sanitizePersonaKey(rows[0].persona_key);
                     localStorage.setItem(ACTIVE_PERSONA_KEY_STORAGE, fallback);
                     window.location.href = buildPersonaUrl('analyze.html', fallback);
                     return;
                 }
                 rows.forEach((row) => {
                     const option = document.createElement('option');
-                    option.value = sanitizePersonaKey(row.persona_key) || 'default';
+                    option.value = sanitizePersonaKey(row.persona_key);
                     option.textContent = row.name || option.value;
                     personaSelectorEl.appendChild(option);
                 });
@@ -1283,7 +1349,8 @@ Authority figure</div>
         if (editPersonaLink) editPersonaLink.href = buildPersonaUrl('edit-persona.html');
         if (personaSelectorEl) {
             personaSelectorEl.addEventListener('change', () => {
-                const selectedKey = sanitizePersonaKey(personaSelectorEl.value) || 'default';
+                const selectedKey = sanitizePersonaKey(personaSelectorEl.value);
+                if (!selectedKey) return;
                 if (selectedKey === personaKey) return;
                 localStorage.setItem(ACTIVE_PERSONA_KEY_STORAGE, selectedKey);
                 window.location.href = buildPersonaUrl('analyze.html', selectedKey);
@@ -2177,6 +2244,9 @@ Authority figure</div>
         });
 
         async function startAnalyzePage() {
+            await ensureWorkingPersonaKey();
+            await migrateLegacyDefaultPersonaKeys();
+            await ensureWorkingPersonaKey();
             await hydrateFromAccount();
             await loadPersonaSelectorOptions();
             refreshPersonaUiFromStorage();

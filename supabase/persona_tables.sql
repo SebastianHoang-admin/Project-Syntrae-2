@@ -7,7 +7,7 @@ create extension if not exists pgcrypto;
 create table if not exists public.personas (
   id uuid primary key default gen_random_uuid(),
   user_id uuid not null references auth.users (id) on delete cascade,
-  persona_key text not null default 'default',
+  persona_key text not null,
   name text not null default 'Persona 1',
   portrait_data_url text,
   portrait_storage_path text,
@@ -20,6 +20,42 @@ create table if not exists public.personas (
 
 alter table public.personas
   add column if not exists portrait_storage_path text;
+
+alter table public.personas
+  alter column persona_key drop default;
+
+with normalized as (
+  select
+    p.id,
+    coalesce(
+      nullif(trim(both '-' from regexp_replace(lower(coalesce(nullif(p.name, ''), 'persona')), '[^a-z0-9_-]+', '-', 'g')), ''),
+      'persona'
+    ) as slug
+  from public.personas p
+  where p.persona_key is null
+     or btrim(p.persona_key) = ''
+     or lower(p.persona_key) = 'default'
+)
+update public.personas p
+set persona_key = left(n.slug, 24) || '-' || substr(replace(p.id::text, '-', ''), 1, 6)
+from normalized n
+where p.id = n.id;
+
+do $$
+begin
+  if not exists (
+    select 1
+    from pg_constraint
+    where conname = 'personas_persona_key_not_default'
+  ) then
+    alter table public.personas
+      add constraint personas_persona_key_not_default
+      check (
+        length(btrim(persona_key)) > 0
+        and lower(persona_key) <> 'default'
+      );
+  end if;
+end $$;
 
 create index if not exists personas_user_id_idx on public.personas (user_id);
 create index if not exists personas_updated_at_idx on public.personas (updated_at desc);

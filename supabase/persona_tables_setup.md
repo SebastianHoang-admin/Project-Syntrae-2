@@ -5,7 +5,7 @@ This project now writes persona data to `public.personas` (instead of only Auth 
 ## 1) Create tables + RLS
 
 Run `supabase/persona_tables.sql` in **Supabase Dashboard -> SQL Editor**.
-You can safely re-run it later; it is idempotent and also applies chat-session upgrades, the `portrait_storage_path` column, and Storage bucket policies for persona portraits.
+You can safely re-run it later; it is idempotent and also applies chat-session upgrades, the `portrait_storage_path` column, storage bucket policies for persona portraits, and migrates any legacy `persona_key = 'default'` rows to generated slug keys.
 
 ## 2) Optional backfill from old metadata storage
 
@@ -15,7 +15,7 @@ If you already have personas stored in `auth.users.raw_user_meta_data.persona_st
 insert into public.personas (user_id, persona_key, name, portrait_data_url, state, traits)
 select
   u.id as user_id,
-  'default' as persona_key,
+  'persona-' || substr(replace(u.id::text, '-', ''), 1, 6) as persona_key,
   coalesce(
     nullif(trim(u.raw_user_meta_data->'persona_state_v1'->>'personaName'), ''),
     'Persona 1'
