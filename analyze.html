@@ -717,12 +717,33 @@ Authority figure</div>
         const menuRemovePhoto = document.getElementById('menuRemovePhoto');
         const personaNameEl = document.getElementById('personaName');
         const editNameBtn = document.getElementById('editNameBtn');
-        const PERSONA_META_KEY = 'persona_state_v1';
+        const PERSONA_TABLE = 'personas';
+        const PERSONA_KEY = 'default';
         const syntraeSupabase = window.syntraeSupabaseClient || null;
         let cloudHydrated = false;
         let cloudHydrating = false;
         let cloudSaveTimer = null;
         let lastCloudPayload = '';
+
+        function normalizePersonaName(name) {
+            const trimmed = String(name || '').trim();
+            return trimmed || 'Persona 1';
+        }
+
+        function extractTraitsFromState(state) {
+            const traits = {};
+            if (!state || typeof state !== 'object') return traits;
+            ['L1', 'L2', 'L3'].forEach((layerId) => {
+                const raw = state.identityLayers && state.identityLayers[layerId];
+                if (typeof raw !== 'string' || !raw) return;
+                try {
+                    traits[layerId] = JSON.parse(raw);
+                } catch (_) {
+                    traits[layerId] = { raw };
+                }
+            });
+            return traits;
+        }
 
         function collectPersonaState() {
             const state = {
@@ -800,10 +821,30 @@ Authority figure</div>
             try {
                 const { data, error } = await syntraeSupabase.auth.getUser();
                 if (error || !data?.user) return;
-                const cloudState = data.user.user_metadata && data.user.user_metadata[PERSONA_META_KEY];
-                if (!cloudState || typeof cloudState !== 'object') return;
-                applyPersonaState(cloudState);
-                lastCloudPayload = JSON.stringify(cloudState);
+                const user = data.user;
+
+                const { data: personaRow, error: personaError } = await syntraeSupabase
+                    .from(PERSONA_TABLE)
+                    .select('state, name, portrait_data_url')
+                    .eq('user_id', user.id)
+                    .eq('persona_key', PERSONA_KEY)
+                    .maybeSingle();
+
+                if (personaError) {
+                    console.warn('Persona hydrate from table failed:', personaError.message || personaError);
+                }
+
+                if (personaRow && personaRow.state && typeof personaRow.state === 'object') {
+                    const cloudState = { ...personaRow.state };
+                    if (personaRow.name && !cloudState.personaName) cloudState.personaName = personaRow.name;
+                    if (personaRow.portrait_data_url && !cloudState.personaPortrait) {
+                        cloudState.personaPortrait = personaRow.portrait_data_url;
+                    }
+                    applyPersonaState(cloudState);
+                    lastCloudPayload = JSON.stringify(cloudState);
+                    return;
+                }
+
             } catch (err) {
                 console.warn('Persona hydrate failed:', err);
             } finally {
@@ -816,16 +857,31 @@ Authority figure</div>
             clearTimeout(cloudSaveTimer);
             cloudSaveTimer = setTimeout(async () => {
                 try {
+                    const { data, error: userError } = await syntraeSupabase.auth.getUser();
+                    if (userError || !data?.user) return;
+
                     const payload = collectPersonaState();
                     const serialized = JSON.stringify(payload);
                     if (serialized === lastCloudPayload) return;
-                    lastCloudPayload = serialized;
-                    const { error } = await syntraeSupabase.auth.updateUser({
-                        data: {
-                            [PERSONA_META_KEY]: payload
-                        }
+                    const personaName = normalizePersonaName(payload.personaName);
+                    const portraitDataUrl = payload.personaPortrait || null;
+                    const traits = extractTraitsFromState(payload);
+
+                    const { error } = await syntraeSupabase.from(PERSONA_TABLE).upsert({
+                        user_id: data.user.id,
+                        persona_key: PERSONA_KEY,
+                        name: personaName,
+                        portrait_data_url: portraitDataUrl,
+                        state: payload,
+                        traits
+                    }, {
+                        onConflict: 'user_id,persona_key'
                     });
-                    if (error) console.warn('Persona save failed:', error.message || error);
+                    if (error) {
+                        console.warn('Persona save failed:', error.message || error);
+                        return;
+                    }
+                    lastCloudPayload = serialized;
                 } catch (err) {
                     console.warn('Persona save failed:', err);
                 }
