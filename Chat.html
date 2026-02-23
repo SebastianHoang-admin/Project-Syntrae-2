@@ -591,11 +591,20 @@
                 }
                 const user = data.session.user;
                 const meta = user.user_metadata || {};
-                const cloudPersonaState = meta.persona_state_v1 && typeof meta.persona_state_v1 === 'object'
-                    ? meta.persona_state_v1
-                    : null;
-                if (cloudPersonaState && cloudPersonaState.personaName) {
-                    localStorage.setItem('persona-name', String(cloudPersonaState.personaName));
+
+                const { data: personaRow, error: personaError } = await supabase
+                    .from('personas')
+                    .select('name, state')
+                    .eq('user_id', user.id)
+                    .eq('persona_key', 'default')
+                    .maybeSingle();
+
+                if (personaError) {
+                    console.warn('Could not load persona row from table:', personaError.message || personaError);
+                }
+
+                if (personaRow && personaRow.name) {
+                    localStorage.setItem('persona-name', String(personaRow.name));
                 }
                 setPersonaCardName(localStorage.getItem('persona-name') || 'Persona 1');
 
