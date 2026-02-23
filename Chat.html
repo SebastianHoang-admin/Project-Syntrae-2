@@ -272,6 +272,28 @@
             box-shadow: 0 18px 36px rgba(34, 211, 238, 0.3);
         }
 
+        .persona-card.active {
+            border-color: rgba(34, 211, 238, 0.55);
+            box-shadow: 0 18px 36px rgba(34, 211, 238, 0.35);
+        }
+
+        .persona-create {
+            width: 100%;
+            text-align: left;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: rgba(255, 255, 255, 0.04);
+        }
+
+        .persona-empty {
+            color: var(--muted);
+            font-size: 13px;
+            border: 1px dashed rgba(255, 255, 255, 0.18);
+            border-radius: 12px;
+            padding: 10px 12px;
+        }
+
         .chat-header {
             display: flex;
             align-items: center;
@@ -533,9 +555,10 @@
     <main class="container">
         <section class="persona-column">
             <h2 class="column-title"><i class="fas fa-user-circle"></i>Your Persona</h2>
-            <div class="persona-samples">
-                <div class="persona-card">Persona 1</div>
-            </div>
+            <div class="persona-samples" id="personaList"></div>
+            <button class="persona-card persona-create" id="createPersonaBtn" type="button">
+                <i class="fas fa-plus"></i> Create new persona
+            </button>
         </section>
 
         <section class="chat-column">
@@ -573,12 +596,134 @@
         const chatInput = document.getElementById('chatInput');
         const chatMessages = document.getElementById('chatMessages');
         const sendBtn = document.getElementById('sendBtn');
-        const personaCards = document.querySelectorAll('.persona-card');
-        function setPersonaCardName(name) {
-            const safeName = name && String(name).trim() ? String(name).trim() : 'Persona 1';
-            personaCards.forEach(card => { card.textContent = safeName; });
+        const personaListEl = document.getElementById('personaList');
+        const createPersonaBtn = document.getElementById('createPersonaBtn');
+        const ACTIVE_PERSONA_KEY_STORAGE = 'active-persona-key';
+        const PERSONA_QUERY_PARAM = 'persona';
+        let currentUser = null;
+        let personas = [];
+
+        function sanitizePersonaKey(value) {
+            const normalized = String(value || '').trim().toLowerCase();
+            if (!normalized) return '';
+            const cleaned = normalized.replace(/[^a-z0-9_-]/g, '');
+            return cleaned || '';
         }
-        setPersonaCardName(localStorage.getItem('persona-name') || 'Persona 1');
+
+        function createPersonaKey(name) {
+            const slug = sanitizePersonaKey(String(name || '').replace(/\s+/g, '-')).slice(0, 24) || 'persona';
+            return `${slug}-${Date.now().toString(36)}`;
+        }
+
+        function buildPersonaUrl(path, key) {
+            const safeKey = sanitizePersonaKey(key) || 'default';
+            return `${path}?${PERSONA_QUERY_PARAM}=${encodeURIComponent(safeKey)}`;
+        }
+
+        function getActivePersonaKey() {
+            return sanitizePersonaKey(localStorage.getItem(ACTIVE_PERSONA_KEY_STORAGE));
+        }
+
+        function setActivePersona(persona) {
+            if (!persona || !persona.persona_key) return;
+            localStorage.setItem(ACTIVE_PERSONA_KEY_STORAGE, persona.persona_key);
+            localStorage.setItem('persona-name', persona.name || 'Persona 1');
+        }
+
+        function seedPersonaState(name) {
+            return {
+                version: 1,
+                savedAt: new Date().toISOString(),
+                personaName: name,
+                personaPortrait: '',
+                personaAvatarPresent: '',
+                answers: {},
+                session: {},
+                usersInput: '',
+                identityLayers: {},
+                extras: {}
+            };
+        }
+
+        function renderPersonaCards() {
+            if (!personaListEl) return;
+            personaListEl.innerHTML = '';
+            if (!personas.length) {
+                const empty = document.createElement('div');
+                empty.className = 'persona-empty';
+                empty.textContent = 'No personas yet. Create one to start.';
+                personaListEl.appendChild(empty);
+                return;
+            }
+
+            const activeKey = getActivePersonaKey();
+            personas.forEach((persona) => {
+                const card = document.createElement('div');
+                card.className = `persona-card${persona.persona_key === activeKey ? ' active' : ''}`;
+                card.textContent = persona.name || 'Persona';
+                card.addEventListener('click', () => {
+                    setActivePersona(persona);
+                    window.location.href = buildPersonaUrl('analyze.html', persona.persona_key);
+                });
+                personaListEl.appendChild(card);
+            });
+        }
+
+        async function loadPersonasForUser(userId) {
+            const { data, error } = await supabase
+                .from('personas')
+                .select('id, persona_key, name, updated_at')
+                .eq('user_id', userId)
+                .order('updated_at', { ascending: false });
+
+            if (error) {
+                console.warn('Could not load personas:', error.message || error);
+                personas = [];
+                renderPersonaCards();
+                return;
+            }
+
+            personas = Array.isArray(data) ? data : [];
+            if (!personas.length) {
+                localStorage.removeItem(ACTIVE_PERSONA_KEY_STORAGE);
+                renderPersonaCards();
+                return;
+            }
+
+            const activeKey = getActivePersonaKey();
+            const activePersona = personas.find((row) => row.persona_key === activeKey) || personas[0];
+            setActivePersona(activePersona);
+            renderPersonaCards();
+        }
+
+        async function createPersona() {
+            if (!currentUser?.id) return;
+            const suggested = `Persona ${personas.length + 1}`;
+            const input = window.prompt('Enter a name for your new persona:', suggested);
+            if (input === null) return;
+            const name = (input.trim() || suggested).slice(0, 120);
+            const personaKey = createPersonaKey(name);
+            const state = seedPersonaState(name);
+            const traits = { L1: {}, L2: {}, L3: {} };
+
+            const { error } = await supabase.from('personas').insert({
+                user_id: currentUser.id,
+                persona_key: personaKey,
+                name,
+                state,
+                traits,
+                portrait_data_url: null
+            });
+
+            if (error) {
+                alert(`Could not create persona: ${error.message || error}`);
+                return;
+            }
+
+            setActivePersona({ persona_key: personaKey, name });
+            await loadPersonasForUser(currentUser.id);
+            window.location.href = buildPersonaUrl('analyze.html', personaKey);
+        }
 
         async function loadSession() {
             try {
@@ -589,34 +734,21 @@
                     window.location.href = 'sign-in.html';
                     return;
                 }
-                const user = data.session.user;
-                const meta = user.user_metadata || {};
-
-                const { data: personaRow, error: personaError } = await supabase
-                    .from('personas')
-                    .select('name, state')
-                    .eq('user_id', user.id)
-                    .eq('persona_key', 'default')
-                    .maybeSingle();
-
-                if (personaError) {
-                    console.warn('Could not load persona row from table:', personaError.message || personaError);
-                }
-
-                if (personaRow && personaRow.name) {
-                    localStorage.setItem('persona-name', String(personaRow.name));
-                }
-                setPersonaCardName(localStorage.getItem('persona-name') || 'Persona 1');
+                currentUser = data.session.user;
+                const meta = currentUser.user_metadata || {};
 
                 const first = meta.first_name || '';
                 const last = meta.last_name || '';
-                const displayName = (first || last) ? `Welcome ${first} ${last}`.trim() : user.email || 'Welcome';
+                const displayName = (first || last) ? `Welcome ${first} ${last}`.trim() : currentUser.email || 'Welcome';
                 accountIndicator.textContent = displayName;
                 accountIndicator.dataset.state = 'signed-in';
 
                 if (!meta.profile_completed) {
                     window.location.href = 'profile.html';
+                    return;
                 }
+
+                await loadPersonasForUser(currentUser.id);
             } catch (err) {
                 accountIndicator.textContent = 'Session check failed';
                 accountIndicator.dataset.state = 'signed-out';
@@ -649,7 +781,8 @@
                 e.preventDefault();
                 const dest = link.dataset.destination;
                 if (dest === 'analyze') {
-                    window.location.href = 'analyze.html';
+                    const activeKey = getActivePersonaKey() || (personas[0] && personas[0].persona_key) || 'default';
+                    window.location.href = buildPersonaUrl('analyze.html', activeKey);
                     return;
                 }
                 // Keep navigation relative to the current directory to avoid 404s when deep-linked
@@ -735,11 +868,8 @@
             if (e.key === 'Enter') sendMessage();
         });
 
-        personaCards.forEach(card => {
-            card.addEventListener('click', () => {
-                const name = card.textContent.trim();
-                alert(`Open persona space for: ${name}`);
-            });
+        createPersonaBtn?.addEventListener('click', () => {
+            void createPersona();
         });
 
         function playIntroConversation() {

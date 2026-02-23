@@ -561,7 +561,8 @@
             <p>You don't have an existing persona yet. Do you want to create one?</p>
             <div class="actions">
                 <button class="yes" type="button" id="personaYesBtn">Yes</button>
-                <button type="button" id="personaNoBtn">No</button>
+                <button type="button" id="personaNoBtn">Back to Chat</button>
+                <button type="button" id="personaLaterBtn">I'll do it later</button>
             </div>
         </div>
         <div class="persona-check" id="personaStepAvatar" style="display:none;">
@@ -598,7 +599,6 @@
             </div>
         </a>
         <a class="primary-btn" href="Chat.html">Back to Chat</a>
-        <button id="personaCheckBtn" type="button" style="margin-left:12px; padding:8px 12px; border-radius:10px; border:1px solid rgba(255,255,255,0.25); background:rgba(255,255,255,0.08); color:#e7edf8; font-weight:700; cursor:pointer;">persona_check</button>
     </header>
 
     <main class="panel">
@@ -718,12 +718,34 @@ Authority figure</div>
         const personaNameEl = document.getElementById('personaName');
         const editNameBtn = document.getElementById('editNameBtn');
         const PERSONA_TABLE = 'personas';
-        const PERSONA_KEY = 'default';
+        const ACTIVE_PERSONA_KEY_STORAGE = 'active-persona-key';
+        const PERSONA_QUERY_PARAM = 'persona';
         const syntraeSupabase = window.syntraeSupabaseClient || null;
         let cloudHydrated = false;
         let cloudHydrating = false;
         let cloudSaveTimer = null;
         let lastCloudPayload = '';
+        let personaKey = 'default';
+
+        function sanitizePersonaKey(value) {
+            const normalized = String(value || '').trim().toLowerCase();
+            if (!normalized) return '';
+            const cleaned = normalized.replace(/[^a-z0-9_-]/g, '');
+            return cleaned || '';
+        }
+
+        function resolvePersonaKey() {
+            const params = new URLSearchParams(window.location.search);
+            const fromQuery = sanitizePersonaKey(params.get(PERSONA_QUERY_PARAM));
+            const fromStorage = sanitizePersonaKey(localStorage.getItem(ACTIVE_PERSONA_KEY_STORAGE));
+            const key = fromQuery || fromStorage || 'default';
+            localStorage.setItem(ACTIVE_PERSONA_KEY_STORAGE, key);
+            return key;
+        }
+
+        function buildPersonaUrl(path) {
+            return `${path}?${PERSONA_QUERY_PARAM}=${encodeURIComponent(personaKey)}`;
+        }
 
         function normalizePersonaName(name) {
             const trimmed = String(name || '').trim();
@@ -743,6 +765,20 @@ Authority figure</div>
                 }
             });
             return traits;
+        }
+
+        function clearPersonaLocalState() {
+            localStorage.removeItem('persona-name');
+            localStorage.removeItem('persona-portrait');
+            localStorage.removeItem('persona-avatar-present');
+            localStorage.removeItem('persona-answers');
+            localStorage.removeItem('persona-visible-session');
+            localStorage.removeItem('users-input');
+            Object.keys(localStorage).forEach((key) => {
+                if (key.startsWith('identity-layer-') || key.startsWith('extra-')) {
+                    localStorage.removeItem(key);
+                }
+            });
         }
 
         function collectPersonaState() {
@@ -827,7 +863,7 @@ Authority figure</div>
                     .from(PERSONA_TABLE)
                     .select('state, name, portrait_data_url')
                     .eq('user_id', user.id)
-                    .eq('persona_key', PERSONA_KEY)
+                    .eq('persona_key', personaKey)
                     .maybeSingle();
 
                 if (personaError) {
@@ -844,6 +880,8 @@ Authority figure</div>
                     lastCloudPayload = JSON.stringify(cloudState);
                     return;
                 }
+                clearPersonaLocalState();
+                lastCloudPayload = '';
 
             } catch (err) {
                 console.warn('Persona hydrate failed:', err);
@@ -869,7 +907,7 @@ Authority figure</div>
 
                     const { error } = await syntraeSupabase.from(PERSONA_TABLE).upsert({
                         user_id: data.user.id,
-                        persona_key: PERSONA_KEY,
+                        persona_key: personaKey,
                         name: personaName,
                         portrait_data_url: portraitDataUrl,
                         state: payload,
@@ -1126,8 +1164,10 @@ Authority figure</div>
         const avatarLater = document.getElementById('avatarLater');
         const avatarChangePhoto = document.getElementById('avatarChangePhoto');
         const avatarConfirmAndContinue = document.getElementById('avatarConfirmAndContinue');
-        const personaCheckBtn = document.getElementById('personaCheckBtn');
+        const personaLaterBtn = document.getElementById('personaLaterBtn');
         const editPersonaLink = document.querySelector('.edit-btn');
+        personaKey = resolvePersonaKey();
+        if (editPersonaLink) editPersonaLink.href = buildPersonaUrl('edit-persona.html');
 
         function personaExists() {
             return Boolean(localStorage.getItem('persona-name'));
@@ -1135,6 +1175,9 @@ Authority figure</div>
 
         function showPersonaCheck() {
             if (personaCheckOverlay) {
+                if (personaStepChoice) personaStepChoice.style.display = 'block';
+                if (personaStepAvatar) personaStepAvatar.style.display = 'none';
+                if (personaStepRedirect) personaStepRedirect.style.display = 'none';
                 personaCheckOverlay.style.display = 'flex';
             }
         }
@@ -1163,7 +1206,7 @@ Authority figure</div>
 
         function goToQuestions() {
             hidePersonaCheck();
-            window.location.href = 'edit-persona.html';
+            window.location.href = buildPersonaUrl('edit-persona.html');
         }
 
         function showAvatarStep() {
@@ -1184,8 +1227,14 @@ Authority figure</div>
                 if (personaStepChoice) personaStepChoice.style.display = 'none';
                 if (personaStepAvatar) personaStepAvatar.style.display = 'none';
                 if (personaStepRedirect) personaStepRedirect.style.display = 'block';
-                showPersonaCheck();
+                if (personaCheckOverlay) personaCheckOverlay.style.display = 'flex';
                 setTimeout(() => { window.location.href = 'Chat.html'; }, 2000);
+            });
+        }
+
+        if (personaLaterBtn) {
+            personaLaterBtn.addEventListener('click', () => {
+                hidePersonaCheck();
             });
         }
 
@@ -1229,12 +1278,6 @@ Authority figure</div>
         if (avatarLater) {
             avatarLater.addEventListener('click', () => {
                 goToQuestions();
-            });
-        }
-
-        if (personaCheckBtn) {
-            personaCheckBtn.addEventListener('click', () => {
-                showPersonaCheck();
             });
         }
 

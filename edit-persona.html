@@ -368,7 +368,8 @@
     const SESSION_KEY = 'persona-visible-session';
     const statusEl = document.getElementById('status');
     const PERSONA_TABLE = 'personas';
-    const PERSONA_KEY = 'default';
+    const ACTIVE_PERSONA_KEY_STORAGE = 'active-persona-key';
+    const PERSONA_QUERY_PARAM = 'persona';
     const syntraeSupabase = window.syntraeSupabaseClient || null;
 
     const fallbackQuestions = [];
@@ -383,6 +384,27 @@
     let cloudHydrating = false;
     let cloudSaveTimer = null;
     let lastCloudPayload = '';
+    let personaKey = 'default';
+
+    function sanitizePersonaKey(value) {
+      const normalized = String(value || '').trim().toLowerCase();
+      if (!normalized) return '';
+      const cleaned = normalized.replace(/[^a-z0-9_-]/g, '');
+      return cleaned || '';
+    }
+
+    function resolvePersonaKey() {
+      const params = new URLSearchParams(window.location.search);
+      const fromQuery = sanitizePersonaKey(params.get(PERSONA_QUERY_PARAM));
+      const fromStorage = sanitizePersonaKey(localStorage.getItem(ACTIVE_PERSONA_KEY_STORAGE));
+      const key = fromQuery || fromStorage || 'default';
+      localStorage.setItem(ACTIVE_PERSONA_KEY_STORAGE, key);
+      return key;
+    }
+
+    function buildPersonaUrl(path) {
+      return `${path}?${PERSONA_QUERY_PARAM}=${encodeURIComponent(personaKey)}`;
+    }
 
     function normalizePersonaName(name) {
       const trimmed = String(name || '').trim();
@@ -402,6 +424,20 @@
         }
       });
       return traits;
+    }
+
+    function clearPersonaLocalState() {
+      localStorage.removeItem('persona-name');
+      localStorage.removeItem('persona-portrait');
+      localStorage.removeItem('persona-avatar-present');
+      localStorage.removeItem(STORAGE_KEY);
+      localStorage.removeItem(SESSION_KEY);
+      localStorage.removeItem('users-input');
+      Object.keys(localStorage).forEach((key) => {
+        if (key.startsWith('identity-layer-') || key.startsWith('extra-')) {
+          localStorage.removeItem(key);
+        }
+      });
     }
 
     function collectPersonaState() {
@@ -473,7 +509,7 @@
           .from(PERSONA_TABLE)
           .select('state, name, portrait_data_url')
           .eq('user_id', user.id)
-          .eq('persona_key', PERSONA_KEY)
+          .eq('persona_key', personaKey)
           .maybeSingle();
 
         if (personaError) {
@@ -490,6 +526,8 @@
           lastCloudPayload = JSON.stringify(cloudState);
           return;
         }
+        clearPersonaLocalState();
+        lastCloudPayload = '';
 
       } catch (err) {
         console.warn('Persona hydrate failed:', err);
@@ -513,7 +551,7 @@
 
         const { error } = await syntraeSupabase.from(PERSONA_TABLE).upsert({
           user_id: data.user.id,
-          persona_key: PERSONA_KEY,
+          persona_key: personaKey,
           name: personaName,
           portrait_data_url: portraitDataUrl,
           state: payload,
@@ -543,6 +581,9 @@
       }, 650);
       return Promise.resolve();
     }
+
+    personaKey = resolvePersonaKey();
+    backToAnalyze.href = buildPersonaUrl('analyze.html');
 
     // Utility: persist combined user input for LLM wiring
     function saveUsersInput() {

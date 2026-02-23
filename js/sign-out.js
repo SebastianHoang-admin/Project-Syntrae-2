@@ -28,6 +28,7 @@ function clearAuthStorage() {
   const shouldRemovePersona = (key) => {
     if (!key) return false;
     return key === 'persona-name'
+      || key === 'active-persona-key'
       || key === 'persona-portrait'
       || key === 'persona-avatar-present'
       || key === 'persona-answers'
