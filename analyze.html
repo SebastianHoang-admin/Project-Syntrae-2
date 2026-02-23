@@ -698,6 +698,14 @@ Authority figure</div>
         </div>
     </main>
 
+    <script src="js/supabase-config.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script>
+        window.syntraeSupabaseClient = window.syntraeSupabaseClient || window.supabase.createClient(
+            window.SUPABASE_URL,
+            window.SUPABASE_ANON_KEY
+        );
+    </script>
     <script>
         const portraitInput = document.getElementById('portraitInput');
         const portraitPreview = document.getElementById('portraitPreview');
@@ -709,6 +717,121 @@ Authority figure</div>
         const menuRemovePhoto = document.getElementById('menuRemovePhoto');
         const personaNameEl = document.getElementById('personaName');
         const editNameBtn = document.getElementById('editNameBtn');
+        const PERSONA_META_KEY = 'persona_state_v1';
+        const syntraeSupabase = window.syntraeSupabaseClient || null;
+        let cloudHydrated = false;
+        let cloudHydrating = false;
+        let cloudSaveTimer = null;
+        let lastCloudPayload = '';
+
+        function collectPersonaState() {
+            const state = {
+                version: 1,
+                savedAt: new Date().toISOString(),
+                personaName: localStorage.getItem('persona-name') || '',
+                personaPortrait: localStorage.getItem('persona-portrait') || '',
+                personaAvatarPresent: localStorage.getItem('persona-avatar-present') || '',
+                answers: (() => {
+                    try {
+                        return JSON.parse(localStorage.getItem('persona-answers') || '{}');
+                    } catch (_) {
+                        return {};
+                    }
+                })(),
+                session: (() => {
+                    try {
+                        return JSON.parse(localStorage.getItem('persona-visible-session') || '{}');
+                    } catch (_) {
+                        return {};
+                    }
+                })(),
+                usersInput: localStorage.getItem('users-input') || '',
+                identityLayers: {},
+                extras: {}
+            };
+
+            ['L1', 'L2', 'L3'].forEach((layerId) => {
+                const raw = localStorage.getItem(`identity-layer-${layerId}`);
+                if (raw) state.identityLayers[layerId] = raw;
+            });
+            Object.keys(localStorage).forEach((key) => {
+                if (!key.startsWith('extra-')) return;
+                state.extras[key.slice(6)] = localStorage.getItem(key) || '';
+            });
+
+            return state;
+        }
+
+        function applyPersonaState(state) {
+            if (!state || typeof state !== 'object') return;
+            if (state.personaName) localStorage.setItem('persona-name', state.personaName);
+            if (state.personaPortrait) localStorage.setItem('persona-portrait', state.personaPortrait);
+            if (state.personaAvatarPresent) localStorage.setItem('persona-avatar-present', state.personaAvatarPresent);
+            if (state.answers && typeof state.answers === 'object') {
+                localStorage.setItem('persona-answers', JSON.stringify(state.answers));
+            }
+            if (state.session && typeof state.session === 'object') {
+                localStorage.setItem('persona-visible-session', JSON.stringify(state.session));
+            }
+            if (typeof state.usersInput === 'string' && state.usersInput) {
+                localStorage.setItem('users-input', state.usersInput);
+            }
+            ['L1', 'L2', 'L3'].forEach((layerId) => {
+                const raw = state.identityLayers && state.identityLayers[layerId];
+                if (typeof raw === 'string' && raw) {
+                    localStorage.setItem(`identity-layer-${layerId}`, raw);
+                }
+            });
+
+            Object.keys(localStorage).forEach((key) => {
+                if (key.startsWith('extra-')) localStorage.removeItem(key);
+            });
+            if (state.extras && typeof state.extras === 'object') {
+                Object.entries(state.extras).forEach(([field, value]) => {
+                    localStorage.setItem(`extra-${field}`, String(value || ''));
+                });
+            }
+        }
+
+        async function hydrateFromAccount() {
+            if (cloudHydrated || !syntraeSupabase) return;
+            cloudHydrated = true;
+            cloudHydrating = true;
+            try {
+                const { data, error } = await syntraeSupabase.auth.getUser();
+                if (error || !data?.user) return;
+                const cloudState = data.user.user_metadata && data.user.user_metadata[PERSONA_META_KEY];
+                if (!cloudState || typeof cloudState !== 'object') return;
+                applyPersonaState(cloudState);
+                lastCloudPayload = JSON.stringify(cloudState);
+            } catch (err) {
+                console.warn('Persona hydrate failed:', err);
+            } finally {
+                cloudHydrating = false;
+            }
+        }
+
+        function queueCloudSave() {
+            if (cloudHydrating || !syntraeSupabase) return;
+            clearTimeout(cloudSaveTimer);
+            cloudSaveTimer = setTimeout(async () => {
+                try {
+                    const payload = collectPersonaState();
+                    const serialized = JSON.stringify(payload);
+                    if (serialized === lastCloudPayload) return;
+                    lastCloudPayload = serialized;
+                    const { error } = await syntraeSupabase.auth.updateUser({
+                        data: {
+                            [PERSONA_META_KEY]: payload
+                        }
+                    });
+                    if (error) console.warn('Persona save failed:', error.message || error);
+                } catch (err) {
+                    console.warn('Persona save failed:', err);
+                }
+            }, 650);
+        }
+
         function setupBackgroundCards() {
             const items = document.querySelectorAll('.backgrounds .item');
             items.forEach(item => {
@@ -750,7 +873,7 @@ Authority figure</div>
         const radarCanvas = document.getElementById('radarCanvas');
         const radarCtx = radarCanvas ? radarCanvas.getContext('2d') : null;
         const radarConfig = {
-            datasetPath: 'data/identitybuilder.json',
+            datasetPath: 'data/Identitybuilder.json',
             layers: [
                 { layerId: 'L1', label: 'Behavioral Signature', radiusScale: 0.37, gradient: ['#22d3ee', '#f97316'], rotationOffsetRad: 0 },
                 {
@@ -850,8 +973,6 @@ Authority figure</div>
                 if (saved) valueEl.textContent = saved;
             });
         }
-        loadBackgroundsFromStorage();
-        adjustCardHeights();
         window.addEventListener('resize', adjustCardHeights);
 
         function renderPersonaBars() {
@@ -887,8 +1008,6 @@ Authority figure</div>
             });
 
         }
-        renderPersonaBars();
-
         // Persona name (inline edit)
         function loadPersonaName() {
             const saved = localStorage.getItem('persona-name') || 'Persona 1';
@@ -896,7 +1015,6 @@ Authority figure</div>
             personaNameEl.dataset.label = 'Persona 1';
             personaNameEl.dataset.actualName = saved;
         }
-        loadPersonaName();
 
         function savePersonaName(value) {
             const name = value && value.trim() ? value.trim() : 'Persona 1';
@@ -905,6 +1023,7 @@ Authority figure</div>
             personaNameEl.dataset.actualName = name;
             personaNameEl.classList.remove('editing');
             personaNameEl.removeAttribute('contenteditable');
+            queueCloudSave();
         }
 
         editNameBtn.addEventListener('click', () => {
@@ -970,8 +1089,20 @@ Authority figure</div>
             }
         }
 
-        if (!personaExists()) {
-            showPersonaCheck();
+        function refreshPersonaUiFromStorage() {
+            loadBackgroundsFromStorage();
+            adjustCardHeights();
+            renderPersonaBars();
+            loadPersonaName();
+            const savedPortrait = localStorage.getItem('persona-portrait');
+            if (savedPortrait) {
+                showPortrait(savedPortrait);
+            }
+            if (!personaExists()) {
+                showPersonaCheck();
+            } else {
+                hidePersonaCheck();
+            }
         }
 
         function goToQuestions() {
@@ -1019,6 +1150,7 @@ Authority figure</div>
                     const dataUrl = ev.target.result;
                     localStorage.setItem('persona-portrait', dataUrl);
                     localStorage.setItem('persona-avatar-present', 'yes');
+                    queueCloudSave();
                     if (avatarOverlayPreview) {
                         avatarOverlayPreview.src = dataUrl;
                         avatarOverlayPreview.style.display = 'block';
@@ -1076,6 +1208,7 @@ Authority figure</div>
             function saveValue() {
                 const text = valueEl.textContent.trim();
                 localStorage.setItem(`extra-${field}`, text);
+                queueCloudSave();
                 valueEl.removeAttribute('contenteditable');
                 valueEl.classList.remove('editing');
                 item.classList.remove('editing');
@@ -1229,9 +1362,6 @@ Authority figure</div>
             img.src = src;
         }
 
-        const savedPortrait = localStorage.getItem('persona-portrait');
-        if (savedPortrait) showPortrait(savedPortrait);
-
         portraitInput.addEventListener('change', (e) => {
             const file = e.target.files && e.target.files[0];
             if (!file) return;
@@ -1239,6 +1369,7 @@ Authority figure</div>
             reader.onload = (ev) => {
                 const dataUrl = ev.target.result;
                 localStorage.setItem('persona-portrait', dataUrl);
+                queueCloudSave();
                 showPortrait(dataUrl);
             };
             reader.readAsDataURL(file);
@@ -1268,6 +1399,7 @@ Authority figure</div>
         menuRemovePhoto?.addEventListener('click', () => {
             hideMenu();
             localStorage.removeItem('persona-portrait');
+            queueCloudSave();
             placeholder.style.display = 'block';
             portraitPreview.style.display = 'none';
             holoCanvas.style.display = 'none';
@@ -1803,7 +1935,14 @@ Authority figure</div>
             if (saved) showPortrait(saved);
             ensureRadarLoop();
         });
-        initRadar();
+
+        async function startAnalyzePage() {
+            await hydrateFromAccount();
+            refreshPersonaUiFromStorage();
+            await initRadar();
+        }
+
+        startAnalyzePage();
     </script>
 </body>
 </html>

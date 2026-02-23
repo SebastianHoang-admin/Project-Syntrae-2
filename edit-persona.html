@@ -350,8 +350,16 @@
     <div id="personality" class="questions" style="scroll-margin-top: 120px;"></div>
   </main>
 
+  <script src="js/supabase-config.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script>
-    const DATASET_PATH = '/data/identitybuilder.json';
+    window.syntraeSupabaseClient = window.syntraeSupabaseClient || window.supabase.createClient(
+      window.SUPABASE_URL,
+      window.SUPABASE_ANON_KEY
+    );
+  </script>
+  <script>
+    const DATASET_PATH = '/data/Identitybuilder.json';
     const personalityRoot = document.getElementById('personality');
     const backToAnalyze = document.getElementById('backToAnalyze');
     const pagerEl = document.getElementById('pager');
@@ -359,6 +367,8 @@
     const STORAGE_KEY = 'persona-answers';
     const SESSION_KEY = 'persona-visible-session';
     const statusEl = document.getElementById('status');
+    const PERSONA_META_KEY = 'persona_state_v1';
+    const syntraeSupabase = window.syntraeSupabaseClient || null;
 
     const fallbackQuestions = [];
     let allQuestions = [];
@@ -368,6 +378,115 @@
     let hasUnsaved = false;
     let reviewMode = false;
     let axisMeta = { L1: {}, L2: {}, L3: {} };
+    let cloudHydrated = false;
+    let cloudHydrating = false;
+    let cloudSaveTimer = null;
+    let lastCloudPayload = '';
+
+    function collectPersonaState() {
+      const state = {
+        version: 1,
+        savedAt: new Date().toISOString(),
+        personaName: localStorage.getItem('persona-name') || '',
+        personaPortrait: localStorage.getItem('persona-portrait') || '',
+        personaAvatarPresent: localStorage.getItem('persona-avatar-present') || '',
+        answers: loadStoredAnswers(),
+        session: loadSession(),
+        usersInput: localStorage.getItem('users-input') || '',
+        identityLayers: {},
+        extras: {}
+      };
+      ['L1', 'L2', 'L3'].forEach((layerId) => {
+        const raw = localStorage.getItem(`identity-layer-${layerId}`);
+        if (raw) state.identityLayers[layerId] = raw;
+      });
+      Object.keys(localStorage).forEach((key) => {
+        if (!key.startsWith('extra-')) return;
+        state.extras[key.slice(6)] = localStorage.getItem(key) || '';
+      });
+      return state;
+    }
+
+    function applyPersonaState(state) {
+      if (!state || typeof state !== 'object') return;
+      if (state.personaName) localStorage.setItem('persona-name', state.personaName);
+      if (state.personaPortrait) localStorage.setItem('persona-portrait', state.personaPortrait);
+      if (state.personaAvatarPresent) localStorage.setItem('persona-avatar-present', state.personaAvatarPresent);
+
+      if (state.answers && typeof state.answers === 'object') {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(state.answers));
+      }
+      if (state.session && typeof state.session === 'object') {
+        localStorage.setItem(SESSION_KEY, JSON.stringify(state.session));
+      }
+      if (typeof state.usersInput === 'string' && state.usersInput) {
+        localStorage.setItem('users-input', state.usersInput);
+      }
+      ['L1', 'L2', 'L3'].forEach((layerId) => {
+        const raw = state.identityLayers && state.identityLayers[layerId];
+        if (typeof raw === 'string' && raw) {
+          localStorage.setItem(`identity-layer-${layerId}`, raw);
+        }
+      });
+
+      Object.keys(localStorage).forEach((key) => {
+        if (key.startsWith('extra-')) localStorage.removeItem(key);
+      });
+      if (state.extras && typeof state.extras === 'object') {
+        Object.entries(state.extras).forEach(([field, value]) => {
+          localStorage.setItem(`extra-${field}`, String(value || ''));
+        });
+      }
+    }
+
+    async function hydrateFromAccount() {
+      if (cloudHydrated || !syntraeSupabase) return;
+      cloudHydrated = true;
+      cloudHydrating = true;
+      try {
+        const { data, error } = await syntraeSupabase.auth.getUser();
+        if (error || !data?.user) return;
+        const cloudState = data.user.user_metadata && data.user.user_metadata[PERSONA_META_KEY];
+        if (!cloudState || typeof cloudState !== 'object') return;
+        applyPersonaState(cloudState);
+        lastCloudPayload = JSON.stringify(cloudState);
+      } catch (err) {
+        console.warn('Persona hydrate failed:', err);
+      } finally {
+        cloudHydrating = false;
+      }
+    }
+
+    async function savePersonaToCloudNow() {
+      if (cloudHydrating || !syntraeSupabase) return;
+      try {
+        const payload = collectPersonaState();
+        const serialized = JSON.stringify(payload);
+        if (serialized === lastCloudPayload) return;
+        lastCloudPayload = serialized;
+        const { error } = await syntraeSupabase.auth.updateUser({
+          data: {
+            [PERSONA_META_KEY]: payload
+          }
+        });
+        if (error) console.warn('Persona save failed:', error.message || error);
+      } catch (err) {
+        console.warn('Persona save failed:', err);
+      }
+    }
+
+    function queueCloudSave(immediate = false) {
+      if (cloudHydrating || !syntraeSupabase) return Promise.resolve();
+      if (immediate) {
+        clearTimeout(cloudSaveTimer);
+        return savePersonaToCloudNow();
+      }
+      clearTimeout(cloudSaveTimer);
+      cloudSaveTimer = setTimeout(() => {
+        void savePersonaToCloudNow();
+      }, 650);
+      return Promise.resolve();
+    }
 
     // Utility: persist combined user input for LLM wiring
     function saveUsersInput() {
@@ -376,6 +495,7 @@
         savedAt: new Date().toISOString()
       };
       localStorage.setItem('users-input', JSON.stringify(payload));
+      queueCloudSave();
     }
 
     function loadStoredAnswers() {
@@ -393,6 +513,7 @@
 
     function saveAnswers() {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(currentAnswers));
+      queueCloudSave();
     }
 
     function saveAxisAggregates() {
@@ -417,6 +538,7 @@
         });
         localStorage.setItem(`identity-layer-${layerId}`, JSON.stringify(result));
       });
+      queueCloudSave();
     }
 
     function updateFill(slider, val, confidenceValue) {
@@ -427,6 +549,7 @@
 
     function saveSession(session) {
       localStorage.setItem(SESSION_KEY, JSON.stringify(session));
+      queueCloudSave();
     }
 
     function loadSession() {
@@ -951,6 +1074,10 @@
 
     async function loadQuestions() {
       try {
+        await hydrateFromAccount();
+        currentAnswers = loadStoredAnswers();
+        saveAxisAggregates();
+
         statusEl.textContent = 'Loading questions…';
         const res = await fetch(DATASET_PATH, { cache: 'no-store' });
         if (!res.ok) throw new Error(`Fetch failed (${res.status}) for ${DATASET_PATH}`);
@@ -1041,7 +1168,7 @@
       } catch (err) {
         console.warn('Could not load databank:', err);
         const msg = err && err.message ? err.message : err;
-        statusEl.textContent = `Question set unavailable — ensure a local server is running and data/identitybuilder.json is reachable. (${msg})`;
+        statusEl.textContent = `Question set unavailable — ensure /data/Identitybuilder.json is reachable. (${msg})`;
         allQuestions = [];
         questionMap = new Map();
         visibleIds = [];
@@ -1087,7 +1214,7 @@
     }
 
     // Apply to Back to Analyze navigation — auto-save without prompting
-    backToAnalyze.addEventListener('click', (e) => {
+    backToAnalyze.addEventListener('click', async (e) => {
       e.preventDefault();
       if (hasUnsaved) {
         saveAnswers();
@@ -1095,6 +1222,7 @@
         saveAxisAggregates();
         hasUnsaved = false;
       }
+      await queueCloudSave(true);
       window.location.href = backToAnalyze.href;
     });
 

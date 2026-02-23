@@ -25,12 +25,23 @@ function clearAuthStorage() {
     if (!lowerKey.includes('auth-token')) return false;
     return !PROJECT_REF || lowerKey.includes(PROJECT_REF.toLowerCase());
   };
+  const shouldRemovePersona = (key) => {
+    if (!key) return false;
+    return key === 'persona-name'
+      || key === 'persona-portrait'
+      || key === 'persona-avatar-present'
+      || key === 'persona-answers'
+      || key === 'persona-visible-session'
+      || key === 'users-input'
+      || key.startsWith('identity-layer-')
+      || key.startsWith('extra-');
+  };
 
   for (const key of Object.keys(localStorage)) {
-    if (shouldRemove(key)) localStorage.removeItem(key);
+    if (shouldRemove(key) || shouldRemovePersona(key)) localStorage.removeItem(key);
   }
   for (const key of Object.keys(sessionStorage)) {
-    if (shouldRemove(key)) sessionStorage.removeItem(key);
+    if (shouldRemove(key) || shouldRemovePersona(key)) sessionStorage.removeItem(key);
   }
 }
 
