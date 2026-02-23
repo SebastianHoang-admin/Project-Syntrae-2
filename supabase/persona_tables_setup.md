@@ -5,6 +5,7 @@ This project now writes persona data to `public.personas` (instead of only Auth 
 ## 1) Create tables + RLS
 
 Run `supabase/persona_tables.sql` in **Supabase Dashboard -> SQL Editor**.
+You can safely re-run it later; it is idempotent and also applies chat-session upgrades.
 
 ## 2) Optional backfill from old metadata storage
 
@@ -57,9 +58,23 @@ order by p.updated_at desc
 limit 100;
 ```
 
+Use this query to confirm chat windows are linked to persona + account:
+
+```sql
+select
+  s.user_id,
+  s.persona_id,
+  s.id as session_id,
+  s.title,
+  s.updated_at
+from public.persona_chat_sessions s
+order by s.updated_at desc
+limit 100;
+```
+
 ## 4) Current structure
 
 - `auth.users` -> account identities
 - `public.personas` -> per-account persona records (`user_id` foreign key)
-- `public.persona_chat_messages` -> per-persona chat logs (ready for future use)
-
+- `public.persona_chat_sessions` -> chat windows per persona
+- `public.persona_chat_messages` -> messages in each chat window (`session_id`)

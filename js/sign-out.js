@@ -34,6 +34,7 @@ function clearAuthStorage() {
       || key === 'persona-answers'
       || key === 'persona-visible-session'
       || key === 'users-input'
+      || key.startsWith('active-chat-session:')
       || key.startsWith('identity-layer-')
       || key.startsWith('extra-');
   };

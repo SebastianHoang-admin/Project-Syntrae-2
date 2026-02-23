@@ -329,11 +329,38 @@
       font-size: 13px;
       letter-spacing: 0.3px;
     }
+    .persona-switch {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 10px;
+      border-radius: 12px;
+      border: 1px solid rgba(255,255,255,0.18);
+      background: rgba(255,255,255,0.04);
+    }
+    .persona-switch label {
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.3px;
+    }
+    .persona-switch select {
+      border: 1px solid rgba(255,255,255,0.2);
+      border-radius: 10px;
+      background: rgba(12, 21, 42, 0.9);
+      color: var(--text);
+      padding: 7px 10px;
+      min-width: 170px;
+      font-weight: 700;
+      cursor: pointer;
+    }
     @media (max-width: 640px) {
       body { padding: 22px 18px 48px; }
       header { flex-direction: column; align-items: flex-start; }
       .options { grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); }
       .question-box { padding: 12px 14px; }
+      .persona-switch { width: 100%; justify-content: space-between; }
+      .persona-switch select { min-width: 0; width: 100%; }
     }
   </style>
 </head>
@@ -341,6 +368,10 @@
   <header>
     <a id="backToAnalyze" class="back-btn" href="analyze.html"><span class="arrow">←</span><span>Back to Analyze</span></a>
     <div class="pager" id="pager"></div>
+    <div class="persona-switch">
+      <label for="personaSelector">Persona</label>
+      <select id="personaSelector" aria-label="Select persona workspace"></select>
+    </div>
     <button id="reviewBtn" class="nav-btn" type="button">Review all answers</button>
   </header>
 
@@ -363,6 +394,7 @@
     const personalityRoot = document.getElementById('personality');
     const backToAnalyze = document.getElementById('backToAnalyze');
     const pagerEl = document.getElementById('pager');
+    const personaSelectorEl = document.getElementById('personaSelector');
     const reviewBtn = document.getElementById('reviewBtn');
     const STORAGE_KEY = 'persona-answers';
     const SESSION_KEY = 'persona-visible-session';
@@ -402,8 +434,9 @@
       return key;
     }
 
-    function buildPersonaUrl(path) {
-      return `${path}?${PERSONA_QUERY_PARAM}=${encodeURIComponent(personaKey)}`;
+    function buildPersonaUrl(path, key = personaKey) {
+      const safeKey = sanitizePersonaKey(key) || 'default';
+      return `${path}?${PERSONA_QUERY_PARAM}=${encodeURIComponent(safeKey)}`;
     }
 
     function normalizePersonaName(name) {
@@ -438,6 +471,51 @@
           localStorage.removeItem(key);
         }
       });
+    }
+
+    async function loadPersonaSelector() {
+      if (!syntraeSupabase || !personaSelectorEl) return;
+      try {
+        const { data: authData, error: authError } = await syntraeSupabase.auth.getUser();
+        if (authError || !authData?.user) return;
+        const { data: rows, error } = await syntraeSupabase
+          .from(PERSONA_TABLE)
+          .select('persona_key, name, updated_at')
+          .eq('user_id', authData.user.id)
+          .order('updated_at', { ascending: false });
+
+        if (error) {
+          console.warn('Could not load persona selector options:', error.message || error);
+          return;
+        }
+
+        const personas = Array.isArray(rows) ? rows : [];
+        personaSelectorEl.innerHTML = '';
+        if (!personas.length) {
+          const fallback = document.createElement('option');
+          fallback.value = personaKey;
+          fallback.textContent = 'Default persona';
+          personaSelectorEl.appendChild(fallback);
+          return;
+        }
+
+        const hasCurrent = personas.some((p) => sanitizePersonaKey(p.persona_key) === personaKey);
+        const activeKey = hasCurrent ? personaKey : sanitizePersonaKey(personas[0].persona_key) || 'default';
+        personaKey = activeKey;
+        localStorage.setItem(ACTIVE_PERSONA_KEY_STORAGE, personaKey);
+        backToAnalyze.href = buildPersonaUrl('analyze.html', personaKey);
+
+        personas.forEach((persona) => {
+          const key = sanitizePersonaKey(persona.persona_key) || 'default';
+          const option = document.createElement('option');
+          option.value = key;
+          option.textContent = persona.name || key;
+          personaSelectorEl.appendChild(option);
+        });
+        personaSelectorEl.value = personaKey;
+      } catch (err) {
+        console.warn('Could not load persona selector options:', err);
+      }
     }
 
     function collectPersonaState() {
@@ -584,6 +662,15 @@
 
     personaKey = resolvePersonaKey();
     backToAnalyze.href = buildPersonaUrl('analyze.html');
+    if (personaSelectorEl) {
+      personaSelectorEl.addEventListener('change', () => {
+        const selectedKey = sanitizePersonaKey(personaSelectorEl.value) || 'default';
+        if (selectedKey === personaKey) return;
+        localStorage.setItem(ACTIVE_PERSONA_KEY_STORAGE, selectedKey);
+        window.location.href = buildPersonaUrl('edit-persona.html', selectedKey);
+      });
+    }
+    void loadPersonaSelector();
 
     // Utility: persist combined user input for LLM wiring
     function saveUsersInput() {

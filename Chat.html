@@ -294,6 +294,95 @@
             padding: 10px 12px;
         }
 
+        .chat-session-toolbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .chat-session-meta {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            color: var(--muted);
+            font-size: 12px;
+            letter-spacing: 0.3px;
+        }
+
+        .chat-session-meta strong {
+            color: var(--text);
+            font-size: 14px;
+            letter-spacing: 0.2px;
+        }
+
+        .chat-session-list {
+            display: grid;
+            gap: 8px;
+            max-height: 160px;
+            overflow: auto;
+            padding-right: 4px;
+        }
+
+        .chat-session-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            width: 100%;
+            text-align: left;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.03);
+            color: var(--text);
+            padding: 10px 12px;
+            cursor: pointer;
+            transition: transform 0.2s ease, border-color 0.2s ease, background 0.2s ease;
+        }
+
+        .chat-session-item:hover {
+            transform: translateY(-1px);
+            border-color: rgba(34, 211, 238, 0.45);
+            background: rgba(34, 211, 238, 0.08);
+        }
+
+        .chat-session-item.active {
+            border-color: rgba(34, 211, 238, 0.65);
+            background: rgba(34, 211, 238, 0.12);
+        }
+
+        .chat-session-title {
+            font-weight: 600;
+            font-size: 13px;
+        }
+
+        .chat-session-time {
+            color: var(--muted);
+            font-size: 11px;
+            white-space: nowrap;
+        }
+
+        .nav-btn {
+            border: 1px solid rgba(255,255,255,0.22);
+            border-radius: 12px;
+            background: rgba(255,255,255,0.04);
+            color: var(--text);
+            padding: 10px 12px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: transform .2s ease, border-color .2s ease, background .2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .nav-btn:hover {
+            transform: translateY(-1px);
+            border-color: rgba(34,211,238,0.45);
+            background: rgba(34,211,238,0.1);
+        }
+
         .chat-header {
             display: flex;
             align-items: center;
@@ -571,6 +660,14 @@
             </div>
 
             <h2 class="column-title"><i class="fas fa-comments"></i>Your Chat</h2>
+            <div class="chat-session-toolbar">
+                <div class="chat-session-meta">
+                    <span class="chat-session-label">Active persona</span>
+                    <strong id="activePersonaLabel">None selected</strong>
+                </div>
+                <button class="nav-btn" id="newChatBtn" type="button"><i class="fas fa-plus"></i> New chat</button>
+            </div>
+            <div class="chat-session-list" id="chatSessionList"></div>
 
             <div class="chat-messages" id="chatMessages"></div>
 
@@ -598,10 +695,24 @@
         const sendBtn = document.getElementById('sendBtn');
         const personaListEl = document.getElementById('personaList');
         const createPersonaBtn = document.getElementById('createPersonaBtn');
+        const chatSessionListEl = document.getElementById('chatSessionList');
+        const newChatBtn = document.getElementById('newChatBtn');
+        const activePersonaLabel = document.getElementById('activePersonaLabel');
+
+        const PERSONA_TABLE = 'personas';
+        const CHAT_SESSION_TABLE = 'persona_chat_sessions';
+        const CHAT_MESSAGE_TABLE = 'persona_chat_messages';
         const ACTIVE_PERSONA_KEY_STORAGE = 'active-persona-key';
         const PERSONA_QUERY_PARAM = 'persona';
+        const CHAT_QUERY_PARAM = 'chat';
+
         let currentUser = null;
         let personas = [];
+        let activePersona = null;
+        let chatSessions = [];
+        let activeSession = null;
+        let activeMessages = [];
+        let isSending = false;
 
         function sanitizePersonaKey(value) {
             const normalized = String(value || '').trim().toLowerCase();
@@ -624,10 +735,49 @@
             return sanitizePersonaKey(localStorage.getItem(ACTIVE_PERSONA_KEY_STORAGE));
         }
 
+        function getUrlPersonaKey() {
+            const params = new URLSearchParams(window.location.search);
+            return sanitizePersonaKey(params.get(PERSONA_QUERY_PARAM));
+        }
+
+        function getUrlChatId() {
+            const params = new URLSearchParams(window.location.search);
+            return String(params.get(CHAT_QUERY_PARAM) || '').trim();
+        }
+
+        function updateChatUrl(personaKey, sessionId = '') {
+            const params = new URLSearchParams(window.location.search);
+            const safePersona = sanitizePersonaKey(personaKey) || 'default';
+            params.set(PERSONA_QUERY_PARAM, safePersona);
+            if (sessionId) params.set(CHAT_QUERY_PARAM, sessionId);
+            else params.delete(CHAT_QUERY_PARAM);
+            const next = `${window.location.pathname}?${params.toString()}`;
+            window.history.replaceState({}, '', next);
+        }
+
+        function getSessionStorageKeyForPersona(personaKey) {
+            return `active-chat-session:${sanitizePersonaKey(personaKey) || 'default'}`;
+        }
+
+        function getStoredActiveSessionId(personaKey) {
+            return localStorage.getItem(getSessionStorageKeyForPersona(personaKey)) || '';
+        }
+
+        function setStoredActiveSessionId(personaKey, sessionId) {
+            localStorage.setItem(getSessionStorageKeyForPersona(personaKey), sessionId || '');
+        }
+
         function setActivePersona(persona) {
-            if (!persona || !persona.persona_key) return;
-            localStorage.setItem(ACTIVE_PERSONA_KEY_STORAGE, persona.persona_key);
-            localStorage.setItem('persona-name', persona.name || 'Persona 1');
+            activePersona = persona || null;
+            if (!activePersona) {
+                localStorage.removeItem(ACTIVE_PERSONA_KEY_STORAGE);
+                localStorage.removeItem('persona-name');
+                activePersonaLabel.textContent = 'None selected';
+                return;
+            }
+            localStorage.setItem(ACTIVE_PERSONA_KEY_STORAGE, activePersona.persona_key);
+            localStorage.setItem('persona-name', activePersona.name || 'Persona');
+            activePersonaLabel.textContent = activePersona.name || 'Persona';
         }
 
         function seedPersonaState(name) {
@@ -645,6 +795,98 @@
             };
         }
 
+        function clearPersonaLocalState() {
+            const keys = [
+                'persona-name',
+                'persona-portrait',
+                'persona-avatar-present',
+                'persona-answers',
+                'persona-visible-session',
+                'users-input'
+            ];
+            keys.forEach((key) => localStorage.removeItem(key));
+            Object.keys(localStorage).forEach((key) => {
+                if (key.startsWith('identity-layer-') || key.startsWith('extra-')) {
+                    localStorage.removeItem(key);
+                }
+            });
+        }
+
+        function applyPersonaStateFromRow(persona) {
+            clearPersonaLocalState();
+            if (!persona) return;
+            const state = persona.state && typeof persona.state === 'object' ? persona.state : {};
+            localStorage.setItem('persona-name', state.personaName || persona.name || 'Persona');
+            if (state.personaPortrait || persona.portrait_data_url) {
+                localStorage.setItem('persona-portrait', state.personaPortrait || persona.portrait_data_url);
+            }
+            if (state.personaAvatarPresent) localStorage.setItem('persona-avatar-present', String(state.personaAvatarPresent));
+            if (state.answers && typeof state.answers === 'object') {
+                localStorage.setItem('persona-answers', JSON.stringify(state.answers));
+            }
+            if (state.session && typeof state.session === 'object') {
+                localStorage.setItem('persona-visible-session', JSON.stringify(state.session));
+            }
+            if (state.usersInput) {
+                localStorage.setItem('users-input', typeof state.usersInput === 'string' ? state.usersInput : JSON.stringify(state.usersInput));
+            }
+            ['L1', 'L2', 'L3'].forEach((layerId) => {
+                const raw = state.identityLayers && state.identityLayers[layerId];
+                if (typeof raw === 'string' && raw) localStorage.setItem(`identity-layer-${layerId}`, raw);
+            });
+            if (state.extras && typeof state.extras === 'object') {
+                Object.entries(state.extras).forEach(([field, value]) => {
+                    localStorage.setItem(`extra-${field}`, String(value || ''));
+                });
+            }
+        }
+
+        function formatMessageTime(ts) {
+            if (!ts) return '';
+            const d = new Date(ts);
+            if (Number.isNaN(d.getTime())) return '';
+            return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        }
+
+        function formatSessionTime(ts) {
+            if (!ts) return '';
+            const d = new Date(ts);
+            if (Number.isNaN(d.getTime())) return '';
+            return d.toLocaleDateString([], { month: 'short', day: 'numeric' });
+        }
+
+        function addMessage(text, sender, createdAt) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${sender}`;
+            const timeText = formatMessageTime(createdAt) || formatMessageTime(new Date().toISOString());
+            messageDiv.innerHTML = `
+                <div class="message-content">${text}</div>
+                <div class="message-time">${timeText}</div>
+            `;
+            chatMessages.appendChild(messageDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        function renderMessages() {
+            chatMessages.innerHTML = '';
+            if (!activePersona) {
+                addMessage('Select a persona to start chatting.', 'agent');
+                return;
+            }
+            if (!activeSession) {
+                addMessage(`No chat selected for ${activePersona.name}. Click "New chat" to start.`, 'agent');
+                return;
+            }
+            if (!activeMessages.length) {
+                addMessage(`You are chatting with ${activePersona.name}. Ask anything to start.`, 'agent');
+                return;
+            }
+            activeMessages.forEach((msg) => {
+                const sender = (msg.role === 'assistant' || msg.role === 'system') ? 'agent' : 'user';
+                addMessage(msg.content, sender, msg.created_at);
+            });
+        }
+
         function renderPersonaCards() {
             if (!personaListEl) return;
             personaListEl.innerHTML = '';
@@ -655,45 +897,219 @@
                 personaListEl.appendChild(empty);
                 return;
             }
-
-            const activeKey = getActivePersonaKey();
+            const activeKey = activePersona?.persona_key || getActivePersonaKey();
             personas.forEach((persona) => {
                 const card = document.createElement('div');
                 card.className = `persona-card${persona.persona_key === activeKey ? ' active' : ''}`;
                 card.textContent = persona.name || 'Persona';
                 card.addEventListener('click', () => {
-                    setActivePersona(persona);
-                    window.location.href = buildPersonaUrl('analyze.html', persona.persona_key);
+                    void selectPersona(persona);
                 });
                 personaListEl.appendChild(card);
             });
         }
 
+        function renderChatSessionList() {
+            if (!chatSessionListEl) return;
+            chatSessionListEl.innerHTML = '';
+            if (!activePersona) {
+                const empty = document.createElement('div');
+                empty.className = 'persona-empty';
+                empty.textContent = 'Select a persona to see chat windows.';
+                chatSessionListEl.appendChild(empty);
+                return;
+            }
+            if (!chatSessions.length) {
+                const empty = document.createElement('div');
+                empty.className = 'persona-empty';
+                empty.textContent = `No chat windows for ${activePersona.name}. Click "New chat".`;
+                chatSessionListEl.appendChild(empty);
+                return;
+            }
+            chatSessions.forEach((session) => {
+                const item = document.createElement('button');
+                item.type = 'button';
+                item.className = `chat-session-item${activeSession && session.id === activeSession.id ? ' active' : ''}`;
+                item.innerHTML = `
+                    <span class="chat-session-title">${session.title || 'New chat'}</span>
+                    <span class="chat-session-time">${formatSessionTime(session.updated_at || session.created_at)}</span>
+                `;
+                item.addEventListener('click', () => {
+                    void openChatSession(session.id);
+                });
+                chatSessionListEl.appendChild(item);
+            });
+        }
+
+        async function loadMessagesForSession(sessionId) {
+            if (!sessionId || !currentUser?.id || !activePersona?.id) return;
+            const { data, error } = await supabase
+                .from(CHAT_MESSAGE_TABLE)
+                .select('id, role, content, created_at')
+                .eq('user_id', currentUser.id)
+                .eq('persona_id', activePersona.id)
+                .eq('session_id', sessionId)
+                .order('created_at', { ascending: true });
+            if (error) {
+                console.warn('Could not load chat messages:', error.message || error);
+                activeMessages = [];
+                renderMessages();
+                return;
+            }
+            activeMessages = Array.isArray(data) ? data : [];
+            renderMessages();
+        }
+
+        async function openChatSession(sessionId) {
+            const found = chatSessions.find((row) => row.id === sessionId);
+            if (!found) return;
+            activeSession = found;
+            setStoredActiveSessionId(activePersona.persona_key, found.id);
+            updateChatUrl(activePersona.persona_key, found.id);
+            renderChatSessionList();
+            await loadMessagesForSession(found.id);
+        }
+
+        async function loadChatSessionsForPersona(personaId) {
+            if (!personaId || !currentUser?.id || !activePersona) return;
+            const { data, error } = await supabase
+                .from(CHAT_SESSION_TABLE)
+                .select('id, title, created_at, updated_at')
+                .eq('user_id', currentUser.id)
+                .eq('persona_id', personaId)
+                .order('updated_at', { ascending: false });
+            if (error) {
+                console.warn('Could not load chat sessions:', error.message || error);
+                chatSessions = [];
+                activeSession = null;
+                activeMessages = [];
+                renderChatSessionList();
+                renderMessages();
+                return;
+            }
+            chatSessions = Array.isArray(data) ? data : [];
+            if (!chatSessions.length) {
+                activeSession = null;
+                activeMessages = [];
+                setStoredActiveSessionId(activePersona.persona_key, '');
+                updateChatUrl(activePersona.persona_key, '');
+                renderChatSessionList();
+                renderMessages();
+                return;
+            }
+            const urlChatId = getUrlChatId();
+            const storedId = getStoredActiveSessionId(activePersona.persona_key);
+            const preferred = chatSessions.find((row) => row.id === urlChatId)
+                || chatSessions.find((row) => row.id === storedId)
+                || chatSessions[0];
+            await openChatSession(preferred.id);
+        }
+
+        async function createNewChat() {
+            if (!activePersona || !currentUser?.id) return;
+            const { data, error } = await supabase
+                .from(CHAT_SESSION_TABLE)
+                .insert({
+                    user_id: currentUser.id,
+                    persona_id: activePersona.id,
+                    title: 'New chat',
+                    metadata: {}
+                })
+                .select('id, title, created_at, updated_at')
+                .single();
+            if (error) {
+                alert(`Could not create chat window: ${error.message || error}`);
+                return;
+            }
+            chatSessions = [data, ...chatSessions];
+            await openChatSession(data.id);
+        }
+
+        async function maybeUpdateSessionTitle(userText) {
+            if (!activeSession || !currentUser?.id) return;
+            const currentTitle = String(activeSession.title || '').trim().toLowerCase();
+            if (currentTitle && currentTitle !== 'new chat') return;
+            const newTitle = userText.trim().slice(0, 60) || 'New chat';
+            const { error } = await supabase
+                .from(CHAT_SESSION_TABLE)
+                .update({ title: newTitle })
+                .eq('id', activeSession.id)
+                .eq('user_id', currentUser.id);
+            if (error) return;
+            activeSession.title = newTitle;
+            chatSessions = chatSessions.map((row) => row.id === activeSession.id ? { ...row, title: newTitle } : row);
+            renderChatSessionList();
+        }
+
+        async function touchActiveSession() {
+            if (!activeSession || !currentUser?.id) return;
+            const now = new Date().toISOString();
+            const { error } = await supabase
+                .from(CHAT_SESSION_TABLE)
+                .update({ updated_at: now })
+                .eq('id', activeSession.id)
+                .eq('user_id', currentUser.id);
+            if (error) return;
+            activeSession.updated_at = now;
+            chatSessions = chatSessions
+                .map((row) => row.id === activeSession.id ? { ...row, updated_at: now } : row)
+                .sort((a, b) => new Date(b.updated_at || b.created_at) - new Date(a.updated_at || a.created_at));
+            renderChatSessionList();
+        }
+
+        async function persistMessage(role, content) {
+            if (!activeSession || !activePersona || !currentUser?.id) return;
+            const { error } = await supabase.from(CHAT_MESSAGE_TABLE).insert({
+                user_id: currentUser.id,
+                persona_id: activePersona.id,
+                session_id: activeSession.id,
+                role,
+                content,
+                metadata: { persona_key: activePersona.persona_key }
+            });
+            if (error) {
+                console.warn(`Could not save ${role} message:`, error.message || error);
+            }
+        }
+
+        async function selectPersona(persona) {
+            if (!persona) return;
+            setActivePersona(persona);
+            applyPersonaStateFromRow(persona);
+            updateChatUrl(persona.persona_key, '');
+            renderPersonaCards();
+            await loadChatSessionsForPersona(persona.id);
+        }
+
         async function loadPersonasForUser(userId) {
             const { data, error } = await supabase
-                .from('personas')
-                .select('id, persona_key, name, updated_at')
+                .from(PERSONA_TABLE)
+                .select('id, persona_key, name, updated_at, state, portrait_data_url')
                 .eq('user_id', userId)
                 .order('updated_at', { ascending: false });
 
             if (error) {
                 console.warn('Could not load personas:', error.message || error);
                 personas = [];
+                setActivePersona(null);
                 renderPersonaCards();
+                renderChatSessionList();
+                renderMessages();
                 return;
             }
 
             personas = Array.isArray(data) ? data : [];
             if (!personas.length) {
-                localStorage.removeItem(ACTIVE_PERSONA_KEY_STORAGE);
+                setActivePersona(null);
                 renderPersonaCards();
+                renderChatSessionList();
+                renderMessages();
                 return;
             }
 
-            const activeKey = getActivePersonaKey();
-            const activePersona = personas.find((row) => row.persona_key === activeKey) || personas[0];
-            setActivePersona(activePersona);
-            renderPersonaCards();
+            const activeKey = getUrlPersonaKey() || getActivePersonaKey();
+            const preferred = personas.find((row) => row.persona_key === activeKey) || personas[0];
+            await selectPersona(preferred);
         }
 
         async function createPersona() {
@@ -706,7 +1122,7 @@
             const state = seedPersonaState(name);
             const traits = { L1: {}, L2: {}, L3: {} };
 
-            const { error } = await supabase.from('personas').insert({
+            const { error } = await supabase.from(PERSONA_TABLE).insert({
                 user_id: currentUser.id,
                 persona_key: personaKey,
                 name,
@@ -720,9 +1136,8 @@
                 return;
             }
 
-            setActivePersona({ persona_key: personaKey, name });
+            localStorage.setItem(ACTIVE_PERSONA_KEY_STORAGE, personaKey);
             await loadPersonasForUser(currentUser.id);
-            window.location.href = buildPersonaUrl('analyze.html', personaKey);
         }
 
         async function loadSession() {
@@ -777,33 +1192,19 @@
             if (!href || href === '#') {
                 e.preventDefault();
                 alert('Navigation coming soon.');
-            } else {
-                e.preventDefault();
-                const dest = link.dataset.destination;
-                if (dest === 'analyze') {
-                    const activeKey = getActivePersonaKey() || (personas[0] && personas[0].persona_key) || 'default';
-                    window.location.href = buildPersonaUrl('analyze.html', activeKey);
-                    return;
-                }
-                // Keep navigation relative to the current directory to avoid 404s when deep-linked
-                const base = window.location.pathname.replace(/[^/]+$/, '');
-                const target = new URL(href, window.location.origin + base);
-                window.location.href = target.toString();
+                return;
             }
+            e.preventDefault();
+            const dest = link.dataset.destination;
+            if (dest === 'analyze') {
+                const activeKey = activePersona?.persona_key || getActivePersonaKey() || 'default';
+                window.location.href = buildPersonaUrl('analyze.html', activeKey);
+                return;
+            }
+            const base = window.location.pathname.replace(/[^/]+$/, '');
+            const target = new URL(href, window.location.origin + base);
+            window.location.href = target.toString();
         });
-
-        function addMessage(text, sender, delaySeconds = 0) {
-            const messageDiv = document.createElement('div');
-            messageDiv.className = `message ${sender}`;
-            messageDiv.style.animationDelay = `${delaySeconds}s`;
-            const now = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-            messageDiv.innerHTML = `
-                <div class="message-content">${text}</div>
-                <div class="message-time">${now}</div>
-            `;
-            chatMessages.appendChild(messageDiv);
-            chatMessages.scrollTop = chatMessages.scrollHeight;
-        }
 
         async function sendToAssistant(messages) {
             const res = await fetch('/api/chat', {
@@ -819,27 +1220,29 @@
             return data.choices?.[0]?.message?.content || 'No reply';
         }
 
-        function showLoadingThenRespond(responseText) {
-            const loadingWrapper = document.createElement('div');
-            loadingWrapper.className = 'message agent';
-            const content = document.createElement('div');
-            content.className = 'loading-wrap';
-            content.innerHTML = `<div class="loading-bar"></div><span class="message-time">processing...</span>`;
-            loadingWrapper.appendChild(content);
-            chatMessages.appendChild(loadingWrapper);
-            chatMessages.scrollTop = chatMessages.scrollHeight;
-
-            setTimeout(() => {
-                loadingWrapper.remove();
-                addMessage(responseText, 'agent');
-            }, 3000);
-        }
-
         async function sendMessage() {
+            if (isSending) return;
             const text = chatInput.value.trim();
             if (!text) return;
-            addMessage(text, 'user');
+            if (!activePersona) {
+                addMessage('Select a persona first.', 'agent');
+                return;
+            }
+            if (!activeSession) {
+                await createNewChat();
+                if (!activeSession) return;
+            }
+
+            isSending = true;
             chatInput.value = '';
+            sendBtn.disabled = true;
+
+            const userTime = new Date().toISOString();
+            addMessage(text, 'user', userTime);
+            activeMessages.push({ role: 'user', content: text, created_at: userTime });
+            await persistMessage('user', text);
+            await maybeUpdateSessionTitle(text);
+
             const loadingWrapper = document.createElement('div');
             loadingWrapper.className = 'message agent';
             const content = document.createElement('div');
@@ -850,35 +1253,49 @@
             chatMessages.scrollTop = chatMessages.scrollHeight;
 
             try {
+                const history = activeMessages
+                    .filter((msg) => msg.role === 'user' || msg.role === 'assistant')
+                    .slice(-20)
+                    .map((msg) => ({ role: msg.role, content: msg.content }));
+
                 const messages = [
-                    { role: 'system', content: 'You are Syntrae assistant. Be concise, helpful, and persona-aware.' },
-                    { role: 'user', content: text }
+                    { role: 'system', content: `You are Syntrae assistant. Be concise, helpful, and persona-aware. Active persona: ${activePersona.name || 'Persona'}.` },
+                    ...history
                 ];
+
                 const response = await sendToAssistant(messages);
+                const assistantTime = new Date().toISOString();
                 loadingWrapper.remove();
-                addMessage(response, 'agent');
+                addMessage(response, 'agent', assistantTime);
+                activeMessages.push({ role: 'assistant', content: response, created_at: assistantTime });
+                await persistMessage('assistant', response);
+                await touchActiveSession();
             } catch (err) {
                 loadingWrapper.remove();
                 addMessage(`Error contacting assistant: ${err.message}`, 'agent');
+            } finally {
+                isSending = false;
+                sendBtn.disabled = false;
             }
         }
 
-        sendBtn.addEventListener('click', sendMessage);
-        chatInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') sendMessage();
+        sendBtn.addEventListener('click', () => {
+            void sendMessage();
         });
-
+        chatInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                void sendMessage();
+            }
+        });
         createPersonaBtn?.addEventListener('click', () => {
             void createPersona();
         });
-
-        function playIntroConversation() {
-            chatMessages.innerHTML = '';
-            addMessage("Hello! I'm your Syntrae assistant. I can help you understand your persona better, run simulations, and predict outcomes. How can I assist you today?", 'agent', 0);
-        }
+        newChatBtn?.addEventListener('click', () => {
+            void createNewChat();
+        });
 
         await loadSession();
-        playIntroConversation();
     </script>
 </body>
 </html>
