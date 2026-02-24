@@ -782,6 +782,55 @@
             return createPersonaKeyFromSeed(name, Date.now().toString(36));
         }
 
+        function extractPersonaSeed(personaKey) {
+            const safe = sanitizePersonaKey(personaKey);
+            if (!safe) return '';
+            const parts = safe.split('-').filter(Boolean);
+            return parts.length ? parts[parts.length - 1] : '';
+        }
+
+        function isUniqueKeyError(error) {
+            const code = String(error?.code || '').trim();
+            const message = String(error?.message || '').toLowerCase();
+            return code === '23505' || message.includes('duplicate key') || message.includes('unique');
+        }
+
+        async function movePortraitForPersonaKey(persona, nextKey) {
+            const oldPath = String(
+                persona?.portrait_storage_path
+                || (persona?.state && persona.state.personaPortraitPath)
+                || ''
+            ).trim();
+            const oldUrl = String(
+                persona?.portrait_data_url
+                || (persona?.state && persona.state.personaPortrait)
+                || ''
+            ).trim();
+            if (!oldPath || !currentUser?.id) {
+                return { portraitPath: oldPath || null, portraitUrl: oldUrl || null };
+            }
+            const fileName = oldPath.split('/').pop();
+            if (!fileName) {
+                return { portraitPath: oldPath || null, portraitUrl: oldUrl || null };
+            }
+            const nextPath = `${currentUser.id}/${nextKey}/${fileName}`;
+            if (nextPath === oldPath) {
+                return { portraitPath: oldPath, portraitUrl: oldUrl || null };
+            }
+            const { error } = await supabase.storage
+                .from(PERSONA_PORTRAITS_BUCKET)
+                .move(oldPath, nextPath);
+            if (error) {
+                console.warn('Could not move portrait to renamed persona key:', error.message || error);
+                return { portraitPath: oldPath || null, portraitUrl: oldUrl || null };
+            }
+            const { data } = supabase.storage.from(PERSONA_PORTRAITS_BUCKET).getPublicUrl(nextPath);
+            return {
+                portraitPath: nextPath,
+                portraitUrl: data?.publicUrl || oldUrl || null
+            };
+        }
+
         async function migrateLegacyDefaultPersonaKeys(userId) {
             if (!userId) return;
             const { data, error } = await supabase
@@ -1281,25 +1330,86 @@
             const nextName = input.trim().slice(0, 120);
             if (!nextName || nextName === currentName) return;
 
+            const oldKey = sanitizePersonaKey(persona.persona_key);
+            const seed = extractPersonaSeed(oldKey) || persona.id || Date.now().toString(36);
+            let nextKey = createPersonaKeyFromSeed(nextName, seed);
+            if (nextKey === oldKey) {
+                nextKey = createPersonaKeyFromSeed(nextName, Date.now().toString(36));
+            }
+
             const nextState = {
                 ...(persona.state && typeof persona.state === 'object' ? persona.state : {}),
                 personaName: nextName,
                 savedAt: new Date().toISOString()
             };
+            let updated = false;
+            let attempts = 0;
+            while (!updated && attempts < 4) {
+                const { error } = await supabase
+                    .from(PERSONA_TABLE)
+                    .update({
+                        name: nextName,
+                        persona_key: nextKey,
+                        state: nextState
+                    })
+                    .eq('id', persona.id)
+                    .eq('user_id', currentUser.id);
 
-            const { error } = await supabase
-                .from(PERSONA_TABLE)
-                .update({ name: nextName, state: nextState })
-                .eq('id', persona.id)
-                .eq('user_id', currentUser.id);
-
-            if (error) {
+                if (!error) {
+                    updated = true;
+                    break;
+                }
+                if (isUniqueKeyError(error)) {
+                    attempts += 1;
+                    nextKey = createPersonaKeyFromSeed(nextName, `${seed}${Date.now().toString(36).slice(-4)}`);
+                    continue;
+                }
                 alert(`Could not rename persona: ${error.message || error}`);
                 return;
             }
+            if (!updated) {
+                alert('Could not rename persona right now. Please try again.');
+                return;
+            }
+
+            const movedPortrait = await movePortraitForPersonaKey(persona, nextKey);
+            if (movedPortrait.portraitPath || movedPortrait.portraitUrl) {
+                const stateWithPortrait = {
+                    ...nextState,
+                    personaPortraitPath: movedPortrait.portraitPath || '',
+                    personaPortrait: movedPortrait.portraitUrl || nextState.personaPortrait || ''
+                };
+                const { error: portraitError } = await supabase
+                    .from(PERSONA_TABLE)
+                    .update({
+                        portrait_data_url: movedPortrait.portraitUrl,
+                        portrait_storage_path: movedPortrait.portraitPath,
+                        state: stateWithPortrait
+                    })
+                    .eq('id', persona.id)
+                    .eq('user_id', currentUser.id);
+                if (portraitError) {
+                    console.warn('Could not persist portrait path after rename:', portraitError.message || portraitError);
+                }
+            }
+
+            const oldSessionKey = getSessionStorageKeyForPersona(oldKey);
+            const oldSessionId = localStorage.getItem(oldSessionKey) || '';
+            if (oldSessionId) {
+                setStoredActiveSessionId(nextKey, oldSessionId);
+            }
+            localStorage.removeItem(oldSessionKey);
 
             if (activePersona?.id === persona.id) {
                 localStorage.setItem('persona-name', nextName);
+                localStorage.setItem(ACTIVE_PERSONA_KEY_STORAGE, nextKey);
+                if (movedPortrait.portraitPath) {
+                    localStorage.setItem('persona-portrait-storage-path', movedPortrait.portraitPath);
+                }
+                if (movedPortrait.portraitUrl) {
+                    localStorage.setItem('persona-portrait', movedPortrait.portraitUrl);
+                }
+                updateChatUrl(nextKey, activeSession?.id || oldSessionId || '');
             }
 
             await loadPersonasForUser(currentUser.id);
