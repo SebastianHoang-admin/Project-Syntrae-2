@@ -759,6 +759,19 @@ Authority figure</div>
             return `${slug}-${safeSeed}`;
         }
 
+        function extractPersonaSeed(personaKeyValue) {
+            const safe = sanitizePersonaKey(personaKeyValue);
+            if (!safe) return '';
+            const parts = safe.split('-').filter(Boolean);
+            return parts.length ? parts[parts.length - 1] : '';
+        }
+
+        function isUniqueKeyError(error) {
+            const code = String(error?.code || '').trim();
+            const message = String(error?.message || '').toLowerCase();
+            return code === '23505' || message.includes('duplicate key') || message.includes('unique');
+        }
+
         function resolvePersonaKey() {
             const params = new URLSearchParams(window.location.search);
             const fromQuery = sanitizePersonaKey(params.get(PERSONA_QUERY_PARAM));
@@ -915,6 +928,116 @@ Authority figure</div>
             } catch (err) {
                 console.warn('Could not remove portrait from storage:', err);
             }
+        }
+
+        async function moveCurrentPortraitToPersonaKey(nextKey) {
+            const oldPath = String(localStorage.getItem(PORTRAIT_STORAGE_KEY) || '').trim();
+            const oldUrl = String(localStorage.getItem('persona-portrait') || '').trim();
+            if (!oldPath) {
+                return { portraitPath: '', portraitUrl: oldUrl };
+            }
+            const userId = await getCurrentUserId();
+            if (!userId) {
+                return { portraitPath: oldPath, portraitUrl: oldUrl };
+            }
+            const fileName = oldPath.split('/').pop();
+            if (!fileName) {
+                return { portraitPath: oldPath, portraitUrl: oldUrl };
+            }
+            const nextPath = `${userId}/${nextKey}/${fileName}`;
+            if (nextPath === oldPath) {
+                return { portraitPath: oldPath, portraitUrl: oldUrl };
+            }
+            const { error } = await syntraeSupabase.storage
+                .from(PERSONA_PORTRAITS_BUCKET)
+                .move(oldPath, nextPath);
+            if (error) {
+                console.warn('Could not move portrait to renamed persona key:', error.message || error);
+                return { portraitPath: oldPath, portraitUrl: oldUrl };
+            }
+            const { data } = syntraeSupabase.storage.from(PERSONA_PORTRAITS_BUCKET).getPublicUrl(nextPath);
+            const nextUrl = data?.publicUrl || oldUrl;
+            localStorage.setItem(PORTRAIT_STORAGE_KEY, nextPath);
+            if (nextUrl) localStorage.setItem('persona-portrait', nextUrl);
+            return { portraitPath: nextPath, portraitUrl: nextUrl };
+        }
+
+        async function renamePersonaKeyForName(nextName) {
+            const oldKey = sanitizePersonaKey(personaKey);
+            if (!oldKey || !syntraeSupabase) return;
+            const seed = extractPersonaSeed(oldKey) || Date.now().toString(36);
+            let nextKey = createPersonaKeyFromSeed(nextName, seed);
+            if (nextKey === oldKey) return;
+
+            const userId = await getCurrentUserId();
+            if (!userId) return;
+
+            const payload = collectPersonaState();
+            payload.personaName = nextName;
+            let attempts = 0;
+            let renamed = false;
+            while (!renamed && attempts < 4) {
+                const traits = extractTraitsFromState(payload);
+                const { error } = await syntraeSupabase
+                    .from(PERSONA_TABLE)
+                    .update({
+                        persona_key: nextKey,
+                        name: nextName,
+                        state: payload,
+                        traits
+                    })
+                    .eq('user_id', userId)
+                    .eq('persona_key', oldKey);
+
+                if (!error) {
+                    renamed = true;
+                    break;
+                }
+                if (isUniqueKeyError(error)) {
+                    attempts += 1;
+                    nextKey = createPersonaKeyFromSeed(nextName, `${seed}${Date.now().toString(36).slice(-4)}`);
+                    continue;
+                }
+                console.warn('Could not rename persona key:', error.message || error);
+                return;
+            }
+            if (!renamed) return;
+
+            const movedPortrait = await moveCurrentPortraitToPersonaKey(nextKey);
+            if (movedPortrait.portraitPath || movedPortrait.portraitUrl) {
+                const stateWithPortrait = collectPersonaState();
+                stateWithPortrait.personaName = nextName;
+                stateWithPortrait.personaPortraitPath = movedPortrait.portraitPath || '';
+                stateWithPortrait.personaPortrait = movedPortrait.portraitUrl || stateWithPortrait.personaPortrait || '';
+                const traits = extractTraitsFromState(stateWithPortrait);
+                const { error } = await syntraeSupabase
+                    .from(PERSONA_TABLE)
+                    .update({
+                        portrait_storage_path: movedPortrait.portraitPath || null,
+                        portrait_data_url: movedPortrait.portraitUrl || null,
+                        state: stateWithPortrait,
+                        traits
+                    })
+                    .eq('user_id', userId)
+                    .eq('persona_key', nextKey);
+                if (error) {
+                    console.warn('Could not update portrait fields after persona key rename:', error.message || error);
+                } else {
+                    lastCloudPayload = JSON.stringify(stateWithPortrait);
+                }
+            }
+
+            const oldSessionStorageKey = `active-chat-session:${oldKey}`;
+            const savedSession = localStorage.getItem(oldSessionStorageKey) || '';
+            if (savedSession) {
+                localStorage.setItem(`active-chat-session:${nextKey}`, savedSession);
+            }
+            localStorage.removeItem(oldSessionStorageKey);
+            personaKey = nextKey;
+            localStorage.setItem(ACTIVE_PERSONA_KEY_STORAGE, nextKey);
+            if (editPersonaLink) editPersonaLink.href = buildPersonaUrl('edit-persona.html', nextKey);
+            window.history.replaceState({}, '', buildPersonaUrl('analyze.html', nextKey));
+            await loadPersonaSelectorOptions();
         }
 
         function normalizePersonaName(name) {
@@ -1289,13 +1412,14 @@ Authority figure</div>
             personaNameEl.dataset.actualName = saved;
         }
 
-        function savePersonaName(value) {
+        async function savePersonaName(value) {
             const name = value && value.trim() ? value.trim() : 'Persona 1';
             localStorage.setItem('persona-name', name);
             personaNameEl.textContent = name;
             personaNameEl.dataset.actualName = name;
             personaNameEl.classList.remove('editing');
             personaNameEl.removeAttribute('contenteditable');
+            await renamePersonaKeyForName(name);
             queueCloudSave();
         }
 
@@ -1314,7 +1438,7 @@ Authority figure</div>
         personaNameEl.addEventListener('keydown', (e) => {
             if (e.key === 'Enter') {
                 e.preventDefault();
-                savePersonaName(personaNameEl.textContent);
+                void savePersonaName(personaNameEl.textContent);
             }
             if (e.key === 'Escape') {
                 e.preventDefault();
@@ -1326,7 +1450,7 @@ Authority figure</div>
 
         personaNameEl.addEventListener('blur', () => {
             if (!personaNameEl.classList.contains('editing')) return;
-            savePersonaName(personaNameEl.textContent);
+            void savePersonaName(personaNameEl.textContent);
         });
 
         // Persona existence check on first arrival
