@@ -1592,12 +1592,11 @@
                 body: JSON.stringify({ messages })
             });
             if (!res.ok) {
-                const body = await res.json().catch(() => ({}));
-                const msg = body?.error || (await res.text().catch(() => ''));
-                throw new Error(`Assistant error (${res.status}): ${msg}`);
+                const txt = await res.text().catch(() => '');
+                throw new Error(`Assistant error (${res.status}): ${txt}`);
             }
             const data = await res.json();
-            return data.reply || 'No reply';
+            return data.choices?.[0]?.message?.content || 'No reply';
         }
 
         async function sendMessage() {
