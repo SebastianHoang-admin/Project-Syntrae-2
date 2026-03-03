@@ -1,11 +1,14 @@
 # Persona Tables Setup (Syntrae)
 
-This project now writes persona data to `public.personas` (instead of only Auth metadata), keyed by account (`user_id`).
+This project now writes account data into:
+- `public.user_profiles` for the signed-in user profile
+- `public.personas` for each persona owned by that user
+- `public.persona_chat_sessions` / `public.persona_chat_messages` for chat windows/history
 
 ## 1) Create tables + RLS
 
 Run `supabase/persona_tables.sql` in **Supabase Dashboard -> SQL Editor**.
-You can safely re-run it later; it is idempotent and also applies chat-session upgrades, the `portrait_storage_path` column, storage bucket policies for persona portraits, and migrates any legacy `persona_key = 'default'` rows to generated slug keys.
+You can safely re-run it later; it is idempotent and also applies chat-session upgrades, adds `portrait_storage_path` + `profile` on personas, creates `user_profiles`, adds storage bucket policies for persona portraits, and migrates any legacy `persona_key = 'default'` rows to generated slug keys.
 
 ## 2) Optional backfill from old metadata storage
 
@@ -58,6 +61,19 @@ order by p.updated_at desc
 limit 100;
 ```
 
+Use this query to confirm each user profile row is linked to an account:
+
+```sql
+select
+  up.user_id,
+  up.first_name,
+  up.last_name,
+  up.updated_at
+from public.user_profiles up
+order by up.updated_at desc
+limit 100;
+```
+
 Use this query to confirm chat windows are linked to persona + account:
 
 ```sql
@@ -89,7 +105,8 @@ limit 100;
 ## 4) Current structure
 
 - `auth.users` -> account identities
-- `public.personas` -> per-account persona records (`user_id` foreign key)
+- `public.user_profiles` -> per-account user profile (`user_id` primary key)
+- `public.personas` -> per-account persona records (`user_id` foreign key, `profile` JSON for LLM context)
 - `storage.objects` in bucket `persona-portraits` -> portrait files at path `user_id/persona_key/...`
 - `public.persona_chat_sessions` -> chat windows per persona
 - `public.persona_chat_messages` -> messages in each chat window (`session_id`)
