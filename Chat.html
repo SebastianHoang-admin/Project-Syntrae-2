@@ -1265,7 +1265,7 @@
         async function loadPersonasForUser(userId) {
             const { data, error } = await supabase
                 .from(PERSONA_TABLE)
-                .select('id, persona_key, name, updated_at, state, portrait_data_url, portrait_storage_path')
+                .select('id, persona_key, name, updated_at, state, profile, portrait_data_url, portrait_storage_path')
                 .eq('user_id', userId)
                 .order('updated_at', { ascending: false });
 
@@ -1342,6 +1342,12 @@
                 personaName: nextName,
                 savedAt: new Date().toISOString()
             };
+            const nextProfile = {
+                ...(persona.profile && typeof persona.profile === 'object' ? persona.profile : {}),
+                persona_key: nextKey,
+                persona_name: nextName,
+                generated_at: new Date().toISOString()
+            };
             let updated = false;
             let attempts = 0;
             while (!updated && attempts < 4) {
@@ -1350,7 +1356,8 @@
                     .update({
                         name: nextName,
                         persona_key: nextKey,
-                        state: nextState
+                        state: nextState,
+                        profile: nextProfile
                     })
                     .eq('id', persona.id)
                     .eq('user_id', currentUser.id);
@@ -1384,7 +1391,8 @@
                     .update({
                         portrait_data_url: movedPortrait.portraitUrl,
                         portrait_storage_path: movedPortrait.portraitPath,
-                        state: stateWithPortrait
+                        state: stateWithPortrait,
+                        profile: nextProfile
                     })
                     .eq('id', persona.id)
                     .eq('user_id', currentUser.id);
@@ -1586,17 +1594,29 @@
         });
 
         async function sendToAssistant(messages) {
+            const { data: sessionData, error } = await supabase.auth.getSession();
+            if (error || !sessionData?.session?.access_token) {
+                throw new Error('Auth session missing. Please sign in again.');
+            }
+            const accessToken = sessionData.session.access_token;
             const res = await fetch('/api/chat', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ messages })
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${accessToken}`
+                },
+                body: JSON.stringify({
+                    messages,
+                    personaKey: activePersona?.persona_key || ''
+                })
             });
             if (!res.ok) {
-                const txt = await res.text().catch(() => '');
-                throw new Error(`Assistant error (${res.status}): ${txt}`);
+                const body = await res.json().catch(() => ({}));
+                const msg = body?.error || (await res.text().catch(() => ''));
+                throw new Error(`Assistant error (${res.status}): ${msg}`);
             }
-            const data = await res.json();
-            return data.choices?.[0]?.message?.content || 'No reply';
+            const payload = await res.json();
+            return payload.reply || payload.choices?.[0]?.message?.content || 'No reply';
         }
 
         async function sendMessage() {
@@ -1637,10 +1657,7 @@
                     .slice(-20)
                     .map((msg) => ({ role: msg.role, content: msg.content }));
 
-                const messages = [
-                    { role: 'system', content: `You are Syntrae assistant. Be concise, helpful, and persona-aware. Active persona: ${activePersona.name || 'Persona'}.` },
-                    ...history
-                ];
+                const messages = history;
 
                 const response = await sendToAssistant(messages);
                 const assistantTime = new Date().toISOString();

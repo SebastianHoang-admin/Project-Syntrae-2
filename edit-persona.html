@@ -497,6 +497,68 @@
       return traits;
     }
 
+    function parseLayerScores(rawValue) {
+      if (typeof rawValue !== 'string' || !rawValue) return {};
+      try {
+        const parsed = JSON.parse(rawValue);
+        return parsed && typeof parsed === 'object' ? parsed : {};
+      } catch (_) {
+        return {};
+      }
+    }
+
+    function buildPersonaProfile(state) {
+      const answers = state && typeof state.answers === 'object' ? state.answers : {};
+      const freeformSignals = {};
+      const adjectiveSignals = [];
+      const choiceSignals = {};
+
+      Object.entries(answers).forEach(([questionId, answer]) => {
+        if (!answer || typeof answer !== 'object') return;
+        if (answer.type === 'free') {
+          const text = String(answer.text || '').trim();
+          if (text) freeformSignals[questionId] = text;
+          return;
+        }
+        if (answer.type === 'multi') {
+          const selected = Array.isArray(answer.selected) ? answer.selected.filter(Boolean) : [];
+          if (!selected.length) return;
+          adjectiveSignals.push({
+            question_id: questionId,
+            layer_id: answer.layerId || null,
+            axis_id: answer.axisId || null,
+            selected
+          });
+          return;
+        }
+        if (answer.type === 'choice' && typeof answer.value === 'number') {
+          choiceSignals[questionId] = {
+            layer_id: answer.layerId || null,
+            axis_id: answer.axisId || null,
+            option: answer.option || null,
+            value: answer.value,
+            confidence: answer.confidence ?? null
+          };
+        }
+      });
+
+      return {
+        schema_version: '2.0.0',
+        persona_key: personaKey,
+        persona_name: normalizePersonaName(state?.personaName),
+        generated_at: new Date().toISOString(),
+        axis_scores: {
+          L1: parseLayerScores(state?.identityLayers?.L1),
+          L2: parseLayerScores(state?.identityLayers?.L2),
+          L3: parseLayerScores(state?.identityLayers?.L3)
+        },
+        adjective_signals: adjectiveSignals,
+        freeform_signals: freeformSignals,
+        choice_signals: choiceSignals,
+        extras: state?.extras && typeof state.extras === 'object' ? state.extras : {}
+      };
+    }
+
     function clearPersonaLocalState() {
       localStorage.removeItem('persona-name');
       localStorage.removeItem('persona-portrait');
@@ -534,6 +596,7 @@
         if (!key.startsWith('extra-')) return;
         state.extras[key.slice(6)] = localStorage.getItem(key) || '';
       });
+      state.profile = buildPersonaProfile(state);
       return state;
     }
 
@@ -626,6 +689,7 @@
         const portraitDataUrl = payload.personaPortrait || null;
         const portraitStoragePath = payload.personaPortraitPath || null;
         const traits = extractTraitsFromState(payload);
+        const personaProfile = payload.profile || buildPersonaProfile(payload);
 
         const { error } = await syntraeSupabase.from(PERSONA_TABLE).upsert({
           user_id: data.user.id,
@@ -634,7 +698,8 @@
           portrait_data_url: portraitDataUrl,
           portrait_storage_path: portraitStoragePath,
           state: payload,
-          traits
+          traits,
+          profile: personaProfile
         }, {
           onConflict: 'user_id,persona_key'
         });

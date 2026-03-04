@@ -13,6 +13,7 @@ create table if not exists public.personas (
   portrait_storage_path text,
   state jsonb not null default '{}'::jsonb,
   traits jsonb not null default '{}'::jsonb,
+  profile jsonb not null default '{}'::jsonb,
   created_at timestamptz not null default timezone('utc', now()),
   updated_at timestamptz not null default timezone('utc', now()),
   constraint personas_user_key_unique unique (user_id, persona_key)
@@ -20,6 +21,9 @@ create table if not exists public.personas (
 
 alter table public.personas
   add column if not exists portrait_storage_path text;
+
+alter table public.personas
+  add column if not exists profile jsonb not null default '{}'::jsonb;
 
 alter table public.personas
   alter column persona_key drop default;
@@ -59,6 +63,20 @@ end $$;
 
 create index if not exists personas_user_id_idx on public.personas (user_id);
 create index if not exists personas_updated_at_idx on public.personas (updated_at desc);
+
+create table if not exists public.user_profiles (
+  user_id uuid primary key references auth.users (id) on delete cascade,
+  first_name text,
+  last_name text,
+  occupation text,
+  organization text,
+  location text,
+  profile jsonb not null default '{}'::jsonb,
+  created_at timestamptz not null default timezone('utc', now()),
+  updated_at timestamptz not null default timezone('utc', now())
+);
+
+create index if not exists user_profiles_updated_at_idx on public.user_profiles (updated_at desc);
 
 create table if not exists public.persona_chat_sessions (
   id uuid primary key default gen_random_uuid(),
@@ -127,6 +145,12 @@ before update on public.personas
 for each row
 execute function public.set_updated_at();
 
+drop trigger if exists user_profiles_set_updated_at on public.user_profiles;
+create trigger user_profiles_set_updated_at
+before update on public.user_profiles
+for each row
+execute function public.set_updated_at();
+
 drop trigger if exists persona_chat_sessions_set_updated_at on public.persona_chat_sessions;
 create trigger persona_chat_sessions_set_updated_at
 before update on public.persona_chat_sessions
@@ -134,6 +158,7 @@ for each row
 execute function public.set_updated_at();
 
 alter table public.personas enable row level security;
+alter table public.user_profiles enable row level security;
 alter table public.persona_chat_sessions enable row level security;
 alter table public.persona_chat_messages enable row level security;
 
@@ -159,6 +184,31 @@ with check (auth.uid() = user_id);
 drop policy if exists personas_delete_own on public.personas;
 create policy personas_delete_own
 on public.personas
+for delete
+using (auth.uid() = user_id);
+
+drop policy if exists user_profiles_select_own on public.user_profiles;
+create policy user_profiles_select_own
+on public.user_profiles
+for select
+using (auth.uid() = user_id);
+
+drop policy if exists user_profiles_insert_own on public.user_profiles;
+create policy user_profiles_insert_own
+on public.user_profiles
+for insert
+with check (auth.uid() = user_id);
+
+drop policy if exists user_profiles_update_own on public.user_profiles;
+create policy user_profiles_update_own
+on public.user_profiles
+for update
+using (auth.uid() = user_id)
+with check (auth.uid() = user_id);
+
+drop policy if exists user_profiles_delete_own on public.user_profiles;
+create policy user_profiles_delete_own
+on public.user_profiles
 for delete
 using (auth.uid() = user_id);
 
@@ -213,6 +263,7 @@ for delete
 using (auth.uid() = user_id);
 
 grant select, insert, update, delete on public.personas to authenticated;
+grant select, insert, update, delete on public.user_profiles to authenticated;
 grant select, insert, update, delete on public.persona_chat_sessions to authenticated;
 grant select, insert, update, delete on public.persona_chat_messages to authenticated;
 
