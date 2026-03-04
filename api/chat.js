@@ -1,3 +1,5 @@
+const { hasChatEntitlement } = require('./_billing-common');
+
 const PERSONA_KEY_RE = /[^a-z0-9_-]/g;
 
 function sanitizePersonaKey(value) {
@@ -83,6 +85,27 @@ async function fetchPersonaRow(supabaseUrl, anonKey, accessToken, userId, person
   return body[0];
 }
 
+async function fetchPersonaSubscription(supabaseUrl, anonKey, accessToken, userId, personaId) {
+  const url = `${supabaseUrl}/rest/v1/persona_subscriptions?persona_id=eq.${encodeURIComponent(personaId)}&user_id=eq.${encodeURIComponent(userId)}&select=status,cancel_at_period_end,current_period_end&limit=1`;
+  const { ok, body } = await fetchJson(url, {
+    apikey: anonKey,
+    Authorization: `Bearer ${accessToken}`
+  });
+
+  if (!ok) {
+    const code = String(body?.code || '').toUpperCase();
+    const message = String(body?.message || '').toLowerCase();
+    const missingTable = code === '42P01' || message.includes('relation') && message.includes('persona_subscriptions');
+    return {
+      row: null,
+      missingTable,
+      error: body || { error: 'Could not query persona_subscriptions' }
+    };
+  }
+  if (!Array.isArray(body) || !body.length) return { row: null, missingTable: false, error: null };
+  return { row: body[0], missingTable: false, error: null };
+}
+
 function fallbackUserProfileFromMetadata(user) {
   const meta = user?.user_metadata || {};
   return {
@@ -149,6 +172,35 @@ module.exports = async function handler(req, res) {
       user.id,
       safePersonaKey
     );
+    if (!personaRow?.id) {
+      return res.status(404).json({
+        code: 'persona_not_found',
+        error: 'Could not resolve active persona for this request.'
+      });
+    }
+
+    const subscriptionResult = await fetchPersonaSubscription(
+      supabaseUrl,
+      supabaseAnonKey,
+      accessToken,
+      user.id,
+      personaRow.id
+    );
+    if (subscriptionResult.missingTable) {
+      return res.status(503).json({
+        code: 'billing_not_ready',
+        error: 'Billing tables are not available yet. Please contact support.'
+      });
+    }
+
+    const subscription = subscriptionResult.row;
+    if (!subscription || !hasChatEntitlement(subscription.status)) {
+      return res.status(402).json({
+        code: 'subscription_required',
+        error: 'Subscription required for this persona.'
+      });
+    }
+
     activePersonaName = personaRow?.name || '';
     personaProfile = buildPersonaProfile(personaRow);
   }

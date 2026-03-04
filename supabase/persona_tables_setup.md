@@ -110,3 +110,17 @@ limit 100;
 - `storage.objects` in bucket `persona-portraits` -> portrait files at path `user_id/persona_key/...`
 - `public.persona_chat_sessions` -> chat windows per persona
 - `public.persona_chat_messages` -> messages in each chat window (`session_id`)
+
+## 5) Billing extension (subscriptions per persona)
+
+To enable card subscriptions per persona, run:
+
+- `supabase/billing_subscriptions_v1.sql`
+
+This migration is additive. It creates:
+
+- `public.billing_customers`
+- `public.persona_subscriptions`
+- `public.billing_webhook_events`
+
+It does not delete existing persona rows.

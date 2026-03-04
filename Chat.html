@@ -623,6 +623,74 @@
             margin-top: 10px;
         }
 
+        .billing-modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(2, 6, 23, 0.82);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 18px;
+            z-index: 80;
+        }
+
+        .billing-modal-overlay.show {
+            display: flex;
+        }
+
+        .billing-modal {
+            width: min(560px, 100%);
+            border-radius: 18px;
+            border: 1px solid var(--border);
+            background: rgba(15, 23, 42, 0.95);
+            box-shadow: 0 26px 70px rgba(0, 0, 0, 0.45);
+            padding: 22px;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+
+        .billing-modal h3 {
+            font-size: 19px;
+            font-weight: 700;
+            color: var(--text);
+        }
+
+        .billing-modal p {
+            font-size: 14px;
+            line-height: 1.55;
+            color: var(--muted);
+        }
+
+        .billing-modal-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .billing-modal-btn {
+            border: 1px solid var(--border);
+            background: rgba(255, 255, 255, 0.06);
+            color: var(--text);
+            border-radius: 10px;
+            padding: 10px 14px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .billing-modal-btn:hover {
+            border-color: rgba(34, 211, 238, 0.45);
+            transform: translateY(-1px);
+        }
+
+        .billing-modal-btn.primary {
+            border: none;
+            color: #0b1224;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--accent), var(--accent-hot));
+        }
+
         @media (max-width: 1200px) {
             .container {
                 flex-direction: column;
@@ -725,6 +793,20 @@
         </section>
     </main>
 
+    <div class="billing-modal-overlay" id="billingModalOverlay" aria-hidden="true">
+        <div class="billing-modal" role="dialog" aria-modal="true" aria-labelledby="billingModalTitle">
+            <h3 id="billingModalTitle">Subscription required</h3>
+            <p id="billingModalMessage">
+                This persona requires an active subscription to continue chatting.
+            </p>
+            <div class="billing-modal-actions">
+                <button type="button" class="billing-modal-btn primary" id="billingSubscribeBtn">Subscribe</button>
+                <button type="button" class="billing-modal-btn" id="billingManageBtn">Manage billing</button>
+                <button type="button" class="billing-modal-btn" id="billingCloseBtn">Close</button>
+            </div>
+        </div>
+    </div>
+
     <footer class="footer">
         © 2026 Syntrae - Persona Simulation Engine. Predicting human interaction outcomes with AI.
     </footer>
@@ -745,8 +827,15 @@
         const chatSessionListEl = document.getElementById('chatSessionList');
         const newChatBtn = document.getElementById('newChatBtn');
         const activePersonaLabel = document.getElementById('activePersonaLabel');
+        const billingModalOverlay = document.getElementById('billingModalOverlay');
+        const billingModalTitle = document.getElementById('billingModalTitle');
+        const billingModalMessage = document.getElementById('billingModalMessage');
+        const billingSubscribeBtn = document.getElementById('billingSubscribeBtn');
+        const billingManageBtn = document.getElementById('billingManageBtn');
+        const billingCloseBtn = document.getElementById('billingCloseBtn');
 
         const PERSONA_TABLE = 'personas';
+        const SUBSCRIPTION_TABLE = 'persona_subscriptions';
         const CHAT_SESSION_TABLE = 'persona_chat_sessions';
         const CHAT_MESSAGE_TABLE = 'persona_chat_messages';
         const PERSONA_PORTRAITS_BUCKET = 'persona-portraits';
@@ -754,6 +843,7 @@
         const PERSONA_QUERY_PARAM = 'persona';
         const CHAT_QUERY_PARAM = 'chat';
         const EMPTY_PERSONA_SCOPE = '__none__';
+        const DELETE_BLOCK_STATUSES = new Set(['trialing', 'active', 'past_due', 'unpaid', 'incomplete']);
 
         let currentUser = null;
         let personas = [];
@@ -909,6 +999,100 @@
 
         function setStoredActiveSessionId(personaKey, sessionId) {
             localStorage.setItem(getSessionStorageKeyForPersona(personaKey), sessionId || '');
+        }
+
+        function isMissingSubscriptionTableError(error) {
+            const code = String(error?.code || '').toUpperCase();
+            const message = String(error?.message || '').toLowerCase();
+            return code === '42P01' || message.includes('relation') && message.includes('persona_subscriptions');
+        }
+
+        function shouldBlockDeleteForSubscription(subscription) {
+            if (!subscription) return false;
+            const status = String(subscription.status || '').toLowerCase();
+            const cancelAtPeriodEnd = Boolean(subscription.cancel_at_period_end);
+            return DELETE_BLOCK_STATUSES.has(status) && !cancelAtPeriodEnd;
+        }
+
+        function showBillingModal({
+            title = 'Subscription required',
+            message = 'This persona requires an active subscription to continue chatting.',
+            allowSubscribe = true,
+            allowManage = true
+        } = {}) {
+            if (!billingModalOverlay) return;
+            billingModalTitle.textContent = title;
+            billingModalMessage.textContent = message;
+            billingSubscribeBtn.hidden = !allowSubscribe;
+            billingManageBtn.hidden = !allowManage;
+            billingModalOverlay.classList.add('show');
+            billingModalOverlay.setAttribute('aria-hidden', 'false');
+        }
+
+        function hideBillingModal() {
+            if (!billingModalOverlay) return;
+            billingModalOverlay.classList.remove('show');
+            billingModalOverlay.setAttribute('aria-hidden', 'true');
+        }
+
+        async function getAccessTokenOrThrow() {
+            const { data: sessionData, error } = await supabase.auth.getSession();
+            if (error || !sessionData?.session?.access_token) {
+                throw new Error('Auth session missing. Please sign in again.');
+            }
+            return sessionData.session.access_token;
+        }
+
+        async function postBillingEndpoint(path, payload) {
+            const accessToken = await getAccessTokenOrThrow();
+            const response = await fetch(path, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${accessToken}`
+                },
+                body: JSON.stringify(payload || {})
+            });
+            const body = await response.json().catch(() => ({}));
+            if (!response.ok) {
+                const err = new Error(body?.error || `Billing request failed (${response.status})`);
+                err.code = body?.code || '';
+                err.status = response.status;
+                err.payload = body;
+                throw err;
+            }
+            return body;
+        }
+
+        async function openCheckoutForPersona(personaKey) {
+            const payload = await postBillingEndpoint('/api/billing/create-checkout-session', { personaKey });
+            if (!payload?.url) throw new Error('Checkout URL missing.');
+            window.location.href = payload.url;
+        }
+
+        async function openBillingPortal(personaKey) {
+            const payload = await postBillingEndpoint('/api/billing/create-portal-session', { personaKey });
+            if (!payload?.url) throw new Error('Billing portal URL missing.');
+            window.location.href = payload.url;
+        }
+
+        async function fetchPersonaSubscription(personaId) {
+            if (!personaId || !currentUser?.id) return null;
+            const { data, error } = await supabase
+                .from(SUBSCRIPTION_TABLE)
+                .select('status,cancel_at_period_end,current_period_end')
+                .eq('persona_id', personaId)
+                .eq('user_id', currentUser.id)
+                .limit(1)
+                .maybeSingle();
+
+            if (error) {
+                if (!isMissingSubscriptionTableError(error)) {
+                    console.warn('Could not read persona subscription:', error.message || error);
+                }
+                return null;
+            }
+            return data || null;
         }
 
         function setActivePersona(persona) {
@@ -1426,29 +1610,65 @@
         async function deletePersona(persona) {
             if (!persona || !currentUser?.id) return;
             const personaName = persona.name || 'this persona';
-            const confirmed = window.confirm(`Delete "${personaName}" and all of its chat windows/messages? This cannot be undone.`);
-            if (!confirmed) return;
+            const subscription = await fetchPersonaSubscription(persona.id);
+            if (shouldBlockDeleteForSubscription(subscription)) {
+                const openPortal = window.confirm(
+                    `You must cancel the subscription for "${personaName}" before deleting this persona.\n\nNo refund is issued for the current billing period.\n\nClick OK to open Billing Portal now.`
+                );
+                if (openPortal) {
+                    try {
+                        await openBillingPortal(persona.persona_key);
+                    } catch (err) {
+                        alert(`Could not open billing portal: ${err.message || err}`);
+                    }
+                }
+                return;
+            }
+
+            const warningOne = window.confirm(
+                `Delete "${personaName}" and all of its chat windows/messages?\n\nThis is permanent. No refund is issued for any current subscription period.`
+            );
+            if (!warningOne) return;
+
+            const typedConfirmation = window.prompt(
+                `Final warning: type "${personaName}" to permanently delete this persona (no refund).`
+            );
+            if (typedConfirmation === null) return;
+            if (typedConfirmation.trim() !== personaName) {
+                alert('Deletion canceled because the confirmation text did not match the persona name.');
+                return;
+            }
+
+            const deletedActive = activePersona?.id === persona.id;
+            try {
+                await postBillingEndpoint('/api/persona-delete', {
+                    personaKey: persona.persona_key
+                });
+            } catch (err) {
+                if (err?.code === 'subscription_must_be_canceled') {
+                    const openPortal = window.confirm(
+                        `Subscription cancellation is required before deleting "${personaName}".\n\nClick OK to open Billing Portal now.`
+                    );
+                    if (openPortal) {
+                        try {
+                            await openBillingPortal(persona.persona_key);
+                        } catch (portalErr) {
+                            alert(`Could not open billing portal: ${portalErr.message || portalErr}`);
+                        }
+                    }
+                    return;
+                }
+                alert(`Could not delete persona: ${err.message || err}`);
+                return;
+            }
 
             const portraitPath = String(
                 persona.portrait_storage_path
                 || (persona.state && persona.state.personaPortraitPath)
                 || ''
             ).trim();
-
             if (portraitPath) {
                 await supabase.storage.from(PERSONA_PORTRAITS_BUCKET).remove([portraitPath]);
-            }
-
-            const deletedActive = activePersona?.id === persona.id;
-            const { error } = await supabase
-                .from(PERSONA_TABLE)
-                .delete()
-                .eq('id', persona.id)
-                .eq('user_id', currentUser.id);
-
-            if (error) {
-                alert(`Could not delete persona: ${error.message || error}`);
-                return;
             }
 
             localStorage.removeItem(getSessionStorageKeyForPersona(persona.persona_key));
@@ -1575,6 +1795,19 @@
             const link = e.target.closest('.dropdown-item');
             if (!link) return;
             dropdownMenu.classList.remove('active');
+            const dest = link.dataset.destination;
+            if (dest === 'subscription') {
+                e.preventDefault();
+                const key = activePersona?.persona_key || getActivePersonaKey();
+                if (!key) {
+                    alert('Select a persona first, then open billing.');
+                    return;
+                }
+                void openBillingPortal(key).catch((err) => {
+                    alert(`Could not open billing portal: ${err.message || err}`);
+                });
+                return;
+            }
             const href = link.getAttribute('href');
             if (!href || href === '#') {
                 e.preventDefault();
@@ -1582,7 +1815,6 @@
                 return;
             }
             e.preventDefault();
-            const dest = link.dataset.destination;
             if (dest === 'analyze') {
                 const activeKey = activePersona?.persona_key || getActivePersonaKey();
                 window.location.href = buildPersonaUrl('analyze.html', activeKey);
@@ -1594,11 +1826,7 @@
         });
 
         async function sendToAssistant(messages) {
-            const { data: sessionData, error } = await supabase.auth.getSession();
-            if (error || !sessionData?.session?.access_token) {
-                throw new Error('Auth session missing. Please sign in again.');
-            }
-            const accessToken = sessionData.session.access_token;
+            const accessToken = await getAccessTokenOrThrow();
             const res = await fetch('/api/chat', {
                 method: 'POST',
                 headers: {
@@ -1612,8 +1840,11 @@
             });
             if (!res.ok) {
                 const body = await res.json().catch(() => ({}));
-                const msg = body?.error || (await res.text().catch(() => ''));
-                throw new Error(`Assistant error (${res.status}): ${msg}`);
+                const msg = body?.error || `Assistant error (${res.status})`;
+                const err = new Error(`Assistant error (${res.status}): ${msg}`);
+                err.code = body?.code || '';
+                err.status = res.status;
+                throw err;
             }
             const payload = await res.json();
             return payload.reply || payload.choices?.[0]?.message?.content || 'No reply';
@@ -1668,6 +1899,16 @@
                 await touchActiveSession();
             } catch (err) {
                 loadingWrapper.remove();
+                if (err?.code === 'subscription_required') {
+                    showBillingModal({
+                        title: 'Subscription required',
+                        message: `Chat access for "${activePersona?.name || 'this persona'}" requires an active subscription.`,
+                        allowSubscribe: true,
+                        allowManage: true
+                    });
+                    addMessage('Subscription required for this persona. Use the billing options to continue.', 'agent');
+                    return;
+                }
                 addMessage(`Error contacting assistant: ${err.message}`, 'agent');
             } finally {
                 isSending = false;
@@ -1690,8 +1931,60 @@
         newChatBtn?.addEventListener('click', () => {
             void createNewChat();
         });
+        billingCloseBtn?.addEventListener('click', () => {
+            hideBillingModal();
+        });
+        billingModalOverlay?.addEventListener('click', (e) => {
+            if (e.target === billingModalOverlay) {
+                hideBillingModal();
+            }
+        });
+        billingSubscribeBtn?.addEventListener('click', async () => {
+            const key = activePersona?.persona_key || getActivePersonaKey();
+            if (!key) {
+                alert('Select a persona first.');
+                return;
+            }
+            billingSubscribeBtn.disabled = true;
+            try {
+                await openCheckoutForPersona(key);
+            } catch (err) {
+                alert(`Could not open checkout: ${err.message || err}`);
+            } finally {
+                billingSubscribeBtn.disabled = false;
+            }
+        });
+        billingManageBtn?.addEventListener('click', async () => {
+            const key = activePersona?.persona_key || getActivePersonaKey();
+            if (!key) {
+                alert('Select a persona first.');
+                return;
+            }
+            billingManageBtn.disabled = true;
+            try {
+                await openBillingPortal(key);
+            } catch (err) {
+                alert(`Could not open billing portal: ${err.message || err}`);
+            } finally {
+                billingManageBtn.disabled = false;
+            }
+        });
+
+        function showBillingStatusMessageFromUrl() {
+            const params = new URLSearchParams(window.location.search);
+            const billingStatus = String(params.get('billing') || '').toLowerCase();
+            if (!billingStatus) return;
+            if (billingStatus === 'success') {
+                addMessage('Billing completed. Subscription status will refresh shortly.', 'agent');
+            } else if (billingStatus === 'cancel') {
+                addMessage('Checkout was canceled. You can subscribe anytime.', 'agent');
+            } else if (billingStatus === 'portal') {
+                addMessage('Returned from billing portal.', 'agent');
+            }
+        }
 
         await loadSession();
+        showBillingStatusMessageFromUrl();
     </script>
 </body>
 </html>
