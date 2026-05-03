@@ -112,39 +112,79 @@ function cloneGenome(genome) {
   return genome.map((row) => row.slice());
 }
 
-function randomGenome(config, rng) {
-  const { min, max } = config.difficultyRange;
-  return Array.from({ length: config.outcomes.length }, () =>
-    Array.from({ length: config.nodesPerPathway }, () =>
-      randomIntInclusive(min, max, rng)
-    )
+function deriveOutcomeDifficultyBounds(config, extensionPoints, globalBias = 0) {
+  const safe = sanitizeExtensionPoints(extensionPoints);
+  const rel = safe.relationship / 30;
+  const tim = safe.timely / 30;
+  const bg = safe.background / 30;
+  const globalMin = config.difficultyRange.min;
+  const globalMax = config.difficultyRange.max;
+  const globalSpan = globalMax - globalMin;
+
+  return config.outcomes.map((outcomeId, index) => {
+    const weights = OUTCOME_BONUS_WEIGHTS[index] || [1 / 3, 1 / 3, 1 / 3];
+    const signedSignal = rel * weights[0] + tim * weights[1] + bg * weights[2];
+    const confidence = Math.abs(signedSignal);
+
+    const baseCenter = 30 + index * 3;
+    const shiftedCenter = baseCenter - signedSignal * 12 + globalBias;
+    const baseSpan = 28;
+    const tightenedSpan = baseSpan - confidence * 8;
+    const finalSpan = clamp(tightenedSpan, 16, 34);
+
+    let minDC = Math.round(shiftedCenter - finalSpan / 2);
+    let maxDC = Math.round(shiftedCenter + finalSpan / 2);
+
+    const floorOffset = Math.round(globalSpan * 0.03);
+    const ceilOffset = Math.round(globalSpan * 0.03);
+    minDC = clamp(minDC, globalMin + floorOffset, globalMax - 6);
+    maxDC = clamp(maxDC, globalMin + 6, globalMax - ceilOffset);
+
+    if (maxDC - minDC < 12) {
+      const mid = Math.round((minDC + maxDC) / 2);
+      minDC = clamp(mid - 6, globalMin, globalMax - 12);
+      maxDC = clamp(mid + 6, globalMin + 12, globalMax);
+    }
+
+    return {
+      outcomeId,
+      index,
+      minDC,
+      maxDC,
+      centerDC: Math.round((minDC + maxDC) / 2),
+      signedSignal,
+      confidence,
+    };
+  });
+}
+
+function initializeGenomeFromBounds(config, bounds, rng) {
+  return bounds.map((bound) =>
+    Array.from({ length: config.nodesPerPathway }, () => {
+      const spread = Math.max(2, Math.round((bound.maxDC - bound.minDC) * 0.18));
+      const seed = randomIntInclusive(bound.centerDC - spread, bound.centerDC + spread, rng);
+      return clamp(seed, bound.minDC, bound.maxDC);
+    })
   );
 }
 
-function crossover(parentA, parentB, rng) {
-  const child = [];
-  for (let o = 0; o < parentA.length; o += 1) {
-    const row = [];
-    for (let n = 0; n < parentA[o].length; n += 1) {
-      row.push(rng() < 0.5 ? parentA[o][n] : parentB[o][n]);
-    }
-    child.push(row);
-  }
-  return child;
+function approxNodePassProbabilityLinear(dc, betaBonus) {
+  // Continuous D100 approximation of:
+  // pass iff adjusted beta > DC, with adjusted beta = raw beta + bonus.
+  // This closely tracks exact discrete probabilities while remaining differentiable
+  // almost everywhere for gradient updates.
+  return clamp((100 + betaBonus - dc) / 100, 0, 1);
 }
 
-function mutate(genome, config, mutationRate, rng) {
-  const { min, max } = config.difficultyRange;
-  const out = cloneGenome(genome);
-  for (let o = 0; o < out.length; o += 1) {
-    for (let n = 0; n < out[o].length; n += 1) {
-      if (rng() < mutationRate) {
-        const delta = randomIntInclusive(-10, 10, rng);
-        out[o][n] = clamp(out[o][n] + delta, min, max);
-      }
-    }
-  }
-  return out;
+function computeApproxPathwayProbability(difficulties, betaBonus) {
+  const nodePassProbs = difficulties.map((dc) =>
+    approxNodePassProbabilityLinear(dc, betaBonus)
+  );
+  const pathwayProb = nodePassProbs.reduce((acc, p) => acc * p, 1);
+  return {
+    pathwayProb,
+    nodePassProbs,
+  };
 }
 
 function evaluateGenome(genome, config, extensionPoints) {
@@ -196,68 +236,195 @@ function evaluateGenome(genome, config, extensionPoints) {
   };
 }
 
-function tournamentSelect(scoredPopulation, rng, k = 4) {
-  let best = null;
-  for (let i = 0; i < k; i += 1) {
-    const candidate = scoredPopulation[randomIntInclusive(0, scoredPopulation.length - 1, rng)];
-    if (!best || candidate.eval.score > best.eval.score) best = candidate;
-  }
-  return best;
-}
-
-function optimizeDifficultiesEvolution({
+function runGradientDescentWithBounds({
   config,
   extensionPoints,
-  rng = Math.random,
-  generations = 120,
-  populationSize = 80,
-  eliteCount = 10,
-  mutationRate = 0.18,
+  bounds,
+  rng,
+  iterations,
+  initialLearningRate,
+  minLearningRate,
+  decay,
+  marginRatio,
+  sumWeight,
+  marginWeight,
+  floorCapWeight,
+  minOutcomeProbability,
+  maxOutcomeProbability,
 }) {
-  validateTrialConfig(config);
-  const safeExtensionPoints = sanitizeExtensionPoints(extensionPoints);
+  let genome = initializeGenomeFromBounds(config, bounds, rng);
+  let bestGenome = cloneGenome(genome);
+  let bestLoss = Number.POSITIVE_INFINITY;
+  let bestIter = -1;
+  let bestApprox = null;
 
-  let population = Array.from({ length: populationSize }, () =>
-    randomGenome(config, rng)
-  );
+  for (let iter = 0; iter < iterations; iter += 1) {
+    const gradients = genome.map((row) => row.map(() => 0));
+    const approxOutcomeRows = [];
 
-  let best = null;
+    for (let o = 0; o < config.outcomes.length; o += 1) {
+      const betaBonus = computeOutcomeBetaBonus(o, extensionPoints);
+      const approx = computeApproxPathwayProbability(genome[o], betaBonus);
+      approxOutcomeRows.push({
+        outcomeId: config.outcomes[o],
+        betaBonus,
+        pathwayProb: approx.pathwayProb,
+        nodePassProbs: approx.nodePassProbs,
+      });
+    }
 
-  for (let generation = 0; generation < generations; generation += 1) {
-    const scored = population
-      .map((genome) => ({
-        genome,
-        eval: evaluateGenome(genome, config, safeExtensionPoints),
-      }))
-      .sort((a, b) => b.eval.score - a.eval.score);
+    const sumProb = approxOutcomeRows.reduce((acc, row) => acc + row.pathwayProb, 0);
+    let loss = sumWeight * (sumProb - 1) ** 2;
 
-    if (!best || scored[0].eval.score > best.eval.score) {
-      best = {
-        generation,
-        genome: cloneGenome(scored[0].genome),
-        eval: scored[0].eval,
+    const dLoss_dOutcomeProb = approxOutcomeRows.map(
+      () => 2 * sumWeight * (sumProb - 1)
+    );
+
+    for (let o = 0; o < approxOutcomeRows.length; o += 1) {
+      const p = approxOutcomeRows[o].pathwayProb;
+      if (p < minOutcomeProbability) {
+        const delta = minOutcomeProbability - p;
+        loss += floorCapWeight * delta ** 2;
+        dLoss_dOutcomeProb[o] += -2 * floorCapWeight * delta;
+      } else if (p > maxOutcomeProbability) {
+        const delta = p - maxOutcomeProbability;
+        loss += floorCapWeight * delta ** 2;
+        dLoss_dOutcomeProb[o] += 2 * floorCapWeight * delta;
+      }
+    }
+
+    for (let o = 0; o < config.outcomes.length; o += 1) {
+      const bound = bounds[o];
+      const lowerSafe = bound.minDC + (bound.maxDC - bound.minDC) * marginRatio;
+      const upperSafe = bound.maxDC - (bound.maxDC - bound.minDC) * marginRatio;
+      const pathwayProb = approxOutcomeRows[o].pathwayProb;
+      const nodePassProbs = approxOutcomeRows[o].nodePassProbs;
+
+      for (let n = 0; n < config.nodesPerPathway; n += 1) {
+        const dc = genome[o][n];
+        const pass = nodePassProbs[n];
+        let dP_dDC = 0;
+        if (pass > 0 && pass < 1 && pathwayProb > 0) {
+          dP_dDC = (pathwayProb / pass) * (-0.01);
+        }
+
+        gradients[o][n] += dLoss_dOutcomeProb[o] * dP_dDC;
+
+        if (dc < lowerSafe) {
+          const delta = lowerSafe - dc;
+          loss += marginWeight * delta ** 2;
+          gradients[o][n] += -2 * marginWeight * delta;
+        } else if (dc > upperSafe) {
+          const delta = dc - upperSafe;
+          loss += marginWeight * delta ** 2;
+          gradients[o][n] += 2 * marginWeight * delta;
+        }
+      }
+    }
+
+    if (loss < bestLoss) {
+      bestLoss = loss;
+      bestIter = iter;
+      bestGenome = cloneGenome(genome);
+      bestApprox = {
+        sumProb,
+        outcomeRows: approxOutcomeRows.map((row) => ({
+          outcomeId: row.outcomeId,
+          probability: row.pathwayProb,
+          betaBonus: row.betaBonus,
+        })),
       };
     }
 
-    const nextPopulation = scored
-      .slice(0, eliteCount)
-      .map((entry) => cloneGenome(entry.genome));
+    const lr = Math.max(minLearningRate, initialLearningRate * Math.pow(decay, iter));
+    for (let o = 0; o < config.outcomes.length; o += 1) {
+      for (let n = 0; n < config.nodesPerPathway; n += 1) {
+        genome[o][n] -= lr * gradients[o][n];
+        genome[o][n] = clamp(genome[o][n], bounds[o].minDC, bounds[o].maxDC);
+      }
+    }
+  }
 
-    while (nextPopulation.length < populationSize) {
-      const parentA = tournamentSelect(scored, rng).genome;
-      const parentB = tournamentSelect(scored, rng).genome;
-      const crossed = crossover(parentA, parentB, rng);
-      const child = mutate(crossed, config, mutationRate, rng);
-      nextPopulation.push(child);
+  const roundedGenome = bestGenome.map((row) => row.map((x) => Math.round(x)));
+  return {
+    roundedGenome,
+    bestIter,
+    bestLoss,
+    bestApprox,
+  };
+}
+
+function optimizeDifficultiesGradientDescent({
+  config,
+  extensionPoints,
+  rng = Math.random,
+  iterations = 2500,
+  initialLearningRate = 0.9,
+  minLearningRate = 0.04,
+  decay = 0.998,
+  marginRatio = 0.18,
+  sumWeight = 140,
+  marginWeight = 0.65,
+  floorCapWeight = 4.5,
+  minOutcomeProbability = 0.03,
+  maxOutcomeProbability = 0.62,
+  boundAdjustIterations = 8,
+  boundAdjustStep = 8,
+}) {
+  validateTrialConfig(config);
+  const safeExtensionPoints = sanitizeExtensionPoints(extensionPoints);
+  let bias = 0;
+  let bestCandidate = null;
+
+  for (let round = 0; round < boundAdjustIterations; round += 1) {
+    const bounds = deriveOutcomeDifficultyBounds(config, safeExtensionPoints, bias);
+    const descent = runGradientDescentWithBounds({
+      config,
+      extensionPoints: safeExtensionPoints,
+      bounds,
+      rng,
+      iterations,
+      initialLearningRate,
+      minLearningRate,
+      decay,
+      marginRatio,
+      sumWeight,
+      marginWeight,
+      floorCapWeight,
+      minOutcomeProbability,
+      maxOutcomeProbability,
+    });
+
+    const exactEval = evaluateGenome(descent.roundedGenome, config, safeExtensionPoints);
+    const gap = 1 - exactEval.sumProbabilities;
+
+    const candidate = {
+      bounds,
+      roundedGenome: descent.roundedGenome,
+      bestIter: descent.bestIter,
+      bestLoss: descent.bestLoss,
+      bestApprox: descent.bestApprox,
+      bestEval: exactEval,
+      bias,
+      gapAbs: Math.abs(gap),
+    };
+
+    if (!bestCandidate || candidate.gapAbs < bestCandidate.gapAbs) {
+      bestCandidate = candidate;
     }
 
-    population = nextPopulation;
+    bias -= gap * boundAdjustStep;
+    bias = clamp(bias, -20, 20);
   }
 
   return {
-    bestGenome: best.genome,
-    bestEval: best.eval,
-    bestGeneration: best.generation,
+    bestGenome: bestCandidate.roundedGenome,
+    bestEval: bestCandidate.bestEval,
+    bestIteration: bestCandidate.bestIter,
+    bestLoss: bestCandidate.bestLoss,
+    bestApprox: bestCandidate.bestApprox,
+    bounds: bestCandidate.bounds,
+    boundBias: bestCandidate.bias,
     extensionPoints: safeExtensionPoints,
   };
 }
@@ -428,6 +595,17 @@ function printPredictedOutcomeProbabilities(bestEval) {
   );
 }
 
+function printOutcomeBounds(bounds) {
+  console.log("\n=== Outcome DC Bounds (factor-driven) ===");
+  for (const bound of bounds) {
+    console.log(
+      `${bound.outcomeId}: minDC=${bound.minDC}, maxDC=${bound.maxDC}, center=${bound.centerDC}, signal=${bound.signedSignal.toFixed(
+        3
+      )}`
+    );
+  }
+}
+
 function main() {
   const config = { ...DEFAULT_TRIAL_CONFIG };
   const rng = Math.random; // indeterministic
@@ -439,14 +617,14 @@ function main() {
     background: -2,  // III. user background advantages/disadvantages
   };
 
-  const optimized = optimizeDifficultiesEvolution({
+  const optimized = optimizeDifficultiesGradientDescent({
     config,
     extensionPoints,
     rng,
-    generations: 120,
-    populationSize: 80,
-    eliteCount: 10,
-    mutationRate: 0.18,
+    iterations: 2500,
+    initialLearningRate: 0.9,
+    minLearningRate: 0.04,
+    decay: 0.998,
   });
 
   const trial = simulateTrialFromGenome({
@@ -456,10 +634,11 @@ function main() {
     rng,
   });
 
-  console.log("=== Evolution Optimization ===");
-  console.log(`Best generation: ${optimized.bestGeneration}`);
+  console.log("=== Gradient Descent Optimization ===");
+  console.log(`Best iteration: ${optimized.bestIteration}`);
+  console.log(`Best optimization loss: ${optimized.bestLoss.toFixed(6)}`);
   console.log(
-    `Optimization objective (sum close to 100% + varied outcomes): ${optimized.bestEval.score.toFixed(
+    `Optimization objective score (sum close to 100% + varied outcomes): ${optimized.bestEval.score.toFixed(
       4
     )}`
   );
@@ -469,6 +648,7 @@ function main() {
     )}`
   );
 
+  printOutcomeBounds(optimized.bounds);
   printOptimizedDifficulties(config, optimized.bestGenome);
   printPredictedOutcomeProbabilities(optimized.bestEval);
   printTrialSummary(trial);
@@ -484,11 +664,14 @@ module.exports = {
   OUTCOME_BONUS_WEIGHTS,
   adjustedBeta,
   computeOutcomeBetaBonus,
+  computeApproxPathwayProbability,
+  deriveOutcomeDifficultyBounds,
   evaluateGenome,
   formatPercent,
   nodePassProbability,
-  optimizeDifficultiesEvolution,
+  optimizeDifficultiesGradientDescent,
   pathwaySuccessProbability,
+  printOutcomeBounds,
   printPredictedOutcomeProbabilities,
   printOptimizedDifficulties,
   printTrialSummary,
