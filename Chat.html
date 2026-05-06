@@ -701,7 +701,7 @@
             <div class="chat-header">
                 <div class="agent-avatar">AI</div>
                 <div class="agent-info">
-                    <h3>Syntrae assistant <span class="status-indicator"></span></h3>
+                    <h3>Syntrae AI <span class="status-indicator"></span></h3>
                     <p>Ask me anything about your persona or run simulations</p>
                 </div>
             </div>
@@ -1668,7 +1668,7 @@
                 await touchActiveSession();
             } catch (err) {
                 loadingWrapper.remove();
-                addMessage(`Error contacting assistant: ${err.message}`, 'agent');
+                addMessage(`Error contacting Syntrae AI: ${err.message}`, 'agent');
             } finally {
                 isSending = false;
                 sendBtn.disabled = false;

@@ -512,12 +512,17 @@
       const freeformSignals = {};
       const adjectiveSignals = [];
       const choiceSignals = {};
+      const criticalFactors = {};
 
       Object.entries(answers).forEach(([questionId, answer]) => {
         if (!answer || typeof answer !== 'object') return;
         if (answer.type === 'free') {
           const text = String(answer.text || '').trim();
           if (text) freeformSignals[questionId] = text;
+          if (text && answer.layerId === 'L6') {
+            const factorKey = String(answer.fieldName || '').trim();
+            if (factorKey) criticalFactors[factorKey] = text;
+          }
           return;
         }
         if (answer.type === 'multi') {
@@ -555,6 +560,7 @@
         adjective_signals: adjectiveSignals,
         freeform_signals: freeformSignals,
         choice_signals: choiceSignals,
+        critical_factors: criticalFactors,
         extras: state?.extras && typeof state.extras === 'object' ? state.extras : {}
       };
     }
@@ -1001,7 +1007,8 @@
             type: 'free',
             text: textarea.value,
             sectionId: q.sectionId || null,
-            layerId: q.layerId || null
+            layerId: q.layerId || null,
+            fieldName: q.fieldName || null
           };
           hasUnsaved = true;
           saveAnswers();
@@ -1255,7 +1262,8 @@
               type: 'free',
               text: textarea.value,
               sectionId: q.sectionId || null,
-              layerId: q.layerId || null
+              layerId: q.layerId || null,
+              fieldName: q.fieldName || null
             };
             hasUnsaved = true;
             saveAnswers();
@@ -1378,7 +1386,24 @@
                   type: 'free',
                   placeholder: field.placeholder || (field.examples ? field.examples.join(', ') : ''),
                   sectionId: section.section_id,
-                  layerId: layer.layer_id
+                  layerId: layer.layer_id,
+                  fieldName: field.name || null
+                });
+              });
+            });
+          } else if (layer.layer_id === 'L6') {
+            (layer.sections || []).forEach(section => {
+              (section.fields || []).forEach(field => {
+                questions.push({
+                  id: field.field_id,
+                  prompt: field.prompt || field.name,
+                  category: section.name || layer.name || '',
+                  type: 'free',
+                  placeholder: field.placeholder || (field.examples ? field.examples.join(', ') : ''),
+                  helper: field.helper || '',
+                  sectionId: section.section_id,
+                  layerId: layer.layer_id,
+                  fieldName: field.name || null
                 });
               });
             });
