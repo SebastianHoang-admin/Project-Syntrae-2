@@ -1429,9 +1429,14 @@
         allQuestions = questions;
         questionMap = new Map(allQuestions.map((q) => [q.id, q]));
         const session = loadSession();
-        visibleIds = Array.isArray(session.visibleIds) && session.visibleIds.length
-          ? session.visibleIds.filter(id => questionMap.has(id))
-          : questions.map(q => q.id);
+        const allQuestionIds = questions.map(q => q.id);
+        if (Array.isArray(session.visibleIds) && session.visibleIds.length) {
+          const fromSession = session.visibleIds.filter(id => questionMap.has(id));
+          const missingNewIds = allQuestionIds.filter(id => !fromSession.includes(id));
+          visibleIds = [...fromSession, ...missingNewIds];
+        } else {
+          visibleIds = allQuestionIds;
+        }
         currentIndex = Number.isInteger(session.currentIndex) ? Math.max(0, Math.min(session.currentIndex, visibleIds.length - 1)) : 0;
         saveSession({ visibleIds, currentIndex });
         renderCurrentQuestion();
