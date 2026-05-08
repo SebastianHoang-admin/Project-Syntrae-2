@@ -3,90 +3,352 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Complete Your Profile - Syntrae</title>
+    <title>Your Persona - Syntrae</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        :root { --ink:#0b1224; --glass:rgba(255,255,255,0.06); --border:rgba(255,255,255,0.12); --accent:#22d3ee; --accent-hot:#f97316; --text:#e2e8f0; --muted:#94a3b8; }
-        * { margin:0; padding:0; box-sizing:border-box; font-family:'Space Grotesk','Helvetica Neue',Arial,sans-serif; }
-        body { min-height:100vh; background: radial-gradient(circle at 20% 20%, rgba(34,211,238,0.08), transparent 30%), radial-gradient(circle at 80% 10%, rgba(249,115,22,0.08), transparent 25%), linear-gradient(145deg,#0a0f1f 0%,#0f172a 60%,#0b1224 100%); color:var(--text); display:flex; flex-direction:column; padding:24px; }
-        .brand { display:flex; align-items:center; justify-content:center; gap:12px; margin-bottom:18px; }
-        .brand-link { text-decoration:none; color:inherit; display:inline-flex; }
-        .logo-icon { width:44px; height:44px; display:grid; place-items:center; border-radius:12px; background:linear-gradient(135deg,#f84f25,#b8120e); box-shadow:0 10px 24px rgba(248,79,37,0.35); padding:6px; }
-        .logo-text { display:flex; flex-direction:column; gap:2px; align-items:flex-start; }
-        .logo-text span:first-child { font-size:18px; font-weight:700; letter-spacing:1.5px; }
-        .logo-text span:last-child { font-size:12px; color:var(--muted); }
-        .main { flex:1; display:grid; place-items:center; padding:24px 0; }
-        .card { width:min(640px,100%); background:rgba(8,10,16,0.6); border:1px solid rgba(255,255,255,0.1); border-radius:20px; padding:32px; box-shadow:0 16px 36px rgba(0,0,0,0.35); backdrop-filter:blur(8px); }
-        .card h1 { font-size:24px; margin-bottom:8px; letter-spacing:0.5px; }
-        .card p { color:var(--muted); margin-bottom:20px; }
-        .grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:14px; }
-        .field { display:flex; flex-direction:column; gap:8px; margin-bottom:12px; }
-        .field label { font-weight:600; color:var(--text); }
-        .field input { padding:12px 14px; border-radius:12px; border:1px solid var(--border); background:rgba(255,255,255,0.04); color:var(--text); font-size:15px; outline:none; transition:all 0.2s ease; }
-        .field input:focus { border-color:rgba(34,211,238,0.6); box-shadow:0 0 0 3px rgba(34,211,238,0.12); }
-        .actions { display:flex; gap:12px; margin-top:12px; flex-wrap:wrap; }
-        .btn { display:inline-flex; align-items:center; justify-content:center; gap:8px; padding:12px 18px; border-radius:14px; font-weight:700; font-size:14px; cursor:pointer; border:none; text-decoration:none; transition:all 0.2s ease; }
-        .btn-primary { background:linear-gradient(135deg,var(--accent),var(--accent-hot)); color:#0b1224; box-shadow:0 12px 26px rgba(34,211,238,0.3); }
-        .btn-ghost { background:rgba(255,255,255,0.04); color:var(--text); border:1px solid rgba(255,255,255,0.08); }
-        .btn:hover { transform:translateY(-1px); box-shadow:0 16px 30px rgba(34,211,238,0.18); }
-        .status { margin: 8px 0 12px; padding: 10px 12px; border-radius: 12px; font-weight: 600; border: 1px solid rgba(255, 255, 255, 0.08); background: rgba(255, 255, 255, 0.04); }
-        .status[data-type=\"error\"] { color:#fecdd3; border-color:rgba(248,79,37,0.35); }
-        .status[data-type=\"success\"] { color:#bbf7d0; border-color:rgba(74,222,128,0.35); }
-        .status[data-type=\"info\"] { color:var(--text); }
-        .footer { text-align:center; color:var(--muted); font-size:13px; padding:16px 0; }
+        :root {
+            --ink:#0b1224;
+            --glass:rgba(255,255,255,0.06);
+            --glass-strong:rgba(255,255,255,0.12);
+            --border:rgba(255,255,255,0.12);
+            --accent:#22d3ee;
+            --accent-hot:#f97316;
+            --text:#e2e8f0;
+            --muted:#94a3b8;
+        }
+        * {
+            margin:0;
+            padding:0;
+            box-sizing:border-box;
+            font-family:'Space Grotesk','Helvetica Neue',Arial,sans-serif;
+        }
+        body {
+            min-height:100vh;
+            background:
+                radial-gradient(circle at 18% 18%, rgba(34,211,238,0.09), transparent 28%),
+                radial-gradient(circle at 84% 8%, rgba(249,115,22,0.08), transparent 24%),
+                linear-gradient(145deg,#0a0f1f 0%,#0f172a 58%,#0b1224 100%);
+            color:var(--text);
+            display:flex;
+            flex-direction:column;
+            padding:24px;
+        }
+        .brand {
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            gap:12px;
+            margin-bottom:18px;
+            text-decoration:none;
+            color:inherit;
+        }
+        .logo-icon {
+            width:44px;
+            height:44px;
+            display:grid;
+            place-items:center;
+            border-radius:12px;
+            background:linear-gradient(135deg,#f84f25,#b8120e);
+            box-shadow:0 10px 24px rgba(248,79,37,0.35);
+            padding:6px;
+        }
+        .logo-text {
+            display:flex;
+            flex-direction:column;
+            gap:2px;
+            align-items:flex-start;
+        }
+        .logo-text span:first-child {
+            font-size:18px;
+            font-weight:700;
+            letter-spacing:1.5px;
+        }
+        .logo-text span:last-child {
+            font-size:12px;
+            color:var(--muted);
+        }
+        .main {
+            flex:1;
+            display:grid;
+            place-items:center;
+            padding:24px 0;
+        }
+        .card {
+            width:min(920px,100%);
+            background:rgba(8,10,16,0.62);
+            border:1px solid rgba(255,255,255,0.1);
+            border-radius:20px;
+            padding:30px;
+            box-shadow:0 16px 36px rgba(0,0,0,0.35);
+            backdrop-filter:blur(8px);
+            display:grid;
+            gap:18px;
+        }
+        .title-row {
+            display:flex;
+            justify-content:space-between;
+            align-items:flex-start;
+            gap:14px;
+            flex-wrap:wrap;
+        }
+        .title-row h1 {
+            font-size:24px;
+            margin-bottom:8px;
+            letter-spacing:0.4px;
+        }
+        .title-row p {
+            color:var(--muted);
+            max-width:620px;
+        }
+        .status {
+            margin:2px 0 6px;
+            padding:10px 12px;
+            border-radius:12px;
+            font-weight:600;
+            border:1px solid rgba(255,255,255,0.08);
+            background:rgba(255,255,255,0.04);
+        }
+        .status[data-type="error"] {
+            color:#fecdd3;
+            border-color:rgba(248,79,37,0.35);
+        }
+        .status[data-type="success"] {
+            color:#bbf7d0;
+            border-color:rgba(74,222,128,0.35);
+        }
+        .status[data-type="info"] {
+            color:var(--text);
+        }
+        .section {
+            background:rgba(255,255,255,0.03);
+            border:1px solid var(--border);
+            border-radius:16px;
+            padding:16px;
+            display:grid;
+            gap:14px;
+        }
+        .section-head {
+            display:flex;
+            align-items:center;
+            justify-content:space-between;
+            gap:10px;
+            flex-wrap:wrap;
+        }
+        .section-head h2 {
+            font-size:16px;
+            letter-spacing:0.2px;
+        }
+        .section-head p {
+            color:var(--muted);
+            font-size:13px;
+        }
+        .grid {
+            display:grid;
+            grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+            gap:14px;
+        }
+        .field {
+            display:flex;
+            flex-direction:column;
+            gap:8px;
+        }
+        .field-wide {
+            grid-column:1 / -1;
+        }
+        .field label {
+            font-weight:600;
+            color:var(--text);
+            font-size:14px;
+        }
+        .field input,
+        .field textarea,
+        .field select {
+            padding:12px 14px;
+            border-radius:12px;
+            border:1px solid var(--border);
+            background:rgba(255,255,255,0.04);
+            color:var(--text);
+            font-size:14px;
+            outline:none;
+            transition:all 0.2s ease;
+        }
+        .field textarea {
+            min-height:86px;
+            resize:vertical;
+            line-height:1.45;
+        }
+        .field input:focus,
+        .field textarea:focus,
+        .field select:focus {
+            border-color:rgba(34,211,238,0.6);
+            box-shadow:0 0 0 3px rgba(34,211,238,0.12);
+        }
+        .hint {
+            font-size:12px;
+            color:var(--muted);
+        }
+        .actions {
+            display:flex;
+            gap:12px;
+            margin-top:2px;
+            flex-wrap:wrap;
+        }
+        .btn {
+            display:inline-flex;
+            align-items:center;
+            justify-content:center;
+            gap:8px;
+            padding:12px 18px;
+            border-radius:14px;
+            font-weight:700;
+            font-size:14px;
+            cursor:pointer;
+            border:none;
+            text-decoration:none;
+            transition:all 0.2s ease;
+        }
+        .btn-primary {
+            background:linear-gradient(135deg,var(--accent),var(--accent-hot));
+            color:#0b1224;
+            box-shadow:0 12px 26px rgba(34,211,238,0.3);
+        }
+        .btn-ghost {
+            background:rgba(255,255,255,0.04);
+            color:var(--text);
+            border:1px solid rgba(255,255,255,0.12);
+        }
+        .btn:hover {
+            transform:translateY(-1px);
+            box-shadow:0 16px 30px rgba(34,211,238,0.18);
+        }
+        .footer {
+            text-align:center;
+            color:var(--muted);
+            font-size:13px;
+            padding:16px 0;
+        }
+        @media (max-width: 700px) {
+            body {
+                padding:18px;
+            }
+            .card {
+                padding:20px;
+            }
+            .title-row h1 {
+                font-size:22px;
+            }
+        }
     </style>
 </head>
 <body>
     <main class="main">
-        <a class="brand brand-link" href="landing.html">
+        <a class="brand" href="landing.html">
             <div class="logo-icon" aria-label="Syntrae logo">🧠</div>
             <div class="logo-text">
                 <span>SYNTRAE</span>
-                <span>Persona Simulation Engine</span>
+                <span>Insight Engine</span>
             </div>
         </a>
         <div class="card">
-            <h1>Welcome! Tell us a bit about you</h1>
-            <p>This helps personalize your workspace. You can edit it anytime.</p>
+            <div class="title-row">
+                <div>
+                    <h1>Your Persona</h1>
+                    <p>This is your account-level persona profile. Syntrae uses this page as the primary source of user context in analysis and testing tools.</p>
+                </div>
+            </div>
+
             <div id="status" class="status" hidden></div>
+
             <form id="profile-form">
-                <div class="grid">
-                    <div class="field">
-                        <label for="first_name">First name</label>
-                        <input id="first_name" name="first_name" autocomplete="given-name" required>
+                <section class="section">
+                    <div class="section-head">
+                        <h2><i class="fas fa-id-card"></i> Core Profile</h2>
+                        <p>Traditional account information</p>
+                    </div>
+                    <div class="grid">
+                        <div class="field">
+                            <label for="first_name">First name</label>
+                            <input id="first_name" name="first_name" autocomplete="given-name" required>
+                        </div>
+                        <div class="field">
+                            <label for="last_name">Last name</label>
+                            <input id="last_name" name="last_name" autocomplete="family-name" required>
+                        </div>
+                        <div class="field">
+                            <label for="occupation">Occupation</label>
+                            <input id="occupation" name="occupation" placeholder="Product Manager, Researcher, etc.">
+                        </div>
+                        <div class="field">
+                            <label for="organization">Organization</label>
+                            <input id="organization" name="organization" placeholder="Company or team">
+                        </div>
+                        <div class="field field-wide">
+                            <label for="location">Location</label>
+                            <input id="location" name="location" placeholder="City, Country">
+                        </div>
+                    </div>
+                </section>
+
+                <section class="section">
+                    <div class="section-head">
+                        <h2><i class="fas fa-user-gear"></i> User Persona Context</h2>
+                        <p>Personal context used by Syntrae insight tools</p>
+                    </div>
+                    <div class="grid">
+                        <div class="field">
+                            <label for="display_name">Display name</label>
+                            <input id="display_name" name="display_name" placeholder="How should Syntrae refer to you?">
+                        </div>
+                        <div class="field">
+                            <label for="personal_headline">Personal headline</label>
+                            <input id="personal_headline" name="personal_headline" placeholder="Example: Founder building healthier relationships">
+                        </div>
+                        <div class="field field-wide">
+                            <label for="goals">Current goals</label>
+                            <textarea id="goals" name="goals" placeholder="What outcomes are you currently trying to achieve?"></textarea>
+                        </div>
+                        <div class="field field-wide">
+                            <label for="strengths">Strengths and leverage</label>
+                            <textarea id="strengths" name="strengths" placeholder="What gives you an advantage in social interactions?"></textarea>
+                        </div>
+                        <div class="field field-wide">
+                            <label for="constraints">Constraints and risks</label>
+                            <textarea id="constraints" name="constraints" placeholder="What currently makes this harder for you?"></textarea>
+                        </div>
+                        <div class="field field-wide">
+                            <label for="communication_style">Communication style</label>
+                            <textarea id="communication_style" name="communication_style" placeholder="How do you usually communicate? tone, pacing, directness, etc."></textarea>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="section">
+                    <div class="section-head">
+                        <h2><i class="fas fa-link"></i> Persona Link</h2>
+                        <p>Select which persona represents you in testing tools</p>
                     </div>
                     <div class="field">
-                        <label for="last_name">Last name</label>
-                        <input id="last_name" name="last_name" autocomplete="family-name" required>
+                        <label for="primary_persona_key">Primary user persona (optional)</label>
+                        <select id="primary_persona_key" name="primary_persona_key">
+                            <option value="">No linked persona</option>
+                        </select>
+                        <div class="hint">This option is used by Insight Lab Fitness Test to include your own persona in comparisons.</div>
                     </div>
-                </div>
-                <div class="grid">
-                    <div class="field">
-                        <label for="occupation">Occupation</label>
-                        <input id="occupation" name="occupation" placeholder="Product Manager, Researcher, etc.">
-                    </div>
-                    <div class="field">
-                        <label for="organization">Organization</label>
-                        <input id="organization" name="organization" placeholder="Company or team">
-                    </div>
-                </div>
-                <div class="field">
-                    <label for="location">Location</label>
-                    <input id="location" name="location" placeholder="City, Country">
-                </div>
+                </section>
+
                 <div class="actions">
-                    <button type="submit" class="btn btn-primary"><i class="fas fa-check"></i>Save profile</button>
-                    <button type="button" id="skipBtn" class="btn btn-ghost">Skip for now</button>
+                    <button type="submit" class="btn btn-primary"><i class="fas fa-check"></i>Save user persona</button>
+                    <button type="button" id="skipBtn" class="btn btn-ghost">Back to chat</button>
                 </div>
             </form>
         </div>
     </main>
 
     <div class="footer">
-        © 2026 Syntrae. All rights reserved.
+        © 2026 Syntrae AI Insight Engine.
     </div>
 
     <script src="js/supabase-config.js"></script>

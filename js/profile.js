@@ -2,12 +2,34 @@ import { supabase } from './supabase-client.js';
 
 const form = document.getElementById('profile-form');
 const statusEl = document.getElementById('status');
+const primaryPersonaSelect = document.getElementById('primary_persona_key');
 const USER_PROFILE_TABLE = 'user_profiles';
+const PERSONA_TABLE = 'personas';
+
+let currentUserId = '';
+let personaRows = [];
+
+const PERSONA_FIELDS = Object.freeze([
+  'display_name',
+  'personal_headline',
+  'goals',
+  'strengths',
+  'constraints',
+  'communication_style',
+  'primary_persona_key'
+]);
 
 function isMissingTableError(error) {
   const message = String(error?.message || '').toLowerCase();
   const code = String(error?.code || '');
   return code === '42P01' || message.includes('relation') && message.includes('user_profiles');
+}
+
+function sanitizePersonaKey(value) {
+  const normalized = String(value || '').trim().toLowerCase();
+  if (!normalized) return '';
+  const cleaned = normalized.replace(/[^a-z0-9_-]/g, '');
+  return cleaned || '';
 }
 
 function showStatus(text, type = 'info') {
@@ -22,47 +44,148 @@ function clearStatus() {
   statusEl.removeAttribute('data-type');
 }
 
+function fullName(first, last) {
+  return `${String(first || '').trim()} ${String(last || '').trim()}`.trim();
+}
+
+function setInputValue(name, value) {
+  if (!form[name]) return;
+  form[name].value = String(value || '');
+}
+
+function getInputValue(name) {
+  return String(form[name]?.value || '').trim();
+}
+
+function hydratePersonaFields(profileJson = {}) {
+  PERSONA_FIELDS.forEach((field) => {
+    if (!form[field]) return;
+    setInputValue(field, profileJson?.[field] || '');
+  });
+}
+
+function buildUserPersonaProfile(payload) {
+  return {
+    version: '1.0.0',
+    display_name: payload.display_name || fullName(payload.first_name, payload.last_name),
+    personal_headline: payload.personal_headline || '',
+    goals: payload.goals || '',
+    strengths: payload.strengths || '',
+    constraints: payload.constraints || '',
+    communication_style: payload.communication_style || '',
+    primary_persona_key: sanitizePersonaKey(payload.primary_persona_key),
+    core_profile: {
+      first_name: payload.first_name || '',
+      last_name: payload.last_name || '',
+      occupation: payload.occupation || '',
+      organization: payload.organization || '',
+      location: payload.location || ''
+    },
+    updated_at: new Date().toISOString()
+  };
+}
+
+function renderPrimaryPersonaOptions(selectedKey = '') {
+  if (!primaryPersonaSelect) return;
+  const normalizedSelected = sanitizePersonaKey(selectedKey);
+  primaryPersonaSelect.innerHTML = '';
+
+  const baseOption = document.createElement('option');
+  baseOption.value = '';
+  baseOption.textContent = 'No linked persona';
+  primaryPersonaSelect.appendChild(baseOption);
+
+  personaRows.forEach((row) => {
+    const key = sanitizePersonaKey(row?.persona_key || '');
+    if (!key) return;
+    const option = document.createElement('option');
+    option.value = key;
+    option.textContent = row?.name ? `${row.name} (${key})` : key;
+    primaryPersonaSelect.appendChild(option);
+  });
+
+  if (normalizedSelected && !personaRows.some((row) => sanitizePersonaKey(row?.persona_key) === normalizedSelected)) {
+    const missing = document.createElement('option');
+    missing.value = normalizedSelected;
+    missing.textContent = `${normalizedSelected} (not found)`;
+    primaryPersonaSelect.appendChild(missing);
+  }
+
+  primaryPersonaSelect.value = normalizedSelected || '';
+}
+
+async function loadPersonas(userId) {
+  const { data, error } = await supabase
+    .from(PERSONA_TABLE)
+    .select('persona_key,name,updated_at')
+    .eq('user_id', userId)
+    .order('updated_at', { ascending: false });
+
+  if (error) {
+    console.warn('Could not load personas for user persona page:', error.message || error);
+    personaRows = [];
+    renderPrimaryPersonaOptions('');
+    return;
+  }
+  personaRows = Array.isArray(data) ? data : [];
+}
+
 async function loadExisting() {
   const { data, error } = await supabase.auth.getUser();
   if (error || !data.user) {
     window.location.href = 'sign-in.html';
     return;
   }
+  currentUserId = data.user.id;
+  await loadPersonas(currentUserId);
 
   let source = null;
+  let profileJson = {};
   const { data: profileRow, error: profileError } = await supabase
     .from(USER_PROFILE_TABLE)
-    .select('first_name,last_name,occupation,organization,location')
-    .eq('user_id', data.user.id)
+    .select('first_name,last_name,occupation,organization,location,profile')
+    .eq('user_id', currentUserId)
     .maybeSingle();
 
   if (profileError && !isMissingTableError(profileError)) {
     showStatus(`Could not load saved profile: ${profileError.message || profileError}`, 'error');
   }
+
   if (!profileError && profileRow) {
     source = profileRow;
+    profileJson = profileRow.profile && typeof profileRow.profile === 'object' ? profileRow.profile : {};
   } else {
     source = data.user.user_metadata || {};
+    profileJson = source.user_persona && typeof source.user_persona === 'object' ? source.user_persona : {};
   }
 
-  if (source.first_name) form.first_name.value = source.first_name;
-  if (source.last_name) form.last_name.value = source.last_name;
-  if (source.occupation) form.occupation.value = source.occupation;
-  if (source.organization) form.organization.value = source.organization;
-  if (source.location) form.location.value = source.location;
+  setInputValue('first_name', source.first_name);
+  setInputValue('last_name', source.last_name);
+  setInputValue('occupation', source.occupation);
+  setInputValue('organization', source.organization);
+  setInputValue('location', source.location);
+  hydratePersonaFields(profileJson);
+  renderPrimaryPersonaOptions(profileJson.primary_persona_key || '');
 }
 
 form.addEventListener('submit', async (e) => {
   e.preventDefault();
   clearStatus();
-  const formData = new FormData(form);
+
   const payload = {
-    first_name: formData.get('first_name')?.trim(),
-    last_name: formData.get('last_name')?.trim(),
-    occupation: formData.get('occupation')?.trim(),
-    organization: formData.get('organization')?.trim(),
-    location: formData.get('location')?.trim(),
-    profile_completed: true,
+    first_name: getInputValue('first_name'),
+    last_name: getInputValue('last_name'),
+    occupation: getInputValue('occupation'),
+    organization: getInputValue('organization'),
+    location: getInputValue('location'),
+    display_name: getInputValue('display_name'),
+    personal_headline: getInputValue('personal_headline'),
+    goals: getInputValue('goals'),
+    strengths: getInputValue('strengths'),
+    constraints: getInputValue('constraints'),
+    communication_style: getInputValue('communication_style'),
+    primary_persona_key: sanitizePersonaKey(getInputValue('primary_persona_key')),
+    profile_completed: true
   };
 
   const { data: userData, error: userError } = await supabase.auth.getUser();
@@ -71,6 +194,7 @@ form.addEventListener('submit', async (e) => {
     return;
   }
 
+  const profileJson = buildUserPersonaProfile(payload);
   const profilePayload = {
     user_id: userData.user.id,
     first_name: payload.first_name || null,
@@ -78,6 +202,7 @@ form.addEventListener('submit', async (e) => {
     occupation: payload.occupation || null,
     organization: payload.organization || null,
     location: payload.location || null,
+    profile: profileJson
   };
 
   const { error: profileError } = await supabase
@@ -85,24 +210,35 @@ form.addEventListener('submit', async (e) => {
     .upsert(profilePayload, { onConflict: 'user_id' });
 
   if (profileError && !isMissingTableError(profileError)) {
-    showStatus(`Could not save profile table: ${profileError.message || profileError}`, 'error');
+    showStatus(`Could not save user persona: ${profileError.message || profileError}`, 'error');
     return;
   }
 
-  const { error } = await supabase.auth.updateUser({ data: payload });
+  const authMetadata = {
+    first_name: payload.first_name || '',
+    last_name: payload.last_name || '',
+    occupation: payload.occupation || '',
+    organization: payload.organization || '',
+    location: payload.location || '',
+    profile_completed: true,
+    user_persona: profileJson
+  };
+
+  const { error } = await supabase.auth.updateUser({ data: authMetadata });
   if (error) {
     showStatus(error.message, 'error');
     return;
   }
-  showStatus('Profile saved! Redirecting…', 'success');
-  setTimeout(() => window.location.href = 'Chat.html', 500);
+
+  showStatus('User persona saved. Redirecting…', 'success');
+  setTimeout(() => window.location.href = 'Chat.html', 550);
 });
 
 document.getElementById('skipBtn').addEventListener('click', async () => {
   clearStatus();
   try {
     await supabase.auth.updateUser({ data: { profile_completed: true } });
-  } catch (err) {
+  } catch (_) {
     // non-blocking
   }
   window.location.href = 'Chat.html';
