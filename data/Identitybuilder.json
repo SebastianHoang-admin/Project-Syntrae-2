@@ -1686,7 +1686,7 @@
       "version": "1.0.0",
       "status": "active",
       "scope": {
-        "purpose": "Capture critical hard-gate factors that should trigger all-or-nothing DC behavior in task probability checks.",
+        "purpose": "Capture critical hard-gate factors that should trigger all-or-nothing behavior in task inference.",
         "non_goals": [
           "General personality scoring",
           "Soft preference weighting",
@@ -1697,7 +1697,7 @@
       "mechanics": {
         "question_format": "free_response_only",
         "all_fields_optional": true,
-        "matching_rule": "Use keyword/phrase matching against task text. Conflict signals fix DC=90; support signals fix DC=10."
+        "matching_rule": "Use keyword/phrase matching against task text. Conflict signals map to hard-negative outcomes; support signals map to hard-positive outcomes."
       },
       "sections": [
         {
@@ -1719,7 +1719,7 @@
               "type": "free_text",
               "prompt": "Activities they absolutely will not do:",
               "placeholder": "Comma-separated examples: clubbing, hiking, drinking, overnight travel",
-              "helper": "If the task includes any of these items, the algorithm sets DC=90.",
+              "helper": "If the task includes any of these items, treat as a hard-negative signal.",
               "unknown_option_label": "None / Not sure"
             },
             {
@@ -1728,7 +1728,7 @@
               "type": "free_text",
               "prompt": "Absolute boundaries / no-go topics or requests:",
               "placeholder": "Comma-separated examples: borrowing money, smoking environments, political debates",
-              "helper": "Direct boundary contradiction is handled as critical failure (DC=90).",
+              "helper": "Direct boundary contradiction is handled as critical failure.",
               "unknown_option_label": "None / Not sure"
             }
           ]
@@ -1743,7 +1743,7 @@
               "type": "free_text",
               "prompt": "Favorite dishes / foods that strongly increase openness:",
               "placeholder": "Comma-separated examples: ramen, sushi, milk tea, tacos",
-              "helper": "If a task explicitly matches these preferences, algorithm can trigger support mode (DC=10).",
+              "helper": "If a task explicitly matches these preferences, treat as a strong support signal.",
               "unknown_option_label": "None / Not sure"
             },
             {
@@ -1761,7 +1761,7 @@
               "type": "free_text",
               "prompt": "Preferred activities they are highly likely to accept:",
               "placeholder": "Comma-separated examples: coffee chat, anime movie night, board games, museum visit",
-              "helper": "Direct activity match can trigger critical support (DC=10).",
+              "helper": "Direct activity match can trigger critical support.",
               "unknown_option_label": "None / Not sure"
             }
           ]
@@ -1776,7 +1776,7 @@
               "type": "free_text",
               "prompt": "Extreme dislikes (foods, celebrities, places, topics, vibes):",
               "placeholder": "Comma-separated examples: spicy food, celebrity X, crowded bars, horror movies",
-              "helper": "Strong contradiction here is treated as hard failure (DC=90).",
+              "helper": "Strong contradiction here is treated as hard failure.",
               "unknown_option_label": "None / Not sure"
             },
             {
@@ -1785,7 +1785,7 @@
               "type": "free_text",
               "prompt": "Strong likes / affinity triggers:",
               "placeholder": "Comma-separated examples: jazz cafes, Japanese films, quiet bookstores, bubble tea",
-              "helper": "Strong alignment here is treated as hard support (DC=10).",
+              "helper": "Strong alignment here is treated as hard support.",
               "unknown_option_label": "None / Not sure"
             }
           ]
@@ -1801,7 +1801,7 @@
       },
       "output": {
         "type": "critical_factor_map",
-        "description": "Qualitative hard-gate signals used for conflict/support overrides in task DC logic.",
+        "description": "Qualitative hard-gate signals used for conflict/support overrides in task inference logic.",
         "fields": ["critical_factors", "layer_id", "version", "timestamp_iso"]
       },
       "llm_injection": {
