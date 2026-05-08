@@ -6,7 +6,6 @@ const SYNTHETIC_USER_KEY = '__user_persona__';
 
 const selectA = document.getElementById('fitnessPersonaA');
 const selectB = document.getElementById('fitnessPersonaB');
-const swapBtn = document.getElementById('swapPersonaBtn');
 const runBtn = document.getElementById('runFitnessBtn');
 const statusEl = document.getElementById('fitnessStatus');
 const previewA = document.getElementById('personaPreviewA');
@@ -221,13 +220,6 @@ async function initialize() {
 
 selectA.addEventListener('change', updateFitnessUI);
 selectB.addEventListener('change', updateFitnessUI);
-
-swapBtn.addEventListener('click', () => {
-  const tmp = selectA.value;
-  selectA.value = selectB.value;
-  selectB.value = tmp;
-  updateFitnessUI();
-});
 
 runBtn.addEventListener('click', () => {
   const optionA = optionByKey.get(selectA.value);

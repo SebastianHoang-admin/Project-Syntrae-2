@@ -166,7 +166,7 @@
         }
         .row {
             display:grid;
-            grid-template-columns:1fr auto 1fr;
+            grid-template-columns:1fr 1fr;
             gap:12px;
             align-items:end;
         }
@@ -191,23 +191,6 @@
         .field select:focus {
             border-color:rgba(34,211,238,0.6);
             box-shadow:0 0 0 3px rgba(34,211,238,0.14);
-        }
-        .swap-btn {
-            border:1px solid rgba(255,255,255,0.2);
-            border-radius:12px;
-            background:rgba(255,255,255,0.05);
-            color:var(--text);
-            padding:10px 12px;
-            font-weight:700;
-            cursor:pointer;
-            transition:all .2s ease;
-            display:inline-flex;
-            align-items:center;
-            gap:8px;
-        }
-        .swap-btn:hover {
-            border-color:rgba(34,211,238,0.55);
-            background:rgba(34,211,238,0.12);
         }
         .preview-row {
             display:grid;
@@ -321,7 +304,7 @@
         <div class="grid">
             <section class="panel">
                 <div class="panel-head">
-                    <h2><i class="fas fa-dumbbell"></i> I. Fitness Test</h2>
+                    <h2>I. Fitness Test</h2>
                     <span class="badge">Ready for setup</span>
                 </div>
                 <p class="kv">Select two personas to compare. Your account-level persona is always available as a compare target.</p>
@@ -331,7 +314,6 @@
                         <label for="fitnessPersonaA">Persona A</label>
                         <select id="fitnessPersonaA"></select>
                     </div>
-                    <button type="button" id="swapPersonaBtn" class="swap-btn"><i class="fas fa-right-left"></i>Swap</button>
                     <div class="field">
                         <label for="fitnessPersonaB">Persona B</label>
                         <select id="fitnessPersonaB"></select>
@@ -349,7 +331,7 @@
 
             <section class="panel">
                 <div class="panel-head">
-                    <h2><i class="fas fa-flag-checkered"></i> II. Outcomes Test</h2>
+                    <h2>II. Outcomes Test</h2>
                     <span class="badge">Coming soon</span>
                 </div>
                 <div class="coming-soon">
