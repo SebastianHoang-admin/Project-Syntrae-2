@@ -35,6 +35,7 @@ const areasMatchListEl = document.getElementById('areasMatchList');
 const areasMismatchListEl = document.getElementById('areasMismatchList');
 const matchesChartRowsEl = document.getElementById('matchesChartRows');
 const mismatchesChartRowsEl = document.getElementById('mismatchesChartRows');
+const chartLegendEl = document.getElementById('chartLegend');
 const resultsFallbackEl = document.getElementById('resultsFallback');
 const historyBtnEl = document.getElementById('historyBtn');
 const historyModalEl = document.getElementById('historyModal');
@@ -499,7 +500,7 @@ function renderList(container, items) {
 
 function renderEvidenceChartRows(container, axes, type) {
   container.innerHTML = '';
-  const list = Array.isArray(axes) ? axes : [];
+  const list = Array.isArray(axes) ? [...axes] : [];
   if (!list.length) {
     const empty = document.createElement('div');
     empty.className = 'empty';
@@ -508,19 +509,47 @@ function renderEvidenceChartRows(container, axes, type) {
     return;
   }
 
+  list.sort((leftEntry, rightEntry) => {
+    const leftA = clamp01(leftEntry?.persona_a_value, 0.5) * 100;
+    const leftB = clamp01(leftEntry?.persona_b_value, 0.5) * 100;
+    const rightA = clamp01(rightEntry?.persona_a_value, 0.5) * 100;
+    const rightB = clamp01(rightEntry?.persona_b_value, 0.5) * 100;
+    const leftShared = Math.min(leftA, leftB);
+    const rightShared = Math.min(rightA, rightB);
+    const leftGap = Math.abs(leftA - leftB);
+    const rightGap = Math.abs(rightA - rightB);
+    return type === 'match' ? rightShared - leftShared : rightGap - leftGap;
+  });
+
   list.slice(0, 5).forEach((entry) => {
-    const deviation = clamp01(entry?.deviation, 0.5);
-    const scorePercent = type === 'match'
-      ? Math.round((1 - deviation) * 100)
-      : Math.round(deviation * 100);
+    const aValue = clamp01(entry?.persona_a_value, 0.5);
+    const bValue = clamp01(entry?.persona_b_value, 0.5);
+    const aPercent = Math.round(aValue * 100);
+    const bPercent = Math.round(bValue * 100);
+    const left = Math.min(aPercent, bPercent);
+    const sharedPercent = left;
+    const mismatchPercent = Math.abs(aPercent - bPercent);
+    const metricLabel = type === 'match'
+      ? `Match ${sharedPercent}%`
+      : `Mismatch ${mismatchPercent}%`;
+    const gapWidth = mismatchPercent > 0 ? Math.max(2, mismatchPercent) : 0;
     const row = document.createElement('div');
     row.className = 'chart-row';
     row.innerHTML = `
-      <span class="axis-label">${String(entry?.axis_name || entry?.axis_id || 'Axis')}</span>
-      <span class="axis-bar-track">
-        <span class="axis-bar-fill ${type}" style="width:${scorePercent}%"></span>
-      </span>
-      <span class="axis-score">${scorePercent}%</span>
+      <div class="axis-top">
+        <span class="axis-label">${String(entry?.axis_name || entry?.axis_id || 'Axis')}</span>
+        <span class="axis-score-label ${type}">${metricLabel}</span>
+      </div>
+      <div class="axis-overlay-track">
+        <span class="axis-shared-line" style="left:0%; width:${sharedPercent}%"></span>
+        <span class="axis-gap-line" style="left:${left}%; width:${gapWidth}%"></span>
+        <span class="axis-marker a" style="left:${aPercent}%"></span>
+        <span class="axis-marker b" style="left:${bPercent}%"></span>
+      </div>
+      <div class="axis-values">
+        <span class="axis-pill a">A ${aPercent}</span>
+        <span class="axis-pill b">B ${bPercent}</span>
+      </div>
     `;
     container.appendChild(row);
   });
@@ -574,6 +603,7 @@ function renderReport(report) {
     renderList(areasMatchListEl, []);
     renderList(areasMismatchListEl, []);
     compatibilityDescriptionEl.textContent = 'No compatibility report available yet.';
+    if (chartLegendEl) chartLegendEl.textContent = 'A and B markers show each persona value per trait.';
     renderEvidenceChartRows(matchesChartRowsEl, [], 'match');
     renderEvidenceChartRows(mismatchesChartRowsEl, [], 'mismatch');
     animateCompatibility(0);
@@ -583,6 +613,11 @@ function renderReport(report) {
   resultsFallbackEl.hidden = true;
   const compatibilityPercent = clampPercent(report.compatibilityPercent);
   compatibilityDescriptionEl.textContent = getCompatibilityDescription(compatibilityPercent);
+  if (chartLegendEl) {
+    const personaA = String(report?.personaA?.label || 'Persona A').trim() || 'Persona A';
+    const personaB = String(report?.personaB?.label || 'Persona B').trim() || 'Persona B';
+    chartLegendEl.textContent = `A = ${personaA}, B = ${personaB}.`;
+  }
   renderList(areasMatchListEl, normalizeTextArray(report.areas_match, 4));
   renderList(areasMismatchListEl, normalizeTextArray(report.areas_mismatch, 4));
   renderEvidenceChartRows(matchesChartRowsEl, report.top_matches_axes, 'match');
