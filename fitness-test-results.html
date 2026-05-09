@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Fitness Test Results - Syntrae</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <style>
+    :root {
+      --ink:#0b1224;
+      --text:#e2e8f0;
+      --muted:#94a3b8;
+      --border:rgba(255,255,255,0.13);
+      --good:#22c55e;
+      --warn:#facc15;
+      --bad:#ef4444;
+      --aqua:#22d3ee;
+      --hot:#fb923c;
+    }
+    * {
+      margin:0;
+      padding:0;
+      box-sizing:border-box;
+      font-family:'Space Grotesk','Helvetica Neue',Arial,sans-serif;
+    }
+    body {
+      min-height:100vh;
+      background:
+        radial-gradient(circle at 12% 8%, rgba(34,211,238,0.12), transparent 35%),
+        radial-gradient(circle at 92% 0%, rgba(251,146,60,0.1), transparent 28%),
+        linear-gradient(145deg,#070d1d 0%,#0f172a 62%,#0b1224 100%);
+      color:var(--text);
+      display:flex;
+      flex-direction:column;
+    }
+    .header {
+      padding:20px 24px;
+      border-bottom:1px solid rgba(255,255,255,0.12);
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:12px;
+      flex-wrap:wrap;
+      backdrop-filter:blur(4px);
+    }
+    .left-head {
+      display:flex;
+      align-items:center;
+      gap:12px;
+      flex-wrap:wrap;
+    }
+    .back-link {
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      border:1px solid rgba(255,255,255,0.2);
+      border-radius:12px;
+      padding:10px 12px;
+      color:var(--text);
+      text-decoration:none;
+      font-weight:700;
+      background:rgba(255,255,255,0.04);
+      transition:all .2s ease;
+    }
+    .back-link:hover {
+      border-color:rgba(34,211,238,0.5);
+      background:rgba(34,211,238,0.12);
+      transform:translateY(-1px);
+    }
+    .title {
+      font-size:18px;
+      font-weight:700;
+      letter-spacing:.3px;
+    }
+    .history-btn {
+      border:1px solid rgba(255,255,255,0.2);
+      border-radius:12px;
+      padding:10px 12px;
+      color:var(--text);
+      background:rgba(255,255,255,0.05);
+      font-weight:700;
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      cursor:pointer;
+      transition:all .2s ease;
+    }
+    .history-btn:hover {
+      border-color:rgba(34,211,238,0.5);
+      background:rgba(34,211,238,0.12);
+    }
+    .container {
+      width:min(1120px,100%);
+      margin:0 auto;
+      padding:28px 22px 34px;
+      display:grid;
+      gap:18px;
+      flex:1;
+    }
+    .card {
+      border:1px solid var(--border);
+      border-radius:18px;
+      background:linear-gradient(145deg,rgba(30,41,59,0.4),rgba(15,23,42,0.75));
+      padding:20px;
+      box-shadow:0 20px 52px rgba(0,0,0,0.35);
+      animation:rise .42s ease both;
+    }
+    .card:nth-child(2) {
+      animation-delay:.08s;
+    }
+    @keyframes rise {
+      from {
+        opacity:0;
+        transform:translateY(8px);
+      }
+      to {
+        opacity:1;
+        transform:translateY(0);
+      }
+    }
+    .compat-top {
+      display:flex;
+      justify-content:space-between;
+      align-items:flex-end;
+      gap:12px;
+      flex-wrap:wrap;
+      margin-bottom:14px;
+    }
+    .compat-title {
+      color:var(--muted);
+      font-weight:700;
+      letter-spacing:.2px;
+      font-size:13px;
+      text-transform:uppercase;
+    }
+    .compat-value {
+      font-size:52px;
+      font-weight:800;
+      line-height:1;
+      letter-spacing:-1px;
+    }
+    .compat-value.low {
+      color:var(--bad);
+      text-shadow:0 0 18px rgba(239,68,68,0.4);
+    }
+    .compat-value.mid {
+      color:var(--warn);
+      text-shadow:0 0 18px rgba(250,204,21,0.34);
+    }
+    .compat-value.high {
+      color:var(--good);
+      text-shadow:0 0 18px rgba(34,197,94,0.34);
+    }
+    .compat-track {
+      border:1px solid rgba(255,255,255,0.13);
+      border-radius:999px;
+      height:16px;
+      background:rgba(255,255,255,0.05);
+      overflow:hidden;
+    }
+    .compat-fill {
+      width:0%;
+      height:100%;
+      background:linear-gradient(90deg,var(--aqua),var(--hot));
+      box-shadow:0 0 16px rgba(34,211,238,0.38);
+      transition:width .75s cubic-bezier(.23,1,.32,1), background .35s ease;
+    }
+    .compat-fill.low {
+      background:linear-gradient(90deg, #dc2626, #fb7185);
+      box-shadow:0 0 16px rgba(239,68,68,0.44);
+    }
+    .compat-fill.mid {
+      background:linear-gradient(90deg, #ca8a04, #facc15);
+      box-shadow:0 0 16px rgba(250,204,21,0.4);
+    }
+    .compat-fill.high {
+      background:linear-gradient(90deg, #16a34a, #4ade80);
+      box-shadow:0 0 16px rgba(34,197,94,0.44);
+    }
+    .compat-description {
+      margin-top:12px;
+      color:var(--muted);
+      font-size:14px;
+      line-height:1.5;
+    }
+    .areas-head {
+      display:flex;
+      justify-content:space-between;
+      align-items:flex-end;
+      gap:12px;
+      flex-wrap:wrap;
+      margin-bottom:16px;
+    }
+    .areas-title {
+      font-size:22px;
+      font-weight:800;
+      line-height:1.2;
+      letter-spacing:.3px;
+    }
+    .areas-grid {
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:12px;
+      margin-bottom:14px;
+    }
+    .list-card {
+      border:1px solid rgba(255,255,255,0.12);
+      border-radius:14px;
+      padding:14px;
+      background:rgba(255,255,255,0.03);
+    }
+    .list-card h3 {
+      font-size:15px;
+      margin-bottom:10px;
+      display:flex;
+      align-items:center;
+      gap:8px;
+      letter-spacing:.2px;
+    }
+    .list-card.match h3 i {
+      color:var(--good);
+    }
+    .list-card.mismatch h3 i {
+      color:var(--bad);
+    }
+    .insight-list {
+      list-style:none;
+      display:grid;
+      gap:9px;
+    }
+    .insight-list li {
+      font-size:14px;
+      line-height:1.45;
+      color:#dce6f4;
+      padding-left:14px;
+      position:relative;
+    }
+    .insight-list li::before {
+      content:'';
+      width:6px;
+      height:6px;
+      border-radius:999px;
+      background:rgba(255,255,255,0.6);
+      position:absolute;
+      left:0;
+      top:9px;
+    }
+    .list-card.match .insight-list li::before {
+      background:rgba(34,197,94,0.9);
+      box-shadow:0 0 10px rgba(34,197,94,0.45);
+    }
+    .list-card.mismatch .insight-list li::before {
+      background:rgba(239,68,68,0.9);
+      box-shadow:0 0 10px rgba(239,68,68,0.45);
+    }
+    .evidence-title {
+      font-size:14px;
+      color:var(--muted);
+      font-weight:700;
+      letter-spacing:.2px;
+      margin-bottom:10px;
+    }
+    .evidence-grid {
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:12px;
+    }
+    .chart-card {
+      border:1px solid rgba(255,255,255,0.12);
+      border-radius:14px;
+      padding:12px;
+      background:rgba(255,255,255,0.02);
+      display:grid;
+      gap:8px;
+    }
+    .chart-card h4 {
+      font-size:13px;
+      font-weight:700;
+      color:#dbeafe;
+    }
+    .chart-rows {
+      display:grid;
+      gap:7px;
+    }
+    .chart-row {
+      display:grid;
+      grid-template-columns:minmax(110px, 1fr) 2fr auto;
+      gap:8px;
+      align-items:center;
+    }
+    .axis-label {
+      font-size:12px;
+      color:#c7d6ef;
+      line-height:1.25;
+    }
+    .axis-bar-track {
+      height:8px;
+      border-radius:999px;
+      background:rgba(255,255,255,0.11);
+      overflow:hidden;
+    }
+    .axis-bar-fill {
+      height:100%;
+      width:0%;
+      border-radius:999px;
+      transition:width .45s ease;
+    }
+    .axis-bar-fill.match {
+      background:linear-gradient(90deg, rgba(34,197,94,0.86), rgba(74,222,128,0.96));
+      box-shadow:0 0 12px rgba(34,197,94,0.34);
+    }
+    .axis-bar-fill.mismatch {
+      background:linear-gradient(90deg, rgba(239,68,68,0.84), rgba(248,113,113,0.96));
+      box-shadow:0 0 12px rgba(239,68,68,0.34);
+    }
+    .axis-score {
+      font-size:12px;
+      font-weight:700;
+      color:#e2e8f0;
+      min-width:36px;
+      text-align:right;
+    }
+    .empty {
+      color:var(--muted);
+      font-size:14px;
+      line-height:1.5;
+    }
+    .history-modal {
+      position:fixed;
+      inset:0;
+      z-index:40;
+      background:rgba(2,6,23,0.72);
+      backdrop-filter:blur(5px);
+      display:grid;
+      place-items:center;
+    }
+    .history-modal[hidden] {
+      display:none !important;
+    }
+    .history-panel {
+      width:min(880px, calc(100vw - 26px));
+      max-height:80vh;
+      overflow:auto;
+      border:1px solid rgba(255,255,255,0.16);
+      border-radius:16px;
+      background:linear-gradient(145deg,rgba(15,23,42,0.98),rgba(30,41,59,0.96));
+      box-shadow:0 26px 60px rgba(0,0,0,0.48);
+      padding:16px;
+      display:grid;
+      gap:12px;
+    }
+    .history-head {
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:10px;
+    }
+    .history-title {
+      font-size:17px;
+      font-weight:800;
+    }
+    .history-close {
+      border:1px solid rgba(255,255,255,0.18);
+      background:rgba(255,255,255,0.06);
+      color:var(--text);
+      border-radius:10px;
+      padding:8px 10px;
+      cursor:pointer;
+      font-weight:700;
+    }
+    .history-list {
+      display:grid;
+      gap:10px;
+    }
+    .history-item {
+      border:1px solid rgba(255,255,255,0.12);
+      border-radius:12px;
+      background:rgba(255,255,255,0.03);
+      padding:12px;
+      display:grid;
+      gap:6px;
+    }
+    .history-item-top {
+      display:flex;
+      justify-content:space-between;
+      gap:8px;
+      flex-wrap:wrap;
+      align-items:baseline;
+    }
+    .history-pair {
+      font-weight:700;
+      font-size:14px;
+      color:#e8f0ff;
+    }
+    .history-time {
+      font-size:12px;
+      color:var(--muted);
+    }
+    .history-meta {
+      display:flex;
+      gap:12px;
+      flex-wrap:wrap;
+      font-size:12px;
+      color:#cbd5e1;
+    }
+    @media (max-width: 860px) {
+      .compat-value {
+        font-size:44px;
+      }
+      .areas-grid,
+      .evidence-grid {
+        grid-template-columns:1fr;
+      }
+      .chart-row {
+        grid-template-columns:1fr;
+      }
+      .axis-score {
+        text-align:left;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header class="header">
+    <div class="left-head">
+      <a class="back-link" href="insight-lab.html"><i class="fas fa-arrow-left"></i>Back to Insight Lab</a>
+      <h1 class="title">Fitness Test Results</h1>
+    </div>
+    <button id="historyBtn" class="history-btn" type="button"><i class="fas fa-clock-rotate-left"></i>Report History</button>
+  </header>
+
+  <main class="container">
+    <section class="card">
+      <div class="compat-top">
+        <span class="compat-title">Compatibility</span>
+        <span id="compatibilityValue" class="compat-value">0%</span>
+      </div>
+      <div class="compat-track">
+        <div id="compatibilityFill" class="compat-fill"></div>
+      </div>
+      <p id="compatibilityDescription" class="compat-description"></p>
+    </section>
+
+    <section class="card">
+      <div class="areas-head">
+        <h2 class="areas-title">Areas of Match and Mismatch</h2>
+      </div>
+      <div class="areas-grid">
+        <article class="list-card match">
+          <h3><i class="fas fa-circle-check"></i>Areas of Match</h3>
+          <ul id="areasMatchList" class="insight-list"></ul>
+        </article>
+        <article class="list-card mismatch">
+          <h3><i class="fas fa-triangle-exclamation"></i>Areas of Mismatch</h3>
+          <ul id="areasMismatchList" class="insight-list"></ul>
+        </article>
+      </div>
+
+      <h3 class="evidence-title">Chart</h3>
+      <div class="evidence-grid">
+        <article class="chart-card">
+          <h4>Strongest Matches</h4>
+          <div id="matchesChartRows" class="chart-rows"></div>
+        </article>
+        <article class="chart-card">
+          <h4>Largest Mismatches</h4>
+          <div id="mismatchesChartRows" class="chart-rows"></div>
+        </article>
+      </div>
+      <p id="resultsFallback" class="empty" hidden>No recent Fitness Test result found. Run the test from Insight Lab first.</p>
+    </section>
+  </main>
+
+  <section id="historyModal" class="history-modal" hidden>
+    <div class="history-panel">
+      <div class="history-head">
+        <h2 class="history-title">Report History (Last 10)</h2>
+        <button id="historyCloseBtn" class="history-close" type="button">Close</button>
+      </div>
+      <div id="historyList" class="history-list"></div>
+    </div>
+  </section>
+
+  <script src="js/supabase-config.js"></script>
+  <script type="module" src="js/fitness-test-results.js"></script>
+</body>
+</html>

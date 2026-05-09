@@ -154,8 +154,8 @@
             gap:8px;
         }
         .badge {
-            border:1px solid rgba(34,211,238,0.45);
-            background:rgba(34,211,238,0.12);
+            border:1px solid rgba(255,255,255,0.2);
+            background:rgba(255,255,255,0.08);
             color:var(--text);
             border-radius:999px;
             padding:6px 10px;
@@ -163,6 +163,44 @@
             font-weight:700;
             letter-spacing:.4px;
             text-transform:uppercase;
+            display:inline-flex;
+            align-items:center;
+            gap:8px;
+        }
+        .badge .state-dot {
+            width:8px;
+            height:8px;
+            border-radius:999px;
+            background:#16a34a;
+            box-shadow:0 0 0 0 rgba(34,197,94,0.8);
+            animation:pulse-ready 1.5s infinite;
+            display:none;
+        }
+        .badge .state-x {
+            font-size:12px;
+            color:#f87171;
+            display:none;
+        }
+        .badge.ready {
+            border-color:rgba(34,197,94,0.5);
+            background:rgba(34,197,94,0.14);
+            color:#bbf7d0;
+        }
+        .badge.ready .state-dot {
+            display:inline-block;
+        }
+        .badge.not-ready {
+            border-color:rgba(248,113,113,0.45);
+            background:rgba(248,113,113,0.14);
+            color:#fecaca;
+        }
+        .badge.not-ready .state-x {
+            display:inline-block;
+        }
+        @keyframes pulse-ready {
+            0% { box-shadow:0 0 0 0 rgba(34,197,94,0.7); }
+            70% { box-shadow:0 0 0 8px rgba(34,197,94,0); }
+            100% { box-shadow:0 0 0 0 rgba(34,197,94,0); }
         }
         .row {
             display:grid;
@@ -205,6 +243,36 @@
             display:grid;
             gap:7px;
             min-height:132px;
+        }
+        .persona-head {
+            display:flex;
+            align-items:center;
+            gap:10px;
+        }
+        .persona-avatar {
+            width:54px;
+            height:54px;
+            border-radius:12px;
+            border:1px solid rgba(255,255,255,0.18);
+            overflow:hidden;
+            background:linear-gradient(135deg, rgba(34,211,238,0.3), rgba(249,115,22,0.35));
+            flex-shrink:0;
+            display:grid;
+            place-items:center;
+            font-weight:800;
+            color:#dbeafe;
+            letter-spacing:0.5px;
+        }
+        .persona-avatar img {
+            width:100%;
+            height:100%;
+            object-fit:cover;
+            display:block;
+        }
+        .persona-name-wrap {
+            min-width:0;
+            display:grid;
+            gap:2px;
         }
         .persona-preview h3 {
             font-size:15px;
@@ -256,57 +324,72 @@
         .run-btn:hover:not(:disabled) {
             transform:translateY(-1px);
         }
-        .fitness-result {
-            border:1px solid var(--border);
-            border-radius:14px;
-            background:rgba(255,255,255,0.04);
-            padding:14px;
+        .run-overlay {
+            position:fixed;
+            inset:0;
+            background:rgba(3,7,18,0.72);
+            backdrop-filter:blur(6px);
             display:grid;
-            gap:10px;
+            place-items:center;
+            z-index:40;
         }
-        .result-head {
+        .run-overlay[hidden] {
+            display:none !important;
+        }
+        .run-card {
+            width:min(460px, calc(100vw - 30px));
+            background:linear-gradient(145deg, rgba(15,23,42,0.95), rgba(30,41,59,0.94));
+            border:1px solid rgba(255,255,255,0.15);
+            border-radius:18px;
+            padding:20px;
+            display:grid;
+            gap:14px;
+            box-shadow:0 20px 52px rgba(0,0,0,0.45);
+        }
+        .run-head {
             display:flex;
-            justify-content:space-between;
-            align-items:baseline;
-            gap:10px;
-            flex-wrap:wrap;
+            align-items:center;
+            gap:12px;
         }
-        .result-title {
-            font-size:14px;
+        .run-spinner {
+            width:20px;
+            height:20px;
+            border:2px solid rgba(255,255,255,0.22);
+            border-top-color:#22d3ee;
+            border-radius:999px;
+            animation:spin 0.8s linear infinite;
+            flex-shrink:0;
+        }
+        @keyframes spin {
+            to { transform:rotate(360deg); }
+        }
+        .run-title {
+            font-size:17px;
             font-weight:700;
+        }
+        .run-stage {
             color:var(--muted);
-            letter-spacing:0.2px;
+            font-size:13px;
         }
-        .result-value {
-            font-size:24px;
-            font-weight:800;
-            line-height:1;
-        }
-        .result-grid {
-            display:grid;
-            grid-template-columns:repeat(3, minmax(120px, 1fr));
-            gap:10px;
-        }
-        .result-cell {
+        .progress-track {
             border:1px solid rgba(255,255,255,0.12);
-            border-radius:10px;
-            background:rgba(255,255,255,0.02);
-            padding:10px;
-            display:grid;
-            gap:5px;
+            border-radius:999px;
+            height:12px;
+            background:rgba(255,255,255,0.05);
+            overflow:hidden;
         }
-        .result-cell .label {
-            font-size:12px;
+        .progress-fill {
+            width:0%;
+            height:100%;
+            background:linear-gradient(90deg, #22d3ee, #fb923c);
+            transition:width 220ms ease;
+            box-shadow:0 0 18px rgba(34,211,238,0.45);
+        }
+        .progress-text {
+            text-align:right;
             color:var(--muted);
-        }
-        .result-cell .value {
-            font-size:18px;
             font-weight:700;
-        }
-        .result-note {
-            color:var(--muted);
             font-size:12px;
-            line-height:1.5;
         }
         .coming-soon {
             border:1px dashed rgba(255,255,255,0.24);
@@ -357,7 +440,11 @@
             <section class="panel">
                 <div class="panel-head">
                     <h2>I. Fitness Test</h2>
-                    <span class="badge">Ready for setup</span>
+                    <span class="badge not-ready" id="fitnessReadyBadge">
+                        <span class="state-dot" aria-hidden="true"></span>
+                        <i class="fas fa-xmark state-x" aria-hidden="true"></i>
+                        <span id="fitnessReadyLabel">Not ready</span>
+                    </span>
                 </div>
                 <p class="kv">Select two personas to compare. Your account-level persona is always available as a compare target.</p>
 
@@ -377,29 +464,8 @@
                     <article class="persona-preview" id="personaPreviewB"></article>
                 </div>
 
-                <div id="fitnessStatus" class="status" data-type="info">Load your personas to begin setup.</div>
+                <div id="fitnessStatus" class="status" data-type="info" hidden></div>
                 <button type="button" id="runFitnessBtn" class="run-btn"><i class="fas fa-play"></i>Run Fitness Test</button>
-                <section id="fitnessResult" class="fitness-result" hidden>
-                    <div class="result-head">
-                        <span class="result-title">Compatibility</span>
-                        <span id="fitnessCompatibilityValue" class="result-value">0%</span>
-                    </div>
-                    <div class="result-grid">
-                        <div class="result-cell">
-                            <span class="label">Quantitative overlap</span>
-                            <span id="fitnessOverlapValue" class="value">0 traits</span>
-                        </div>
-                        <div class="result-cell">
-                            <span class="label">Qualitative misalignment</span>
-                            <span id="fitnessMisalignmentValue" class="value">0%</span>
-                        </div>
-                        <div class="result-cell">
-                            <span class="label">Mutation rate</span>
-                            <span id="fitnessMutationValue" class="value">0%</span>
-                        </div>
-                    </div>
-                    <div id="fitnessResultNote" class="result-note"></div>
-                </section>
             </section>
 
             <section class="panel">
@@ -413,6 +479,20 @@
             </section>
         </div>
     </main>
+
+    <div class="run-overlay" id="fitnessRunOverlay" hidden>
+        <section class="run-card">
+            <div class="run-head">
+                <span class="run-spinner" aria-hidden="true"></span>
+                <h3 class="run-title">Running Fitness Test</h3>
+            </div>
+            <p class="run-stage" id="fitnessRunStage">Initializing profile comparison…</p>
+            <div class="progress-track">
+                <div class="progress-fill" id="fitnessRunProgressBar"></div>
+            </div>
+            <div class="progress-text" id="fitnessRunProgressText">0%</div>
+        </section>
+    </div>
 
     <footer class="footer">© 2026 Syntrae AI Insight Engine.</footer>
 
