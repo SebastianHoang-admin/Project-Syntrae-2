@@ -1062,14 +1062,89 @@ Authority figure</div>
             return traits;
         }
 
+        function clamp01(value, fallback = 0) {
+            const numeric = Number(value);
+            if (!Number.isFinite(numeric)) return fallback;
+            return Math.max(0, Math.min(1, numeric));
+        }
+
         function parseLayerScores(rawValue) {
             if (typeof rawValue !== 'string' || !rawValue) return {};
             try {
                 const parsed = JSON.parse(rawValue);
-                return parsed && typeof parsed === 'object' ? parsed : {};
+                if (!parsed || typeof parsed !== 'object') return {};
+                const normalized = {};
+                Object.entries(parsed).forEach(([axisId, entry]) => {
+                    if (!axisId) return;
+                    if (typeof entry === 'number') {
+                        normalized[axisId] = { value: clamp01(entry, 0.5), confidence: 0.6 };
+                        return;
+                    }
+                    if (!entry || typeof entry !== 'object') return;
+                    if (typeof entry.value !== 'number') return;
+                    normalized[axisId] = {
+                        value: clamp01(entry.value, 0.5),
+                        confidence: clamp01(entry.confidence, 0.6)
+                    };
+                });
+                return normalized;
             } catch (_) {
                 return {};
             }
+        }
+
+        function splitQualitativeTerms(raw) {
+            const text = String(raw || '').toLowerCase();
+            if (!text) return [];
+            return text
+                .replace(/[\n\r\t]/g, ' ')
+                .replace(/[^\w\s,/+-]/g, ' ')
+                .split(/[\s,;/|]+/g)
+                .map((part) => part.trim())
+                .filter((part) => part.length >= 2 && part.length <= 32);
+        }
+
+        function collectQualitativeTags({ adjectiveSignals, freeformSignals, criticalFactors, extras }) {
+            const tags = new Set();
+
+            adjectiveSignals.forEach((entry) => {
+                const selected = Array.isArray(entry?.selected) ? entry.selected : [];
+                selected.forEach((label) => {
+                    splitQualitativeTerms(label).forEach((term) => tags.add(`adj:${term}`));
+                });
+            });
+
+            Object.values(freeformSignals || {}).forEach((value) => {
+                splitQualitativeTerms(value).forEach((term) => tags.add(`free:${term}`));
+            });
+
+            Object.entries(criticalFactors || {}).forEach(([factorKey, value]) => {
+                if (factorKey) tags.add(`critical:${String(factorKey).toLowerCase()}`);
+                splitQualitativeTerms(value).forEach((term) => tags.add(`critical:${term}`));
+            });
+
+            Object.values(extras || {}).forEach((value) => {
+                splitQualitativeTerms(value).forEach((term) => tags.add(`extra:${term}`));
+            });
+
+            return Array.from(tags).slice(0, 300);
+        }
+
+        function buildQuantitativeTraitVector(axisScores) {
+            const vector = {};
+            ['L1', 'L2', 'L3'].forEach((layerId) => {
+                const layer = axisScores?.[layerId];
+                if (!layer || typeof layer !== 'object') return;
+                Object.entries(layer).forEach(([axisId, entry]) => {
+                    if (!entry || typeof entry !== 'object' || typeof entry.value !== 'number') return;
+                    vector[axisId] = {
+                        layer_id: layerId,
+                        value: clamp01(entry.value, 0.5),
+                        confidence: clamp01(entry.confidence, 0.6)
+                    };
+                });
+            });
+            return vector;
         }
 
         function buildPersonaProfile(state) {
@@ -1077,12 +1152,18 @@ Authority figure</div>
             const freeformSignals = {};
             const adjectiveSignals = [];
             const choiceSignals = {};
+            const criticalFactors = {};
+            const extras = state?.extras && typeof state.extras === 'object' ? state.extras : {};
 
             Object.entries(answers).forEach(([questionId, answer]) => {
                 if (!answer || typeof answer !== 'object') return;
                 if (answer.type === 'free') {
                     const text = String(answer.text || '').trim();
                     if (text) freeformSignals[questionId] = text;
+                    if (text && answer.layerId === 'L6') {
+                        const factorKey = String(answer.fieldName || '').trim();
+                        if (factorKey) criticalFactors[factorKey] = text;
+                    }
                     return;
                 }
                 if (answer.type === 'multi') {
@@ -1107,20 +1188,46 @@ Authority figure</div>
                 }
             });
 
+            const axisScores = {
+                L1: parseLayerScores(state?.identityLayers?.L1),
+                L2: parseLayerScores(state?.identityLayers?.L2),
+                L3: parseLayerScores(state?.identityLayers?.L3)
+            };
+            const quantitativeVector = buildQuantitativeTraitVector(axisScores);
+            const qualitativeTags = collectQualitativeTags({
+                adjectiveSignals,
+                freeformSignals,
+                criticalFactors,
+                extras
+            });
+
             return {
-                schema_version: '2.0.0',
+                schema_version: '3.0.0',
                 persona_key: personaKey,
                 persona_name: normalizePersonaName(state?.personaName),
                 generated_at: new Date().toISOString(),
-                axis_scores: {
-                    L1: parseLayerScores(state?.identityLayers?.L1),
-                    L2: parseLayerScores(state?.identityLayers?.L2),
-                    L3: parseLayerScores(state?.identityLayers?.L3)
+                quantitative_data: {
+                    source_layers: ['L1', 'L2', 'L3'],
+                    axis_scores: axisScores,
+                    trait_vector: quantitativeVector
                 },
+                qualitative_data: {
+                    adjective_signals: adjectiveSignals,
+                    freeform_signals: freeformSignals,
+                    critical_factors: criticalFactors,
+                    extras_text: extras,
+                    qualitative_tags: qualitativeTags
+                },
+                data_split: {
+                    quantitative_fields: ['axis_scores', 'trait_vector'],
+                    qualitative_fields: ['adjective_signals', 'freeform_signals', 'critical_factors', 'extras_text', 'qualitative_tags']
+                },
+                axis_scores: axisScores,
                 adjective_signals: adjectiveSignals,
                 freeform_signals: freeformSignals,
                 choice_signals: choiceSignals,
-                extras: state?.extras && typeof state.extras === 'object' ? state.extras : {}
+                critical_factors: criticalFactors,
+                extras
             };
         }
 

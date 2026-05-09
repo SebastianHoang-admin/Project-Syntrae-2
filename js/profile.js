@@ -65,15 +65,31 @@ function hydratePersonaFields(profileJson = {}) {
 }
 
 function buildUserPersonaProfile(payload) {
-  return {
-    version: '1.0.0',
-    display_name: payload.display_name || fullName(payload.first_name, payload.last_name),
+  const qualitativeData = {
     personal_headline: payload.personal_headline || '',
     goals: payload.goals || '',
     strengths: payload.strengths || '',
     constraints: payload.constraints || '',
-    communication_style: payload.communication_style || '',
+    communication_style: payload.communication_style || ''
+  };
+
+  return {
+    version: '2.0.0',
+    display_name: payload.display_name || fullName(payload.first_name, payload.last_name),
+    personal_headline: qualitativeData.personal_headline,
+    goals: qualitativeData.goals,
+    strengths: qualitativeData.strengths,
+    constraints: qualitativeData.constraints,
+    communication_style: qualitativeData.communication_style,
     primary_persona_key: sanitizePersonaKey(payload.primary_persona_key),
+    quantitative_data: {
+      trait_vector: {}
+    },
+    qualitative_data: qualitativeData,
+    data_split: {
+      quantitative_fields: ['trait_vector'],
+      qualitative_fields: ['personal_headline', 'goals', 'strengths', 'constraints', 'communication_style']
+    },
     core_profile: {
       first_name: payload.first_name || '',
       last_name: payload.last_name || '',

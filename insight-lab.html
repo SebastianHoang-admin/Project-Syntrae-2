@@ -256,6 +256,58 @@
         .run-btn:hover:not(:disabled) {
             transform:translateY(-1px);
         }
+        .fitness-result {
+            border:1px solid var(--border);
+            border-radius:14px;
+            background:rgba(255,255,255,0.04);
+            padding:14px;
+            display:grid;
+            gap:10px;
+        }
+        .result-head {
+            display:flex;
+            justify-content:space-between;
+            align-items:baseline;
+            gap:10px;
+            flex-wrap:wrap;
+        }
+        .result-title {
+            font-size:14px;
+            font-weight:700;
+            color:var(--muted);
+            letter-spacing:0.2px;
+        }
+        .result-value {
+            font-size:24px;
+            font-weight:800;
+            line-height:1;
+        }
+        .result-grid {
+            display:grid;
+            grid-template-columns:repeat(3, minmax(120px, 1fr));
+            gap:10px;
+        }
+        .result-cell {
+            border:1px solid rgba(255,255,255,0.12);
+            border-radius:10px;
+            background:rgba(255,255,255,0.02);
+            padding:10px;
+            display:grid;
+            gap:5px;
+        }
+        .result-cell .label {
+            font-size:12px;
+            color:var(--muted);
+        }
+        .result-cell .value {
+            font-size:18px;
+            font-weight:700;
+        }
+        .result-note {
+            color:var(--muted);
+            font-size:12px;
+            line-height:1.5;
+        }
         .coming-soon {
             border:1px dashed rgba(255,255,255,0.24);
             border-radius:14px;
@@ -327,6 +379,27 @@
 
                 <div id="fitnessStatus" class="status" data-type="info">Load your personas to begin setup.</div>
                 <button type="button" id="runFitnessBtn" class="run-btn"><i class="fas fa-play"></i>Run Fitness Test</button>
+                <section id="fitnessResult" class="fitness-result" hidden>
+                    <div class="result-head">
+                        <span class="result-title">Compatibility</span>
+                        <span id="fitnessCompatibilityValue" class="result-value">0%</span>
+                    </div>
+                    <div class="result-grid">
+                        <div class="result-cell">
+                            <span class="label">Quantitative overlap</span>
+                            <span id="fitnessOverlapValue" class="value">0 traits</span>
+                        </div>
+                        <div class="result-cell">
+                            <span class="label">Qualitative misalignment</span>
+                            <span id="fitnessMisalignmentValue" class="value">0%</span>
+                        </div>
+                        <div class="result-cell">
+                            <span class="label">Mutation rate</span>
+                            <span id="fitnessMutationValue" class="value">0%</span>
+                        </div>
+                    </div>
+                    <div id="fitnessResultNote" class="result-note"></div>
+                </section>
             </section>
 
             <section class="panel">

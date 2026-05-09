@@ -162,31 +162,88 @@ function extractCriticalFactorsFromState(state) {
   return critical;
 }
 
+function safeParseLayer(rawValue) {
+  if (typeof rawValue !== 'string' || !rawValue) return {};
+  try {
+    const parsed = JSON.parse(rawValue);
+    return parsed && typeof parsed === 'object' ? parsed : {};
+  } catch (_) {
+    return {};
+  }
+}
+
+function normalizeStringRecord(value) {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return {};
+  const normalized = {};
+  Object.entries(value).forEach(([key, raw]) => {
+    const text = String(raw || '').trim();
+    if (!text) return;
+    normalized[key] = text;
+  });
+  return normalized;
+}
+
+function enrichProfileDataSplit(profileInput, state, derivedCriticalFactors) {
+  const profile = profileInput && typeof profileInput === 'object' ? profileInput : {};
+
+  const axisScores =
+    profile?.quantitative_data?.axis_scores && typeof profile.quantitative_data.axis_scores === 'object'
+      ? profile.quantitative_data.axis_scores
+      : profile?.axis_scores && typeof profile.axis_scores === 'object'
+        ? profile.axis_scores
+        : {
+            L1: safeParseLayer(state?.identityLayers?.L1),
+            L2: safeParseLayer(state?.identityLayers?.L2),
+            L3: safeParseLayer(state?.identityLayers?.L3)
+          };
+
+  const criticalFactors = {
+    ...normalizeStringRecord(profile?.critical_factors),
+    ...normalizeStringRecord(profile?.qualitative_data?.critical_factors),
+    ...normalizeStringRecord(derivedCriticalFactors)
+  };
+
+  const qualitativeData = {
+    ...(profile?.qualitative_data && typeof profile.qualitative_data === 'object'
+      ? profile.qualitative_data
+      : {}),
+    critical_factors: criticalFactors
+  };
+
+  return {
+    ...profile,
+    quantitative_data: {
+      ...(profile?.quantitative_data && typeof profile.quantitative_data === 'object'
+        ? profile.quantitative_data
+        : {}),
+      axis_scores: axisScores
+    },
+    qualitative_data: qualitativeData,
+    critical_factors: criticalFactors,
+    axis_scores: profile?.axis_scores && typeof profile.axis_scores === 'object'
+      ? profile.axis_scores
+      : axisScores
+  };
+}
+
 function buildPersonaProfile(personaRow) {
   if (!personaRow || typeof personaRow !== 'object') return {};
   const state = personaRow.state && typeof personaRow.state === 'object' ? personaRow.state : {};
   const derivedCriticalFactors = extractCriticalFactorsFromState(state);
 
   if (personaRow.profile && typeof personaRow.profile === 'object') {
-    if (personaRow.profile.critical_factors) return personaRow.profile;
-    if (Object.keys(derivedCriticalFactors).length) {
-      return {
-        ...personaRow.profile,
-        critical_factors: derivedCriticalFactors
-      };
-    }
-    return personaRow.profile;
+    return enrichProfileDataSplit(personaRow.profile, state, derivedCriticalFactors);
   }
 
   const traits = personaRow.traits && typeof personaRow.traits === 'object' ? personaRow.traits : {};
-  return {
+  return enrichProfileDataSplit({
     personaName: state.personaName || personaRow.name || '',
     identityLayers: state.identityLayers || {},
     traits,
     extras: state.extras || {},
     usersInput: state.usersInput || '',
     critical_factors: derivedCriticalFactors
-  };
+  }, state, derivedCriticalFactors);
 }
 
 function buildContextPrompt({
