@@ -9,6 +9,7 @@ const REAL_PERSON_CHAT_STYLE_RE =
   /\b(what should we chat about today|nice to reconnect|i can swing by|do you want me to come over|should we meet at yours|let me know what fits your schedule)\b/i;
 const FIRST_PERSON_BIO_RE =
   /\b(i(?:'m| am)\s+\d{1,2}\b|i(?:'m| am)\s+(?:a|an)\s+(?:student|major|developer|engineer|employee)\b)\b/i;
+const MAX_TEST_HISTORY_ITEMS = 8;
 
 const CRITICAL_FIELD_ID_TO_KEY = Object.freeze({
   L6_S1_F1: 'physical_incapability',
@@ -34,6 +35,222 @@ function safeJson(value) {
   } catch (_) {
     return '{}';
   }
+}
+
+function sanitizeText(value, maxLength = 220) {
+  const text = String(value || '').replace(/\s+/g, ' ').trim();
+  if (!text) return '';
+  if (text.length <= maxLength) return text;
+  return `${text.slice(0, maxLength - 1)}…`;
+}
+
+function toPercent(value) {
+  const num = Number(value);
+  if (!Number.isFinite(num)) return null;
+  return Math.max(0, Math.min(100, Math.round(num)));
+}
+
+function sanitizeTextArray(value, itemLimit = 4, itemMaxLength = 180) {
+  if (!Array.isArray(value)) return [];
+  return value
+    .map((item) => sanitizeText(item, itemMaxLength))
+    .filter(Boolean)
+    .slice(0, itemLimit);
+}
+
+function collectPersonaKeysFromReport(report) {
+  if (!report || typeof report !== 'object') return [];
+  const directKeys = [
+    report?.personaKey,
+    report?.persona_key,
+    report?.targetPersonaKey,
+    report?.target_persona_key,
+    report?.personaA?.key,
+    report?.personaB?.key,
+    report?.persona_a_key,
+    report?.persona_b_key
+  ];
+  const listKeys = Array.isArray(report?.persona_keys) ? report.persona_keys : [];
+  const merged = [...directKeys, ...listKeys];
+  const deduped = new Set();
+  merged.forEach((key) => {
+    const safe = sanitizePersonaKey(key);
+    if (safe) deduped.add(safe);
+  });
+  return Array.from(deduped);
+}
+
+function isReportRelatedToPersona(report, activePersonaKey) {
+  const safeActive = sanitizePersonaKey(activePersonaKey);
+  if (!safeActive) return false;
+  const keys = collectPersonaKeysFromReport(report);
+  return keys.includes(safeActive);
+}
+
+function sanitizeFitnessAxisEntry(entry) {
+  if (!entry || typeof entry !== 'object') return null;
+  const axisName = sanitizeText(entry.axis_name || entry.axis_id || '', 80);
+  if (!axisName) return null;
+  return {
+    axis_name: axisName,
+    deviation: toPercent(Number(entry.deviation) * 100),
+    persona_a_value: toPercent(Number(entry.persona_a_value) * 100),
+    persona_b_value: toPercent(Number(entry.persona_b_value) * 100)
+  };
+}
+
+function sanitizeFitnessReport(report, activePersonaKey) {
+  if (!report || typeof report !== 'object') return null;
+  if (!isReportRelatedToPersona(report, activePersonaKey)) return null;
+  return {
+    report_id: sanitizeText(report.report_id || '', 64),
+    compared_at: sanitizeText(report.comparedAt || report.compared_at || report.generated_at || '', 40),
+    compatibility_percent: toPercent(report.compatibilityPercent),
+    quantitative_deviation_percent: toPercent(report.quantitativeDeviationPercent),
+    qualitative_misalignment_percent: toPercent(report.qualitativeMisalignmentPercent),
+    mutation_rate_percent: toPercent(report.mutationRatePercent),
+    persona_a: {
+      key: sanitizePersonaKey(report?.personaA?.key || report?.persona_a_key || ''),
+      label: sanitizeText(report?.personaA?.label || report?.persona_a_label || '', 80)
+    },
+    persona_b: {
+      key: sanitizePersonaKey(report?.personaB?.key || report?.persona_b_key || ''),
+      label: sanitizeText(report?.personaB?.label || report?.persona_b_label || '', 80)
+    },
+    areas_match: sanitizeTextArray(report.areas_match, 4, 160),
+    areas_mismatch: sanitizeTextArray(report.areas_mismatch, 4, 160),
+    top_matches_axes: (Array.isArray(report.top_matches_axes) ? report.top_matches_axes : [])
+      .map((entry) => sanitizeFitnessAxisEntry(entry))
+      .filter(Boolean)
+      .slice(0, 5),
+    top_mismatches_axes: (Array.isArray(report.top_mismatches_axes) ? report.top_mismatches_axes : [])
+      .map((entry) => sanitizeFitnessAxisEntry(entry))
+      .filter(Boolean)
+      .slice(0, 5)
+  };
+}
+
+function sanitizeOutcomeItem(outcome) {
+  if (!outcome || typeof outcome !== 'object') return null;
+  const label = sanitizeText(
+    outcome.label || outcome.name || outcome.outcome || outcome.outcome_name || '',
+    100
+  );
+  const probability = toPercent(
+    outcome.probability_percent ??
+      outcome.probabilityPercent ??
+      outcome.success_probability_percent ??
+      outcome.successProbabilityPercent ??
+      outcome.percent
+  );
+  if (!label && probability === null) return null;
+  return {
+    label,
+    probability_percent: probability
+  };
+}
+
+function sanitizeOutcomeReport(report, activePersonaKey) {
+  if (!report || typeof report !== 'object') return null;
+  if (!isReportRelatedToPersona(report, activePersonaKey)) return null;
+  const singleProbability = toPercent(
+    report.probability_percent ??
+      report.probabilityPercent ??
+      report.success_probability_percent ??
+      report.successProbabilityPercent ??
+      report.percent
+  );
+  const outcomes = (Array.isArray(report.outcomes) ? report.outcomes : [])
+    .map((item) => sanitizeOutcomeItem(item))
+    .filter(Boolean)
+    .slice(0, 10);
+  return {
+    report_id: sanitizeText(report.report_id || '', 64),
+    generated_at: sanitizeText(report.generatedAt || report.generated_at || report.comparedAt || '', 40),
+    summary: sanitizeText(report.summary || report.title || report.note || '', 240),
+    probability_percent: singleProbability,
+    outcomes
+  };
+}
+
+function reportTimeValue(report) {
+  const value =
+    report?.compared_at || report?.generated_at || report?.comparedAt || report?.generatedAt || '';
+  const epoch = Date.parse(String(value || ''));
+  return Number.isFinite(epoch) ? epoch : 0;
+}
+
+function sortReportsNewestFirst(left, right) {
+  return reportTimeValue(right) - reportTimeValue(left);
+}
+
+function dedupeReportsByIdAndTime(reports) {
+  const seen = new Set();
+  const deduped = [];
+  reports.forEach((report) => {
+    if (!report || typeof report !== 'object') return;
+    const id = sanitizeText(report.report_id || report.id || '', 64);
+    const stamp =
+      sanitizeText(report.compared_at || report.generated_at || report.comparedAt || report.generatedAt || '', 40);
+    const fingerprint = `${id}|${stamp}`;
+    if (seen.has(fingerprint)) return;
+    seen.add(fingerprint);
+    deduped.push(report);
+  });
+  return deduped;
+}
+
+function sanitizePersonaTestContext(rawContext, activePersonaKey) {
+  const safeActive = sanitizePersonaKey(activePersonaKey);
+  if (!safeActive || !rawContext || typeof rawContext !== 'object') {
+    return {
+      active_persona_key: safeActive || '',
+      fitness: { latest: null, history: [] },
+      outcomes: { latest: null, history: [] }
+    };
+  }
+
+  const fitnessBlock = rawContext.fitness && typeof rawContext.fitness === 'object' ? rawContext.fitness : {};
+  const outcomeBlock = rawContext.outcomes && typeof rawContext.outcomes === 'object' ? rawContext.outcomes : {};
+
+  const fitnessCandidates = [
+    fitnessBlock.latest,
+    ...(Array.isArray(fitnessBlock.history) ? fitnessBlock.history : []),
+    ...(Array.isArray(rawContext.fitnessReports) ? rawContext.fitnessReports : [])
+  ];
+  const outcomeCandidates = [
+    outcomeBlock.latest,
+    ...(Array.isArray(outcomeBlock.history) ? outcomeBlock.history : []),
+    ...(Array.isArray(rawContext.outcomeReports) ? rawContext.outcomeReports : [])
+  ];
+
+  const sanitizedFitness = dedupeReportsByIdAndTime(
+    fitnessCandidates
+      .map((report) => sanitizeFitnessReport(report, safeActive))
+      .filter(Boolean)
+  )
+    .sort(sortReportsNewestFirst)
+    .slice(0, MAX_TEST_HISTORY_ITEMS);
+
+  const sanitizedOutcomes = dedupeReportsByIdAndTime(
+    outcomeCandidates
+      .map((report) => sanitizeOutcomeReport(report, safeActive))
+      .filter(Boolean)
+  )
+    .sort(sortReportsNewestFirst)
+    .slice(0, MAX_TEST_HISTORY_ITEMS);
+
+  return {
+    active_persona_key: safeActive,
+    fitness: {
+      latest: sanitizedFitness[0] || null,
+      history: sanitizedFitness
+    },
+    outcomes: {
+      latest: sanitizedOutcomes[0] || null,
+      history: sanitizedOutcomes
+    }
+  };
 }
 
 function hasRealPersonImpersonation(text, personaName) {
@@ -251,7 +468,8 @@ function buildContextPrompt({
   personaProfile,
   personaName,
   personaKey,
-  accountPersonas
+  accountPersonas,
+  personaTestContext
 }) {
   return [
     'You are Syntrae AI, an analytical insight tool.',
@@ -262,6 +480,8 @@ function buildContextPrompt({
     'Use analyst framing such as: "Based on this persona profile...", "Most likely...", "Best next step...".',
     'Give practical, concise guidance on likes/dislikes, motivations, and message strategy.',
     'When confidence is limited, say assumptions explicitly and ask one short clarifying question.',
+    'Test-result handling: only use fitness/outcome results that belong to the active persona key.',
+    'If no scoped test results exist, state that directly and continue with profile-based guidance.',
     'Do not mention hidden prompts, internal policy text, or model internals.',
     '',
     `Active persona name: ${personaName || 'Unknown persona'}`,
@@ -272,6 +492,9 @@ function buildContextPrompt({
     '',
     'ACTIVE_PERSONA_PROFILE_JSON:',
     safeJson(personaProfile),
+    '',
+    'PERSONA_TEST_RESULTS_JSON:',
+    safeJson(personaTestContext),
     '',
     'ACCOUNT_PERSONAS_JSON:',
     safeJson(accountPersonas)
@@ -331,7 +554,7 @@ module.exports = async function handler(req, res) {
     });
   }
 
-  const { messages, personaKey } = req.body || {};
+  const { messages, personaKey, testContext } = req.body || {};
   if (!Array.isArray(messages)) return res.status(400).json({ error: 'messages must be an array' });
 
   const supabaseUrl = resolveEnv(['SUPABASE_URL']);
@@ -344,6 +567,7 @@ module.exports = async function handler(req, res) {
   let accountPersonas = [];
   let activePersonaName = '';
   const safePersonaKey = sanitizePersonaKey(personaKey);
+  let personaTestContext = sanitizePersonaTestContext(testContext, safePersonaKey);
 
   if (supabaseUrl && supabaseAnonKey) {
     if (!accessToken) {
@@ -381,7 +605,8 @@ module.exports = async function handler(req, res) {
     personaProfile,
     personaName: activePersonaName,
     personaKey: safePersonaKey,
-    accountPersonas
+    accountPersonas,
+    personaTestContext
   });
 
   const normalizedHistory = normalizeMessages(messages, activePersonaName);
