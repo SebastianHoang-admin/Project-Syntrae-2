@@ -754,11 +754,6 @@
         const PERSONA_QUERY_PARAM = 'persona';
         const CHAT_QUERY_PARAM = 'chat';
         const EMPTY_PERSONA_SCOPE = '__none__';
-        const FITNESS_RESULT_STORAGE_KEY = 'insight-lab:last-fitness-test';
-        const FITNESS_HISTORY_STORAGE_KEY = 'insight-lab:fitness-report-history';
-        const OUTCOME_RESULT_STORAGE_KEY = 'insight-lab:last-outcome-test';
-        const OUTCOME_HISTORY_STORAGE_KEY = 'insight-lab:outcome-report-history';
-        const MAX_CONTEXT_REPORTS = 8;
 
         let currentUser = null;
         let personas = [];
@@ -914,125 +909,6 @@
 
         function setStoredActiveSessionId(personaKey, sessionId) {
             localStorage.setItem(getSessionStorageKeyForPersona(personaKey), sessionId || '');
-        }
-
-        function parseStorageJson(key, fallback) {
-            try {
-                const raw = localStorage.getItem(key);
-                if (!raw) return fallback;
-                const parsed = JSON.parse(raw);
-                return parsed ?? fallback;
-            } catch (_) {
-                return fallback;
-            }
-        }
-
-        function reportTimestampValue(report) {
-            const stamp =
-                String(
-                    report?.comparedAt
-                    || report?.compared_at
-                    || report?.generatedAt
-                    || report?.generated_at
-                    || report?.runAt
-                    || report?.created_at
-                    || ''
-                ).trim();
-            if (!stamp) return 0;
-            const epoch = Date.parse(stamp);
-            return Number.isFinite(epoch) ? epoch : 0;
-        }
-
-        function collectReportPersonaKeys(report) {
-            if (!report || typeof report !== 'object') return [];
-            const direct = [
-                report?.personaKey,
-                report?.persona_key,
-                report?.targetPersonaKey,
-                report?.target_persona_key,
-                report?.personaA?.key,
-                report?.personaB?.key,
-                report?.persona_a_key,
-                report?.persona_b_key
-            ];
-            const list = Array.isArray(report?.persona_keys) ? report.persona_keys : [];
-            const all = [...direct, ...list]
-                .map((key) => sanitizePersonaKey(key))
-                .filter(Boolean);
-            return Array.from(new Set(all));
-        }
-
-        function isReportForPersona(report, personaKey) {
-            const safePersonaKey = sanitizePersonaKey(personaKey);
-            if (!safePersonaKey) return false;
-            return collectReportPersonaKeys(report).includes(safePersonaKey);
-        }
-
-        function dedupeReports(reports) {
-            const seen = new Set();
-            const deduped = [];
-            (Array.isArray(reports) ? reports : []).forEach((report) => {
-                if (!report || typeof report !== 'object') return;
-                const reportId = String(report.report_id || report.id || '').trim();
-                const stamp = String(
-                    report?.comparedAt
-                    || report?.compared_at
-                    || report?.generatedAt
-                    || report?.generated_at
-                    || report?.runAt
-                    || report?.created_at
-                    || ''
-                ).trim();
-                const fingerprint = `${reportId}|${stamp}`;
-                if (seen.has(fingerprint)) return;
-                seen.add(fingerprint);
-                deduped.push(report);
-            });
-            return deduped;
-        }
-
-        function buildPersonaScopedTestContext(personaKey) {
-            const safePersonaKey = sanitizePersonaKey(personaKey);
-            if (!safePersonaKey) {
-                return {
-                    active_persona_key: '',
-                    fitness: { latest: null, history: [] },
-                    outcomes: { latest: null, history: [] }
-                };
-            }
-
-            const latestFitness = parseStorageJson(FITNESS_RESULT_STORAGE_KEY, null);
-            const fitnessHistory = parseStorageJson(FITNESS_HISTORY_STORAGE_KEY, []);
-            const latestOutcome = parseStorageJson(OUTCOME_RESULT_STORAGE_KEY, null);
-            const outcomeHistory = parseStorageJson(OUTCOME_HISTORY_STORAGE_KEY, []);
-
-            const filteredFitness = dedupeReports([
-                latestFitness,
-                ...(Array.isArray(fitnessHistory) ? fitnessHistory : [])
-            ])
-                .filter((report) => isReportForPersona(report, safePersonaKey))
-                .sort((left, right) => reportTimestampValue(right) - reportTimestampValue(left))
-                .slice(0, MAX_CONTEXT_REPORTS);
-
-            const filteredOutcomes = dedupeReports([
-                latestOutcome,
-                ...(Array.isArray(outcomeHistory) ? outcomeHistory : [])
-            ])
-                .filter((report) => isReportForPersona(report, safePersonaKey))
-                .sort((left, right) => reportTimestampValue(right) - reportTimestampValue(left))
-                .slice(0, MAX_CONTEXT_REPORTS);
-
-            return {
-                active_persona_key: safePersonaKey,
-                fitness: {
-                    latest: filteredFitness[0] || null,
-                    history: filteredFitness
-                },
-                outcomes: {
-                    latest: filteredOutcomes[0] || null,
-                    history: filteredOutcomes
-                }
-            };
         }
 
         function setActivePersona(persona) {
@@ -1724,7 +1600,6 @@
             }
             const accessToken = sessionData.session.access_token;
             const activePersonaKey = activePersona?.persona_key || '';
-            const personaScopedTests = buildPersonaScopedTestContext(activePersonaKey);
             const res = await fetch('/api/chat', {
                 method: 'POST',
                 headers: {
@@ -1733,8 +1608,7 @@
                 },
                 body: JSON.stringify({
                     messages,
-                    personaKey: activePersonaKey,
-                    testContext: personaScopedTests
+                    personaKey: activePersonaKey
                 })
             });
             if (!res.ok) {

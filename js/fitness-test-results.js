@@ -5,6 +5,9 @@ const PERSONA_TABLE = 'personas';
 const SYNTHETIC_USER_KEY = '__user_persona__';
 const FITNESS_RESULT_STORAGE_KEY = 'insight-lab:last-fitness-test';
 const FITNESS_HISTORY_STORAGE_KEY = 'insight-lab:fitness-report-history';
+const INSIGHT_LAB_PROFILE_KEY = 'insight_lab';
+const ACCOUNT_FITNESS_REPORTS_KEY = 'fitness_reports';
+const MAX_ACCOUNT_FITNESS_REPORTS = 20;
 const MAX_HISTORY_REPORTS = 10;
 
 const AXIS_LABELS = Object.freeze({
@@ -41,6 +44,8 @@ const historyBtnEl = document.getElementById('historyBtn');
 const historyModalEl = document.getElementById('historyModal');
 const historyCloseBtnEl = document.getElementById('historyCloseBtn');
 const historyListEl = document.getElementById('historyList');
+let currentUserId = '';
+let currentUserProfileJson = {};
 
 function clamp01(value, fallback = 0) {
   const numeric = Number(value);
@@ -389,6 +394,125 @@ function loadLatestReport() {
 
 function saveLatestReport(report) {
   localStorage.setItem(FITNESS_RESULT_STORAGE_KEY, JSON.stringify(report));
+}
+
+function isMissingUserProfileTableError(error) {
+  const message = String(error?.message || '').toLowerCase();
+  const code = String(error?.code || '');
+  return code === '42P01' || (message.includes('relation') && message.includes('user_profiles'));
+}
+
+function reportTimeSortValue(report) {
+  const stamp = String(report?.comparedAt || report?.compared_at || report?.generatedAt || report?.generated_at || '').trim();
+  if (!stamp) return 0;
+  const epoch = Date.parse(stamp);
+  return Number.isFinite(epoch) ? epoch : 0;
+}
+
+function reportStorageFingerprint(report) {
+  if (!report || typeof report !== 'object') return '';
+  const reportId = String(report?.report_id || '').trim();
+  if (reportId) return `id:${reportId}`;
+  const keyA = normalizePersonaKey(report?.personaA?.key || '');
+  const keyB = normalizePersonaKey(report?.personaB?.key || '');
+  const sigA = String(report?.personaA?.signature?.profile_hash || '').trim();
+  const sigB = String(report?.personaB?.signature?.profile_hash || '').trim();
+  if (keyA && keyB && sigA && sigB) return `sig:${keyA}|${sigA}|${keyB}|${sigB}`;
+  const stamp = String(report?.comparedAt || report?.compared_at || '').trim();
+  return stamp ? `time:${stamp}` : '';
+}
+
+function reportPersonaKeys(report) {
+  const keys = [
+    normalizePersonaKey(report?.personaA?.key || ''),
+    normalizePersonaKey(report?.personaB?.key || '')
+  ].filter(Boolean);
+  return Array.from(new Set(keys));
+}
+
+function normalizeReportForAccountStorage(report) {
+  if (!report || typeof report !== 'object') return null;
+  return {
+    ...report,
+    persona_keys: reportPersonaKeys(report),
+    updated_at: new Date().toISOString()
+  };
+}
+
+function mergeFitnessReportIntoProfile(profileJson, report) {
+  const baseProfile = profileJson && typeof profileJson === 'object' ? profileJson : {};
+  const insightLab = baseProfile?.[INSIGHT_LAB_PROFILE_KEY] && typeof baseProfile[INSIGHT_LAB_PROFILE_KEY] === 'object'
+    ? baseProfile[INSIGHT_LAB_PROFILE_KEY]
+    : {};
+  const existingReports = Array.isArray(insightLab?.[ACCOUNT_FITNESS_REPORTS_KEY])
+    ? insightLab[ACCOUNT_FITNESS_REPORTS_KEY]
+    : [];
+  const incoming = normalizeReportForAccountStorage(report);
+  if (!incoming) return baseProfile;
+  const incomingFingerprint = reportStorageFingerprint(incoming);
+  const filtered = existingReports.filter((entry) => {
+    if (!entry || typeof entry !== 'object') return false;
+    const existingFingerprint = reportStorageFingerprint(entry);
+    if (incomingFingerprint && existingFingerprint && incomingFingerprint === existingFingerprint) return false;
+    return true;
+  });
+  filtered.unshift(incoming);
+  filtered.sort((left, right) => reportTimeSortValue(right) - reportTimeSortValue(left));
+  const trimmed = filtered.slice(0, MAX_ACCOUNT_FITNESS_REPORTS);
+  return {
+    ...baseProfile,
+    [INSIGHT_LAB_PROFILE_KEY]: {
+      ...insightLab,
+      [ACCOUNT_FITNESS_REPORTS_KEY]: trimmed,
+      updated_at: new Date().toISOString()
+    }
+  };
+}
+
+async function loadLatestAccountProfileJson() {
+  if (!currentUserId) {
+    return currentUserProfileJson && typeof currentUserProfileJson === 'object' ? currentUserProfileJson : {};
+  }
+  const { data, error } = await supabase
+    .from(USER_PROFILE_TABLE)
+    .select('profile')
+    .eq('user_id', currentUserId)
+    .maybeSingle();
+  if (error) {
+    if (!isMissingUserProfileTableError(error)) {
+      console.warn('Could not refresh account profile before saving fitness report:', error.message || error);
+    }
+    return currentUserProfileJson && typeof currentUserProfileJson === 'object' ? currentUserProfileJson : {};
+  }
+  const profile = data?.profile && typeof data.profile === 'object' ? data.profile : {};
+  currentUserProfileJson = profile;
+  return profile;
+}
+
+async function persistFitnessReportToAccount(report) {
+  if (!currentUserId || !report || typeof report !== 'object') return;
+  try {
+    const latestProfile = await loadLatestAccountProfileJson();
+    const nextProfile = mergeFitnessReportIntoProfile(latestProfile, report);
+    const { error } = await supabase
+      .from(USER_PROFILE_TABLE)
+      .upsert(
+        {
+          user_id: currentUserId,
+          profile: nextProfile
+        },
+        { onConflict: 'user_id' }
+      );
+    if (error) {
+      if (!isMissingUserProfileTableError(error)) {
+        console.warn('Could not persist fitness report to account storage:', error.message || error);
+      }
+      return;
+    }
+    currentUserProfileJson = nextProfile;
+  } catch (error) {
+    console.warn('Unexpected error while persisting fitness report:', error?.message || error);
+  }
 }
 
 function normalizePersonaKey(value) {
@@ -862,6 +986,20 @@ function bindHistoryEvents() {
 
 async function initialize() {
   bindHistoryEvents();
+
+  try {
+    const { data, error } = await supabase.auth.getSession();
+    if (!error && data?.session?.user?.id) {
+      currentUserId = data.session.user.id;
+      const profileRow = await fetchUserProfile(currentUserId);
+      currentUserProfileJson = profileRow?.profile && typeof profileRow.profile === 'object'
+        ? profileRow.profile
+        : {};
+    }
+  } catch (_) {
+    // Non-blocking: report view still works with local cache.
+  }
+
   let latest = loadLatestReport();
   if (!latest) {
     renderReport(null);
@@ -869,6 +1007,7 @@ async function initialize() {
   }
 
   upsertReportHistory(latest);
+  await persistFitnessReportToAccount(latest);
   renderReport(latest);
 
   try {
@@ -877,6 +1016,7 @@ async function initialize() {
     if (changed) {
       saveLatestReport(refreshed);
       upsertReportHistory(refreshed);
+      await persistFitnessReportToAccount(refreshed);
       renderReport(refreshed);
     }
   } catch (_) {
