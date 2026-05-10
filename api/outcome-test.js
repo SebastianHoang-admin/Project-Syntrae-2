@@ -638,6 +638,7 @@ module.exports = async function handler(req, res) {
   const personaA = body.personaA && typeof body.personaA === 'object' ? body.personaA : {};
   const personaB = body.personaB && typeof body.personaB === 'object' ? body.personaB : {};
   const config = sanitizeConfig(body.config);
+  const actionSpaceOnly = Boolean(body.action_space_only || body.actionSpaceOnly);
 
   if (!requestedOutcome) {
     return res.status(400).json({ error: 'requested_outcome is required' });
@@ -687,6 +688,39 @@ module.exports = async function handler(req, res) {
     }
   }
 
+  const personaAKey = sanitizePersonaKey(personaA?.key);
+  const personaBKey = sanitizePersonaKey(personaB?.key);
+  const personaKeys = [personaAKey, personaBKey].filter(Boolean);
+  const dedupPersonaKeys = Array.from(new Set(personaKeys));
+
+  if (actionSpaceOnly) {
+    return res.status(200).json({
+      report_id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+      generated_at: new Date().toISOString(),
+      mode: 'action_generation_only',
+      initial_conditions: initialConditions,
+      requested_outcome: requestedOutcome,
+      persona_a: {
+        key: personaAKey,
+        label: sanitizeText(personaA?.label || 'Persona A', 120)
+      },
+      persona_b: {
+        key: personaBKey,
+        label: sanitizeText(personaB?.label || 'Persona B', 120)
+      },
+      persona_keys: dedupPersonaKeys,
+      config: {
+        node_count: config.node_count,
+        actions_per_node: config.actions_per_node
+      },
+      total_action_combinations: Math.pow(config.actions_per_node, config.node_count),
+      action_space: nodes,
+      summary: `Generated ${config.node_count} nodes × ${config.actions_per_node} actions for the requested outcome.`,
+      generator_source: generatorSource,
+      model_used: modelUsed || null
+    });
+  }
+
   const evolved = evolvePathways({
     actionSpace: nodes,
     populationSize: config.population_size,
@@ -701,10 +735,6 @@ module.exports = async function handler(req, res) {
   );
 
   const best = topPathways[0] || null;
-  const personaAKey = sanitizePersonaKey(personaA?.key);
-  const personaBKey = sanitizePersonaKey(personaB?.key);
-  const personaKeys = [personaAKey, personaBKey].filter(Boolean);
-  const dedupPersonaKeys = Array.from(new Set(personaKeys));
 
   const report = {
     report_id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,

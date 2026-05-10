@@ -191,12 +191,24 @@ function sanitizeOutcomeReport(report, activePersonaKey) {
       expected_success_percent: toPercent(item.expected_success_percent),
       first_action: sanitizeText(item?.actions?.[0]?.action || '', 140)
     }));
+  const actionSpace = Array.isArray(report?.action_space) ? report.action_space : [];
+  const nodeCount = Number(report?.config?.node_count || actionSpace.length || 0);
+  const actionsPerNode = Number(
+    report?.config?.actions_per_node || actionSpace?.[0]?.actions?.length || 0
+  );
+  const firstNodeTitle = sanitizeText(actionSpace?.[0]?.node_title || '', 90);
+  const firstAction = sanitizeText(actionSpace?.[0]?.actions?.[0]?.action || '', 140);
 
   return {
     report_id: sanitizeText(report.report_id || '', 64),
     generated_at: sanitizeText(report.generatedAt || report.generated_at || report.comparedAt || '', 40),
     summary: sanitizeText(report.summary || report.title || report.note || '', 240),
     requested_outcome: requestedOutcome,
+    mode: sanitizeText(report.mode || '', 40),
+    node_count: Number.isFinite(nodeCount) ? nodeCount : 0,
+    actions_per_node: Number.isFinite(actionsPerNode) ? actionsPerNode : 0,
+    first_node_title: firstNodeTitle,
+    first_action: firstAction,
     probability_percent: singleProbability,
     outcomes,
     top_pathways: topPathways,
@@ -640,11 +652,23 @@ function buildNoOutcomeResultReply() {
 function buildOutcomeReplyFromReport({ outcomeReport }) {
   const report = outcomeReport && typeof outcomeReport === 'object' ? outcomeReport : {};
   const requestedOutcome = sanitizeText(report.requested_outcome || report?.outcomes?.[0]?.label || 'latest requested outcome', 140);
+  const isActionGenerationOnly = String(report?.mode || '').toLowerCase() === 'action_generation_only';
   const bestEmpirical = toPercent(
     report?.best_pathway?.empirical_success_percent ??
       report?.probability_percent ??
       report?.outcomes?.[0]?.probability_percent
   );
+  if (isActionGenerationOnly) {
+    const nodeCount = Number(report?.node_count || 0) || 10;
+    const actionsPerNode = Number(report?.actions_per_node || 0) || 5;
+    const firstNode = sanitizeText(report?.first_node_title || '', 80);
+    const firstAction = sanitizeText(report?.first_action || '', 120);
+    const line1 = `Latest Outcomes Test generated ${nodeCount} nodes × ${actionsPerNode} actions for "${requestedOutcome}".`;
+    const line2 = firstAction
+      ? `Starting point: ${firstNode || 'Node 1'} → ${firstAction}.`
+      : 'Open Insight Lab to review all generated node actions.';
+    return `${line1} ${line2}`;
+  }
   if (bestEmpirical === null) return buildNoOutcomeResultReply();
 
   const bestPathway = report?.top_pathways?.[0] || report?.best_pathway || null;
