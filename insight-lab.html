@@ -226,7 +226,23 @@
             outline:none;
             font-size:14px;
         }
+        .field textarea {
+            border:1px solid var(--border);
+            border-radius:12px;
+            background:rgba(255,255,255,0.04);
+            color:var(--text);
+            padding:12px;
+            outline:none;
+            font-size:14px;
+            min-height:92px;
+            resize:vertical;
+            line-height:1.45;
+        }
         .field select:focus {
+            border-color:rgba(34,211,238,0.6);
+            box-shadow:0 0 0 3px rgba(34,211,238,0.14);
+        }
+        .field textarea:focus {
             border-color:rgba(34,211,238,0.6);
             box-shadow:0 0 0 3px rgba(34,211,238,0.14);
         }
@@ -323,6 +339,68 @@
         }
         .run-btn:hover:not(:disabled) {
             transform:translateY(-1px);
+        }
+        .outcome-results {
+            border:1px solid var(--border);
+            border-radius:14px;
+            background:rgba(255,255,255,0.03);
+            padding:14px;
+            display:grid;
+            gap:12px;
+        }
+        .outcome-results[hidden] {
+            display:none !important;
+        }
+        .outcome-summary {
+            border:1px solid rgba(255,255,255,0.15);
+            border-radius:12px;
+            background:rgba(255,255,255,0.04);
+            padding:12px;
+            display:grid;
+            gap:6px;
+        }
+        .outcome-summary strong {
+            font-size:15px;
+        }
+        .pathway-grid {
+            display:grid;
+            grid-template-columns:1fr;
+            gap:10px;
+        }
+        .pathway-card {
+            border:1px solid rgba(255,255,255,0.14);
+            border-radius:12px;
+            padding:12px;
+            background:rgba(255,255,255,0.03);
+            display:grid;
+            gap:9px;
+        }
+        .pathway-card h4 {
+            font-size:14px;
+        }
+        .pathway-meta {
+            display:flex;
+            flex-wrap:wrap;
+            gap:8px;
+            color:var(--muted);
+            font-size:12px;
+        }
+        .pathway-meta span {
+            border:1px solid rgba(255,255,255,0.16);
+            border-radius:999px;
+            padding:4px 8px;
+            background:rgba(255,255,255,0.03);
+        }
+        .pathway-actions {
+            display:grid;
+            gap:7px;
+            color:var(--text);
+            font-size:13px;
+        }
+        .pathway-actions div {
+            border-left:2px solid rgba(34,211,238,0.45);
+            padding-left:8px;
+            line-height:1.4;
         }
         .run-overlay {
             position:fixed;
@@ -433,7 +511,7 @@
     <main class="container">
         <section class="hero">
             <h1>Insight Lab</h1>
-            <p>Use controlled experiments to test compatibility and strategy before real-world communication. Fitness Test is available now. Outcomes Test interface is prepared and will be connected in the next iteration.</p>
+            <p>Use controlled experiments to test compatibility and strategy before real-world communication. Fitness Test and Outcomes Test are both available for account-level persona analysis.</p>
         </section>
 
         <div class="grid">
@@ -471,11 +549,45 @@
             <section class="panel">
                 <div class="panel-head">
                     <h2>II. Outcomes Test</h2>
-                    <span class="badge">Coming soon</span>
+                    <span class="badge not-ready" id="outcomeReadyBadge">
+                        <span class="state-dot" aria-hidden="true"></span>
+                        <i class="fas fa-xmark state-x" aria-hidden="true"></i>
+                        <span id="outcomeReadyLabel">Not ready</span>
+                    </span>
                 </div>
-                <div class="coming-soon">
-                    Outcomes Test interface scaffold is reserved here. You can continue with Fitness Test design and data validation for now.
+                <p class="kv">Generate 10-node action pathways for a requested outcome. Each node contains 5 candidate actions and an optimizer searches the best chain.</p>
+
+                <div class="row">
+                    <div class="field">
+                        <label for="outcomePersonaA">Persona A (Initiator)</label>
+                        <select id="outcomePersonaA"></select>
+                    </div>
+                    <div class="field">
+                        <label for="outcomePersonaB">Persona B (Target)</label>
+                        <select id="outcomePersonaB"></select>
+                    </div>
                 </div>
+
+                <div class="field">
+                    <label for="outcomeInitialConditions">Initial Conditions (Context)</label>
+                    <textarea id="outcomeInitialConditions" placeholder="Example: Finals week, limited budget, only short evening windows."></textarea>
+                </div>
+
+                <div class="field">
+                    <label for="outcomeRequestedOutcome">Requested Outcome</label>
+                    <textarea id="outcomeRequestedOutcome" placeholder="Example: Have a positive yes to a 30-minute tea meetup this weekend."></textarea>
+                </div>
+
+                <div id="outcomeStatus" class="status" data-type="info" hidden></div>
+                <button type="button" id="runOutcomeBtn" class="run-btn"><i class="fas fa-play"></i>Run Outcomes Test</button>
+
+                <section id="outcomeResults" class="outcome-results" hidden>
+                    <article class="outcome-summary">
+                        <strong id="outcomeSummaryTitle">Best pathway</strong>
+                        <div class="kv" id="outcomeSummaryText"></div>
+                    </article>
+                    <div id="outcomePathwayGrid" class="pathway-grid"></div>
+                </section>
             </section>
         </div>
     </main>
@@ -491,6 +603,20 @@
                 <div class="progress-fill" id="fitnessRunProgressBar"></div>
             </div>
             <div class="progress-text" id="fitnessRunProgressText">0%</div>
+        </section>
+    </div>
+
+    <div class="run-overlay" id="outcomeRunOverlay" hidden>
+        <section class="run-card">
+            <div class="run-head">
+                <span class="run-spinner" aria-hidden="true"></span>
+                <h3 class="run-title">Running Outcomes Test</h3>
+            </div>
+            <p class="run-stage" id="outcomeRunStage">Building action-space…</p>
+            <div class="progress-track">
+                <div class="progress-fill" id="outcomeRunProgressBar"></div>
+            </div>
+            <div class="progress-text" id="outcomeRunProgressText">0%</div>
         </section>
     </div>
 

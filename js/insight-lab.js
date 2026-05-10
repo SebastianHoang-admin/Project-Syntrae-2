@@ -5,9 +5,12 @@ const PERSONA_TABLE = 'personas';
 const SYNTHETIC_USER_KEY = '__user_persona__';
 const FITNESS_RESULT_STORAGE_KEY = 'insight-lab:last-fitness-test';
 const FITNESS_HISTORY_STORAGE_KEY = 'insight-lab:fitness-report-history';
+const OUTCOME_RESULT_STORAGE_KEY = 'insight-lab:last-outcome-test';
 const INSIGHT_LAB_PROFILE_KEY = 'insight_lab';
 const ACCOUNT_FITNESS_REPORTS_KEY = 'fitness_reports';
+const ACCOUNT_OUTCOME_REPORTS_KEY = 'outcome_reports';
 const MAX_ACCOUNT_FITNESS_REPORTS = 20;
+const MAX_ACCOUNT_OUTCOME_REPORTS = 20;
 
 const AXIS_LABELS = Object.freeze({
   L1_A1: 'Initiative',
@@ -42,6 +45,22 @@ const runOverlayEl = document.getElementById('fitnessRunOverlay');
 const runProgressBarEl = document.getElementById('fitnessRunProgressBar');
 const runProgressTextEl = document.getElementById('fitnessRunProgressText');
 const runStageEl = document.getElementById('fitnessRunStage');
+const outcomeSelectA = document.getElementById('outcomePersonaA');
+const outcomeSelectB = document.getElementById('outcomePersonaB');
+const outcomeInitialConditionsEl = document.getElementById('outcomeInitialConditions');
+const outcomeRequestedOutcomeEl = document.getElementById('outcomeRequestedOutcome');
+const outcomeRunBtn = document.getElementById('runOutcomeBtn');
+const outcomeStatusEl = document.getElementById('outcomeStatus');
+const outcomeReadyBadgeEl = document.getElementById('outcomeReadyBadge');
+const outcomeReadyLabelEl = document.getElementById('outcomeReadyLabel');
+const outcomeResultsEl = document.getElementById('outcomeResults');
+const outcomeSummaryTitleEl = document.getElementById('outcomeSummaryTitle');
+const outcomeSummaryTextEl = document.getElementById('outcomeSummaryText');
+const outcomePathwayGridEl = document.getElementById('outcomePathwayGrid');
+const outcomeRunOverlayEl = document.getElementById('outcomeRunOverlay');
+const outcomeRunProgressBarEl = document.getElementById('outcomeRunProgressBar');
+const outcomeRunProgressTextEl = document.getElementById('outcomeRunProgressText');
+const outcomeRunStageEl = document.getElementById('outcomeRunStage');
 
 let personaOptions = [];
 let optionByKey = new Map();
@@ -124,6 +143,32 @@ function setReadyState(isReady) {
   }
   readyBadgeEl.classList.add('not-ready');
   readyLabelEl.textContent = 'Not ready';
+}
+
+function setOutcomeStatus(text = '', type = 'info') {
+  if (!outcomeStatusEl) return;
+  const message = String(text || '').trim();
+  if (!message) {
+    outcomeStatusEl.hidden = true;
+    outcomeStatusEl.textContent = '';
+    outcomeStatusEl.dataset.type = 'info';
+    return;
+  }
+  outcomeStatusEl.hidden = false;
+  outcomeStatusEl.textContent = message;
+  outcomeStatusEl.dataset.type = type;
+}
+
+function setOutcomeReadyState(isReady) {
+  if (!outcomeReadyBadgeEl || !outcomeReadyLabelEl) return;
+  outcomeReadyBadgeEl.classList.remove('ready', 'not-ready');
+  if (isReady) {
+    outcomeReadyBadgeEl.classList.add('ready');
+    outcomeReadyLabelEl.textContent = 'Ready';
+    return;
+  }
+  outcomeReadyBadgeEl.classList.add('not-ready');
+  outcomeReadyLabelEl.textContent = 'Not ready';
 }
 
 function getPortraitUrl(option) {
@@ -551,6 +596,96 @@ async function persistFitnessReportToAccount(report) {
   }
 }
 
+function getOutcomeReportStorageFingerprint(report) {
+  if (!report || typeof report !== 'object') return '';
+  const reportId = String(report.report_id || '').trim();
+  if (reportId) return `id:${reportId}`;
+
+  const personaAKey = sanitizePersonaKey(report?.persona_a?.key || report?.personaA?.key || '');
+  const personaBKey = sanitizePersonaKey(report?.persona_b?.key || report?.personaB?.key || '');
+  const outcome = String(report?.requested_outcome || report?.requestedOutcome || '').trim().toLowerCase();
+  const sigA = String(report?.persona_a?.signature?.profile_hash || report?.personaA?.signature?.profile_hash || '').trim();
+  const sigB = String(report?.persona_b?.signature?.profile_hash || report?.personaB?.signature?.profile_hash || '').trim();
+  if (personaAKey && personaBKey && outcome && sigA && sigB) {
+    return `sig:${personaAKey}|${sigA}|${personaBKey}|${sigB}|${outcome}`;
+  }
+  const stamp = String(report?.generated_at || report?.generatedAt || '').trim();
+  return stamp ? `time:${stamp}|${personaAKey}|${personaBKey}|${outcome}` : '';
+}
+
+function normalizeOutcomeReportForAccountStorage(report) {
+  if (!report || typeof report !== 'object') return null;
+  const personaKeys = Array.isArray(report.persona_keys)
+    ? report.persona_keys.map((value) => sanitizePersonaKey(value)).filter(Boolean)
+    : [
+        sanitizePersonaKey(report?.persona_a?.key || ''),
+        sanitizePersonaKey(report?.persona_b?.key || '')
+      ].filter(Boolean);
+  return {
+    ...report,
+    persona_keys: Array.from(new Set(personaKeys)),
+    updated_at: new Date().toISOString()
+  };
+}
+
+function mergeOutcomeReportIntoProfile(profileJson, report) {
+  const baseProfile = profileJson && typeof profileJson === 'object' ? profileJson : {};
+  const insightLab = baseProfile?.[INSIGHT_LAB_PROFILE_KEY] && typeof baseProfile[INSIGHT_LAB_PROFILE_KEY] === 'object'
+    ? baseProfile[INSIGHT_LAB_PROFILE_KEY]
+    : {};
+  const existingReports = Array.isArray(insightLab?.[ACCOUNT_OUTCOME_REPORTS_KEY])
+    ? insightLab[ACCOUNT_OUTCOME_REPORTS_KEY]
+    : [];
+  const incoming = normalizeOutcomeReportForAccountStorage(report);
+  if (!incoming) return baseProfile;
+
+  const incomingFingerprint = getOutcomeReportStorageFingerprint(incoming);
+  const filtered = existingReports.filter((entry) => {
+    if (!entry || typeof entry !== 'object') return false;
+    const existingFingerprint = getOutcomeReportStorageFingerprint(entry);
+    if (incomingFingerprint && existingFingerprint && incomingFingerprint === existingFingerprint) return false;
+    return true;
+  });
+  filtered.unshift(incoming);
+  filtered.sort((left, right) => reportTimestampValue(right) - reportTimestampValue(left));
+  const trimmed = filtered.slice(0, MAX_ACCOUNT_OUTCOME_REPORTS);
+
+  return {
+    ...baseProfile,
+    [INSIGHT_LAB_PROFILE_KEY]: {
+      ...insightLab,
+      [ACCOUNT_OUTCOME_REPORTS_KEY]: trimmed,
+      updated_at: new Date().toISOString()
+    }
+  };
+}
+
+async function persistOutcomeReportToAccount(report) {
+  if (!currentUserId || !report || typeof report !== 'object') return;
+  try {
+    const latestProfile = await loadLatestAccountProfileJson();
+    const nextProfile = mergeOutcomeReportIntoProfile(latestProfile, report);
+    const { error } = await supabase
+      .from(USER_PROFILE_TABLE)
+      .upsert(
+        {
+          user_id: currentUserId,
+          profile: nextProfile
+        },
+        { onConflict: 'user_id' }
+      );
+    if (error) {
+      if (!isMissingUserProfileTableError(error)) {
+        console.warn('Could not persist outcome report to account storage:', error.message || error);
+      }
+      return;
+    }
+    currentUserProfileJson = nextProfile;
+  } catch (error) {
+    console.warn('Unexpected error while saving outcome report to account storage:', error?.message || error);
+  }
+}
+
 function normalizeKey(value) {
   return sanitizePersonaKey(value || '');
 }
@@ -734,6 +869,8 @@ function getPersonaRowAvatarUrl(row) {
 function populateSelectors() {
   selectA.innerHTML = '';
   selectB.innerHTML = '';
+  if (outcomeSelectA) outcomeSelectA.innerHTML = '';
+  if (outcomeSelectB) outcomeSelectB.innerHTML = '';
   personaOptions.forEach((option) => {
     const optA = document.createElement('option');
     optA.value = option.key;
@@ -744,14 +881,32 @@ function populateSelectors() {
     optB.value = option.key;
     optB.textContent = option.label;
     selectB.appendChild(optB);
+
+    if (outcomeSelectA) {
+      const outcomeOptA = document.createElement('option');
+      outcomeOptA.value = option.key;
+      outcomeOptA.textContent = option.label;
+      outcomeSelectA.appendChild(outcomeOptA);
+    }
+    if (outcomeSelectB) {
+      const outcomeOptB = document.createElement('option');
+      outcomeOptB.value = option.key;
+      outcomeOptB.textContent = option.label;
+      outcomeSelectB.appendChild(outcomeOptB);
+    }
   });
 
   if (!personaOptions.length) {
     selectA.innerHTML = '<option value="">No personas available</option>';
     selectB.innerHTML = '<option value="">No personas available</option>';
+    if (outcomeSelectA) outcomeSelectA.innerHTML = '<option value="">No personas available</option>';
+    if (outcomeSelectB) outcomeSelectB.innerHTML = '<option value="">No personas available</option>';
     runBtn.disabled = true;
+    if (outcomeRunBtn) outcomeRunBtn.disabled = true;
     setReadyState(false);
+    setOutcomeReadyState(false);
     setStatus('No personas found for this account.', 'error');
+    setOutcomeStatus('No personas found for this account.', 'error');
     renderPreview(previewA, null);
     renderPreview(previewB, null);
     return;
@@ -762,7 +917,13 @@ function populateSelectors() {
   const userOption = personaOptions.find((item) => item.type === 'user' || item.isLinkedUser);
   selectA.value = userOption?.key || firstKey;
   selectB.value = secondKey === selectA.value ? firstKey : secondKey;
+  if (outcomeSelectA) outcomeSelectA.value = userOption?.key || firstKey;
+  if (outcomeSelectB) {
+    const outcomeSecondKey = secondKey === (outcomeSelectA?.value || '') ? firstKey : secondKey;
+    outcomeSelectB.value = outcomeSecondKey;
+  }
   updateFitnessUI();
+  updateOutcomeUI();
 }
 
 async function fetchUserProfile(userId) {
@@ -959,6 +1120,212 @@ async function runWithProgress(taskFn) {
   }
 }
 
+function setOutcomeRunOverlayProgress(progressPercent, stageText) {
+  if (!outcomeRunProgressBarEl || !outcomeRunProgressTextEl || !outcomeRunStageEl) return;
+  const bounded = Math.max(0, Math.min(100, Math.round(progressPercent)));
+  outcomeRunProgressBarEl.style.width = `${bounded}%`;
+  outcomeRunProgressTextEl.textContent = `${bounded}%`;
+  if (stageText) outcomeRunStageEl.textContent = stageText;
+}
+
+function openOutcomeRunOverlay() {
+  if (!outcomeRunOverlayEl) return;
+  outcomeRunOverlayEl.hidden = false;
+  setOutcomeRunOverlayProgress(0, 'Building action-space…');
+}
+
+function closeOutcomeRunOverlay() {
+  if (!outcomeRunOverlayEl) return;
+  outcomeRunOverlayEl.hidden = true;
+}
+
+async function runOutcomeWithProgress(taskFn) {
+  openOutcomeRunOverlay();
+  let progress = 0;
+  const stageFromProgress = (value) => {
+    if (value < 18) return 'Building action-space from context…';
+    if (value < 42) return 'Generating 10-node × 5-action matrix…';
+    if (value < 68) return 'Evolving pathways across action genes…';
+    if (value < 90) return 'Simulating pathway success rates…';
+    return 'Finalizing outcome report…';
+  };
+
+  const timer = setInterval(() => {
+    progress = Math.min(93, progress + (Math.random() * 4 + 2.4));
+    setOutcomeRunOverlayProgress(progress, stageFromProgress(progress));
+  }, 170);
+
+  try {
+    const taskPromise = taskFn();
+    const minDelay = wait(1800);
+    const [result] = await Promise.all([taskPromise, minDelay]);
+    clearInterval(timer);
+
+    for (let value = progress; value <= 100; value += 4) {
+      setOutcomeRunOverlayProgress(value, stageFromProgress(value));
+      await wait(24);
+    }
+    await wait(120);
+    closeOutcomeRunOverlay();
+    return result;
+  } catch (error) {
+    clearInterval(timer);
+    closeOutcomeRunOverlay();
+    throw error;
+  }
+}
+
+function normalizeOutcomePathwayList(value, limit = 3) {
+  if (!Array.isArray(value)) return [];
+  return value
+    .filter((item) => item && typeof item === 'object')
+    .slice(0, limit);
+}
+
+function getNumericPercent(value, fallback = 0) {
+  const numeric = Number(value);
+  if (!Number.isFinite(numeric)) return fallback;
+  return Math.max(0, Math.min(100, numeric));
+}
+
+function renderOutcomeResults(report) {
+  if (!outcomeResultsEl || !outcomeSummaryTitleEl || !outcomeSummaryTextEl || !outcomePathwayGridEl) return;
+  if (!report || typeof report !== 'object') {
+    outcomeResultsEl.hidden = true;
+    outcomePathwayGridEl.innerHTML = '';
+    return;
+  }
+
+  const best = report.best_pathway && typeof report.best_pathway === 'object'
+    ? report.best_pathway
+    : null;
+  const personaALabel = String(report?.persona_a?.label || 'Persona A').trim();
+  const personaBLabel = String(report?.persona_b?.label || 'Persona B').trim();
+  const requestedOutcome = String(report?.requested_outcome || '').trim();
+  const bestPercent = getNumericPercent(best?.empirical_success_percent, 0).toFixed(2);
+
+  outcomeSummaryTitleEl.textContent = `${personaALabel} → ${personaBLabel}`;
+  outcomeSummaryTextEl.textContent =
+    `${requestedOutcome ? `"${requestedOutcome}"` : 'Requested outcome'} · Best simulated success: ${bestPercent}%`;
+
+  const pathways = normalizeOutcomePathwayList(report?.top_pathways, 3);
+  outcomePathwayGridEl.innerHTML = pathways
+    .map((pathway) => {
+      const rank = Number(pathway?.rank || 0) || 0;
+      const empirical = getNumericPercent(pathway?.empirical_success_percent, 0).toFixed(2);
+      const expected = getNumericPercent(pathway?.expected_success_percent, 0).toFixed(2);
+      const risk = getNumericPercent(pathway?.average_risk_percent, 0).toFixed(1);
+      const ethics = getNumericPercent(pathway?.average_ethics_percent, 0).toFixed(1);
+      const actions = Array.isArray(pathway?.actions) ? pathway.actions : [];
+      const actionRows = actions
+        .slice(0, 10)
+        .map((action) => {
+          const nodeIndex = Number(action?.node_index || 0) || 0;
+          const nodeTitle = escapeHtml(action?.node_title || `Node ${nodeIndex}`);
+          const actionText = escapeHtml(action?.action || '');
+          return `<div><strong>N${nodeIndex} · ${nodeTitle}:</strong> ${actionText}</div>`;
+        })
+        .join('');
+
+      return `
+        <article class="pathway-card">
+          <h4>Pathway ${rank}</h4>
+          <div class="pathway-meta">
+            <span>Empirical ${empirical}%</span>
+            <span>Expected ${expected}%</span>
+            <span>Risk ${risk}%</span>
+            <span>Ethics ${ethics}%</span>
+          </div>
+          <div class="pathway-actions">${actionRows}</div>
+        </article>
+      `;
+    })
+    .join('');
+
+  outcomeResultsEl.hidden = false;
+}
+
+function evaluateOutcomeSetup(optionA, optionB, requestedOutcome) {
+  if (!optionA || !optionB) {
+    return { ready: false, reason: 'Select both personas to run Outcomes Test.' };
+  }
+  if (optionA.key === optionB.key) {
+    return { ready: false, reason: 'Choose two different personas for Outcomes Test.' };
+  }
+  if (!String(requestedOutcome || '').trim()) {
+    return { ready: false, reason: 'Enter a requested outcome first.' };
+  }
+  return { ready: true, reason: '' };
+}
+
+function updateOutcomeUI() {
+  if (!outcomeSelectA || !outcomeSelectB || !outcomeRunBtn) return;
+  const optionA = optionByKey.get(outcomeSelectA.value);
+  const optionB = optionByKey.get(outcomeSelectB.value);
+  const requestedOutcome = outcomeRequestedOutcomeEl ? outcomeRequestedOutcomeEl.value : '';
+  const evaluation = evaluateOutcomeSetup(optionA, optionB, requestedOutcome);
+  if (!evaluation.ready) {
+    outcomeRunBtn.disabled = true;
+    setOutcomeReadyState(false);
+    setOutcomeStatus(evaluation.reason, 'error');
+    return;
+  }
+  outcomeRunBtn.disabled = false;
+  setOutcomeReadyState(true);
+  setOutcomeStatus('', 'info');
+}
+
+function buildOutcomePayload(optionA, optionB, signatureA, signatureB) {
+  return {
+    initial_conditions: String(outcomeInitialConditionsEl?.value || '').trim(),
+    requested_outcome: String(outcomeRequestedOutcomeEl?.value || '').trim(),
+    personaA: {
+      key: optionA.key,
+      label: optionA.label,
+      signature: signatureA,
+      profile: getProfilePayload(optionA)
+    },
+    personaB: {
+      key: optionB.key,
+      label: optionB.label,
+      signature: signatureB,
+      profile: getProfilePayload(optionB)
+    },
+    config: {
+      node_count: 10,
+      actions_per_node: 5,
+      population_size: 140,
+      generations: 90,
+      mutation_rate: 0.14,
+      elite_count: 8,
+      top_pathways: 5,
+      simulation_reps: 1000
+    }
+  };
+}
+
+async function fetchOutcomeReport(payload) {
+  const { data } = await supabase.auth.getSession();
+  const accessToken = data?.session?.access_token || '';
+  const response = await fetch('/api/outcome-test', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {})
+    },
+    body: JSON.stringify(payload)
+  });
+  const json = await response.json().catch(() => null);
+  if (!response.ok) {
+    const message = String(json?.error || 'Outcome test request failed');
+    throw new Error(message);
+  }
+  if (!json || typeof json !== 'object') {
+    throw new Error('Outcome test returned an invalid response');
+  }
+  return json;
+}
+
 function buildInsightsPayload(optionA, optionB, evaluation) {
   const fallbackAreas = buildFallbackAreas(evaluation.quantResult, evaluation.qualResult);
   const topMatches = [...evaluation.quantResult.axisDeviations]
@@ -1016,10 +1383,17 @@ async function initialize() {
   personaOptions = buildOptions(userProfileRow, personaRows, userMetadata);
   optionByKey = new Map(personaOptions.map((item) => [item.key, item]));
   populateSelectors();
+  const latestOutcome = loadStoredReportObject(OUTCOME_RESULT_STORAGE_KEY);
+  if (latestOutcome) {
+    renderOutcomeResults(latestOutcome);
+  }
 }
 
 selectA.addEventListener('change', updateFitnessUI);
 selectB.addEventListener('change', updateFitnessUI);
+if (outcomeSelectA) outcomeSelectA.addEventListener('change', updateOutcomeUI);
+if (outcomeSelectB) outcomeSelectB.addEventListener('change', updateOutcomeUI);
+if (outcomeRequestedOutcomeEl) outcomeRequestedOutcomeEl.addEventListener('input', updateOutcomeUI);
 
 runBtn.addEventListener('click', async () => {
   const optionA = optionByKey.get(selectA.value);
@@ -1090,5 +1464,56 @@ runBtn.addEventListener('click', async () => {
     setStatus(`Fitness Test failed: ${error?.message || 'Unexpected error'}`, 'error');
   }
 });
+
+if (outcomeRunBtn) {
+  outcomeRunBtn.addEventListener('click', async () => {
+    const optionA = optionByKey.get(outcomeSelectA?.value || '');
+    const optionB = optionByKey.get(outcomeSelectB?.value || '');
+    const requestedOutcome = String(outcomeRequestedOutcomeEl?.value || '').trim();
+    const evaluation = evaluateOutcomeSetup(optionA, optionB, requestedOutcome);
+    if (!evaluation.ready) {
+      outcomeRunBtn.disabled = true;
+      setOutcomeReadyState(false);
+      setOutcomeStatus(evaluation.reason, 'error');
+      return;
+    }
+
+    try {
+      const signatureA = buildPersonaSignature(optionA);
+      const signatureB = buildPersonaSignature(optionB);
+      const payload = buildOutcomePayload(optionA, optionB, signatureA, signatureB);
+      const report = await runOutcomeWithProgress(async () => {
+        const response = await fetchOutcomeReport(payload);
+        return {
+          ...response,
+          persona_a: {
+            ...(response?.persona_a && typeof response.persona_a === 'object' ? response.persona_a : {}),
+            key: optionA.key,
+            label: optionA.label,
+            signature: signatureA
+          },
+          persona_b: {
+            ...(response?.persona_b && typeof response.persona_b === 'object' ? response.persona_b : {}),
+            key: optionB.key,
+            label: optionB.label,
+            signature: signatureB
+          },
+          persona_keys: Array.from(new Set([optionA.key, optionB.key].map((key) => sanitizePersonaKey(key)).filter(Boolean))),
+          requested_outcome: requestedOutcome,
+          initial_conditions: String(outcomeInitialConditionsEl?.value || '').trim()
+        };
+      });
+
+      localStorage.setItem(OUTCOME_RESULT_STORAGE_KEY, JSON.stringify(report));
+      await persistOutcomeReportToAccount(report);
+      renderOutcomeResults(report);
+      setOutcomeReadyState(true);
+      setOutcomeStatus('Outcomes Test completed and saved to account storage.', 'success');
+    } catch (error) {
+      setOutcomeReadyState(false);
+      setOutcomeStatus(`Outcomes Test failed: ${error?.message || 'Unexpected error'}`, 'error');
+    }
+  });
+}
 
 initialize();
