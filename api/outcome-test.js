@@ -24,74 +24,137 @@ const FALLBACK_NODE_TITLES = Object.freeze([
 
 const FALLBACK_NODE_ACTIONS = Object.freeze([
   [
-    'Write a one-line definition of the requested outcome.',
-    'Define a conservative version of the same outcome.',
-    'Define an ambitious version of the same outcome.',
-    'List the non-negotiable ethical constraints before acting.',
-    'Set a realistic time window for the outcome.'
+    'Write one sentence defining the exact outcome and deadline.',
+    'Draft a low-pressure outcome version with an easy opt-out.',
+    'Draft a medium-ambition outcome with a clear next step.',
+    'Write a high-clarity outcome statement with boundaries included.',
+    'Set a concrete outcome target plus a fallback outcome target.'
   ],
   [
-    'Check hard boundaries and known dislikes before outreach.',
-    'Remove any step that could pressure or corner the target.',
-    'Choose an ask format that allows an easy decline.',
-    'Ensure the ask can be completed safely and legally.',
-    'Prepare a fallback outcome with lower pressure.'
+    'List two hard boundaries and remove any conflicting action.',
+    'Choose a channel (text/call/in-person) that minimizes pressure.',
+    'Write an invitation sentence that explicitly allows decline.',
+    'Check safety/legal constraints and remove risky logistics.',
+    'Prepare a lower-pressure alternative ask for this same week.'
   ],
   [
-    'Pick a timing window that matches likely energy and availability.',
-    'Avoid high-stress hours and rushed time slots.',
-    'Schedule the ask when context supports receptivity.',
-    'Delay the ask if temporary conditions are unfavorable.',
-    'Choose a short interaction window to reduce friction.'
+    'Pick one exact send time and one backup send time.',
+    'Choose a low-stress day window and avoid deadline periods.',
+    'Set a 20-30 minute interaction window to reduce burden.',
+    'Schedule outreach right after a shared context touchpoint.',
+    'Delay outreach 24-72 hours if temporary stress is high.'
   ],
   [
-    'Open with a concise, respectful context statement.',
-    'Start with shared interest before proposing the ask.',
-    'Use a low-pressure opener with explicit optionality.',
-    'Use a direct opener with clear intent and no ambiguity.',
-    'Use a curiosity opener and ask for preference first.'
+    'Send a two-line opener referencing shared context and intent.',
+    'Open with one shared interest, then ask one clear question.',
+    'Use a low-pressure opener with an explicit "no pressure" line.',
+    'Use a direct opener with one concrete plan option.',
+    'Use a preference-first opener offering two simple options.'
   ],
   [
-    'Propose an action tightly aligned with known preferences.',
-    'Offer two options with equal dignity and easy opt-out.',
-    'Ask for a small, reversible commitment first.',
-    'Frame the ask around mutual value, not pressure.',
-    'Keep scope narrow and concrete to increase clarity.'
+    'Propose a specific venue/activity aligned with known preferences.',
+    'Offer Option A and Option B with the same time cost.',
+    'Ask for a small first step (15-30 minutes) before bigger plans.',
+    'Frame value around mutual interest, not obligation.',
+    'Keep ask concrete: exact place, duration, and purpose.'
   ],
   [
-    'Offer a low-effort version of the same plan.',
-    'Reduce cost, distance, or time burden where possible.',
-    'Give an explicit no-pressure fallback path.',
-    'Adapt wording to respect autonomy and boundaries.',
-    'Remove unnecessary complexity from the plan.'
+    'Offer a lower-effort fallback (shorter time or closer venue).',
+    'Reduce cost burden by proposing budget-friendly options.',
+    'Add an explicit fallback line if timing is not good.',
+    'Rewrite wording to preserve autonomy and easy exit.',
+    'Remove extra logistics so the plan fits one message.'
   ],
   [
-    'Confirm exact time/place with a brief check-in.',
-    'Confirm preferences that matter for comfort.',
-    'Send one concise reminder and avoid repeated nudges.',
-    'Keep logistics simple with one clear next step.',
-    'Confirm consent and expectations before proceeding.'
+    'Confirm exact time and place in one concise follow-up.',
+    'Confirm one comfort preference (food/noise/transport timing).',
+    'Send one reminder only, then stop pushing.',
+    'Lock one next step and avoid multi-ask messages.',
+    'Confirm consent and expectations before meeting.'
   ],
   [
-    'Execute exactly as agreed with no last-minute pressure.',
-    'Stay attentive to feedback and adjust respectfully.',
-    'Keep tone consistent with prior expectations.',
-    'Prioritize comfort, safety, and legal boundaries.',
-    'If resistance appears, de-escalate and offer an exit.'
+    'Execute the plan as agreed without adding surprise pressure.',
+    'Watch response signals and adjust pace respectfully.',
+    'Keep tone consistent with earlier communication style.',
+    'Prioritize comfort, safety, and legal boundaries at all times.',
+    'If hesitation appears, offer a clear graceful exit.'
   ],
   [
-    'Send a concise follow-up acknowledging their response.',
-    'Ask one short reflection question to understand fit.',
-    'Express appreciation without escalating pressure.',
+    'Send one same-day follow-up message acknowledging the interaction.',
+    'Ask one short check-in question about comfort and fit.',
+    'Express appreciation without adding immediate pressure.',
     'If declined, close respectfully and keep dignity intact.',
-    'If positive, suggest one realistic next step.'
+    'If positive, suggest one realistic second-step action.'
   ],
   [
-    'Evaluate whether requested outcome was achieved.',
-    'If partial success, define one incremental next action.',
-    'If no success, pivot to a lower-friction outcome.',
-    'Document what worked and what created resistance.',
-    'Preserve long-term trust over short-term gains.'
+    'Evaluate if the requested outcome was reached within timeline.',
+    'If partial, define one incremental next action with date.',
+    'If no success, pivot to a lower-friction and respectful outcome.',
+    'Write what worked and what created friction for next run.',
+    'Prioritize long-term trust over short-term escalation.'
+  ]
+]);
+
+const FALLBACK_CHAIN_TEMPLATES = Object.freeze([
+  [
+    'After shared context ({context_anchor}), send one short text asking for a 25-minute tea/coffee break this week.',
+    'At the meetup, ask about {topic_hint} and share one related personal story.',
+    'Close the meetup by thanking them and asking if they would like to do this again next week.',
+    'That night, send one concise good-night text referencing the best moment from the meetup.',
+    'Wait 2-3 days, then propose a second meetup with a specific day/time window.',
+    'During the second meetup, ask one values-based question and listen without interrupting.',
+    'At the end, state romantic intent clearly and ask if they are open to an actual date.',
+    'If yes, schedule a first official date with exact plan, duration, and location.',
+    'After the date, send a short reflection text and ask for consent to keep progressing.',
+    'If mutual interest is explicit, ask to define the relationship toward {outcome_short}.'
+  ],
+  [
+    'Send a two-option message tied to {context_anchor}: Option A tea break, Option B short walk.',
+    'Choose the accepted option and open conversation with {topic_hint} plus one open-ended question.',
+    'Offer to cover a small part of cost only if they seem comfortable, without pressure.',
+    'When leaving, ask if they got home safely and avoid repeated follow-up texts.',
+    'After 72 hours, invite them to a low-noise activity aligned with {topic_hint}.',
+    'At that activity, validate their preferences and ask what pace feels comfortable.',
+    'State interest directly: "I like spending time with you and want to date intentionally."',
+    'If they agree, propose a concrete second date plan with clear start/end time.',
+    'Follow up the next day with one appreciation text and no escalation pressure.',
+    'If consistent reciprocity is present, discuss relationship expectations and boundaries.'
+  ],
+  [
+    'Right after group session, invite them to a 20-minute snack break near campus.',
+    'Use the break to discuss {topic_hint} and ask what projects excite them right now.',
+    'Before ending, confirm they felt comfortable and ask for preferred next activity type.',
+    'Send one summary text: highlight shared interest and propose one specific next plan.',
+    'Wait 48 hours, then ask for a weekend plan with an easy opt-out clause.',
+    'During the weekend plan, keep interaction balanced: ask/listen ratio near 50/50.',
+    'Near the end, ask whether they are open to trying an official date format.',
+    'If yes, schedule the official date and confirm logistical preferences in one message.',
+    'Afterward, check in briefly and ask how they felt about the date pace.',
+    'If feedback is positive and consistent, ask to move toward exclusive dating.'
+  ],
+  [
+    'Send a purpose-first message linked to {context_anchor}: "Want to swap ideas over tea for 30 minutes?"',
+    'At the meetup, center conversation on {topic_hint} and one future-oriented question.',
+    'Offer practical help related to their current workload only if invited.',
+    'After meeting, send one gratitude text and one concrete follow-up suggestion.',
+    'Pause 3-4 days, then invite them to a calm evening plan with exact timing.',
+    'During that plan, ask about boundaries and preferred communication rhythm.',
+    'Share your intention: "I’m interested in dating you if you’re open to it."',
+    'If response is positive, agree on what "dating" means for both of you.',
+    'Send a next-day check-in confirming consent and comfort with the new step.',
+    'If alignment remains strong over repeated interactions, define the relationship.'
+  ],
+  [
+    'Use a short voice note tied to {context_anchor} inviting them for a 30-minute dinner or tea.',
+    'During the meetup, ask two curiosity questions anchored to {topic_hint}.',
+    'Near midpoint, share one vulnerable but appropriate personal detail to build trust.',
+    'At the end, ask directly whether they’d like a second one-on-one plan.',
+    'If yes, send a calendar-ready invite with date/time/location and simple backup option.',
+    'On the second plan, prioritize consent cues and avoid physical/romantic pressure.',
+    'State your romantic interest and ask for their honest answer without urgency.',
+    'If they are open, schedule a date progression plan they co-design.',
+    'After each date, run one short check-in question about comfort and expectations.',
+    'When reciprocity is explicit and sustained, ask to become partners.'
   ]
 ]);
 
@@ -155,6 +218,55 @@ function parseJsonObject(text) {
       return null;
     }
   }
+}
+
+function extractTopicHintFromProfile(profile) {
+  const source = profile && typeof profile === 'object' ? profile : {};
+  const qualitative = source.qualitative_data && typeof source.qualitative_data === 'object'
+    ? source.qualitative_data
+    : {};
+  const fields = [
+    qualitative.personal_headline,
+    qualitative.goals,
+    qualitative.communication_style,
+    qualitative.constraints,
+    source?.personal_headline,
+    source?.goals
+  ]
+    .map((item) => sanitizeText(item, 180))
+    .filter(Boolean);
+
+  const text = fields.join(' | ');
+  if (!text) return 'a topic from their profile';
+  const phrases = text
+    .split(/[|.,;]+/g)
+    .map((item) => item.trim())
+    .filter((item) => item.length >= 4);
+  const phrase = phrases[0] || '';
+  if (!phrase) return 'a topic from their profile';
+  const words = phrase.split(/\s+/g).slice(0, 6).join(' ');
+  return sanitizeText(words, 80) || 'a topic from their profile';
+}
+
+function buildContextAnchor(initialConditions) {
+  const value = sanitizeText(initialConditions, 220);
+  if (!value) return 'the current context';
+  const words = value.split(/\s+/g).slice(0, 10).join(' ');
+  return sanitizeText(words, 90) || 'the current context';
+}
+
+function shortOutcomeLabel(requestedOutcome) {
+  const value = sanitizeText(requestedOutcome, 120);
+  if (!value) return 'the requested outcome';
+  const words = value.split(/\s+/g).slice(0, 8).join(' ');
+  return sanitizeText(words, 90) || 'the requested outcome';
+}
+
+function fillFallbackTemplate(template, replacements) {
+  return String(template || '').replace(/\{([a-z_]+)\}/gi, (_, key) => {
+    const value = replacements?.[key];
+    return sanitizeText(value, 90) || '';
+  });
 }
 
 function compactProfile(profile) {
@@ -225,6 +337,12 @@ function buildGeneratorPrompt({
     safeJson(safePersonaB),
     '',
     `Requirements: exactly ${nodeCount} nodes, exactly ${actionsPerNode} actions per node.`,
+    'Each node must provide five actions that map to gene slots 1..5.',
+    'For each gene slot, the actions across nodes must chain coherently from initial conditions to requested outcome.',
+    'Every action must be realistic, ethical, legal, and executable in sequence.',
+    'Each action must be a specific executable move, not generic advice.',
+    'Bad example: "Be respectful." Good example: "Send one short text after class asking for a 30-minute tea break this weekend."',
+    'For Node 2 actions, include a personalized conversation topic anchor derived from Persona B profile.',
     'Each action should be distinct.',
     'Keep action and rationale concise.',
     'Each action must include scores:',
@@ -244,8 +362,11 @@ function buildGeneratorPrompt({
     '      "actions":[',
     '        {',
     '          "id":"N1A1",',
+    '          "gene_slot":1,',
     '          "action":"...",',
     '          "rationale":"...",',
+    '          "persona_anchor":"which persona trait/preference this action uses",',
+    '          "next_link_hint":"How this action sets up the next node",',
     '          "scores":{"fit":0,"feasibility":0,"ethics":0,"risk":0,"momentum":0,"intensity":0}',
     '        }',
     '      ]',
@@ -284,8 +405,17 @@ async function requestCompletion({ apiKey, model, messages }) {
   return data;
 }
 
-function buildFallbackActionSpace({ requestedOutcome, nodeCount, actionsPerNode }) {
+function buildFallbackActionSpace({
+  requestedOutcome,
+  initialConditions,
+  personaB,
+  nodeCount,
+  actionsPerNode
+}) {
   const safeOutcome = sanitizeText(requestedOutcome, 140) || 'the requested outcome';
+  const topicHint = extractTopicHintFromProfile(personaB?.profile);
+  const contextAnchor = buildContextAnchor(initialConditions);
+  const outcomeShort = shortOutcomeLabel(requestedOutcome);
   const nodes = [];
 
   for (let nodeIndex = 0; nodeIndex < nodeCount; nodeIndex += 1) {
@@ -294,7 +424,18 @@ function buildFallbackActionSpace({ requestedOutcome, nodeCount, actionsPerNode 
     const actions = [];
 
     for (let actionIndex = 0; actionIndex < actionsPerNode; actionIndex += 1) {
-      const baseText = nodeActions[actionIndex] || `Take a realistic action for step ${nodeIndex + 1}.`;
+      const baseTemplate = nodeActions[actionIndex] || `Take a realistic action for step ${nodeIndex + 1}.`;
+      const chainTemplate = FALLBACK_CHAIN_TEMPLATES?.[actionIndex]?.[nodeIndex];
+      const baseText = fillFallbackTemplate(
+        chainTemplate || baseTemplate
+          .replaceAll('known preferences', topicHint)
+          .replaceAll('shared context', contextAnchor),
+        {
+          topic_hint: topicHint,
+          context_anchor: contextAnchor,
+          outcome_short: outcomeShort
+        }
+      );
       const delta = VARIANT_DELTAS[actionIndex] || VARIANT_DELTAS[0];
       const fitBase = 64 + nodeIndex * 1.4;
       const feasibilityBase = 68 + (nodeIndex % 3) * 2.5;
@@ -305,8 +446,16 @@ function buildFallbackActionSpace({ requestedOutcome, nodeCount, actionsPerNode 
 
       actions.push({
         id: `N${nodeIndex + 1}A${actionIndex + 1}`,
+        gene_slot: actionIndex + 1,
         action: sanitizeText(baseText.replaceAll('the requested outcome', safeOutcome), 160),
         rationale: sanitizeText(`Supports progress toward ${safeOutcome} while preserving consent and dignity.`, 180),
+        persona_anchor: sanitizeText(topicHint, 120),
+        next_link_hint: sanitizeText(
+          nodeIndex + 1 < nodeCount
+            ? `Sets up node ${nodeIndex + 2} with low-friction continuity.`
+            : `Consolidates into the final outcome: ${safeOutcome}.`,
+          180
+        ),
         scores: {
           fit: clampInt(fitBase + delta.fit, 0, 100),
           feasibility: clampInt(feasibilityBase + delta.feasibility, 0, 100),
@@ -342,10 +491,19 @@ function normalizeAction(rawAction, fallbackAction, nodeIndex, actionIndex) {
 
   return {
     id: sanitizeText(raw.id || `N${nodeIndex + 1}A${actionIndex + 1}`, 20),
+    gene_slot: clampInt(raw.gene_slot ?? raw.geneSlot ?? actionIndex + 1, 1, DEFAULT_ACTIONS_PER_NODE),
     action: sanitizeText(raw.action || raw.name || raw.title || fallback.action || `Action ${actionIndex + 1}`, 180),
     rationale: sanitizeText(
       raw.rationale || raw.why || raw.description || fallback.rationale || 'Supports the requested outcome.',
       220
+    ),
+    persona_anchor: sanitizeText(
+      raw.persona_anchor || raw.personaAnchor || fallback.persona_anchor || '',
+      140
+    ),
+    next_link_hint: sanitizeText(
+      raw.next_link_hint || raw.nextLinkHint || fallback.next_link_hint || 'Transitions to the next step.',
+      180
     ),
     scores: {
       fit: normalizeScore(scoreSource.fit, fallbackScores.fit ?? 70),
@@ -384,6 +542,279 @@ function normalizeActionSpace(rawNodes, fallbackNodes, nodeCount, actionsPerNode
   }
 
   return normalized;
+}
+
+function tokenizeForContinuity(value) {
+  return String(value || '')
+    .toLowerCase()
+    .replace(/[^a-z0-9\s]/g, ' ')
+    .split(/\s+/g)
+    .map((token) => token.trim())
+    .filter((token) => token.length >= 4);
+}
+
+function tokenOverlapScore(leftText, rightText) {
+  const leftTokens = new Set(tokenizeForContinuity(leftText));
+  const rightTokens = new Set(tokenizeForContinuity(rightText));
+  if (!leftTokens.size || !rightTokens.size) return 0;
+  let intersection = 0;
+  leftTokens.forEach((token) => {
+    if (rightTokens.has(token)) intersection += 1;
+  });
+  const union = new Set([...leftTokens, ...rightTokens]).size;
+  if (!union) return 0;
+  return intersection / union;
+}
+
+const GENERIC_ACTION_PATTERNS = Object.freeze([
+  /\bbe\s+(?:respectful|careful|thoughtful|open|nice)\b/i,
+  /\bensure\b/i,
+  /\bmaintain\b/i,
+  /\btry\s+to\b/i,
+  /\bfocus\s+on\b/i,
+  /\brespect\s+(?:their|the)\b/i,
+  /\bkeep\s+it\b/i
+]);
+
+const CONCRETE_ACTION_VERBS = Object.freeze([
+  'invite',
+  'text',
+  'call',
+  'ask',
+  'book',
+  'schedule',
+  'propose',
+  'confirm',
+  'meet',
+  'share',
+  'send',
+  'pick',
+  'choose',
+  'offer',
+  'bring',
+  'plan',
+  'pay',
+  'drive',
+  'walk'
+]);
+
+const CONTEXT_ANCHOR_TERMS = Object.freeze([
+  'today',
+  'tonight',
+  'tomorrow',
+  'weekend',
+  'after class',
+  'before class',
+  'on campus',
+  'coffee',
+  'tea',
+  'dinner',
+  'library',
+  'message',
+  'text',
+  'call',
+  '30-minute',
+  '20-minute'
+]);
+
+function includesPattern(text, patterns) {
+  const value = String(text || '');
+  return patterns.some((pattern) => pattern.test(value));
+}
+
+function includesVerbToken(text, verbs) {
+  const normalized = ` ${String(text || '').toLowerCase()} `;
+  return verbs.some((verb) => normalized.includes(` ${verb} `));
+}
+
+function computeSpecificityPercent(actionText) {
+  const text = String(actionText || '').trim();
+  if (!text) return 0;
+  const words = text.split(/\s+/g).filter(Boolean);
+  const lengthScore = clamp((words.length / 14) * 28, 6, 28);
+  const hasVerb = includesVerbToken(text, CONCRETE_ACTION_VERBS) ? 24 : 0;
+  const hasAnchor = includesVerbToken(text, CONTEXT_ANCHOR_TERMS) ? 20 : 0;
+  const hasNumber = /\b\d{1,3}\b/.test(text) ? 14 : 0;
+  const punctuationCue = /[:,]/.test(text) ? 6 : 0;
+  const genericPenalty = includesPattern(text, GENERIC_ACTION_PATTERNS) ? 24 : 0;
+  return clamp(lengthScore + hasVerb + hasAnchor + hasNumber + punctuationCue - genericPenalty, 0, 100);
+}
+
+function scoreTransitionCheck(current, next) {
+  const currentText = `${current?.action || ''} ${current?.rationale || ''} ${current?.next_link_hint || ''}`;
+  const nextText = `${next?.node_title || ''} ${next?.action || ''} ${next?.rationale || ''}`;
+
+  const overlap = tokenOverlapScore(currentText, nextText);
+  const linkHintBonus = String(current?.next_link_hint || '').trim() ? 0.22 : 0;
+  const rawLogicality = clamp01((overlap * 0.78) + linkHintBonus);
+  const logicalityPercent = toPercent(rawLogicality);
+
+  const currFeasibility = clamp(current?.scores?.feasibility, 0, 100);
+  const nextFeasibility = clamp(next?.scores?.feasibility, 0, 100);
+  const currIntensity = clamp(current?.scores?.intensity, 0, 100);
+  const nextIntensity = clamp(next?.scores?.intensity, 0, 100);
+  const intensityJump = Math.abs(nextIntensity - currIntensity);
+  const intensityPenalty = Math.max(0, (intensityJump - 28) * 0.8);
+  const specificityPenalty =
+    Math.max(0, 55 - clamp(current?.specificity_percent, 0, 100)) * 0.16 +
+    Math.max(0, 55 - clamp(next?.specificity_percent, 0, 100)) * 0.16;
+  const practicalityPercent = clamp(((currFeasibility + nextFeasibility) / 2) - intensityPenalty - specificityPenalty, 0, 100);
+
+  const currEthics = clamp(current?.scores?.ethics, 0, 100);
+  const nextEthics = clamp(next?.scores?.ethics, 0, 100);
+  const currRisk = clamp(current?.scores?.risk, 0, 100);
+  const nextRisk = clamp(next?.scores?.risk, 0, 100);
+  const ethicsLegalPercent = clamp((((currEthics + nextEthics) / 2) * 0.72) + (((200 - currRisk - nextRisk) / 2) * 0.28), 0, 100);
+
+  const isPass =
+    logicalityPercent >= 44 &&
+    practicalityPercent >= 48 &&
+    ethicsLegalPercent >= 62;
+
+  let note = 'Transition is coherent and executable.';
+  if (!isPass) {
+    const reasons = [];
+    if (logicalityPercent < 44) reasons.push('logic gap between steps');
+    if (practicalityPercent < 48) reasons.push('practical execution gap');
+    if (ethicsLegalPercent < 62) reasons.push('ethics/legal risk too high');
+    note = `Needs revision: ${reasons.join(', ')}.`;
+  }
+
+  return {
+    from_node_index: current?.node_index || null,
+    to_node_index: next?.node_index || null,
+    logicality_percent: Number(logicalityPercent.toFixed(2)),
+    practicality_percent: Number(practicalityPercent.toFixed(2)),
+    ethics_legal_percent: Number(ethicsLegalPercent.toFixed(2)),
+    pass: isPass,
+    note
+  };
+}
+
+function selectActionForGeneSlot(node, slotIndex) {
+  const actions = Array.isArray(node?.actions) ? node.actions : [];
+  const bySlot = actions.find((action) => Number(action?.gene_slot) === slotIndex);
+  if (bySlot) return bySlot;
+  return actions[slotIndex - 1] || actions[0] || null;
+}
+
+function average(values) {
+  if (!Array.isArray(values) || !values.length) return 0;
+  const total = values.reduce((sum, value) => sum + Number(value || 0), 0);
+  return total / values.length;
+}
+
+function toPercent(value) {
+  return clamp(Number((clamp01(value) * 100).toFixed(2)), 0, 100);
+}
+
+function buildChainCandidates(actionSpace, requestedOutcome, initialConditions, actionsPerNode) {
+  const chains = [];
+  const nodeCount = actionSpace.length || 0;
+  for (let slot = 1; slot <= actionsPerNode; slot += 1) {
+    const steps = [];
+    const realismParts = [];
+    const ethicsLegalParts = [];
+    const outcomeAlignParts = [];
+    const specificityParts = [];
+
+    for (let nodeIndex = 0; nodeIndex < actionSpace.length; nodeIndex += 1) {
+      const node = actionSpace[nodeIndex];
+      const action = selectActionForGeneSlot(node, slot);
+      if (!action) continue;
+
+      const fit = clamp(action?.scores?.fit, 0, 100) / 100;
+      const feasibility = clamp(action?.scores?.feasibility, 0, 100) / 100;
+      const ethics = clamp(action?.scores?.ethics, 0, 100) / 100;
+      const risk = clamp(action?.scores?.risk, 0, 100) / 100;
+      const momentum = clamp(action?.scores?.momentum, 0, 100) / 100;
+
+      realismParts.push((fit * 0.4) + (feasibility * 0.6));
+      ethicsLegalParts.push((ethics * 0.7) + ((1 - risk) * 0.3));
+      outcomeAlignParts.push((fit * 0.55) + (momentum * 0.45));
+      const specificityPercent = computeSpecificityPercent(action.action);
+      specificityParts.push(specificityPercent / 100);
+
+      steps.push({
+        node_index: node.node_index,
+        node_title: node.node_title,
+        action_id: action.id,
+        gene_slot: slot,
+        action: action.action,
+        rationale: action.rationale,
+        persona_anchor: action.persona_anchor,
+        next_link_hint: action.next_link_hint,
+        specificity_percent: Number(specificityPercent.toFixed(2)),
+        scores: action.scores
+      });
+    }
+
+    const transitionChecks = [];
+    for (let i = 0; i < steps.length - 1; i += 1) {
+      const current = steps[i];
+      const next = steps[i + 1];
+      transitionChecks.push(scoreTransitionCheck(current, next));
+    }
+
+    const realism = average(realismParts);
+    const ethicsLegal = average(ethicsLegalParts);
+    const outcomeAlignment = average(outcomeAlignParts);
+    const specificity = average(specificityParts);
+    const continuity = transitionChecks.length
+      ? average(transitionChecks.map((item) => clamp(item.logicality_percent / 100, 0, 1)))
+      : 0.5;
+    const practicality = transitionChecks.length
+      ? average(transitionChecks.map((item) => clamp(item.practicality_percent / 100, 0, 1)))
+      : 0.5;
+    const transitionsPassCount = transitionChecks.filter((item) => item.pass).length;
+    const transitionsTotal = transitionChecks.length;
+    const transitionPassRatio = transitionsTotal ? transitionsPassCount / transitionsTotal : 1;
+
+    const chainIntegrity =
+      (realism * 0.27) +
+      (ethicsLegal * 0.24) +
+      (outcomeAlignment * 0.2) +
+      (continuity * 0.13) +
+      (practicality * 0.1) +
+      (specificity * 0.06);
+    const chainIsValid =
+      transitionPassRatio >= 0.78 &&
+      toPercent(ethicsLegal) >= 62 &&
+      toPercent(specificity) >= 50;
+
+    chains.push({
+      chain_id: `G${slot}`,
+      gene_slot: slot,
+      chain_length: steps.length,
+      chain_valid: chainIsValid,
+      initial_conditions: sanitizeText(initialConditions, 220),
+      requested_outcome: sanitizeText(requestedOutcome, 160),
+      chain_metrics: {
+        logicality_percent: toPercent(continuity),
+        practicality_percent: toPercent(practicality),
+        realism_percent: toPercent(realism),
+        ethics_legal_percent: toPercent(ethicsLegal),
+        specificity_percent: toPercent(specificity),
+        outcome_alignment_percent: toPercent(outcomeAlignment),
+        chain_integrity_percent: toPercent(chainIntegrity),
+        transition_pass_percent: toPercent(transitionPassRatio),
+        transitions_passed: transitionsPassCount,
+        transitions_total: transitionsTotal
+      },
+      summary: `Gene slot ${slot} produces a ${steps.length}-step chain with ${transitionsPassCount}/${transitionsTotal} transition checks passing.`,
+      transition_checks: transitionChecks,
+      actions: steps
+    });
+  }
+
+  return chains
+    .filter((chain) => chain.chain_length === nodeCount)
+    .sort(
+      (left, right) =>
+        Number(right?.chain_valid === true) - Number(left?.chain_valid === true) ||
+        Number(right?.chain_metrics?.chain_integrity_percent || 0) -
+        Number(left?.chain_metrics?.chain_integrity_percent || 0)
+    );
 }
 
 function computeNodePassPercent(action) {
@@ -646,6 +1077,8 @@ module.exports = async function handler(req, res) {
 
   const fallbackNodes = buildFallbackActionSpace({
     requestedOutcome,
+    initialConditions,
+    personaB,
     nodeCount: config.node_count,
     actionsPerNode: config.actions_per_node
   });
@@ -692,6 +1125,13 @@ module.exports = async function handler(req, res) {
   const personaBKey = sanitizePersonaKey(personaB?.key);
   const personaKeys = [personaAKey, personaBKey].filter(Boolean);
   const dedupPersonaKeys = Array.from(new Set(personaKeys));
+  const chainCandidates = buildChainCandidates(
+    nodes,
+    requestedOutcome,
+    initialConditions,
+    config.actions_per_node
+  );
+  const bestChain = chainCandidates[0] || null;
 
   if (actionSpaceOnly) {
     return res.status(200).json({
@@ -715,7 +1155,9 @@ module.exports = async function handler(req, res) {
       },
       total_action_combinations: Math.pow(config.actions_per_node, config.node_count),
       action_space: nodes,
-      summary: `Generated ${config.node_count} nodes × ${config.actions_per_node} actions for the requested outcome.`,
+      chain_candidates: chainCandidates,
+      best_chain: bestChain,
+      summary: `Generated ${config.node_count} nodes × ${config.actions_per_node} actions and chained them into ${chainCandidates.length} gene-based action chains.`,
       generator_source: generatorSource,
       model_used: modelUsed || null
     });
@@ -753,6 +1195,8 @@ module.exports = async function handler(req, res) {
     config,
     total_action_combinations: Math.pow(config.actions_per_node, config.node_count),
     action_space: nodes,
+    chain_candidates: chainCandidates,
+    best_chain: bestChain,
     top_pathways: topPathways,
     best_pathway: best,
     summary: buildSummary(best, requestedOutcome),
