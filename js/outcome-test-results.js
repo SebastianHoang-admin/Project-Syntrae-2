@@ -126,6 +126,20 @@ function normalizeScenarioList(report) {
   return legacy.slice(0, 5);
 }
 
+function describeGenerationSource(report) {
+  const source = String(report?.generator_source || '').trim();
+  if (source === 'llm_prompt_template') {
+    const id = safeText(report?.prompt_template_id_used, '');
+    const version = safeText(report?.prompt_template_version_used, '');
+    if (id && version) return `Source: prompt template ${id} (v${version})`;
+    if (id) return `Source: prompt template ${id}`;
+    return 'Source: prompt template';
+  }
+  if (source === 'llm_inline_prompt') return 'Source: inline model prompt';
+  if (source) return `Source: ${source}`;
+  return '';
+}
+
 function renderScenarioCard(scenario, index) {
   const integrity = formatPercent(scenario?.chain_metrics?.chain_integrity_percent ?? scenario?.empirical_success_percent);
   const logicality = formatPercent(scenario?.chain_metrics?.logicality_percent);
@@ -187,7 +201,8 @@ function renderReport(report) {
     : '-';
 
   summaryTitleEl.textContent = `${personaA} → ${personaB}`;
-  summarySubEl.textContent = outcome;
+  const sourceLine = describeGenerationSource(report);
+  summarySubEl.textContent = sourceLine ? `${outcome} · ${sourceLine}` : outcome;
   metricGeneratedAtEl.textContent = formatDateTime(report?.generated_at || report?.generatedAt);
   metricCombinationsEl.textContent = formatCombinations(report?.total_action_combinations);
   metricIntegrityEl.textContent = integrity;
