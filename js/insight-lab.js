@@ -76,6 +76,7 @@ let currentUserProfileJson = {};
 let isOutcomeQueueRunning = false;
 let currentOutcomeRunningJobId = '';
 let outcomeHistoryReportMap = new Map();
+let outcomeQueueRetryTimer = null;
 
 function sanitizePersonaKey(value) {
   const normalized = String(value || '').trim().toLowerCase();
@@ -229,6 +230,30 @@ async function saveOutcomeJobQueue(queue) {
   }
   currentUserProfileJson = nextProfile;
   renderOutcomeTestHistory();
+}
+
+function parseRateLimitRetrySecondsFromMessage(message) {
+  const text = String(message || '');
+  if (!text) return null;
+  const match = text.match(/try again in\s+([0-9]+(?:\.[0-9]+)?)s/i);
+  if (!match) return null;
+  const seconds = Number(match[1]);
+  if (!Number.isFinite(seconds) || seconds <= 0) return null;
+  return seconds;
+}
+
+function scheduleOutcomeQueueRetry(delayMs) {
+  const safeDelay = Math.max(2000, Math.min(15 * 60 * 1000, Math.round(delayMs)));
+  if (outcomeQueueRetryTimer) {
+    clearTimeout(outcomeQueueRetryTimer);
+    outcomeQueueRetryTimer = null;
+  }
+  outcomeQueueRetryTimer = setTimeout(() => {
+    outcomeQueueRetryTimer = null;
+    processOutcomeQueue().catch((error) => {
+      setOutcomeStatus(`Outcomes Test failed: ${error?.message || 'Unexpected error'}`, 'error');
+    });
+  }, safeDelay);
 }
 
 function notifyOutcomeComplete(title, body) {
@@ -615,13 +640,17 @@ function renderOutcomeTestHistory() {
     const isRunning = isOutcomeQueueRunning && (currentOutcomeRunningJobId ? currentOutcomeRunningJobId === job.id : index === 0);
     const pairLabel = `${String(job?.personaA?.label || 'Persona A').trim()} → ${String(job?.personaB?.label || 'Persona B').trim()}`;
     const requestedOutcome = String(job?.requestedOutcome || '').trim() || 'No requested outcome provided';
+    const retryStamp = String(job?.next_retry_at || '').trim();
+    const retryInfo = retryStamp
+      ? ` · <strong>Next retry:</strong> ${escapeHtml(formatHistoryDateTime(retryStamp))}`
+      : '';
     historyRows.push(`
       <article class="outcome-history-item">
         <div class="outcome-history-top">
           <span class="outcome-history-label">${escapeHtml(pairLabel)}</span>
           <span class="history-pill ${isRunning ? 'running' : 'queued'}">${isRunning ? 'Running' : 'Queued'}</span>
         </div>
-        <div class="outcome-history-meta"><strong>Outcome:</strong> ${escapeHtml(requestedOutcome)}</div>
+        <div class="outcome-history-meta"><strong>Outcome:</strong> ${escapeHtml(requestedOutcome)}${retryInfo}</div>
         <div class="outcome-history-time">${escapeHtml(formatHistoryDateTime(job?.queued_at))}</div>
       </article>
     `);
@@ -1574,7 +1603,11 @@ async function fetchOutcomeReport(payload) {
     const excerpt = String(json?.output_excerpt || '').trim();
     if (excerpt) messageParts.push(`output_excerpt=${excerpt}`);
     const message = messageParts.join(' | ') || 'Outcome test request failed';
-    throw new Error(message);
+    const error = new Error(message);
+    error.status = response.status;
+    error.stage = String(json?.stage || '').trim();
+    error.retryAfterSeconds = Number(json?.retry_after_seconds || 0) || 0;
+    throw error;
   }
   if (!json || typeof json !== 'object') {
     throw new Error('Outcome test returned an invalid response');
@@ -1592,6 +1625,20 @@ async function processOutcomeQueue() {
       const queue = loadOutcomeJobQueue();
       const nextJob = queue[0];
       if (!nextJob) break;
+
+      const nextRetryAt = Date.parse(String(nextJob?.next_retry_at || '').trim());
+      const now = Date.now();
+      if (Number.isFinite(nextRetryAt) && nextRetryAt > now) {
+        const waitMs = nextRetryAt - now;
+        const waitSec = Math.max(1, Math.ceil(waitMs / 1000));
+        setOutcomeStatus(
+          `Outcome test queue is rate-limited. Next retry for "${nextJob.requestedOutcome}" in ~${waitSec}s.`,
+          'info'
+        );
+        scheduleOutcomeQueueRetry(waitMs + 500);
+        break;
+      }
+
       currentOutcomeRunningJobId = String(nextJob.id || '').trim();
       renderOutcomeTestHistory();
 
@@ -1641,10 +1688,44 @@ async function processOutcomeQueue() {
           `Requested outcome: ${nextJob.requestedOutcome}`
         );
       } catch (error) {
+        const message = String(error?.message || 'Unexpected error');
+        const retryFromPayload = Number(error?.retryAfterSeconds || 0);
+        const retryFromMessage = parseRateLimitRetrySecondsFromMessage(message) || 0;
+        const retryAfterSeconds = Math.max(retryFromPayload, retryFromMessage);
+        const isRateLimited =
+          Number(error?.status) === 429 ||
+          message.toLowerCase().includes('rate limit') ||
+          retryAfterSeconds > 0;
+
+        if (isRateLimited) {
+          const refreshedQueue = loadOutcomeJobQueue();
+          const targetIndex = refreshedQueue.findIndex((item) => String(item?.id || '') === String(nextJob.id || ''));
+          if (targetIndex >= 0) {
+            const retrySeconds = Math.max(2, Math.ceil(retryAfterSeconds || 45));
+            const nextRetryIso = new Date(Date.now() + retrySeconds * 1000).toISOString();
+            const existingRetryCount = Number(refreshedQueue[targetIndex]?.retry_count || 0) || 0;
+            refreshedQueue[targetIndex] = {
+              ...refreshedQueue[targetIndex],
+              retry_count: existingRetryCount + 1,
+              next_retry_at: nextRetryIso,
+              last_error: message
+            };
+            await saveOutcomeJobQueue(refreshedQueue);
+            setOutcomeStatus(
+              `Outcome test hit OpenAI rate limit. Auto-retry scheduled in ~${retrySeconds}s.`,
+              'info'
+            );
+            scheduleOutcomeQueueRetry((retrySeconds * 1000) + 500);
+          } else {
+            setOutcomeStatus(`Outcomes Test failed: ${message}`, 'error');
+          }
+          break;
+        }
+
         const refreshedQueue = loadOutcomeJobQueue();
         refreshedQueue.shift();
         await saveOutcomeJobQueue(refreshedQueue);
-        setOutcomeStatus(`Outcomes Test failed: ${error?.message || 'Unexpected error'}`, 'error');
+        setOutcomeStatus(`Outcomes Test failed: ${message}`, 'error');
       }
       currentOutcomeRunningJobId = '';
       renderOutcomeTestHistory();

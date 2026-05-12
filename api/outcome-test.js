@@ -238,10 +238,20 @@ function toJsonSafeValue(value, seen = new WeakSet(), depth = 0) {
 
 function safeJson(value) {
   try {
-    return JSON.stringify(toJsonSafeValue(value || {}), null, 2);
+    return JSON.stringify(toJsonSafeValue(value || {}));
   } catch (_) {
     return '{}';
   }
+}
+
+function parseRetryAfterSecondsFromText(value) {
+  const text = String(value || '');
+  if (!text) return null;
+  const match = text.match(/try again in\s+([0-9]+(?:\.[0-9]+)?)s/i);
+  if (!match) return null;
+  const seconds = Number(match[1]);
+  if (!Number.isFinite(seconds) || seconds <= 0) return null;
+  return seconds;
 }
 
 function parseJsonObject(text) {
@@ -563,14 +573,12 @@ function buildGeneratorPrompt({
     key: sanitizePersonaKey(personaA?.key),
     label: sanitizeText(personaA?.label, 120),
     profile_compact: compactProfile(personaA?.profile),
-    profile_full: personaA?.profile && typeof personaA.profile === 'object' ? personaA.profile : {},
     db_record_full: personaARecord
   };
   const safePersonaB = {
     key: sanitizePersonaKey(personaB?.key),
     label: sanitizeText(personaB?.label, 120),
     profile_compact: compactProfile(personaB?.profile),
-    profile_full: personaB?.profile && typeof personaB.profile === 'object' ? personaB.profile : {},
     db_record_full: personaBRecord
   };
 
@@ -654,7 +662,7 @@ async function requestCompletion({ apiKey, model, messages }) {
     body: JSON.stringify({
       model,
       temperature: 0.3,
-      max_tokens: 2600,
+      max_tokens: 1900,
       messages
     })
   });
@@ -732,7 +740,7 @@ async function requestCompletionWithPromptTemplate({
 
   const requestBody = {
     prompt: promptPayload,
-    max_output_tokens: clampInt(options.maxOutputTokens ?? 4200, 800, 12000)
+    max_output_tokens: clampInt(options.maxOutputTokens ?? 1900, 600, 8000)
   };
   if (options.useMessageInput) {
     requestBody.input = [
@@ -1595,12 +1603,12 @@ module.exports = async function handler(req, res) {
           model,
           systemPrompt,
           userPrompt,
-          options: {
-            useMessageInput: false,
-            forceJsonObject: false,
-            maxOutputTokens: 4200
-          }
-        });
+            options: {
+              useMessageInput: false,
+              forceJsonObject: false,
+              maxOutputTokens: 1900
+            }
+          });
         promptTemplateRaw = templated?.raw || null;
         generatedText = String(templated?.text || '').trim();
 
@@ -1614,12 +1622,12 @@ module.exports = async function handler(req, res) {
             model,
             systemPrompt,
             userPrompt,
-            options: {
-              useMessageInput: true,
-              forceJsonObject: true,
-              maxOutputTokens: 5200
-            }
-          });
+              options: {
+                useMessageInput: true,
+                forceJsonObject: true,
+                maxOutputTokens: 2200
+              }
+            });
           promptTemplateRaw = retryTemplated?.raw || promptTemplateRaw;
           generatedText = String(retryTemplated?.text || '').trim();
         }
@@ -1641,14 +1649,17 @@ module.exports = async function handler(req, res) {
         promptTemplateError?.message || 'Prompt template generation returned no output.',
         280
       );
+      const retryAfterSeconds = parseRetryAfterSecondsFromText(reason);
       const rawStatus = sanitizeText(promptTemplateRaw?.status || '', 60);
       const rawIncompleteReason = sanitizeText(promptTemplateRaw?.incomplete_details?.reason || '', 120);
-      return fail(502, 'openai.prompt_template_generation', reason, {
+      const statusCode = Number(promptTemplateError?.status) === 429 || retryAfterSeconds ? 429 : 502;
+      return fail(statusCode, 'openai.prompt_template_generation', reason, {
         prompt_template_id: promptTemplateId,
         prompt_template_version: promptTemplateVersion || null,
         response_status: rawStatus || null,
         response_incomplete_reason: rawIncompleteReason || null,
-        response_id: sanitizeText(promptTemplateRaw?.id || '', 80) || null
+        response_id: sanitizeText(promptTemplateRaw?.id || '', 80) || null,
+        retry_after_seconds: retryAfterSeconds
       });
     }
 
@@ -1727,7 +1738,11 @@ module.exports = async function handler(req, res) {
     modelUsed = model;
   } catch (error) {
     const reason = sanitizeText(error?.message || 'Unexpected outcome generation error.', 320);
-    return fail(502, 'openai.unhandled_exception', reason);
+    const retryAfterSeconds = parseRetryAfterSecondsFromText(reason);
+    const statusCode = Number(error?.status) === 429 || retryAfterSeconds ? 429 : 502;
+    return fail(statusCode, 'openai.unhandled_exception', reason, {
+      retry_after_seconds: retryAfterSeconds
+    });
   }
 
   if (!Array.isArray(nodes) || !nodes.length) {
