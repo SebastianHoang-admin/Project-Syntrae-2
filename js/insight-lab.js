@@ -12,8 +12,6 @@ const ACCOUNT_OUTCOME_QUEUE_KEY = 'outcome_job_queue';
 const MAX_ACCOUNT_FITNESS_REPORTS = 20;
 const MAX_ACCOUNT_OUTCOME_REPORTS = 20;
 const MAX_OUTCOME_QUEUE_ITEMS = 10;
-const OUTCOME_PROMPT_TEMPLATE_ID = 'pmpt_69fa2fb3eefc8196b8ca8889f95f756903f3f05aace493de';
-const OUTCOME_PROMPT_TEMPLATE_VERSION = '2';
 
 const AXIS_LABELS = Object.freeze({
   L1_A1: 'Initiative',
@@ -1551,10 +1549,6 @@ function buildOutcomePayload(optionA, optionB, signatureA, signatureB) {
   return {
     initial_conditions: String(outcomeInitialConditionsEl?.value || '').trim(),
     requested_outcome: String(outcomeRequestedOutcomeEl?.value || '').trim(),
-    prompt: {
-      id: OUTCOME_PROMPT_TEMPLATE_ID,
-      version: OUTCOME_PROMPT_TEMPLATE_VERSION
-    },
     require_prompt_template: true,
     personaA: {
       key: optionA.key,
