@@ -652,30 +652,6 @@ function buildGeneratorPrompt({
   };
 }
 
-async function requestCompletion({ apiKey, model, messages }) {
-  const openaiRes = await fetch('https://api.openai.com/v1/chat/completions', {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify({
-      model,
-      temperature: 0.3,
-      max_tokens: 1900,
-      messages
-    })
-  });
-  const data = await openaiRes.json().catch(() => ({}));
-  if (!openaiRes.ok) {
-    const message = data?.error?.message || data?.error || 'OpenAI request failed';
-    const err = new Error(message);
-    err.status = openaiRes.status;
-    throw err;
-  }
-  return data;
-}
-
 function extractTextFromResponsesApi(data) {
   const candidates = [];
   const pushCandidate = (value) => {
@@ -740,11 +716,12 @@ async function requestCompletionWithPromptTemplate({
 
   const requestBody = {
     prompt: promptPayload,
-    max_output_tokens: clampInt(options.maxOutputTokens ?? 1900, 600, 8000)
+    max_output_tokens: clampInt(options.maxOutputTokens ?? 5200, 600, 12000)
   };
   if (options.useMessageInput) {
+    const userOnlyInput = parseBoolean(options.useUserOnlyInput, false);
     requestBody.input = [
-      { role: 'developer', content: inputText[0] || '' },
+      ...(userOnlyInput ? [] : [{ role: 'developer', content: inputText[0] || '' }]),
       { role: 'user', content: inputText[1] || '' }
     ];
   } else {
@@ -753,10 +730,22 @@ async function requestCompletionWithPromptTemplate({
   if (model) {
     requestBody.model = model;
   }
+  requestBody.reasoning = {
+    effort: sanitizeText(options.reasoningEffort || 'low', 16) || 'low',
+    summary: sanitizeText(options.reasoningSummary || 'concise', 16) || 'concise'
+  };
   if (options.forceJsonObject) {
     requestBody.text = {
-      format: { type: 'json_object' }
+      format: { type: 'json_object' },
+      verbosity: sanitizeText(options.verbosity || 'low', 16) || 'low'
     };
+  } else if (options.verbosity) {
+    requestBody.text = {
+      verbosity: sanitizeText(options.verbosity, 16) || 'low'
+    };
+  }
+  if (options.metadata && typeof options.metadata === 'object') {
+    requestBody.metadata = options.metadata;
   }
 
   const openaiRes = await fetch('https://api.openai.com/v1/responses', {
@@ -1539,13 +1528,7 @@ module.exports = async function handler(req, res) {
       'false',
     false
   );
-  const allowInlineRetryAfterTemplateEmpty = parseBoolean(
-    body.allow_inline_retry_after_template_empty ??
-      body.allowInlineRetryAfterTemplateEmpty ??
-      resolveEnv(['OPENAI_OUTCOME_ALLOW_INLINE_RETRY_AFTER_TEMPLATE_EMPTY']) ??
-      'false',
-    false
-  );
+  const clientRequestId = sanitizeText(body.request_id || body.requestId || '', 80);
 
   if (requirePromptTemplate && !promptTemplateId) {
     return fail(
@@ -1594,7 +1577,7 @@ module.exports = async function handler(req, res) {
               actions_per_node: String(config.actions_per_node)
             }
           : undefined;
-        failureStage = 'openai.prompt_template.primary_request';
+        failureStage = 'openai.prompt_template.request';
         const templated = await requestCompletionWithPromptTemplate({
           apiKey,
           promptId: promptTemplateId,
@@ -1603,34 +1586,23 @@ module.exports = async function handler(req, res) {
           model,
           systemPrompt,
           userPrompt,
-            options: {
-              useMessageInput: false,
-              forceJsonObject: false,
-              maxOutputTokens: 1900
+          options: {
+            useMessageInput: true,
+            useUserOnlyInput: true,
+            forceJsonObject: true,
+            maxOutputTokens: 7600,
+            reasoningEffort: 'low',
+            reasoningSummary: 'concise',
+            verbosity: 'low',
+            metadata: {
+              syntrae_feature: 'outcome_test',
+              syntrae_stage: 'prompt_template_generation',
+              syntrae_request_id: clientRequestId || `req-${Date.now()}`
             }
-          });
+          }
+        });
         promptTemplateRaw = templated?.raw || null;
         generatedText = String(templated?.text || '').trim();
-
-        if (!generatedText) {
-          failureStage = 'openai.prompt_template.retry_request';
-          const retryTemplated = await requestCompletionWithPromptTemplate({
-            apiKey,
-            promptId: promptTemplateId,
-            promptVersion: promptTemplateVersion,
-            promptVariables,
-            model,
-            systemPrompt,
-            userPrompt,
-              options: {
-                useMessageInput: true,
-                forceJsonObject: true,
-                maxOutputTokens: 2200
-              }
-            });
-          promptTemplateRaw = retryTemplated?.raw || promptTemplateRaw;
-          generatedText = String(retryTemplated?.text || '').trim();
-        }
 
         if (generatedText) {
           generationMode = 'llm_prompt_template';
@@ -1644,7 +1616,7 @@ module.exports = async function handler(req, res) {
       }
     }
 
-    if (!generatedText && requirePromptTemplate && !allowInlineRetryAfterTemplateEmpty) {
+    if (!generatedText && requirePromptTemplate) {
       const reason = sanitizeText(
         promptTemplateError?.message || 'Prompt template generation returned no output.',
         280
@@ -1661,28 +1633,6 @@ module.exports = async function handler(req, res) {
         response_id: sanitizeText(promptTemplateRaw?.id || '', 80) || null,
         retry_after_seconds: retryAfterSeconds
       });
-    }
-
-    if (!generatedText) {
-      failureStage = templateAttempted && !templateProducedOutput
-        ? 'openai.inline_retry_after_template_empty'
-        : 'openai.inline_generation';
-      const completion = await requestCompletion({
-        apiKey,
-        model,
-        messages: [
-          { role: 'system', content: systemPrompt },
-          { role: 'user', content: userPrompt }
-        ]
-      });
-      generatedText = String(completion?.choices?.[0]?.message?.content || '').trim();
-      if (generatedText) {
-        generationMode = templateAttempted && !templateProducedOutput
-          ? 'llm_inline_after_template_empty'
-          : 'llm_inline_prompt';
-        promptTemplateIdUsed = templateAttempted ? promptTemplateId : null;
-        promptTemplateVersionUsed = templateAttempted ? (promptTemplateVersion || null) : null;
-      }
     }
 
     if (!generatedText) {
