@@ -9,6 +9,7 @@ const INSIGHT_LAB_PROFILE_KEY = 'insight_lab';
 const ACCOUNT_FITNESS_REPORTS_KEY = 'fitness_reports';
 const ACCOUNT_OUTCOME_REPORTS_KEY = 'outcome_reports';
 const ACCOUNT_OUTCOME_QUEUE_KEY = 'outcome_job_queue';
+const ACCOUNT_OUTCOME_MODEL_SETTINGS_KEY = 'outcome_model_settings';
 const MAX_ACCOUNT_FITNESS_REPORTS = 20;
 const MAX_ACCOUNT_OUTCOME_REPORTS = 20;
 const MAX_OUTCOME_QUEUE_ITEMS = 10;
@@ -1545,8 +1546,21 @@ function updateOutcomeUI() {
   setOutcomeStatus('', 'info');
 }
 
+function getOutcomeModelSettingsFromProfile() {
+  const insightLab = currentUserProfileJson?.[INSIGHT_LAB_PROFILE_KEY] && typeof currentUserProfileJson[INSIGHT_LAB_PROFILE_KEY] === 'object'
+    ? currentUserProfileJson[INSIGHT_LAB_PROFILE_KEY]
+    : {};
+  const settings = insightLab?.[ACCOUNT_OUTCOME_MODEL_SETTINGS_KEY];
+  if (!settings || typeof settings !== 'object' || Array.isArray(settings)) return null;
+  try {
+    return JSON.parse(JSON.stringify(settings));
+  } catch (_) {
+    return null;
+  }
+}
+
 function buildOutcomePayload(optionA, optionB, signatureA, signatureB) {
-  return {
+  const payload = {
     initial_conditions: String(outcomeInitialConditionsEl?.value || '').trim(),
     requested_outcome: String(outcomeRequestedOutcomeEl?.value || '').trim(),
     require_prompt_template: true,
@@ -1570,6 +1584,13 @@ function buildOutcomePayload(optionA, optionB, signatureA, signatureB) {
       actions_per_node: 5
     }
   };
+
+  const modelSettings = getOutcomeModelSettingsFromProfile();
+  if (modelSettings) {
+    payload.model_settings = modelSettings;
+  }
+
+  return payload;
 }
 
 async function fetchOutcomeReport(payload) {
