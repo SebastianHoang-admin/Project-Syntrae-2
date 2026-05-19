@@ -15,7 +15,7 @@ const MAX_ACCOUNT_FITNESS_REPORTS = 20;
 const MAX_ACCOUNT_OUTCOME_REPORTS = 20;
 const MAX_ACCOUNT_OUTCOME_FAILED = 30;
 const MAX_OUTCOME_QUEUE_ITEMS = 10;
-const MAX_OUTCOME_JOB_RETRIES = 3;
+const MAX_OUTCOME_JOB_RETRIES = 1;
 
 const AXIS_LABELS = Object.freeze({
   L1_A1: 'Initiative',
@@ -79,7 +79,6 @@ let currentUserProfileJson = {};
 let isOutcomeQueueRunning = false;
 let currentOutcomeRunningJobId = '';
 let outcomeHistoryReportMap = new Map();
-let outcomeQueueRetryTimer = null;
 let outcomeQueueAbortController = null;
 let outcomeStopRequested = false;
 
@@ -118,6 +117,13 @@ function truncate(text, max = 180) {
   const value = String(text || '').trim();
   if (value.length <= max) return value;
   return `${value.slice(0, max - 1)}…`;
+}
+
+function sanitizeText(value, maxLength = 280) {
+  const normalized = String(value || '').replace(/\s+/g, ' ').trim();
+  if (!normalized) return '';
+  if (normalized.length <= maxLength) return normalized;
+  return `${normalized.slice(0, maxLength - 1)}…`;
 }
 
 function escapeHtml(value) {
@@ -263,11 +269,16 @@ function computeOutcomeRetryPlan(error, priorRetryCount = 0) {
   const resetFromPayload = Number(error?.rateLimitResetSeconds || 0) || 0;
   const retryFromMessage = Number(parseRateLimitRetrySecondsFromMessage(message) || 0) || 0;
   const retryAfterSeconds = Math.max(retryFromPayload, resetFromPayload, retryFromMessage);
+  const isSchemaOrSetupError =
+    lowerMessage.includes('token limiter schema is missing') ||
+    lowerMessage.includes('run supabase/persona_tables.sql') ||
+    lowerMessage.includes('configuration.supabase_token_limiter');
   const isAuthOrConfigError =
     status === 400 ||
     status === 401 ||
     status === 403 ||
-    stage.startsWith('configuration.');
+    stage.startsWith('configuration.') ||
+    isSchemaOrSetupError;
   const isRateLimited =
     status === 429 ||
     lowerMessage.includes('rate limit') ||
@@ -347,35 +358,16 @@ function computeOutcomeRetryPlan(error, priorRetryCount = 0) {
   };
 }
 
-function scheduleOutcomeQueueRetry(delayMs) {
-  const safeDelay = Math.max(2000, Math.min(15 * 60 * 1000, Math.round(delayMs)));
-  if (outcomeQueueRetryTimer) {
-    clearTimeout(outcomeQueueRetryTimer);
-    outcomeQueueRetryTimer = null;
-  }
-  outcomeQueueRetryTimer = setTimeout(() => {
-    outcomeQueueRetryTimer = null;
-    processOutcomeQueue().catch((error) => {
-      setOutcomeStatus(`Outcomes Test failed: ${error?.message || 'Unexpected error'}`, 'error');
-    });
-  }, safeDelay);
-}
-
 function hasOutcomeQueueWork() {
   return (
     isOutcomeQueueRunning ||
     Boolean(currentOutcomeRunningJobId) ||
-    Boolean(outcomeQueueRetryTimer) ||
     loadOutcomeJobQueue().length > 0
   );
 }
 
 async function stopOutcomeQueueByUser() {
   outcomeStopRequested = true;
-  if (outcomeQueueRetryTimer) {
-    clearTimeout(outcomeQueueRetryTimer);
-    outcomeQueueRetryTimer = null;
-  }
   if (outcomeQueueAbortController) {
     try {
       outcomeQueueAbortController.abort();
@@ -925,17 +917,13 @@ function renderOutcomeTestHistory() {
     const isRunning = isOutcomeQueueRunning && (currentOutcomeRunningJobId ? currentOutcomeRunningJobId === job.id : index === 0);
     const pairLabel = `${String(job?.personaA?.label || 'Persona A').trim()} → ${String(job?.personaB?.label || 'Persona B').trim()}`;
     const requestedOutcome = String(job?.requestedOutcome || '').trim() || 'No requested outcome provided';
-    const retryStamp = String(job?.next_retry_at || '').trim();
-    const retryInfo = retryStamp
-      ? ` · <strong>Next retry:</strong> ${escapeHtml(formatHistoryDateTime(retryStamp))}`
-      : '';
     historyRows.push(`
       <article class="outcome-history-item">
         <div class="outcome-history-top">
           <span class="outcome-history-label">${escapeHtml(pairLabel)}</span>
           <span class="history-pill ${isRunning ? 'running' : 'queued'}">${isRunning ? 'Running' : 'Queued'}</span>
         </div>
-        <div class="outcome-history-meta"><strong>Outcome:</strong> ${escapeHtml(requestedOutcome)}${retryInfo}</div>
+        <div class="outcome-history-meta"><strong>Outcome:</strong> ${escapeHtml(requestedOutcome)}</div>
         <div class="outcome-history-time">${escapeHtml(formatHistoryDateTime(job?.queued_at))}</div>
       </article>
     `);
@@ -1994,29 +1982,6 @@ async function processOutcomeQueue() {
       const nextJob = queue[0];
       if (!nextJob) break;
 
-      const nextRetryAt = Date.parse(String(nextJob?.next_retry_at || '').trim());
-      const now = Date.now();
-      if (Number.isFinite(nextRetryAt) && nextRetryAt > now) {
-        const waitMs = nextRetryAt - now;
-        const waitSec = Math.max(1, Math.ceil(waitMs / 1000));
-        const retryReason = String(nextJob?.last_retry_reason || '').trim();
-        const reasonLabel = retryReason === 'rate_limit'
-          ? 'rate limit'
-          : retryReason === 'timeout'
-            ? 'timeout'
-            : retryReason === 'upstream'
-              ? 'upstream service issue'
-              : retryReason === 'network'
-                ? 'network issue'
-                : 'transient model issue';
-        setOutcomeStatus(
-          `Outcome test queue is waiting for auto-retry (${reasonLabel}). Next retry for "${nextJob.requestedOutcome}" in ~${waitSec}s.`,
-          'info'
-        );
-        scheduleOutcomeQueueRetry(waitMs + 500);
-        break;
-      }
-
       currentOutcomeRunningJobId = String(nextJob.id || '').trim();
       renderOutcomeTestHistory();
 
@@ -2084,49 +2049,7 @@ async function processOutcomeQueue() {
         const message = String(error?.message || 'Unexpected error');
         const refreshedQueue = loadOutcomeJobQueue();
         const targetIndex = refreshedQueue.findIndex((item) => String(item?.id || '') === String(nextJob.id || ''));
-        const existingRetryCount = targetIndex >= 0
-          ? (Number(refreshedQueue[targetIndex]?.retry_count || 0) || 0)
-          : 0;
-        const nextFailureCount = existingRetryCount + 1;
-        const retryPlan = computeOutcomeRetryPlan(error, existingRetryCount);
-
-        if (retryPlan.shouldRetry && targetIndex >= 0 && nextFailureCount < MAX_OUTCOME_JOB_RETRIES) {
-          const retrySeconds = Math.max(2, Math.ceil(retryPlan.retrySeconds || 45));
-          const nextRetryIso = new Date(Date.now() + retrySeconds * 1000).toISOString();
-          refreshedQueue[targetIndex] = {
-            ...refreshedQueue[targetIndex],
-            retry_count: nextFailureCount,
-            next_retry_at: nextRetryIso,
-            last_error: message,
-            last_error_status: Number(error?.status || 0) || null,
-            stage: String(error?.stage || '').trim(),
-            last_retry_reason: retryPlan.reasonLabel
-          };
-          await saveOutcomeJobQueue(refreshedQueue);
-          const reasonLabel = retryPlan.reasonLabel === 'rate_limit'
-            ? 'rate limit'
-            : retryPlan.reasonLabel === 'timeout'
-              ? 'timeout'
-              : retryPlan.reasonLabel === 'upstream'
-                ? 'upstream service issue'
-                : retryPlan.reasonLabel === 'network'
-                  ? 'network issue'
-                  : retryPlan.reasonLabel === 'model_response'
-                    ? 'model response formatting issue'
-                  : 'transient issue';
-          const nextAttempt = nextFailureCount + 1;
-          const limitTokens = Number(error?.rateLimit?.limit_tokens || 0) || 0;
-          const remainingTokens = Number(error?.rateLimit?.remaining_tokens || 0) || 0;
-          const rateLimitHint = limitTokens > 0
-            ? ` · tokens ${remainingTokens}/${limitTokens} remaining`
-            : '';
-          setOutcomeStatus(
-            `Outcome test hit a ${reasonLabel}. Auto-retry scheduled in ~${retrySeconds}s (attempt ${nextAttempt} of ${MAX_OUTCOME_JOB_RETRIES})${rateLimitHint}.`,
-            'info'
-          );
-          scheduleOutcomeQueueRetry((retrySeconds * 1000) + 500);
-          break;
-        }
+        const retryPlan = computeOutcomeRetryPlan(error, 0);
 
         const failedQueueJob = targetIndex >= 0 ? refreshedQueue[targetIndex] : nextJob;
         if (targetIndex >= 0) {
@@ -2143,17 +2066,13 @@ async function processOutcomeQueue() {
           requested_outcome: failedQueueJob?.requestedOutcome || failedQueueJob?.requested_outcome || nextJob?.requestedOutcome || '',
           persona_a: failedQueueJob?.personaA || failedQueueJob?.persona_a || nextJob?.personaA || {},
           persona_b: failedQueueJob?.personaB || failedQueueJob?.persona_b || nextJob?.personaB || {},
-          attempts: nextFailureCount,
+          attempts: 1,
           last_error: message,
           last_error_status: Number(error?.status || 0) || null,
-          last_retry_reason: retryPlan.shouldRetry ? 'max_retries_exceeded' : 'fatal',
+          last_retry_reason: retryPlan.shouldRetry ? 'single_attempt_no_retry' : 'fatal',
           stage: String(error?.stage || '').trim()
         });
-        if (retryPlan.shouldRetry && nextFailureCount >= MAX_OUTCOME_JOB_RETRIES) {
-          setOutcomeStatus(`Outcomes Test failed after ${MAX_OUTCOME_JOB_RETRIES} attempts: ${message}`, 'error');
-        } else {
-          setOutcomeStatus(`Outcomes Test failed: ${message}`, 'error');
-        }
+        setOutcomeStatus(`Outcomes Test failed (single attempt): ${message}`, 'error');
       } finally {
         outcomeQueueAbortController = null;
       }

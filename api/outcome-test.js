@@ -12,6 +12,10 @@ const DEFAULT_OUTCOME_PROMPT_ID = 'pmpt_69fa2fb3eefc8196b8ca8889f95f756903f3f05a
 const DEFAULT_OUTCOME_MAX_OUTPUT_TOKENS = 6000;
 const MAX_OUTCOME_MAX_OUTPUT_TOKENS = 100000;
 const DEFAULT_OUTCOME_MODEL_TIMEOUT_MS = 285000;
+const DEFAULT_OUTCOME_MIN_ADAPTIVE_OUTPUT_CAP = 6000;
+const DEFAULT_OUTCOME_GLOBAL_TPM_LIMIT = 30000;
+const DEFAULT_OUTCOME_TPM_WINDOW_SECONDS = 60;
+const DEFAULT_OUTCOME_TPM_WAIT_TIMEOUT_MS = 240000;
 
 function clamp(value, min, max) {
   const numeric = Number(value);
@@ -193,6 +197,266 @@ async function fetchSupabaseUser(supabaseUrl, anonKey, accessToken) {
     apikey: anonKey,
     Authorization: `Bearer ${accessToken}`
   });
+}
+
+function sleep(ms) {
+  return new Promise((resolve) => setTimeout(resolve, Math.max(0, Number(ms) || 0)));
+}
+
+function estimateTokenCountFromText(text) {
+  const normalized = String(text || '').trim();
+  if (!normalized) return 0;
+  return Math.max(1, Math.ceil(normalized.length / 4));
+}
+
+function estimateTokenCountFromJson(value) {
+  return estimateTokenCountFromText(safeJson(value));
+}
+
+function estimateAdaptiveOutputTokenCap(nodeCount, actionsPerNode) {
+  const safeNodeCount = clampInt(nodeCount, 1, 24);
+  const safeActionsPerNode = clampInt(actionsPerNode, 1, 12);
+  const actionCount = safeNodeCount * safeActionsPerNode;
+  const perActionBudget = 64;
+  const perNodeOverhead = 26;
+  const globalOverhead = 360;
+  const estimated = globalOverhead + (actionCount * perActionBudget) + (safeNodeCount * perNodeOverhead);
+  const headroom = Math.ceil(estimated * 1.25);
+  return clampInt(headroom, 1400, MAX_OUTCOME_MAX_OUTPUT_TOKENS);
+}
+
+function toFiniteNumber(value, fallback = 0) {
+  const numeric = Number(value);
+  if (!Number.isFinite(numeric)) return fallback;
+  return numeric;
+}
+
+function extractUsageFromResponsesPayload(raw) {
+  const usage = raw?.usage && typeof raw.usage === 'object' ? raw.usage : {};
+  const inputTokens = Math.max(0, Math.round(toFiniteNumber(
+    usage.input_tokens ??
+      usage.prompt_tokens ??
+      usage.inputTokens ??
+      0,
+    0
+  )));
+  const outputTokens = Math.max(0, Math.round(toFiniteNumber(
+    usage.output_tokens ??
+      usage.completion_tokens ??
+      usage.outputTokens ??
+      0,
+    0
+  )));
+  const totalTokensRaw = Math.max(0, Math.round(toFiniteNumber(
+    usage.total_tokens ??
+      usage.totalTokens ??
+      (inputTokens + outputTokens),
+    inputTokens + outputTokens
+  )));
+  const totalTokens = Math.max(totalTokensRaw, inputTokens + outputTokens);
+  return {
+    input_tokens: inputTokens,
+    output_tokens: outputTokens,
+    total_tokens: totalTokens
+  };
+}
+
+const MODEL_CONTEXT_DROP_KEY_PATTERN = /(^|_)(portrait|avatar|image|photo|thumbnail|base64|data_url|token|secret|password|session|jwt|cookie|binary|blob|html|markdown)(_|$)/i;
+
+function shouldDropModelContextKey(key) {
+  const normalized = String(key || '').trim();
+  if (!normalized) return true;
+  return MODEL_CONTEXT_DROP_KEY_PATTERN.test(normalized);
+}
+
+function compactModelContextValue(value, depth = 0) {
+  if (value === null || value === undefined) return undefined;
+  if (depth > 4) return undefined;
+  if (typeof value === 'string') return sanitizeText(value, 220);
+  if (typeof value === 'number' || typeof value === 'boolean') return value;
+  if (typeof value === 'bigint') return value.toString();
+  if (Array.isArray(value)) {
+    const out = value
+      .slice(0, 10)
+      .map((item) => compactModelContextValue(item, depth + 1))
+      .filter((item) => item !== undefined);
+    return out.length ? out : undefined;
+  }
+  if (typeof value !== 'object') return undefined;
+
+  const out = {};
+  const entries = Object.entries(value).slice(0, 24);
+  entries.forEach(([key, nested]) => {
+    const safeKey = sanitizeText(key, 64);
+    if (!safeKey || shouldDropModelContextKey(safeKey)) return;
+    const compacted = compactModelContextValue(nested, depth + 1);
+    if (compacted === undefined) return;
+    out[safeKey] = compacted;
+  });
+  return Object.keys(out).length ? out : undefined;
+}
+
+function normalizeSupabaseRpcResult(body) {
+  if (Array.isArray(body)) return body[0] && typeof body[0] === 'object' ? body[0] : {};
+  if (!body || typeof body !== 'object') return {};
+  return body;
+}
+
+async function callSupabaseRpc(supabaseUrl, serviceRoleKey, fnName, payload) {
+  const response = await fetch(`${supabaseUrl}/rest/v1/rpc/${fnName}`, {
+    method: 'POST',
+    headers: {
+      apikey: serviceRoleKey,
+      Authorization: `Bearer ${serviceRoleKey}`,
+      'Content-Type': 'application/json',
+      Prefer: 'return=representation'
+    },
+    body: JSON.stringify(payload || {})
+  });
+
+  const body = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    const message = sanitizeText(
+      body?.message || body?.hint || body?.error || `Supabase RPC ${fnName} failed`,
+      260
+    ) || `Supabase RPC ${fnName} failed`;
+    const error = new Error(message);
+    error.status = response.status;
+    error.code = sanitizeText(body?.code || '', 32);
+    throw error;
+  }
+
+  return normalizeSupabaseRpcResult(body);
+}
+
+function isMissingTokenLimiterSchemaError(error) {
+  const message = String(error?.message || '').toLowerCase();
+  const code = String(error?.code || '').toLowerCase();
+  return (
+    code === '42p01' ||
+    code === '42883' ||
+    message.includes('outcome_token_budget_acquire') ||
+    message.includes('outcome_token_budget_release') ||
+    (message.includes('relation') && message.includes('outcome_token_budget'))
+  );
+}
+
+async function acquireOutcomeTokenReservation({
+  supabaseUrl,
+  serviceRoleKey,
+  estimatedTokens,
+  tpmLimit,
+  windowSeconds,
+  waitTimeoutMs,
+  requestId,
+  userId
+}) {
+  const startedAt = Date.now();
+  const safeTokens = clampInt(estimatedTokens, 1, 2_000_000);
+  const safeLimit = clampInt(tpmLimit, 1000, 20_000_000);
+  const safeWindowSeconds = clampInt(windowSeconds, 20, 300);
+  const safeWaitTimeoutMs = clampInt(waitTimeoutMs, 5000, 900000);
+
+  while (true) {
+    let result;
+    try {
+      result = await callSupabaseRpc(supabaseUrl, serviceRoleKey, 'outcome_token_budget_acquire', {
+        p_tokens: safeTokens,
+        p_tpm_limit: safeLimit,
+        p_window_seconds: safeWindowSeconds,
+        p_request_id: requestId || null,
+        p_user_id: userId || null
+      });
+    } catch (error) {
+      if (isMissingTokenLimiterSchemaError(error)) {
+        const schemaError = new Error(
+          'Supabase token limiter schema is missing. Run supabase/persona_tables.sql to install outcome token budget functions.'
+        );
+        schemaError.status = 500;
+        schemaError.stage = 'configuration.supabase_token_limiter';
+        throw schemaError;
+      }
+      throw error;
+    }
+
+    const granted = parseBoolean(result?.granted, false);
+    const reason = sanitizeText(result?.reason || '', 80);
+    const retryAfterSeconds = clampInt(
+      pickFirstPresent(result?.retry_after_seconds, result?.retryAfterSeconds, 2),
+      1,
+      900
+    );
+
+    if (granted) {
+      return {
+        reservation_id: sanitizeText(result?.reservation_id || '', 120),
+        limit_tokens: toFiniteNumber(result?.limit_tokens, safeLimit),
+        remaining_tokens: Math.max(0, Math.round(toFiniteNumber(result?.remaining_tokens, 0))),
+        retry_after_seconds: retryAfterSeconds,
+        wait_ms: Date.now() - startedAt
+      };
+    }
+
+    if (reason === 'request_exceeds_limit') {
+      const tooLargeError = new Error(
+        `Estimated request token budget (${safeTokens}) exceeds global TPM limit (${safeLimit}).`
+      );
+      tooLargeError.status = 400;
+      tooLargeError.stage = 'configuration.request_token_budget';
+      tooLargeError.retryAfterSeconds = retryAfterSeconds;
+      throw tooLargeError;
+    }
+
+    const elapsed = Date.now() - startedAt;
+    if (elapsed + (retryAfterSeconds * 1000) > safeWaitTimeoutMs) {
+      const timeoutError = new Error(
+        `Outcome request is waiting for global token capacity. Retry in ~${retryAfterSeconds}s.`
+      );
+      timeoutError.status = 429;
+      timeoutError.stage = 'openai.global_tpm_wait_timeout';
+      timeoutError.retryAfterSeconds = retryAfterSeconds;
+      timeoutError.rateLimitResetTokensSeconds = retryAfterSeconds;
+      timeoutError.rateLimit = {
+        limit_tokens: safeLimit,
+        remaining_tokens: Math.max(0, Math.round(toFiniteNumber(result?.remaining_tokens, 0))),
+        retry_after_seconds: retryAfterSeconds
+      };
+      throw timeoutError;
+    }
+
+    await sleep(retryAfterSeconds * 1000);
+  }
+}
+
+async function releaseOutcomeTokenReservation({
+  supabaseUrl,
+  serviceRoleKey,
+  reservationId,
+  actualTokens,
+  success,
+  requestId,
+  userId,
+  model,
+  promptId,
+  promptVersion,
+  errorStage
+}) {
+  if (!reservationId) return;
+  try {
+    await callSupabaseRpc(supabaseUrl, serviceRoleKey, 'outcome_token_budget_release', {
+      p_reservation_id: reservationId,
+      p_actual_tokens: Math.max(0, Math.round(toFiniteNumber(actualTokens, 0))),
+      p_success: Boolean(success),
+      p_request_id: requestId || null,
+      p_user_id: userId || null,
+      p_model: sanitizeText(model || '', 80) || null,
+      p_prompt_id: sanitizeText(promptId || '', 140) || null,
+      p_prompt_version: sanitizeText(promptVersion || '', 40) || null,
+      p_error_stage: sanitizeText(errorStage || '', 120) || null
+    });
+  } catch (error) {
+    console.warn('Could not release outcome token reservation:', error?.message || error);
+  }
 }
 
 function parseJsonObject(text) {
@@ -443,6 +707,38 @@ function summarizeInitialConditionsFromPersonas(personaA, personaB, userContext)
   return sanitizeText(parts.join(' '), 1200);
 }
 
+function buildPersonaModelContext(persona) {
+  const raw = persona && typeof persona === 'object' ? persona : {};
+  const dbRecord = raw?.db_record && typeof raw.db_record === 'object' ? raw.db_record : {};
+  const dbProfile = dbRecord?.profile && typeof dbRecord.profile === 'object' ? dbRecord.profile : {};
+  const sourceProfile = raw?.profile && typeof raw.profile === 'object' ? raw.profile : dbProfile;
+  const axes = extractAxisScores(sourceProfile);
+  const trimmedAxes = Object.fromEntries(
+    Object.entries(axes)
+      .slice(0, 18)
+      .map(([key, value]) => [sanitizeText(key, 48), Number(clamp(value, 0, 100).toFixed(1))])
+      .filter(([key]) => Boolean(key))
+  );
+
+  const recordContext = compactModelContextValue({
+    persona_key: dbRecord?.persona_key,
+    name: dbRecord?.name,
+    state: dbRecord?.state,
+    traits: dbRecord?.traits,
+    profile: dbRecord?.profile,
+    extras: dbRecord?.extras,
+    usersInput: dbRecord?.usersInput
+  }) || {};
+
+  return {
+    key: sanitizePersonaKey(raw?.key),
+    label: sanitizeText(raw?.label, 120),
+    profile_compact: compactProfile(sourceProfile),
+    quantitative_axes: trimmedAxes,
+    record_context: recordContext
+  };
+}
+
 function buildGeneratorPrompt({
   inferredInitialConditions,
   additionalContext,
@@ -453,33 +749,15 @@ function buildGeneratorPrompt({
   actionsPerNode
 }) {
   const safeOutcome = sanitizeText(requestedOutcome, 320);
-  const safeInferredContext = sanitizeText(inferredInitialConditions, 2200);
+  const safeInferredContext = sanitizeText(inferredInitialConditions, 1800);
   const safeAdditionalContext = sanitizeText(additionalContext, 320);
-  const personaARecord = personaA?.db_record && typeof personaA.db_record === 'object'
-    ? personaA.db_record
-    : {};
-  const personaBRecord = personaB?.db_record && typeof personaB.db_record === 'object'
-    ? personaB.db_record
-    : {};
-  const safePersonaA = {
-    key: sanitizePersonaKey(personaA?.key),
-    label: sanitizeText(personaA?.label, 120),
-    profile_compact: compactProfile(personaA?.profile),
-    db_record_full: personaARecord
-  };
-  const safePersonaB = {
-    key: sanitizePersonaKey(personaB?.key),
-    label: sanitizeText(personaB?.label, 120),
-    profile_compact: compactProfile(personaB?.profile),
-    db_record_full: personaBRecord
-  };
+  const safePersonaA = buildPersonaModelContext(personaA);
+  const safePersonaB = buildPersonaModelContext(personaB);
 
   const systemPrompt = [
     'You are Syntrae AI Outcome Test action-space generator.',
-    'Role: a practical romantic wingman that gives clear step-by-step actions toward the requested relationship outcome.',
-    'Generate realistic, ethical, legal social-action options.',
-    'Never include coercion, manipulation, stalking, harassment, deception, or illegal advice.',
-    'Actions must be practical for real-world respectful communication.',
+    'Generate practical, respectful, legal, consent-preserving social actions toward the requested relationship outcome.',
+    'Never include coercion, manipulation, stalking, harassment, deception, or illegal guidance.',
     'Return strict JSON only. No markdown.'
   ].join('\n');
 
@@ -489,26 +767,22 @@ function buildGeneratorPrompt({
     `Initial conditions inferred from both personas: ${safeInferredContext || '(missing)'}`,
     safeAdditionalContext ? `Additional context from user: ${safeAdditionalContext}` : 'Additional context from user: (none provided)',
     '',
-    'IMPORTANT: Full Supabase database objects for both active personas are provided below.',
-    'Use all available fields (including nested objects) to personalize actions.',
-    'Do not reduce interpretation to only compact fields when full records are available.',
+    'Use persona context JSON below for personalization. Use both compact and nested cues.',
     '',
-    'Persona A (initiator):',
+    'Persona A (initiator) context:',
     safeJson(safePersonaA),
     '',
-    'Persona B (target):',
+    'Persona B (target) context:',
     safeJson(safePersonaB),
     '',
-    `Requirements: exactly ${nodeCount} nodes, exactly ${actionsPerNode} actions per node.`,
-    'Each node must provide five actions that map to gene slots 1..5.',
-    'For each gene slot, the actions across nodes must chain coherently from initial conditions to requested outcome.',
-    'Every action must be realistic, ethical, legal, and executable in sequence.',
-    'Each action must be a specific executable move, not generic advice.',
-    'Bad example: "Be respectful." Good example: "Send one short text after class asking for a 30-minute tea break this weekend."',
-    'For Node 2 actions, include a personalized conversation topic anchor derived from Persona B profile.',
-    'Each action should be distinct.',
-    'Keep action and rationale concise.',
-    'Each action must include scores:',
+    `Requirements: exactly ${nodeCount} nodes and exactly ${actionsPerNode} actions per node.`,
+    `Each node must include actions mapped to gene_slot 1..${actionsPerNode}.`,
+    'For a given gene_slot, actions across nodes must chain coherently from initial conditions to requested outcome.',
+    'Each action must be specific and executable (not generic advice) and realistic in sequence.',
+    'For Node 2 actions, include a personalized conversation-topic anchor from Persona B context.',
+    'Actions in the same node must be distinct.',
+    'Keep action and rationale concise and concrete.',
+    'Each action must include numeric scores:',
     '- fit (0-100): alignment with both personas and outcome',
     '- feasibility (0-100): realistic execution in current context',
     '- ethics (0-100): consent, dignity, legal/ethical safety',
@@ -516,26 +790,8 @@ function buildGeneratorPrompt({
     '- momentum (0-100): chance the action advances toward outcome',
     '- intensity (0-100): social intensity level',
     '',
-    'Output schema:',
-    '{',
-    '  "nodes":[',
-    '    {',
-    '      "node_index":1,',
-    '      "node_title":"...",',
-    '      "actions":[',
-    '        {',
-    '          "id":"N1A1",',
-    '          "gene_slot":1,',
-    '          "action":"...",',
-    '          "rationale":"...",',
-    '          "persona_anchor":"which persona trait/preference this action uses",',
-    '          "next_link_hint":"How this action sets up the next node",',
-    '          "scores":{"fit":0,"feasibility":0,"ethics":0,"risk":0,"momentum":0,"intensity":0}',
-    '        }',
-    '      ]',
-    '    }',
-    '  ]',
-    '}'
+    'Output schema (strict JSON object only):',
+    '{"nodes":[{"node_index":1,"node_title":"...","actions":[{"id":"N1A1","gene_slot":1,"action":"...","rationale":"...","persona_anchor":"...","next_link_hint":"...","scores":{"fit":0,"feasibility":0,"ethics":0,"risk":0,"momentum":0,"intensity":0}}]}]}'
   ].join('\n');
 
   return {
@@ -716,9 +972,16 @@ async function requestCompletionWithPromptTemplate({
     err.rateLimitResetTokensSeconds = Number(rateLimit.reset_tokens_seconds || 0) || 0;
     throw err;
   }
+  const successRateLimit = buildOpenAiRateLimitInfo(openaiRes.headers);
   return {
     raw: data,
-    text: extractTextFromResponsesApi(data)
+    text: extractTextFromResponsesApi(data),
+    usage: extractUsageFromResponsesPayload(data),
+    openaiRequestId: sanitizeText(
+      openaiRes.headers.get('x-request-id') || openaiRes.headers.get('openai-request-id') || '',
+      120
+    ) || null,
+    rateLimit: successRateLimit
   };
 }
 
@@ -1353,8 +1616,10 @@ module.exports = async function handler(req, res) {
 
   const supabaseUrl = resolveEnv(['SUPABASE_URL']);
   const supabaseAnonKey = resolveEnv(['SUPABASE_ANON_KEY', 'SUPABASE_ANON_KEY_LOCAL']);
+  const supabaseServiceRoleKey = resolveEnv(['SUPABASE_SERVICE_ROLE_KEY', 'SUPABASE_SERVICE_ROLE_KEY_LOCAL']);
   const authHeader = String(req.headers.authorization || '');
   const accessToken = authHeader.startsWith('Bearer ') ? authHeader.slice(7).trim() : '';
+  let authenticatedUserId = '';
 
   if (supabaseUrl && supabaseAnonKey) {
     if (!accessToken) {
@@ -1365,6 +1630,7 @@ module.exports = async function handler(req, res) {
     if (!userResult.ok || !userResult.body?.id) {
       return res.status(401).json({ error: 'Invalid or expired session token' });
     }
+    authenticatedUserId = sanitizeText(userResult.body.id, 64);
   }
 
   const body = req.body && typeof req.body === 'object' ? req.body : {};
@@ -1469,7 +1735,7 @@ module.exports = async function handler(req, res) {
     10000,
     290000
   );
-  const maxOutputTokens = clampInt(
+  const configuredMaxOutputTokens = clampInt(
     pickFirstPresent(
       body.max_output_tokens,
       body.maxOutputTokens,
@@ -1478,6 +1744,25 @@ module.exports = async function handler(req, res) {
       resolveEnv(['OPENAI_OUTCOME_MAX_OUTPUT_TOKENS']),
       DEFAULT_OUTCOME_MAX_OUTPUT_TOKENS
     ),
+    600,
+    MAX_OUTCOME_MAX_OUTPUT_TOKENS
+  );
+  const adaptiveOutputTokenCap = estimateAdaptiveOutputTokenCap(config.node_count, config.actions_per_node);
+  const minAdaptiveOutputTokenCap = clampInt(
+    pickFirstPresent(
+      body.min_adaptive_output_tokens,
+      body.minAdaptiveOutputTokens,
+      modelSettings.min_adaptive_output_tokens,
+      modelSettings.minAdaptiveOutputTokens,
+      resolveEnv(['OPENAI_OUTCOME_MIN_ADAPTIVE_OUTPUT_CAP']),
+      DEFAULT_OUTCOME_MIN_ADAPTIVE_OUTPUT_CAP
+    ),
+    600,
+    MAX_OUTCOME_MAX_OUTPUT_TOKENS
+  );
+  const effectiveAdaptiveOutputTokenCap = Math.max(adaptiveOutputTokenCap, minAdaptiveOutputTokenCap);
+  const maxOutputTokens = clampInt(
+    Math.min(configuredMaxOutputTokens, effectiveAdaptiveOutputTokenCap),
     600,
     MAX_OUTCOME_MAX_OUTPUT_TOKENS
   );
@@ -1493,9 +1778,19 @@ module.exports = async function handler(req, res) {
     ),
     128
   );
-  // Leave prompt template version unspecified so OpenAI uses the default
-  // prompt/model configuration selected in the web UI.
-  const promptTemplateVersion = '';
+  // Leave prompt version unspecified by default so OpenAI uses the prompt's latest default version.
+  const promptTemplateVersion = sanitizeText(
+    pickFirstPresent(
+      promptConfig.version,
+      body.outcome_prompt_version,
+      body.outcomePromptVersion,
+      body.prompt_version,
+      body.promptVersion,
+      modelSettings.prompt_version,
+      modelSettings.promptVersion
+    ) || '',
+    32
+  );
   const requirePromptTemplate = parseBoolean(
     body.require_prompt_template ??
       body.requirePromptTemplate ??
@@ -1511,6 +1806,45 @@ module.exports = async function handler(req, res) {
     false
   );
   const clientRequestId = sanitizeText(body.request_id || body.requestId || '', 80);
+  const internalRequestId = clientRequestId || `out-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+  const outcomeTpmLimit = clampInt(
+    pickFirstPresent(
+      body.outcome_tpm_limit,
+      body.outcomeTpmLimit,
+      modelSettings.outcome_tpm_limit,
+      modelSettings.outcomeTpmLimit,
+      modelSettings.tpm_limit,
+      modelSettings.tpmLimit,
+      resolveEnv(['OPENAI_OUTCOME_TPM_LIMIT']),
+      DEFAULT_OUTCOME_GLOBAL_TPM_LIMIT
+    ),
+    1000,
+    20_000_000
+  );
+  const outcomeTpmWindowSeconds = clampInt(
+    pickFirstPresent(
+      body.outcome_tpm_window_seconds,
+      body.outcomeTpmWindowSeconds,
+      modelSettings.outcome_tpm_window_seconds,
+      modelSettings.outcomeTpmWindowSeconds,
+      resolveEnv(['OPENAI_OUTCOME_TPM_WINDOW_SECONDS']),
+      DEFAULT_OUTCOME_TPM_WINDOW_SECONDS
+    ),
+    20,
+    300
+  );
+  const outcomeTpmWaitTimeoutMs = clampInt(
+    pickFirstPresent(
+      body.outcome_tpm_wait_timeout_ms,
+      body.outcomeTpmWaitTimeoutMs,
+      modelSettings.outcome_tpm_wait_timeout_ms,
+      modelSettings.outcomeTpmWaitTimeoutMs,
+      resolveEnv(['OPENAI_OUTCOME_TPM_WAIT_TIMEOUT_MS']),
+      DEFAULT_OUTCOME_TPM_WAIT_TIMEOUT_MS
+    ),
+    5000,
+    900000
+  );
 
   if (requirePromptTemplate && !promptTemplateId) {
     return fail(
@@ -1523,6 +1857,17 @@ module.exports = async function handler(req, res) {
   if (!apiKey) {
     return fail(500, 'configuration.openai_key', 'OPENAI_API_KEY is missing.');
   }
+
+  if (supabaseUrl && !supabaseServiceRoleKey) {
+    return fail(
+      500,
+      'configuration.supabase_service_role_key',
+      'SUPABASE_SERVICE_ROLE_KEY is required for global Outcome token scheduling.'
+    );
+  }
+
+  let responseUsageSummary = { input_tokens: 0, output_tokens: 0, total_tokens: 0 };
+  let responseTokenBudgetInfo = null;
 
   try {
     let failureStage = 'build_generator_prompt';
@@ -1542,9 +1887,13 @@ module.exports = async function handler(req, res) {
     let promptTemplateRaw = null;
     let templateAttempted = false;
     let templateProducedOutput = false;
+    let usageSummary = { input_tokens: 0, output_tokens: 0, total_tokens: 0 };
+    let tokenBudgetInfo = null;
 
     if (promptTemplateId) {
       templateAttempted = true;
+      let reservation = null;
+      let releaseSuccess = false;
       try {
         const promptVariables = usePromptVariables
           ? {
@@ -1559,6 +1908,36 @@ module.exports = async function handler(req, res) {
               actions_per_node: String(config.actions_per_node)
             }
           : undefined;
+        const estimatedInputTokens =
+          estimateTokenCountFromText(systemPrompt) +
+          estimateTokenCountFromText(userPrompt) +
+          estimateTokenCountFromJson(promptVariables) +
+          120;
+        const estimatedRequestTokens = Math.max(
+          700,
+          clampInt(estimatedInputTokens + maxOutputTokens, 700, 2_000_000)
+        );
+
+        if (supabaseUrl && supabaseServiceRoleKey) {
+          reservation = await acquireOutcomeTokenReservation({
+            supabaseUrl,
+            serviceRoleKey: supabaseServiceRoleKey,
+            estimatedTokens: estimatedRequestTokens,
+            tpmLimit: outcomeTpmLimit,
+            windowSeconds: outcomeTpmWindowSeconds,
+            waitTimeoutMs: outcomeTpmWaitTimeoutMs,
+            requestId: internalRequestId,
+            userId: authenticatedUserId
+          });
+          tokenBudgetInfo = {
+            estimated_tokens: estimatedRequestTokens,
+            limit_tokens: Math.max(0, Math.round(toFiniteNumber(reservation?.limit_tokens, outcomeTpmLimit))),
+            remaining_tokens_after_reservation: Math.max(0, Math.round(toFiniteNumber(reservation?.remaining_tokens, 0))),
+            queued_wait_ms: Math.max(0, Math.round(toFiniteNumber(reservation?.wait_ms, 0)))
+          };
+          responseTokenBudgetInfo = tokenBudgetInfo;
+        }
+
         failureStage = 'openai.prompt_template.request';
         const templated = await requestCompletionWithPromptTemplate({
           apiKey,
@@ -1587,22 +1966,47 @@ module.exports = async function handler(req, res) {
             metadata: {
               syntrae_feature: 'outcome_test',
               syntrae_stage: 'prompt_template_generation',
-              syntrae_request_id: clientRequestId || `req-${Date.now()}`
+              syntrae_request_id: internalRequestId
             }
           }
         });
         promptTemplateRaw = templated?.raw || null;
         generatedText = String(templated?.text || '').trim();
+        usageSummary = templated?.usage && typeof templated.usage === 'object'
+          ? templated.usage
+          : extractUsageFromResponsesPayload(promptTemplateRaw);
+        if (tokenBudgetInfo && typeof tokenBudgetInfo === 'object') {
+          tokenBudgetInfo.actual_tokens = Math.max(0, Math.round(toFiniteNumber(usageSummary.total_tokens, 0)));
+          tokenBudgetInfo.input_tokens = Math.max(0, Math.round(toFiniteNumber(usageSummary.input_tokens, 0)));
+          tokenBudgetInfo.output_tokens = Math.max(0, Math.round(toFiniteNumber(usageSummary.output_tokens, 0)));
+        }
+        responseUsageSummary = usageSummary;
+        responseTokenBudgetInfo = tokenBudgetInfo;
 
         if (generatedText) {
           generationMode = 'llm_prompt_template';
           promptTemplateIdUsed = promptTemplateId;
           promptTemplateVersionUsed = promptTemplateVersion || null;
           templateProducedOutput = true;
+          releaseSuccess = true;
         }
       } catch (error) {
         generatedText = '';
         promptTemplateError = error;
+      } finally {
+        await releaseOutcomeTokenReservation({
+          supabaseUrl,
+          serviceRoleKey: supabaseServiceRoleKey,
+          reservationId: reservation?.reservation_id || '',
+          actualTokens: Math.max(0, Math.round(toFiniteNumber(usageSummary.total_tokens, 0))),
+          success: releaseSuccess,
+          requestId: internalRequestId,
+          userId: authenticatedUserId,
+          model: modelOverride || modelUsed || '',
+          promptId: promptTemplateId,
+          promptVersion: promptTemplateVersion || null,
+          errorStage: releaseSuccess ? '' : failureStage
+        });
       }
     }
 
@@ -1611,6 +2015,8 @@ module.exports = async function handler(req, res) {
         promptTemplateError?.message || 'Prompt template generation returned no output.',
         280
       );
+      const upstreamStage = sanitizeText(promptTemplateError?.stage || '', 120).toLowerCase();
+      const isConfigurationStage = upstreamStage.startsWith('configuration.');
       const hasSummaryMismatch = /unsupported value:\s*'concise'.*supported values are:\s*'detailed'/i.test(reason);
       const retryAfterSeconds = Math.max(
         Number(promptTemplateError?.retryAfterSeconds || 0) || 0,
@@ -1622,8 +2028,12 @@ module.exports = async function handler(req, res) {
       );
       const rawStatus = sanitizeText(promptTemplateRaw?.status || '', 60);
       const rawIncompleteReason = sanitizeText(promptTemplateRaw?.incomplete_details?.reason || '', 120);
-      const statusCode = Number(promptTemplateError?.status) === 429 || retryAfterSeconds || rateLimitResetSeconds ? 429 : 502;
-      return fail(statusCode, 'openai.prompt_template_generation', reason, {
+      const shouldMapToRateLimit = Number(promptTemplateError?.status) === 429 || retryAfterSeconds || rateLimitResetSeconds;
+      const statusCode = isConfigurationStage
+        ? (Number(promptTemplateError?.status) || 500)
+        : (shouldMapToRateLimit ? 429 : 502);
+      const failureStageLabel = isConfigurationStage ? upstreamStage : 'openai.prompt_template_generation';
+      return fail(statusCode, failureStageLabel, reason, {
         prompt_template_id: promptTemplateId,
         prompt_template_version: promptTemplateVersion || null,
         hint: hasSummaryMismatch
@@ -1632,12 +2042,20 @@ module.exports = async function handler(req, res) {
         response_status: rawStatus || null,
         response_incomplete_reason: rawIncompleteReason || null,
         response_id: sanitizeText(promptTemplateRaw?.id || '', 80) || null,
-        retry_after_seconds: retryAfterSeconds || null,
-        rate_limit_reset_seconds: rateLimitResetSeconds || null,
+        retry_after_seconds: isConfigurationStage ? null : (retryAfterSeconds || null),
+        rate_limit_reset_seconds: isConfigurationStage ? null : (rateLimitResetSeconds || null),
         rate_limit: promptTemplateError?.rateLimit && typeof promptTemplateError.rateLimit === 'object'
           ? promptTemplateError.rateLimit
           : null,
-        openai_request_id: sanitizeText(promptTemplateError?.openaiRequestId || '', 120) || null
+        openai_request_id: sanitizeText(promptTemplateError?.openaiRequestId || '', 120) || null,
+        token_budget: responseTokenBudgetInfo,
+        output_token_policy: {
+          configured_max_output_tokens: configuredMaxOutputTokens,
+          adaptive_cap: adaptiveOutputTokenCap,
+          adaptive_floor: minAdaptiveOutputTokenCap,
+          effective_adaptive_cap: effectiveAdaptiveOutputTokenCap,
+          applied_max_output_tokens: maxOutputTokens
+        }
       });
     }
 
@@ -1648,7 +2066,8 @@ module.exports = async function handler(req, res) {
       );
       return fail(502, 'openai.generation_empty', reason, {
         prompt_template_id: templateAttempted ? promptTemplateId : null,
-        prompt_template_version: templateAttempted ? (promptTemplateVersion || null) : null
+        prompt_template_version: templateAttempted ? (promptTemplateVersion || null) : null,
+        token_budget: responseTokenBudgetInfo
       });
     }
 
@@ -1723,7 +2142,15 @@ module.exports = async function handler(req, res) {
       retry_after_seconds: retryAfterSeconds || null,
       rate_limit_reset_seconds: rateLimitResetSeconds || null,
       rate_limit: error?.rateLimit && typeof error.rateLimit === 'object' ? error.rateLimit : null,
-      openai_request_id: sanitizeText(error?.openaiRequestId || '', 120) || null
+      openai_request_id: sanitizeText(error?.openaiRequestId || '', 120) || null,
+      token_budget: responseTokenBudgetInfo,
+      output_token_policy: {
+        configured_max_output_tokens: configuredMaxOutputTokens,
+        adaptive_cap: adaptiveOutputTokenCap,
+        adaptive_floor: minAdaptiveOutputTokenCap,
+        effective_adaptive_cap: effectiveAdaptiveOutputTokenCap,
+        applied_max_output_tokens: maxOutputTokens
+      }
     });
   }
 
@@ -1773,7 +2200,16 @@ module.exports = async function handler(req, res) {
       generator_source: generatorSource,
       model_used: modelUsed || null,
       prompt_template_id_used: promptTemplateIdUsed,
-      prompt_template_version_used: promptTemplateVersionUsed
+      prompt_template_version_used: promptTemplateVersionUsed,
+      usage: responseUsageSummary,
+      token_budget: responseTokenBudgetInfo,
+      output_token_policy: {
+        configured_max_output_tokens: configuredMaxOutputTokens,
+        adaptive_cap: adaptiveOutputTokenCap,
+        adaptive_floor: minAdaptiveOutputTokenCap,
+        effective_adaptive_cap: effectiveAdaptiveOutputTokenCap,
+        applied_max_output_tokens: maxOutputTokens
+      }
     });
   }
 
@@ -1819,7 +2255,16 @@ module.exports = async function handler(req, res) {
     generator_source: generatorSource,
     model_used: modelUsed || null,
     prompt_template_id_used: promptTemplateIdUsed,
-    prompt_template_version_used: promptTemplateVersionUsed
+    prompt_template_version_used: promptTemplateVersionUsed,
+    usage: responseUsageSummary,
+    token_budget: responseTokenBudgetInfo,
+    output_token_policy: {
+      configured_max_output_tokens: configuredMaxOutputTokens,
+      adaptive_cap: adaptiveOutputTokenCap,
+      adaptive_floor: minAdaptiveOutputTokenCap,
+      effective_adaptive_cap: effectiveAdaptiveOutputTokenCap,
+      applied_max_output_tokens: maxOutputTokens
+    }
   };
 
   return res.status(200).json(report);

@@ -4,11 +4,12 @@ This project now writes account data into:
 - `public.user_profiles` for the signed-in user profile
 - `public.personas` for each persona owned by that user
 - `public.persona_chat_sessions` / `public.persona_chat_messages` for chat windows/history
+- `public.outcome_token_budget_state` / `public.outcome_token_budget_reservations` for global Outcome TPM scheduling
 
 ## 1) Create tables + RLS
 
 Run `supabase/persona_tables.sql` in **Supabase Dashboard -> SQL Editor**.
-You can safely re-run it later; it is idempotent and also applies chat-session upgrades, adds `portrait_storage_path` + `profile` on personas, creates `user_profiles`, adds storage bucket policies for persona portraits, and migrates any legacy `persona_key = 'default'` rows to generated slug keys.
+You can safely re-run it later; it is idempotent and also applies chat-session upgrades, adds `portrait_storage_path` + `profile` on personas, creates `user_profiles`, provisions global Outcome token-budget RPCs, adds storage bucket policies for persona portraits, and migrates any legacy `persona_key = 'default'` rows to generated slug keys.
 
 ## 2) Optional backfill from old metadata storage
 
