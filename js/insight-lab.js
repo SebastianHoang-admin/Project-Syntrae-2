@@ -1682,6 +1682,151 @@ function normalizeOutcomeChainList(value, limit = 5) {
     .slice(0, limit);
 }
 
+function selectOutcomeActionBySlot(actions, slot) {
+  const list = Array.isArray(actions) ? actions : [];
+  return (
+    list.find((action) => Number(action?.gene_slot || 0) === slot) ||
+    list[slot - 1] ||
+    list[0] ||
+    null
+  );
+}
+
+function buildOutcomeActionLookup(nodes) {
+  const map = new Map();
+  (Array.isArray(nodes) ? nodes : []).forEach((node, nodeIndex) => {
+    const actions = Array.isArray(node?.actions) ? node.actions : [];
+    actions.forEach((action, actionIndex) => {
+      const fallbackId = `N${nodeIndex + 1}A${actionIndex + 1}`;
+      const actionId = String(action?.id || fallbackId).trim() || fallbackId;
+      map.set(actionId, {
+        action: String(action?.action || '').trim(),
+        rationale: String(action?.rationale || '').trim()
+      });
+    });
+  });
+  return map;
+}
+
+function normalizeOutcomeChainMatrix(matrixInput, nodes, actionsPerNode) {
+  const safeNodes = Array.isArray(nodes) ? nodes : [];
+  const defaultColumns = safeNodes.map((node, index) => {
+    const nodeIndex = Number(node?.node_index || index + 1) || index + 1;
+    return {
+      node_index: nodeIndex,
+      node_title: String(node?.node_title || `Node ${nodeIndex}`).trim() || `Node ${nodeIndex}`,
+      column_key: `N${nodeIndex}`
+    };
+  });
+
+  const matrix = matrixInput && typeof matrixInput === 'object' ? matrixInput : {};
+  const inputColumns = Array.isArray(matrix?.columns) ? matrix.columns : [];
+  const inputRows = Array.isArray(matrix?.rows) ? matrix.rows : [];
+  const hasMatrixRows = inputColumns.length > 0 && inputRows.length > 0;
+
+  if (!hasMatrixRows) {
+    const rows = [];
+    for (let slot = 1; slot <= actionsPerNode; slot += 1) {
+      const actionIds = safeNodes.map((node, nodeIndex) => {
+        const action = selectOutcomeActionBySlot(node?.actions, slot);
+        return String(action?.id || `N${nodeIndex + 1}A${slot}`).trim() || `N${nodeIndex + 1}A${slot}`;
+      });
+      rows.push({
+        gene_slot: slot,
+        action_slot: `A${slot}`,
+        chain_id: `G${slot}`,
+        action_ids: actionIds
+      });
+    }
+    return {
+      horizontal_axis: 'nodes',
+      vertical_axis: 'actions',
+      columns: defaultColumns,
+      rows
+    };
+  }
+
+  const columns = inputColumns.map((column, index) => {
+    const nodeIndex = Number(column?.node_index || index + 1) || index + 1;
+    return {
+      node_index: nodeIndex,
+      node_title: String(column?.node_title || `Node ${nodeIndex}`).trim() || `Node ${nodeIndex}`,
+      column_key: String(column?.column_key || `N${nodeIndex}`).trim() || `N${nodeIndex}`
+    };
+  });
+
+  const rows = inputRows.map((row, index) => {
+    const geneSlot = Number(row?.gene_slot || index + 1) || index + 1;
+    const actionIds = Array.isArray(row?.action_ids)
+      ? row.action_ids.map((id) => String(id || '').trim()).filter(Boolean)
+      : [];
+    return {
+      gene_slot: geneSlot,
+      action_slot: String(row?.action_slot || `A${geneSlot}`).trim() || `A${geneSlot}`,
+      chain_id: String(row?.chain_id || `G${geneSlot}`).trim() || `G${geneSlot}`,
+      action_ids: actionIds
+    };
+  });
+
+  return {
+    horizontal_axis: 'nodes',
+    vertical_axis: 'actions',
+    columns,
+    rows
+  };
+}
+
+function renderOutcomeMatrixCard(matrix, actionLookup) {
+  if (!matrix || !Array.isArray(matrix.columns) || !Array.isArray(matrix.rows)) return '';
+  if (!matrix.columns.length || !matrix.rows.length) return '';
+
+  const headerCells = matrix.columns
+    .map((column) => `<th>${escapeHtml(String(column?.column_key || `N${column?.node_index || '?'}`))}</th>`)
+    .join('');
+
+  const bodyRows = matrix.rows
+    .map((row) => {
+      const actionIds = Array.isArray(row?.action_ids) ? row.action_ids : [];
+      const cells = matrix.columns
+        .map((_, columnIndex) => {
+          const actionId = String(actionIds[columnIndex] || '').trim();
+          const record = actionLookup.get(actionId) || {};
+          const actionText = escapeHtml(truncate(record.action || '', 120));
+          return `
+            <td>
+              <strong>${escapeHtml(actionId || '-')}</strong>
+              ${actionText ? `<span>${actionText}</span>` : '<span>-</span>'}
+            </td>
+          `;
+        })
+        .join('');
+      const slotLabel = escapeHtml(String(row?.action_slot || `A${row?.gene_slot || '?'}`));
+      const chainLabel = escapeHtml(String(row?.chain_id || ''));
+      return `<tr><th>${slotLabel}${chainLabel ? `<small>${chainLabel}</small>` : ''}</th>${cells}</tr>`;
+    })
+    .join('');
+
+  return `
+    <article class="pathway-card matrix-card">
+      <h4>EA Chain Array (Nodes × Actions)</h4>
+      <div class="matrix-meta">${escapeHtml(`Horizontal: ${matrix.horizontal_axis || 'nodes'} · Vertical: ${matrix.vertical_axis || 'actions'}`)}</div>
+      <div class="matrix-wrap">
+        <table class="matrix-table">
+          <thead>
+            <tr>
+              <th>Action</th>
+              ${headerCells}
+            </tr>
+          </thead>
+          <tbody>
+            ${bodyRows}
+          </tbody>
+        </table>
+      </div>
+    </article>
+  `;
+}
+
 function toSafePercent(value, fallback = 0) {
   const numeric = Number(value);
   if (!Number.isFinite(numeric)) return fallback;
@@ -1731,6 +1876,9 @@ function renderOutcomeResults(report) {
     `${requestedOutcome ? `"${requestedOutcome}"` : 'Requested outcome'} · Generated ${nodeCount} nodes × ${actionsPerNode} actions · Best chain integrity ${bestChainIntegrity}%`;
 
   const nodes = normalizeOutcomeNodeList(report?.action_space, 10);
+  const actionLookup = buildOutcomeActionLookup(nodes);
+  const chainMatrix = normalizeOutcomeChainMatrix(report?.chain_action_matrix, nodes, actionsPerNode);
+  const matrixCard = renderOutcomeMatrixCard(chainMatrix, actionLookup);
   const chainCards = chains
     .map((chain, index) => {
       const integrity = toSafePercent(chain?.chain_metrics?.chain_integrity_percent, 0).toFixed(2);
@@ -1806,7 +1954,7 @@ function renderOutcomeResults(report) {
     })
     .join('');
 
-  outcomePathwayGridEl.innerHTML = `${chainCards}${nodeCards}`;
+  outcomePathwayGridEl.innerHTML = `${matrixCard}${chainCards}${nodeCards}`;
 
   outcomeResultsEl.hidden = false;
 }
@@ -1881,6 +2029,11 @@ function sanitizeOutcomeModelSettings(settings) {
     return null;
   }
   if (!cloned || typeof cloned !== 'object' || Array.isArray(cloned)) return null;
+  // Always use prompt template latest default version (no explicit version pin).
+  delete cloned.prompt_version;
+  delete cloned.promptVersion;
+  delete cloned.outcome_prompt_version;
+  delete cloned.outcomePromptVersion;
   return cloned;
 }
 

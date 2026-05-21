@@ -712,98 +712,67 @@ function buildPersonaModelContext(persona) {
   const dbRecord = raw?.db_record && typeof raw.db_record === 'object' ? raw.db_record : {};
   const dbProfile = dbRecord?.profile && typeof dbRecord.profile === 'object' ? dbRecord.profile : {};
   const sourceProfile = raw?.profile && typeof raw.profile === 'object' ? raw.profile : dbProfile;
+  const compact = compactProfile(sourceProfile);
   const axes = extractAxisScores(sourceProfile);
   const trimmedAxes = Object.fromEntries(
     Object.entries(axes)
-      .slice(0, 18)
+      .slice(0, 8)
       .map(([key, value]) => [sanitizeText(key, 48), Number(clamp(value, 0, 100).toFixed(1))])
       .filter(([key]) => Boolean(key))
   );
-
-  const recordContext = compactModelContextValue({
-    persona_key: dbRecord?.persona_key,
-    name: dbRecord?.name,
-    state: dbRecord?.state,
-    traits: dbRecord?.traits,
-    profile: dbRecord?.profile,
-    extras: dbRecord?.extras,
-    usersInput: dbRecord?.usersInput
-  }) || {};
+  const compactCritical = summarizeCriticalFactors(compact);
 
   return {
     key: sanitizePersonaKey(raw?.key),
     label: sanitizeText(raw?.label, 120),
-    profile_compact: compactProfile(sourceProfile),
+    goals: sanitizeText(compact.goals || '', 140),
+    communication_style: sanitizeText(compact.communication_style || '', 140),
+    constraints: sanitizeText(compact.constraints || '', 140),
+    critical_factors: sanitizeText(compactCritical, 240),
     quantitative_axes: trimmedAxes,
-    record_context: recordContext
+    quantitative_axes_count: Object.keys(trimmedAxes).length
   };
 }
 
-function buildGeneratorPrompt({
+function buildPromptTemplateVariables({
+  requestedOutcome,
   inferredInitialConditions,
   additionalContext,
-  requestedOutcome,
   personaA,
   personaB,
   nodeCount,
   actionsPerNode
 }) {
-  const safeOutcome = sanitizeText(requestedOutcome, 320);
-  const safeInferredContext = sanitizeText(inferredInitialConditions, 1800);
-  const safeAdditionalContext = sanitizeText(additionalContext, 320);
   const safePersonaA = buildPersonaModelContext(personaA);
   const safePersonaB = buildPersonaModelContext(personaB);
-
-  const systemPrompt = [
-    'You are Syntrae AI Outcome Test action-space generator.',
-    'Generate practical, respectful, legal, consent-preserving social actions toward the requested relationship outcome.',
-    'Never include coercion, manipulation, stalking, harassment, deception, or illegal guidance.',
-    'Return strict JSON only. No markdown.'
-  ].join('\n');
-
-  const userPrompt = [
-    'Build action-space for evolutionary optimization.',
-    `Requested outcome: ${safeOutcome || '(missing)'}`,
-    `Initial conditions inferred from both personas: ${safeInferredContext || '(missing)'}`,
-    safeAdditionalContext ? `Additional context from user: ${safeAdditionalContext}` : 'Additional context from user: (none provided)',
-    '',
-    'Use persona context JSON below for personalization. Use both compact and nested cues.',
-    '',
-    'Persona A (initiator) context:',
-    safeJson(safePersonaA),
-    '',
-    'Persona B (target) context:',
-    safeJson(safePersonaB),
-    '',
-    `Requirements: exactly ${nodeCount} nodes and exactly ${actionsPerNode} actions per node.`,
-    `Each node must include actions mapped to gene_slot 1..${actionsPerNode}.`,
-    'For a given gene_slot, actions across nodes must chain coherently from initial conditions to requested outcome.',
-    'Each action must be specific and executable (not generic advice) and realistic in sequence.',
-    'For Node 2 actions, include a personalized conversation-topic anchor from Persona B context.',
-    'Actions in the same node must be distinct.',
-    'Keep action and rationale concise and concrete.',
-    'Each action must include numeric scores:',
-    '- fit (0-100): alignment with both personas and outcome',
-    '- feasibility (0-100): realistic execution in current context',
-    '- ethics (0-100): consent, dignity, legal/ethical safety',
-    '- risk (0-100): social/relational downside risk (higher is worse)',
-    '- momentum (0-100): chance the action advances toward outcome',
-    '- intensity (0-100): social intensity level',
-    '',
-    'Output schema (strict JSON object only):',
-    '{"nodes":[{"node_index":1,"node_title":"...","actions":[{"id":"N1A1","gene_slot":1,"action":"...","rationale":"...","persona_anchor":"...","next_link_hint":"...","scores":{"fit":0,"feasibility":0,"ethics":0,"risk":0,"momentum":0,"intensity":0}}]}]}'
-  ].join('\n');
-
   return {
-    systemPrompt,
-    userPrompt
+    requested_outcome: sanitizeText(requestedOutcome, 320),
+    inferred_initial_conditions: sanitizeText(inferredInitialConditions, 1200),
+    additional_context: sanitizeText(additionalContext, 320),
+    persona_a_label: sanitizeText(personaA?.label || personaA?.key || 'Persona A', 120),
+    persona_b_label: sanitizeText(personaB?.label || personaB?.key || 'Persona B', 120),
+    persona_a_profile_json: safeJson(safePersonaA),
+    persona_b_profile_json: safeJson(safePersonaB),
+    node_count: String(clampInt(nodeCount, 1, 20)),
+    actions_per_node: String(clampInt(actionsPerNode, 1, 12))
   };
 }
 
 function extractTextFromResponsesApi(data) {
   const candidates = [];
   const pushCandidate = (value) => {
-    const text = typeof value === 'string' ? value.trim() : '';
+    let text = '';
+    if (typeof value === 'string') {
+      text = value.trim();
+    } else if (value && typeof value === 'object') {
+      if (typeof value.text === 'string') {
+        text = value.text.trim();
+      } else if (typeof value.value === 'string') {
+        text = value.value.trim();
+      } else if (typeof value.output_text === 'string') {
+        text = value.output_text.trim();
+      }
+    }
     if (!text) return;
     candidates.push(text);
   };
@@ -824,12 +793,17 @@ function extractTextFromResponsesApi(data) {
     const content = Array.isArray(item?.content) ? item.content : [];
     content.forEach((part) => {
       pushCandidate(part?.text);
+      pushCandidate(part?.output_text);
       pushCandidate(part?.arguments);
+      pushCandidate(part?.refusal);
       if (part?.json && typeof part.json === 'object') {
         pushCandidate(JSON.stringify(part.json));
       }
       if (part?.value && typeof part.value === 'object') {
         pushCandidate(JSON.stringify(part.value));
+      }
+      if (typeof part?.value === 'string') {
+        pushCandidate(part.value);
       }
     });
   });
@@ -839,14 +813,41 @@ function extractTextFromResponsesApi(data) {
   return (jsonCandidate || candidates.join('\n')).trim();
 }
 
+function extractResponseIncompleteReason(raw) {
+  if (!raw || typeof raw !== 'object') return '';
+  const directCandidates = [
+    raw?.incomplete_details?.reason,
+    raw?.incomplete_reason,
+    raw?.status_details?.reason,
+    raw?.status_details?.incomplete_reason
+  ];
+  for (let i = 0; i < directCandidates.length; i += 1) {
+    const candidate = sanitizeText(directCandidates[i] || '', 120);
+    if (candidate) return candidate;
+  }
+
+  const outputItems = Array.isArray(raw?.output) ? raw.output : [];
+  for (let i = 0; i < outputItems.length; i += 1) {
+    const item = outputItems[i] || {};
+    const fromItem = sanitizeText(
+      item?.incomplete_details?.reason ||
+        item?.incomplete_reason ||
+        item?.status_details?.reason ||
+        '',
+      120
+    );
+    if (fromItem) return fromItem;
+  }
+
+  return '';
+}
+
 async function requestCompletionWithPromptTemplate({
   apiKey,
   promptId,
   promptVersion,
   promptVariables,
   model,
-  systemPrompt,
-  userPrompt,
   options = {}
 }) {
   const promptPayload = {
@@ -859,22 +860,12 @@ async function requestCompletionWithPromptTemplate({
     promptPayload.variables = promptVariables;
   }
 
-  const inputText = [String(systemPrompt || '').trim(), String(userPrompt || '').trim()]
-    .filter(Boolean);
-
   const requestBody = {
     prompt: promptPayload,
     max_output_tokens: clampInt(options.maxOutputTokens ?? DEFAULT_OUTCOME_MAX_OUTPUT_TOKENS, 600, MAX_OUTCOME_MAX_OUTPUT_TOKENS)
   };
-  if (options.useMessageInput) {
-    const userOnlyInput = parseBoolean(options.useUserOnlyInput, false);
-    requestBody.input = [
-      ...(userOnlyInput ? [] : [{ role: 'developer', content: inputText[0] || '' }]),
-      { role: 'user', content: inputText[1] || '' }
-    ];
-  } else {
-    requestBody.input = inputText.join('\n\n');
-  }
+  const inputText = sanitizeText(options.inputText || '', 4000);
+  if (inputText) requestBody.input = inputText;
   if (model && parseBoolean(options.overridePromptModel, false)) {
     requestBody.model = model;
   }
@@ -909,19 +900,6 @@ async function requestCompletionWithPromptTemplate({
     requestBody.include = options.include
       .map((item) => sanitizeText(item, 120))
       .filter(Boolean);
-  }
-  if (parseBoolean(options.ensureJsonKeyword, false)) {
-    const jsonInstruction = 'Return valid json output.';
-    if (Array.isArray(requestBody.input)) {
-      const lastMessage = requestBody.input[requestBody.input.length - 1];
-      if (lastMessage && typeof lastMessage.content === 'string') {
-        lastMessage.content = `${jsonInstruction}\n\n${lastMessage.content}`;
-      } else {
-        requestBody.input.push({ role: 'user', content: jsonInstruction });
-      }
-    } else if (typeof requestBody.input === 'string') {
-      requestBody.input = `${jsonInstruction}\n\n${requestBody.input}`;
-    }
   }
   if (options.metadata && typeof options.metadata === 'object') {
     requestBody.metadata = options.metadata;
@@ -1368,6 +1346,43 @@ function buildChainCandidates(actionSpace, requestedOutcome, initialConditions, 
     );
 }
 
+function buildChainActionMatrix(actionSpace, actionsPerNode) {
+  const nodes = Array.isArray(actionSpace) ? actionSpace : [];
+  const columns = nodes.map((node, index) => {
+    const nodeIndex = Number(node?.node_index || index + 1) || index + 1;
+    return {
+      node_index: nodeIndex,
+      node_title: sanitizeText(node?.node_title || `Node ${nodeIndex}`, 90),
+      column_key: `N${nodeIndex}`
+    };
+  });
+
+  const rows = [];
+  for (let slot = 1; slot <= actionsPerNode; slot += 1) {
+    const actionIds = [];
+    for (let nodeIndex = 0; nodeIndex < nodes.length; nodeIndex += 1) {
+      const action = selectActionForGeneSlot(nodes[nodeIndex], slot);
+      const fallbackId = `N${nodeIndex + 1}A${slot}`;
+      const actionId = sanitizeText(action?.id || fallbackId, 20) || fallbackId;
+      actionIds.push(actionId);
+    }
+    rows.push({
+      gene_slot: slot,
+      action_slot: `A${slot}`,
+      chain_id: `G${slot}`,
+      action_ids: actionIds
+    });
+  }
+
+  return {
+    horizontal_axis: 'nodes',
+    vertical_axis: 'actions',
+    columns,
+    rows,
+    chain_array_storage: rows.map((row) => [...row.action_ids])
+  };
+}
+
 function computeNodePassPercent(action) {
   const scores = action?.scores && typeof action.scores === 'object' ? action.scores : {};
   const fit = clamp(scores.fit, 0, 100);
@@ -1778,32 +1793,14 @@ module.exports = async function handler(req, res) {
     ),
     128
   );
-  // Leave prompt version unspecified by default so OpenAI uses the prompt's latest default version.
-  const promptTemplateVersion = sanitizeText(
-    pickFirstPresent(
-      promptConfig.version,
-      body.outcome_prompt_version,
-      body.outcomePromptVersion,
-      body.prompt_version,
-      body.promptVersion,
-      modelSettings.prompt_version,
-      modelSettings.promptVersion
-    ) || '',
-    32
-  );
+  // Intentionally keep prompt version unspecified so OpenAI always uses the prompt's latest default version.
+  const promptTemplateVersion = '';
   const requirePromptTemplate = parseBoolean(
     body.require_prompt_template ??
       body.requirePromptTemplate ??
       resolveEnv(['OPENAI_OUTCOME_REQUIRE_PROMPT_TEMPLATE']) ??
       'true',
     true
-  );
-  const usePromptVariables = parseBoolean(
-    body.use_prompt_variables ??
-      body.usePromptVariables ??
-      resolveEnv(['OPENAI_OUTCOME_USE_PROMPT_VARIABLES']) ??
-      'false',
-    false
   );
   const clientRequestId = sanitizeText(body.request_id || body.requestId || '', 80);
   const internalRequestId = clientRequestId || `out-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
@@ -1870,11 +1867,11 @@ module.exports = async function handler(req, res) {
   let responseTokenBudgetInfo = null;
 
   try {
-    let failureStage = 'build_generator_prompt';
-    const { systemPrompt, userPrompt } = buildGeneratorPrompt({
-      inferredInitialConditions,
-      additionalContext: userInitialContext,
+    let failureStage = 'build_prompt_variables';
+    const promptVariables = buildPromptTemplateVariables({
       requestedOutcome,
+      inferredInitialConditions: effectiveInitialConditions,
+      additionalContext: userInitialContext,
       personaA,
       personaB,
       nodeCount: config.node_count,
@@ -1895,24 +1892,9 @@ module.exports = async function handler(req, res) {
       let reservation = null;
       let releaseSuccess = false;
       try {
-        const promptVariables = usePromptVariables
-          ? {
-              requested_outcome: requestedOutcome,
-              inferred_initial_conditions: effectiveInitialConditions,
-              additional_context: userInitialContext,
-              persona_a_label: sanitizeText(personaA?.label || personaA?.key || 'Persona A', 120),
-              persona_b_label: sanitizeText(personaB?.label || personaB?.key || 'Persona B', 120),
-              persona_a_profile_json: safeJson(compactProfile(personaA?.profile)),
-              persona_b_profile_json: safeJson(compactProfile(personaB?.profile)),
-              node_count: String(config.node_count),
-              actions_per_node: String(config.actions_per_node)
-            }
-          : undefined;
         const estimatedInputTokens =
-          estimateTokenCountFromText(systemPrompt) +
-          estimateTokenCountFromText(userPrompt) +
           estimateTokenCountFromJson(promptVariables) +
-          120;
+          220;
         const estimatedRequestTokens = Math.max(
           700,
           clampInt(estimatedInputTokens + maxOutputTokens, 700, 2_000_000)
@@ -1930,9 +1912,11 @@ module.exports = async function handler(req, res) {
             userId: authenticatedUserId
           });
           tokenBudgetInfo = {
+            estimated_input_tokens: Math.max(0, Math.round(toFiniteNumber(estimatedInputTokens, 0))),
             estimated_tokens: estimatedRequestTokens,
             limit_tokens: Math.max(0, Math.round(toFiniteNumber(reservation?.limit_tokens, outcomeTpmLimit))),
             remaining_tokens_after_reservation: Math.max(0, Math.round(toFiniteNumber(reservation?.remaining_tokens, 0))),
+            requested_max_output_tokens: Math.max(0, Math.round(toFiniteNumber(maxOutputTokens, 0))),
             queued_wait_ms: Math.max(0, Math.round(toFiniteNumber(reservation?.wait_ms, 0)))
           };
           responseTokenBudgetInfo = tokenBudgetInfo;
@@ -1945,13 +1929,8 @@ module.exports = async function handler(req, res) {
           promptVersion: promptTemplateVersion,
           promptVariables,
           model: modelOverride,
-          systemPrompt,
-          userPrompt,
           options: {
-            useMessageInput: true,
-            useUserOnlyInput: true,
             textFormat: 'text',
-            ensureJsonKeyword: true,
             maxOutputTokens,
             timeoutMs: modelTimeoutMs,
             reasoningEffort: reasoningEffortOverride,
@@ -2027,7 +2006,7 @@ module.exports = async function handler(req, res) {
         Number(promptTemplateError?.rateLimitResetTokensSeconds || 0) || 0
       );
       const rawStatus = sanitizeText(promptTemplateRaw?.status || '', 60);
-      const rawIncompleteReason = sanitizeText(promptTemplateRaw?.incomplete_details?.reason || '', 120);
+      const rawIncompleteReason = extractResponseIncompleteReason(promptTemplateRaw);
       const shouldMapToRateLimit = Number(promptTemplateError?.status) === 429 || retryAfterSeconds || rateLimitResetSeconds;
       const statusCode = isConfigurationStage
         ? (Number(promptTemplateError?.status) || 500)
@@ -2168,6 +2147,7 @@ module.exports = async function handler(req, res) {
     effectiveInitialConditions,
     config.actions_per_node
   );
+  const chainActionMatrix = buildChainActionMatrix(nodes, config.actions_per_node);
   const bestChain = chainCandidates[0] || null;
 
   if (actionSpaceOnly) {
@@ -2194,6 +2174,7 @@ module.exports = async function handler(req, res) {
       },
       total_action_combinations: Math.pow(config.actions_per_node, config.node_count),
       action_space: nodes,
+      chain_action_matrix: chainActionMatrix,
       chain_candidates: chainCandidates,
       best_chain: bestChain,
       summary: `Generated ${config.node_count} nodes × ${config.actions_per_node} actions and chained them into ${chainCandidates.length} gene-based action chains.`,
@@ -2247,6 +2228,7 @@ module.exports = async function handler(req, res) {
     config,
     total_action_combinations: Math.pow(config.actions_per_node, config.node_count),
     action_space: nodes,
+    chain_action_matrix: chainActionMatrix,
     chain_candidates: chainCandidates,
     best_chain: bestChain,
     top_pathways: topPathways,
