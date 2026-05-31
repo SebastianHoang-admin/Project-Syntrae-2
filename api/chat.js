@@ -191,12 +191,6 @@ function sanitizeOutcomeReport(report, activePersonaKey) {
       expected_success_percent: toPercent(item.expected_success_percent),
       first_action: sanitizeText(item?.actions?.[0]?.action || '', 140)
     }));
-  const chainCandidates = (Array.isArray(report?.chain_candidates) ? report.chain_candidates : [])
-    .filter((item) => item && typeof item === 'object')
-    .slice(0, 5);
-  const bestChain = report?.best_chain && typeof report.best_chain === 'object'
-    ? report.best_chain
-    : chainCandidates[0] || null;
   const actionSpace = Array.isArray(report?.action_space) ? report.action_space : [];
   const nodeCount = Number(report?.config?.node_count || actionSpace.length || 0);
   const actionsPerNode = Number(
@@ -204,8 +198,6 @@ function sanitizeOutcomeReport(report, activePersonaKey) {
   );
   const firstNodeTitle = sanitizeText(actionSpace?.[0]?.node_title || '', 90);
   const firstAction = sanitizeText(actionSpace?.[0]?.actions?.[0]?.action || '', 140);
-  const firstChainAction = sanitizeText(bestChain?.actions?.[0]?.action || '', 140);
-  const bestChainIntegrity = toPercent(bestChain?.chain_metrics?.chain_integrity_percent);
 
   return {
     report_id: sanitizeText(report.report_id || '', 64),
@@ -217,8 +209,6 @@ function sanitizeOutcomeReport(report, activePersonaKey) {
     actions_per_node: Number.isFinite(actionsPerNode) ? actionsPerNode : 0,
     first_node_title: firstNodeTitle,
     first_action: firstAction,
-    first_chain_action: firstChainAction,
-    best_chain_integrity_percent: bestChainIntegrity,
     probability_percent: singleProbability,
     outcomes,
     top_pathways: topPathways,
@@ -672,14 +662,12 @@ function buildOutcomeReplyFromReport({ outcomeReport }) {
     const nodeCount = Number(report?.node_count || 0) || 10;
     const actionsPerNode = Number(report?.actions_per_node || 0) || 5;
     const firstNode = sanitizeText(report?.first_node_title || '', 80);
-    const firstAction = sanitizeText(report?.first_chain_action || report?.first_action || '', 120);
-    const chainIntegrity = toPercent(report?.best_chain_integrity_percent);
+    const firstAction = sanitizeText(report?.first_action || '', 120);
     const line1 = `Latest Outcomes Test generated ${nodeCount} nodes × ${actionsPerNode} actions for "${requestedOutcome}".`;
     const line2 = firstAction
-      ? `Best chain starts at ${firstNode || 'Node 1'} → ${firstAction}.`
+      ? `Starting point: ${firstNode || 'Node 1'} → ${firstAction}.`
       : 'Open Insight Lab to review all generated node actions.';
-    const line3 = chainIntegrity !== null ? `Current best chain integrity: ${chainIntegrity}%.` : '';
-    return [line1, line2, line3].filter(Boolean).join(' ');
+    return `${line1} ${line2}`;
   }
   if (bestEmpirical === null) return buildNoOutcomeResultReply();
 

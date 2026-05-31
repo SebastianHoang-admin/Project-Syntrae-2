@@ -1181,19 +1181,6 @@ function normalizeOutcomeNodeList(value, limit = 10) {
     .slice(0, limit);
 }
 
-function normalizeOutcomeChainList(value, limit = 5) {
-  if (!Array.isArray(value)) return [];
-  return value
-    .filter((item) => item && typeof item === 'object')
-    .slice(0, limit);
-}
-
-function toSafePercent(value, fallback = 0) {
-  const numeric = Number(value);
-  if (!Number.isFinite(numeric)) return fallback;
-  return Math.max(0, Math.min(100, numeric));
-}
-
 function renderOutcomeResults(report) {
   if (!outcomeResultsEl || !outcomeSummaryTitleEl || !outcomeSummaryTextEl || !outcomePathwayGridEl) return;
   if (!report || typeof report !== 'object') {
@@ -1207,69 +1194,13 @@ function renderOutcomeResults(report) {
   const requestedOutcome = String(report?.requested_outcome || '').trim();
   const nodeCount = Number(report?.config?.node_count || 10) || 10;
   const actionsPerNode = Number(report?.config?.actions_per_node || 5) || 5;
-  const chains = normalizeOutcomeChainList(report?.chain_candidates, 5);
-  const bestChain = report?.best_chain && typeof report.best_chain === 'object'
-    ? report.best_chain
-    : chains[0] || null;
-  const bestChainIntegrity = toSafePercent(bestChain?.chain_metrics?.chain_integrity_percent, 0).toFixed(2);
 
   outcomeSummaryTitleEl.textContent = `${personaALabel} → ${personaBLabel}`;
   outcomeSummaryTextEl.textContent =
-    `${requestedOutcome ? `"${requestedOutcome}"` : 'Requested outcome'} · Generated ${nodeCount} nodes × ${actionsPerNode} actions · Best chain integrity ${bestChainIntegrity}%`;
+    `${requestedOutcome ? `"${requestedOutcome}"` : 'Requested outcome'} · Generated ${nodeCount} nodes × ${actionsPerNode} actions`;
 
   const nodes = normalizeOutcomeNodeList(report?.action_space, 10);
-  const chainCards = chains
-    .map((chain) => {
-      const chainId = escapeHtml(chain?.chain_id || 'G?');
-      const integrity = toSafePercent(chain?.chain_metrics?.chain_integrity_percent, 0).toFixed(2);
-      const logic = toSafePercent(chain?.chain_metrics?.logicality_percent, 0).toFixed(2);
-      const ethics = toSafePercent(chain?.chain_metrics?.ethics_legal_percent, 0).toFixed(2);
-      const practicality = toSafePercent(chain?.chain_metrics?.practicality_percent, 0).toFixed(2);
-      const specificity = toSafePercent(chain?.chain_metrics?.specificity_percent, 0).toFixed(2);
-      const transitionsPassed = Number(chain?.chain_metrics?.transitions_passed || 0) || 0;
-      const transitionsTotal = Number(chain?.chain_metrics?.transitions_total || 0) || 0;
-      const transitionChecks = Array.isArray(chain?.transition_checks) ? chain.transition_checks : [];
-      const transitionRows = transitionChecks
-        .slice(0, 9)
-        .map((check) => {
-          const fromNode = Number(check?.from_node_index || 0) || 0;
-          const toNode = Number(check?.to_node_index || 0) || 0;
-          const pass = Boolean(check?.pass);
-          const note = escapeHtml(check?.note || '');
-          return `<div><strong>N${fromNode}→N${toNode}</strong> ${pass ? 'PASS' : 'FAIL'} · L ${toSafePercent(check?.logicality_percent, 0).toFixed(1)}% · P ${toSafePercent(check?.practicality_percent, 0).toFixed(1)}% · E/L ${toSafePercent(check?.ethics_legal_percent, 0).toFixed(1)}%${note ? `<br><span class="kv">${note}</span>` : ''}</div>`;
-        })
-        .join('');
-      const actions = Array.isArray(chain?.actions) ? chain.actions : [];
-      const chainRows = actions
-        .slice(0, 10)
-        .map((item) => {
-          const nodeIndex = Number(item?.node_index || 0) || 0;
-          const actionText = escapeHtml(item?.action || '');
-          const anchor = escapeHtml(item?.persona_anchor || '');
-          const linkHint = escapeHtml(item?.next_link_hint || '');
-          return `<div><strong>N${nodeIndex}</strong>: ${actionText}${anchor ? `<br><span class="kv">Persona anchor: ${anchor}</span>` : ''}${linkHint ? `<br><span class="kv">Next-link: ${linkHint}</span>` : ''}</div>`;
-        })
-        .join('');
-
-      return `
-        <article class="pathway-card">
-          <h4>Chain ${chainId}</h4>
-          <div class="pathway-meta">
-            <span>Integrity ${integrity}%</span>
-            <span>Logicality ${logic}%</span>
-            <span>Practicality ${practicality}%</span>
-            <span>Ethics/Legal ${ethics}%</span>
-            <span>Specificity ${specificity}%</span>
-            <span>Transitions ${transitionsPassed}/${transitionsTotal}</span>
-          </div>
-          <div class="pathway-actions">${chainRows}</div>
-          ${transitionRows ? `<div class="pathway-actions">${transitionRows}</div>` : ''}
-        </article>
-      `;
-    })
-    .join('');
-
-  const nodeCards = nodes
+  outcomePathwayGridEl.innerHTML = nodes
     .map((node) => {
       const nodeIndex = Number(node?.node_index || 0) || 0;
       const nodeTitle = escapeHtml(node?.node_title || `Node ${nodeIndex || '?'}`);
@@ -1279,9 +1210,7 @@ function renderOutcomeResults(report) {
         .map((action) => {
           const actionText = escapeHtml(action?.action || '');
           const rationaleText = escapeHtml(action?.rationale || '');
-          const geneSlot = Number(action?.gene_slot || 0) || 0;
-          const linkHint = escapeHtml(action?.next_link_hint || '');
-          return `<div><strong>${escapeHtml(action?.id || '')}${geneSlot ? ` · G${geneSlot}` : ''}</strong>: ${actionText}${rationaleText ? `<br><span class="kv">${rationaleText}</span>` : ''}${linkHint ? `<br><span class="kv">Next: ${linkHint}</span>` : ''}</div>`;
+          return `<div><strong>${escapeHtml(action?.id || '')}</strong>: ${actionText}${rationaleText ? `<br><span class="kv">${rationaleText}</span>` : ''}</div>`;
         })
         .join('');
 
@@ -1296,8 +1225,6 @@ function renderOutcomeResults(report) {
       `;
     })
     .join('');
-
-  outcomePathwayGridEl.innerHTML = `${chainCards}${nodeCards}`;
 
   outcomeResultsEl.hidden = false;
 }
