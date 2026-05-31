@@ -11,8 +11,6 @@ const ACCOUNT_FITNESS_REPORTS_KEY = 'fitness_reports';
 const ACCOUNT_OUTCOME_REPORTS_KEY = 'outcome_reports';
 const MAX_ACCOUNT_FITNESS_REPORTS = 20;
 const MAX_ACCOUNT_OUTCOME_REPORTS = 20;
-const OUTCOME_JOB_QUEUE_STORAGE_KEY = 'insight-lab:outcome-job-queue-v1';
-const MAX_OUTCOME_QUEUE_ITEMS = 10;
 const OUTCOME_PROMPT_TEMPLATE_ID = 'pmpt_69fa2fb3eefc8196b8ca8889f95f756903f3f05aace493de';
 const OUTCOME_PROMPT_TEMPLATE_VERSION = '2';
 
@@ -70,7 +68,6 @@ let personaOptions = [];
 let optionByKey = new Map();
 let currentUserId = '';
 let currentUserProfileJson = {};
-let isOutcomeQueueRunning = false;
 
 function sanitizePersonaKey(value) {
   const normalized = String(value || '').trim().toLowerCase();
@@ -174,42 +171,6 @@ function setOutcomeReadyState(isReady) {
   }
   outcomeReadyBadgeEl.classList.add('not-ready');
   outcomeReadyLabelEl.textContent = 'Not ready';
-}
-
-function createOutcomeJobId() {
-  return `outcome-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
-}
-
-function loadOutcomeJobQueue() {
-  try {
-    const raw = localStorage.getItem(OUTCOME_JOB_QUEUE_STORAGE_KEY);
-    if (!raw) return [];
-    const parsed = JSON.parse(raw);
-    if (!Array.isArray(parsed)) return [];
-    return parsed.filter((item) => item && typeof item === 'object');
-  } catch (_) {
-    return [];
-  }
-}
-
-function saveOutcomeJobQueue(queue) {
-  const safeQueue = Array.isArray(queue) ? queue.slice(0, MAX_OUTCOME_QUEUE_ITEMS) : [];
-  localStorage.setItem(OUTCOME_JOB_QUEUE_STORAGE_KEY, JSON.stringify(safeQueue));
-}
-
-function notifyOutcomeComplete(title, body) {
-  if (typeof window === 'undefined' || !('Notification' in window)) return;
-  if (Notification.permission === 'granted') {
-    try {
-      new Notification(title, { body });
-    } catch (_) {
-      // no-op
-    }
-    return;
-  }
-  if (Notification.permission === 'default') {
-    Notification.requestPermission().catch(() => {});
-  }
 }
 
 function getPortraitUrl(option) {
@@ -1424,73 +1385,6 @@ async function fetchOutcomeReport(payload) {
   return json;
 }
 
-async function processOutcomeQueue() {
-  if (isOutcomeQueueRunning) return;
-  isOutcomeQueueRunning = true;
-  try {
-    while (true) {
-      const queue = loadOutcomeJobQueue();
-      const nextJob = queue[0];
-      if (!nextJob) break;
-
-      setOutcomeStatus(
-        `Outcome test queued job ${nextJob.id} is running in background. You can continue using the app.`,
-        'info'
-      );
-
-      try {
-        const response = await fetchOutcomeReport(nextJob.payload);
-        const report = {
-          ...response,
-          persona_a: {
-            ...(response?.persona_a && typeof response.persona_a === 'object' ? response.persona_a : {}),
-            key: nextJob.personaA.key,
-            label: nextJob.personaA.label,
-            signature: nextJob.personaA.signature
-          },
-          persona_b: {
-            ...(response?.persona_b && typeof response.persona_b === 'object' ? response.persona_b : {}),
-            key: nextJob.personaB.key,
-            label: nextJob.personaB.label,
-            signature: nextJob.personaB.signature
-          },
-          persona_keys: Array.from(
-            new Set(
-              [nextJob.personaA.key, nextJob.personaB.key]
-                .map((key) => sanitizePersonaKey(key))
-                .filter(Boolean)
-            )
-          ),
-          requested_outcome: nextJob.requestedOutcome
-        };
-
-        localStorage.setItem(OUTCOME_RESULT_STORAGE_KEY, JSON.stringify(report));
-        await persistOutcomeReportToAccount(report);
-
-        const refreshedQueue = loadOutcomeJobQueue();
-        refreshedQueue.shift();
-        saveOutcomeJobQueue(refreshedQueue);
-
-        setOutcomeStatus(
-          `Outcome test complete for "${nextJob.requestedOutcome}". Open Outcome Test Results to view scenarios.`,
-          'success'
-        );
-        notifyOutcomeComplete(
-          'Syntrae AI: Outcome Test Complete',
-          `Requested outcome: ${nextJob.requestedOutcome}`
-        );
-      } catch (error) {
-        const refreshedQueue = loadOutcomeJobQueue();
-        refreshedQueue.shift();
-        saveOutcomeJobQueue(refreshedQueue);
-        setOutcomeStatus(`Outcomes Test failed: ${error?.message || 'Unexpected error'}`, 'error');
-      }
-    }
-  } finally {
-    isOutcomeQueueRunning = false;
-  }
-}
-
 function buildInsightsPayload(optionA, optionB, evaluation) {
   const fallbackAreas = buildFallbackAreas(evaluation.quantResult, evaluation.qualResult);
   const topMatches = [...evaluation.quantResult.axisDeviations]
@@ -1548,16 +1442,6 @@ async function initialize() {
   personaOptions = buildOptions(userProfileRow, personaRows, userMetadata);
   optionByKey = new Map(personaOptions.map((item) => [item.key, item]));
   populateSelectors();
-  const queuedJobs = loadOutcomeJobQueue();
-  if (queuedJobs.length) {
-    setOutcomeStatus(
-      `${queuedJobs.length} queued outcome test${queuedJobs.length > 1 ? 's are' : ' is'} pending. Running in background…`,
-      'info'
-    );
-    processOutcomeQueue().catch((error) => {
-      setOutcomeStatus(`Outcomes Test failed: ${error?.message || 'Unexpected error'}`, 'error');
-    });
-  }
 }
 
 selectA.addEventListener('change', updateFitnessUI);
@@ -1653,32 +1537,30 @@ if (outcomeRunBtn) {
       const signatureA = buildPersonaSignature(optionA);
       const signatureB = buildPersonaSignature(optionB);
       const payload = buildOutcomePayload(optionA, optionB, signatureA, signatureB);
-      const queue = loadOutcomeJobQueue();
-      const job = {
-        id: createOutcomeJobId(),
-        queued_at: new Date().toISOString(),
-        requestedOutcome,
-        personaA: {
-          key: optionA.key,
-          label: optionA.label,
-          signature: signatureA
-        },
-        personaB: {
-          key: optionB.key,
-          label: optionB.label,
-          signature: signatureB
-        },
-        payload
-      };
-      queue.push(job);
-      saveOutcomeJobQueue(queue);
-      setOutcomeStatus(
-        `Outcome test queued (${queue.length} in queue). You can continue using the app; you’ll be notified when this run completes.`,
-        'info'
-      );
-      processOutcomeQueue().catch((error) => {
-        setOutcomeStatus(`Outcomes Test failed: ${error?.message || 'Unexpected error'}`, 'error');
+      const report = await runOutcomeWithProgress(async () => {
+        const response = await fetchOutcomeReport(payload);
+        return {
+          ...response,
+          persona_a: {
+            ...(response?.persona_a && typeof response.persona_a === 'object' ? response.persona_a : {}),
+            key: optionA.key,
+            label: optionA.label,
+            signature: signatureA
+          },
+          persona_b: {
+            ...(response?.persona_b && typeof response.persona_b === 'object' ? response.persona_b : {}),
+            key: optionB.key,
+            label: optionB.label,
+            signature: signatureB
+          },
+          persona_keys: Array.from(new Set([optionA.key, optionB.key].map((key) => sanitizePersonaKey(key)).filter(Boolean))),
+          requested_outcome: requestedOutcome
+        };
       });
+
+      localStorage.setItem(OUTCOME_RESULT_STORAGE_KEY, JSON.stringify(report));
+      await persistOutcomeReportToAccount(report);
+      window.location.href = 'outcome-test-results.html';
     } catch (error) {
       setOutcomeReadyState(false);
       setOutcomeStatus(`Outcomes Test failed: ${error?.message || 'Unexpected error'}`, 'error');

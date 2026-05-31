@@ -1491,13 +1491,6 @@ module.exports = async function handler(req, res) {
       'false',
     false
   );
-  const allowInlineFallbackAfterTemplateEmpty = parseBoolean(
-    body.allow_inline_fallback_after_template_empty ??
-      body.allowInlineFallbackAfterTemplateEmpty ??
-      resolveEnv(['OPENAI_OUTCOME_ALLOW_INLINE_FALLBACK_AFTER_TEMPLATE_EMPTY']) ??
-      'true',
-    true
-  );
 
   if (requirePromptTemplate && !promptTemplateId) {
     return res.status(500).json({
@@ -1527,11 +1520,8 @@ module.exports = async function handler(req, res) {
       let generationMode = '';
       let promptTemplateError = null;
       let promptTemplateRaw = null;
-      let templateAttempted = false;
-      let templateProducedOutput = false;
 
       if (promptTemplateId) {
-        templateAttempted = true;
         try {
           const promptVariables = usePromptVariables
             ? {
@@ -1586,7 +1576,6 @@ module.exports = async function handler(req, res) {
             generationMode = 'llm_prompt_template';
             promptTemplateIdUsed = promptTemplateId;
             promptTemplateVersionUsed = promptTemplateVersion || null;
-            templateProducedOutput = true;
           }
         } catch (error) {
           generatedText = '';
@@ -1595,23 +1584,19 @@ module.exports = async function handler(req, res) {
       }
 
       if (!generatedText && requirePromptTemplate) {
-        if (allowInlineFallbackAfterTemplateEmpty) {
-          generationMode = 'llm_prompt_template_empty_inline_fallback';
-        } else {
-          const reason = sanitizeText(
-            promptTemplateError?.message || 'Prompt template generation returned no output.',
-            240
-          );
-          const rawStatus = sanitizeText(promptTemplateRaw?.status || '', 60);
-          const rawIncompleteReason = sanitizeText(promptTemplateRaw?.incomplete_details?.reason || '', 120);
-          return res.status(502).json({
-            error: `Outcome AG prompt-template generation failed: ${reason}`,
-            prompt_template_id: promptTemplateId,
-            prompt_template_version: promptTemplateVersion || null,
-            response_status: rawStatus || null,
-            response_incomplete_reason: rawIncompleteReason || null
-          });
-        }
+        const reason = sanitizeText(
+          promptTemplateError?.message || 'Prompt template generation returned no output.',
+          240
+        );
+        const rawStatus = sanitizeText(promptTemplateRaw?.status || '', 60);
+        const rawIncompleteReason = sanitizeText(promptTemplateRaw?.incomplete_details?.reason || '', 120);
+        return res.status(502).json({
+          error: `Outcome AG prompt-template generation failed: ${reason}`,
+          prompt_template_id: promptTemplateId,
+          prompt_template_version: promptTemplateVersion || null,
+          response_status: rawStatus || null,
+          response_incomplete_reason: rawIncompleteReason || null
+        });
       }
 
       if (!generatedText) {
@@ -1625,24 +1610,10 @@ module.exports = async function handler(req, res) {
         });
         generatedText = String(completion?.choices?.[0]?.message?.content || '').trim();
         if (generatedText) {
-          generationMode = templateAttempted && !templateProducedOutput
-            ? 'llm_inline_after_template_empty'
-            : 'llm_inline_prompt';
-          promptTemplateIdUsed = templateAttempted ? promptTemplateId : null;
-          promptTemplateVersionUsed = templateAttempted ? (promptTemplateVersion || null) : null;
+          generationMode = 'llm_inline_prompt';
+          promptTemplateIdUsed = null;
+          promptTemplateVersionUsed = null;
         }
-      }
-
-      if (!generatedText) {
-        const reason = sanitizeText(
-          promptTemplateError?.message || 'No usable output from both prompt template and inline generation.',
-          240
-        );
-        return res.status(502).json({
-          error: `Outcome AG generation failed: ${reason}`,
-          prompt_template_id: templateAttempted ? promptTemplateId : null,
-          prompt_template_version: templateAttempted ? (promptTemplateVersion || null) : null
-        });
       }
 
       const text = generatedText;
