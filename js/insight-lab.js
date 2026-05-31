@@ -11,8 +11,6 @@ const ACCOUNT_FITNESS_REPORTS_KEY = 'fitness_reports';
 const ACCOUNT_OUTCOME_REPORTS_KEY = 'outcome_reports';
 const MAX_ACCOUNT_FITNESS_REPORTS = 20;
 const MAX_ACCOUNT_OUTCOME_REPORTS = 20;
-const OUTCOME_PROMPT_TEMPLATE_ID = 'pmpt_69fa2fb3eefc8196b8ca8889f95f756903f3f05aace493de';
-const OUTCOME_PROMPT_TEMPLATE_VERSION = '2';
 
 const AXIS_LABELS = Object.freeze({
   L1_A1: 'Initiative',
@@ -1334,10 +1332,6 @@ function buildOutcomePayload(optionA, optionB, signatureA, signatureB) {
   return {
     initial_conditions: String(outcomeInitialConditionsEl?.value || '').trim(),
     requested_outcome: String(outcomeRequestedOutcomeEl?.value || '').trim(),
-    prompt: {
-      id: OUTCOME_PROMPT_TEMPLATE_ID,
-      version: OUTCOME_PROMPT_TEMPLATE_VERSION
-    },
     personaA: {
       key: optionA.key,
       label: optionA.label,
@@ -1549,7 +1543,8 @@ if (outcomeRunBtn) {
             signature: signatureB
           },
           persona_keys: Array.from(new Set([optionA.key, optionB.key].map((key) => sanitizePersonaKey(key)).filter(Boolean))),
-          requested_outcome: requestedOutcome
+          requested_outcome: requestedOutcome,
+          initial_conditions: String(outcomeInitialConditionsEl?.value || '').trim()
         };
       });
 

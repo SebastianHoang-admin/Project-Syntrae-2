@@ -8,8 +8,6 @@ const DEFAULT_MUTATION_RATE = 0.14;
 const DEFAULT_ELITE_COUNT = 8;
 const DEFAULT_TOP_PATHWAYS = 5;
 const DEFAULT_MONTE_CARLO_REPS = 1000;
-const DEFAULT_OUTCOME_PROMPT_ID = 'pmpt_69fa2fb3eefc8196b8ca8889f95f756903f3f05aace493de';
-const DEFAULT_OUTCOME_PROMPT_VERSION = '2';
 
 const FALLBACK_NODE_TITLES = Object.freeze([
   'Define Objective',
@@ -298,100 +296,8 @@ function compactProfile(profile) {
   };
 }
 
-function extractAxisScores(profile) {
-  const source = profile && typeof profile === 'object' ? profile : {};
-  const quantitative = source.quantitative_data && typeof source.quantitative_data === 'object'
-    ? source.quantitative_data
-    : {};
-  const candidates = [
-    quantitative.axis_scores,
-    quantitative.axisScores,
-    quantitative.axes,
-    source.axis_scores,
-    source.axisScores
-  ];
-  const axisSource = candidates.find((item) => item && typeof item === 'object') || {};
-  const out = {};
-
-  Object.entries(axisSource).forEach(([rawKey, rawValue]) => {
-    const key = String(rawKey || '')
-      .trim()
-      .toLowerCase()
-      .replace(/[^a-z0-9 _/-]/g, '');
-    if (!key) return;
-
-    let numeric = Number.NaN;
-    if (Number.isFinite(Number(rawValue))) {
-      numeric = Number(rawValue);
-    } else if (rawValue && typeof rawValue === 'object') {
-      const valueCandidates = [rawValue.value, rawValue.score, rawValue.percent, rawValue.normalized];
-      for (let i = 0; i < valueCandidates.length; i += 1) {
-        const candidate = Number(valueCandidates[i]);
-        if (Number.isFinite(candidate)) {
-          numeric = candidate;
-          break;
-        }
-      }
-    }
-
-    if (!Number.isFinite(numeric)) return;
-    out[key] = clamp(numeric, 0, 100);
-  });
-
-  return out;
-}
-
-function summarizeCriticalFactors(compact) {
-  const critical = compact?.critical_factors && typeof compact.critical_factors === 'object'
-    ? compact.critical_factors
-    : {};
-  const entries = Object.entries(critical)
-    .filter(([key, value]) => sanitizeText(key, 80) || sanitizeText(value, 140))
-    .slice(0, 4)
-    .map(([key, value]) => {
-      const left = sanitizeText(key, 70);
-      const right = sanitizeText(value, 140);
-      if (left && right) return `${left}: ${right}`;
-      return left || right;
-    })
-    .filter(Boolean);
-  return entries.length ? entries.join(' | ') : 'None explicitly listed';
-}
-
-function summarizeInitialConditionsFromPersonas(personaA, personaB, userContext) {
-  const personaALabel = sanitizeText(personaA?.label || personaA?.key || 'Persona A', 90);
-  const personaBLabel = sanitizeText(personaB?.label || personaB?.key || 'Persona B', 90);
-  const compactA = compactProfile(personaA?.profile);
-  const compactB = compactProfile(personaB?.profile);
-
-  const scoresA = extractAxisScores(personaA?.profile);
-  const scoresB = extractAxisScores(personaB?.profile);
-  const sharedAxisKeys = Object.keys(scoresA).filter((key) => Object.prototype.hasOwnProperty.call(scoresB, key));
-  let avgDeviation = null;
-  if (sharedAxisKeys.length) {
-    const totalGap = sharedAxisKeys.reduce((sum, key) => sum + Math.abs((scoresA[key] || 0) - (scoresB[key] || 0)), 0);
-    avgDeviation = totalGap / sharedAxisKeys.length;
-  }
-  const alignmentPercent = avgDeviation === null ? null : clamp(100 - avgDeviation, 0, 100);
-
-  const userContextText = sanitizeText(userContext, 260);
-  const parts = [
-    `Initiator (${personaALabel}): goals "${compactA.goals || 'not specified'}"; communication "${compactA.communication_style || 'not specified'}"; constraints "${compactA.constraints || 'none stated'}".`,
-    `Target (${personaBLabel}): goals "${compactB.goals || 'not specified'}"; communication "${compactB.communication_style || 'not specified'}"; constraints "${compactB.constraints || 'none stated'}".`,
-    avgDeviation === null
-      ? 'Quantitative alignment: insufficient shared numeric axes to compute trait deviation.'
-      : `Quantitative alignment: ${sharedAxisKeys.length} shared axes, average deviation ${avgDeviation.toFixed(1)}/100, estimated alignment ${alignmentPercent.toFixed(1)}%.`,
-    `Critical factors - Initiator: ${summarizeCriticalFactors(compactA)}.`,
-    `Critical factors - Target: ${summarizeCriticalFactors(compactB)}.`,
-    userContextText ? `Additional user-supplied context: ${userContextText}.` : ''
-  ].filter(Boolean);
-
-  return sanitizeText(parts.join(' '), 1200);
-}
-
 function buildGeneratorPrompt({
-  inferredInitialConditions,
-  additionalContext,
+  initialConditions,
   requestedOutcome,
   personaA,
   personaB,
@@ -399,8 +305,7 @@ function buildGeneratorPrompt({
   actionsPerNode
 }) {
   const safeOutcome = sanitizeText(requestedOutcome, 320);
-  const safeInferredContext = sanitizeText(inferredInitialConditions, 700);
-  const safeAdditionalContext = sanitizeText(additionalContext, 320);
+  const safeContext = sanitizeText(initialConditions, 560);
   const safePersonaA = {
     key: sanitizePersonaKey(personaA?.key),
     label: sanitizeText(personaA?.label, 120),
@@ -424,8 +329,7 @@ function buildGeneratorPrompt({
   const userPrompt = [
     'Build action-space for evolutionary optimization.',
     `Requested outcome: ${safeOutcome || '(missing)'}`,
-    `Initial conditions inferred from both personas: ${safeInferredContext || '(missing)'}`,
-    safeAdditionalContext ? `Additional context from user: ${safeAdditionalContext}` : 'Additional context from user: (none provided)',
+    `Initial conditions/context: ${safeContext || '(missing)'}`,
     '',
     'Persona A (initiator):',
     safeJson(safePersonaA),
@@ -500,76 +404,6 @@ async function requestCompletion({ apiKey, model, messages }) {
     throw err;
   }
   return data;
-}
-
-function extractTextFromResponsesApi(data) {
-  if (typeof data?.output_text === 'string' && data.output_text.trim()) {
-    return data.output_text.trim();
-  }
-  const output = Array.isArray(data?.output) ? data.output : [];
-  const chunks = [];
-  output.forEach((item) => {
-    const content = Array.isArray(item?.content) ? item.content : [];
-    content.forEach((part) => {
-      if (typeof part?.text === 'string' && part.text.trim()) {
-        chunks.push(part.text.trim());
-      }
-    });
-  });
-  return chunks.join('\n').trim();
-}
-
-async function requestCompletionWithPromptTemplate({
-  apiKey,
-  promptId,
-  promptVersion,
-  promptVariables,
-  model,
-  systemPrompt,
-  userPrompt
-}) {
-  const promptPayload = {
-    id: String(promptId || '').trim()
-  };
-  if (String(promptVersion || '').trim()) {
-    promptPayload.version = String(promptVersion).trim();
-  }
-  if (promptVariables && typeof promptVariables === 'object' && Object.keys(promptVariables).length) {
-    promptPayload.variables = promptVariables;
-  }
-
-  const inputText = [String(systemPrompt || '').trim(), String(userPrompt || '').trim()]
-    .filter(Boolean)
-    .join('\n\n');
-
-  const requestBody = {
-    prompt: promptPayload,
-    input: inputText,
-    max_output_tokens: 2600
-  };
-  if (model) {
-    requestBody.model = model;
-  }
-
-  const openaiRes = await fetch('https://api.openai.com/v1/responses', {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify(requestBody)
-  });
-  const data = await openaiRes.json().catch(() => ({}));
-  if (!openaiRes.ok) {
-    const message = data?.error?.message || data?.error || 'OpenAI responses request failed';
-    const err = new Error(message);
-    err.status = openaiRes.status;
-    throw err;
-  }
-  return {
-    raw: data,
-    text: extractTextFromResponsesApi(data)
-  };
 }
 
 function buildFallbackActionSpace({
@@ -1231,15 +1065,12 @@ module.exports = async function handler(req, res) {
   }
 
   const body = req.body && typeof req.body === 'object' ? req.body : {};
-  const userInitialContext = sanitizeText(body.initial_conditions || body.initialConditions || '', 1200);
+  const initialConditions = sanitizeText(body.initial_conditions || body.initialConditions || '', 1200);
   const requestedOutcome = sanitizeText(body.requested_outcome || body.requestedOutcome || '', 380);
   const personaA = body.personaA && typeof body.personaA === 'object' ? body.personaA : {};
   const personaB = body.personaB && typeof body.personaB === 'object' ? body.personaB : {};
   const config = sanitizeConfig(body.config);
   const actionSpaceOnly = Boolean(body.action_space_only || body.actionSpaceOnly);
-  const inferredInitialConditions = summarizeInitialConditionsFromPersonas(personaA, personaB, userInitialContext);
-  const effectiveInitialConditions = sanitizeText(inferredInitialConditions, 1200);
-  const actionContextAnchor = userInitialContext || effectiveInitialConditions;
 
   if (!requestedOutcome) {
     return res.status(400).json({ error: 'requested_outcome is required' });
@@ -1247,7 +1078,7 @@ module.exports = async function handler(req, res) {
 
   const fallbackNodes = buildFallbackActionSpace({
     requestedOutcome,
-    initialConditions: actionContextAnchor,
+    initialConditions,
     personaB,
     nodeCount: config.node_count,
     actionsPerNode: config.actions_per_node
@@ -1256,104 +1087,38 @@ module.exports = async function handler(req, res) {
   let nodes = fallbackNodes;
   let generatorSource = 'fallback';
   let modelUsed = '';
-  let promptTemplateIdUsed = null;
-  let promptTemplateVersionUsed = null;
 
   const apiKey = resolveEnv(['OPENAI_API_KEY', 'OPENAI_API_KEY_LOCAL', 'OPENAI_KEY']);
   const model = resolveEnv(['OPENAI_OUTCOME_MODEL', 'OPENAI_MODEL']) || 'gpt-5-nano';
-  const promptTemplateId = sanitizeText(
-    body?.prompt?.id ||
-      body.outcome_prompt_id ||
-      body.prompt_id ||
-      resolveEnv(['OPENAI_OUTCOME_PROMPT_ID']) ||
-      DEFAULT_OUTCOME_PROMPT_ID,
-    128
-  );
-  const promptTemplateVersion = sanitizeText(
-    body?.prompt?.version ||
-      body.outcome_prompt_version ||
-      body.prompt_version ||
-      resolveEnv(['OPENAI_OUTCOME_PROMPT_VERSION']) ||
-      DEFAULT_OUTCOME_PROMPT_VERSION,
-    24
-  );
 
   if (apiKey) {
     try {
       const { systemPrompt, userPrompt } = buildGeneratorPrompt({
-        inferredInitialConditions,
-        additionalContext: userInitialContext,
+        initialConditions,
         requestedOutcome,
         personaA,
         personaB,
         nodeCount: config.node_count,
         actionsPerNode: config.actions_per_node
       });
-
-      let generatedText = '';
-      let generationMode = '';
-
-      if (promptTemplateId) {
-        try {
-          const templated = await requestCompletionWithPromptTemplate({
-            apiKey,
-            promptId: promptTemplateId,
-            promptVersion: promptTemplateVersion,
-            promptVariables: {
-              requested_outcome: requestedOutcome,
-              inferred_initial_conditions: effectiveInitialConditions,
-              additional_context: userInitialContext,
-              persona_a_label: sanitizeText(personaA?.label || personaA?.key || 'Persona A', 120),
-              persona_b_label: sanitizeText(personaB?.label || personaB?.key || 'Persona B', 120),
-              persona_a_profile_json: safeJson(compactProfile(personaA?.profile)),
-              persona_b_profile_json: safeJson(compactProfile(personaB?.profile)),
-              node_count: String(config.node_count),
-              actions_per_node: String(config.actions_per_node)
-            },
-            model,
-            systemPrompt,
-            userPrompt
-          });
-          generatedText = String(templated?.text || '').trim();
-          if (generatedText) {
-            generationMode = 'llm_prompt_template';
-            promptTemplateIdUsed = promptTemplateId;
-            promptTemplateVersionUsed = promptTemplateVersion || null;
-          }
-        } catch (_) {
-          generatedText = '';
-        }
-      }
-
-      if (!generatedText) {
-        const completion = await requestCompletion({
-          apiKey,
-          model,
-          messages: [
-            { role: 'system', content: systemPrompt },
-            { role: 'user', content: userPrompt }
-          ]
-        });
-        generatedText = String(completion?.choices?.[0]?.message?.content || '').trim();
-        if (generatedText) {
-          generationMode = 'llm_inline_prompt';
-          promptTemplateIdUsed = null;
-          promptTemplateVersionUsed = null;
-        }
-      }
-
-      const text = generatedText;
+      const completion = await requestCompletion({
+        apiKey,
+        model,
+        messages: [
+          { role: 'system', content: systemPrompt },
+          { role: 'user', content: userPrompt }
+        ]
+      });
+      const text = completion?.choices?.[0]?.message?.content || '';
       const parsed = parseJsonObject(text);
       const rawNodes = Array.isArray(parsed?.nodes) ? parsed.nodes : [];
       nodes = normalizeActionSpace(rawNodes, fallbackNodes, config.node_count, config.actions_per_node);
-      generatorSource = rawNodes.length ? generationMode || 'llm' : 'fallback';
+      generatorSource = rawNodes.length ? 'llm' : 'fallback';
       modelUsed = model;
     } catch (_) {
       nodes = fallbackNodes;
       generatorSource = 'fallback';
       modelUsed = '';
-      promptTemplateIdUsed = null;
-      promptTemplateVersionUsed = null;
     }
   }
 
@@ -1364,7 +1129,7 @@ module.exports = async function handler(req, res) {
   const chainCandidates = buildChainCandidates(
     nodes,
     requestedOutcome,
-    effectiveInitialConditions,
+    initialConditions,
     config.actions_per_node
   );
   const bestChain = chainCandidates[0] || null;
@@ -1374,9 +1139,7 @@ module.exports = async function handler(req, res) {
       report_id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
       generated_at: new Date().toISOString(),
       mode: 'action_generation_only',
-      initial_conditions: effectiveInitialConditions,
-      inferred_initial_conditions: inferredInitialConditions,
-      user_initial_context: userInitialContext,
+      initial_conditions: initialConditions,
       requested_outcome: requestedOutcome,
       persona_a: {
         key: personaAKey,
@@ -1397,9 +1160,7 @@ module.exports = async function handler(req, res) {
       best_chain: bestChain,
       summary: `Generated ${config.node_count} nodes × ${config.actions_per_node} actions and chained them into ${chainCandidates.length} gene-based action chains.`,
       generator_source: generatorSource,
-      model_used: modelUsed || null,
-      prompt_template_id_used: promptTemplateIdUsed,
-      prompt_template_version_used: promptTemplateVersionUsed
+      model_used: modelUsed || null
     });
   }
 
@@ -1421,9 +1182,7 @@ module.exports = async function handler(req, res) {
   const report = {
     report_id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
     generated_at: new Date().toISOString(),
-    initial_conditions: effectiveInitialConditions,
-    inferred_initial_conditions: inferredInitialConditions,
-    user_initial_context: userInitialContext,
+    initial_conditions: initialConditions,
     requested_outcome: requestedOutcome,
     persona_a: {
       key: personaAKey,
@@ -1443,9 +1202,7 @@ module.exports = async function handler(req, res) {
     best_pathway: best,
     summary: buildSummary(best, requestedOutcome),
     generator_source: generatorSource,
-    model_used: modelUsed || null,
-    prompt_template_id_used: promptTemplateIdUsed,
-    prompt_template_version_used: promptTemplateVersionUsed
+    model_used: modelUsed || null
   };
 
   return res.status(200).json(report);
