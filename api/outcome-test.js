@@ -850,103 +850,60 @@ function normalizeScore(raw, fallback) {
   return clampInt(fallback, 0, 100);
 }
 
-function normalizeAction(rawAction, nodeIndex, actionIndex) {
+function normalizeAction(rawAction, fallbackAction, nodeIndex, actionIndex) {
   const raw = rawAction && typeof rawAction === 'object' ? rawAction : {};
+  const fallback = fallbackAction && typeof fallbackAction === 'object' ? fallbackAction : {};
   const scoreSource = raw.scores && typeof raw.scores === 'object' ? raw.scores : raw;
+  const fallbackScores = fallback.scores && typeof fallback.scores === 'object' ? fallback.scores : {};
 
   return {
     id: sanitizeText(raw.id || `N${nodeIndex + 1}A${actionIndex + 1}`, 20),
     gene_slot: clampInt(raw.gene_slot ?? raw.geneSlot ?? actionIndex + 1, 1, DEFAULT_ACTIONS_PER_NODE),
-    action: sanitizeText(raw.action || raw.name || raw.title || `Action ${actionIndex + 1}`, 180),
+    action: sanitizeText(raw.action || raw.name || raw.title || fallback.action || `Action ${actionIndex + 1}`, 180),
     rationale: sanitizeText(
-      raw.rationale || raw.why || raw.description || 'Supports the requested outcome.',
+      raw.rationale || raw.why || raw.description || fallback.rationale || 'Supports the requested outcome.',
       220
     ),
     persona_anchor: sanitizeText(
-      raw.persona_anchor || raw.personaAnchor || '',
+      raw.persona_anchor || raw.personaAnchor || fallback.persona_anchor || '',
       140
     ),
     next_link_hint: sanitizeText(
-      raw.next_link_hint || raw.nextLinkHint || 'Transitions to the next step.',
+      raw.next_link_hint || raw.nextLinkHint || fallback.next_link_hint || 'Transitions to the next step.',
       180
     ),
     scores: {
-      fit: normalizeScore(scoreSource.fit, 0),
-      feasibility: normalizeScore(scoreSource.feasibility, 0),
-      ethics: normalizeScore(scoreSource.ethics, 0),
-      risk: normalizeScore(scoreSource.risk, 0),
-      momentum: normalizeScore(scoreSource.momentum, 0),
-      intensity: normalizeScore(scoreSource.intensity, 0)
+      fit: normalizeScore(scoreSource.fit, fallbackScores.fit ?? 70),
+      feasibility: normalizeScore(scoreSource.feasibility, fallbackScores.feasibility ?? 70),
+      ethics: normalizeScore(scoreSource.ethics, fallbackScores.ethics ?? 80),
+      risk: normalizeScore(scoreSource.risk, fallbackScores.risk ?? 35),
+      momentum: normalizeScore(scoreSource.momentum, fallbackScores.momentum ?? 65),
+      intensity: normalizeScore(scoreSource.intensity, fallbackScores.intensity ?? 40)
     }
   };
 }
 
-function resolveRawNodeAtIndex(rawNodes, nodeIndex) {
-  const sourceNodes = Array.isArray(rawNodes) ? rawNodes : [];
-  const fromIndex = sourceNodes[nodeIndex];
-  const fromTag = sourceNodes.find((node) => Number(node?.node_index || node?.index) === nodeIndex + 1);
-  return fromTag || fromIndex || null;
-}
-
-function validateGeneratedActionSpaceShape(rawNodes, nodeCount, actionsPerNode) {
-  if (!Array.isArray(rawNodes) || !rawNodes.length) {
-    return { ok: false, reason: 'OpenAI output had no nodes array.' };
-  }
-  for (let nodeIndex = 0; nodeIndex < nodeCount; nodeIndex += 1) {
-    const rawNode = resolveRawNodeAtIndex(rawNodes, nodeIndex);
-    if (!rawNode || typeof rawNode !== 'object') {
-      return { ok: false, reason: `Missing node at index ${nodeIndex + 1}.` };
-    }
-    const actions = Array.isArray(rawNode.actions) ? rawNode.actions : [];
-    if (actions.length < actionsPerNode) {
-      return {
-        ok: false,
-        reason: `Node ${nodeIndex + 1} has ${actions.length} actions; expected ${actionsPerNode}.`
-      };
-    }
-    for (let actionIndex = 0; actionIndex < actionsPerNode; actionIndex += 1) {
-      const rawAction = actions[actionIndex];
-      if (!rawAction || typeof rawAction !== 'object') {
-        return { ok: false, reason: `Node ${nodeIndex + 1} action ${actionIndex + 1} is missing.` };
-      }
-      const actionText = sanitizeText(rawAction.action || rawAction.name || rawAction.title || '', 180);
-      if (!actionText) {
-        return { ok: false, reason: `Node ${nodeIndex + 1} action ${actionIndex + 1} has no action text.` };
-      }
-      const scores = rawAction?.scores && typeof rawAction.scores === 'object' ? rawAction.scores : rawAction;
-      const requiredScores = ['fit', 'feasibility', 'ethics', 'risk', 'momentum', 'intensity'];
-      for (let i = 0; i < requiredScores.length; i += 1) {
-        const key = requiredScores[i];
-        const value = Number(scores?.[key]);
-        if (!Number.isFinite(value)) {
-          return {
-            ok: false,
-            reason: `Node ${nodeIndex + 1} action ${actionIndex + 1} is missing numeric score "${key}".`
-          };
-        }
-      }
-    }
-  }
-  return { ok: true };
-}
-
-function normalizeActionSpace(rawNodes, nodeCount, actionsPerNode) {
+function normalizeActionSpace(rawNodes, fallbackNodes, nodeCount, actionsPerNode) {
   const sourceNodes = Array.isArray(rawNodes) ? rawNodes : [];
   const normalized = [];
 
   for (let nodeIndex = 0; nodeIndex < nodeCount; nodeIndex += 1) {
-    const rawNode = resolveRawNodeAtIndex(sourceNodes, nodeIndex) || {};
+    const fallbackNode = fallbackNodes[nodeIndex];
+    const fromIndex = sourceNodes[nodeIndex];
+    const fromTag = sourceNodes.find((node) => Number(node?.node_index) === nodeIndex + 1);
+    const rawNode = fromTag || fromIndex || {};
     const rawActions = Array.isArray(rawNode?.actions) ? rawNode.actions : [];
     const actions = [];
 
     for (let actionIndex = 0; actionIndex < actionsPerNode; actionIndex += 1) {
+      const fallbackAction = fallbackNode.actions[actionIndex];
       const rawAction = rawActions[actionIndex];
-      actions.push(normalizeAction(rawAction, nodeIndex, actionIndex));
+      actions.push(normalizeAction(rawAction, fallbackAction, nodeIndex, actionIndex));
     }
 
     normalized.push({
       node_index: nodeIndex + 1,
-      node_title: sanitizeText(rawNode?.node_title || rawNode?.title || `Node ${nodeIndex + 1}`, 90),
+      node_title: sanitizeText(rawNode?.node_title || rawNode?.title || fallbackNode.node_title, 90),
       actions
     });
   }
@@ -1482,19 +1439,22 @@ module.exports = async function handler(req, res) {
   const actionSpaceOnly = Boolean(body.action_space_only || body.actionSpaceOnly);
   const inferredInitialConditions = summarizeInitialConditionsFromPersonas(personaA, personaB, userInitialContext);
   const effectiveInitialConditions = sanitizeText(inferredInitialConditions, 1200);
-  const fail = (status, stage, message, extra = {}) =>
-    res.status(status).json({
-      error: `Outcome AG failed at ${stage}: ${message}`,
-      stage,
-      ...extra
-    });
+  const actionContextAnchor = userInitialContext || effectiveInitialConditions;
 
   if (!requestedOutcome) {
     return res.status(400).json({ error: 'requested_outcome is required' });
   }
 
-  let nodes = [];
-  let generatorSource = '';
+  const fallbackNodes = buildFallbackActionSpace({
+    requestedOutcome,
+    initialConditions: actionContextAnchor,
+    personaB,
+    nodeCount: config.node_count,
+    actionsPerNode: config.actions_per_node
+  });
+
+  let nodes = fallbackNodes;
+  let generatorSource = 'fallback';
   let modelUsed = '';
   let promptTemplateIdUsed = null;
   let promptTemplateVersionUsed = null;
@@ -1531,82 +1491,62 @@ module.exports = async function handler(req, res) {
       'false',
     false
   );
-  const allowInlineRetryAfterTemplateEmpty = parseBoolean(
-    body.allow_inline_retry_after_template_empty ??
-      body.allowInlineRetryAfterTemplateEmpty ??
-      resolveEnv(['OPENAI_OUTCOME_ALLOW_INLINE_RETRY_AFTER_TEMPLATE_EMPTY']) ??
-      'false',
-    false
+  const allowInlineFallbackAfterTemplateEmpty = parseBoolean(
+    body.allow_inline_fallback_after_template_empty ??
+      body.allowInlineFallbackAfterTemplateEmpty ??
+      resolveEnv(['OPENAI_OUTCOME_ALLOW_INLINE_FALLBACK_AFTER_TEMPLATE_EMPTY']) ??
+      'true',
+    true
   );
 
   if (requirePromptTemplate && !promptTemplateId) {
-    return fail(
-      500,
-      'configuration.prompt_template',
-      'require_prompt_template is true but no prompt template ID was provided.'
-    );
-  }
-
-  if (!apiKey) {
-    return fail(500, 'configuration.openai_key', 'OPENAI_API_KEY is missing.');
-  }
-
-  try {
-    let failureStage = 'build_generator_prompt';
-    const { systemPrompt, userPrompt } = buildGeneratorPrompt({
-      inferredInitialConditions,
-      additionalContext: userInitialContext,
-      requestedOutcome,
-      personaA,
-      personaB,
-      nodeCount: config.node_count,
-      actionsPerNode: config.actions_per_node
+    return res.status(500).json({
+      error: 'Outcome AG is configured to require a prompt template, but no prompt template ID was provided.'
     });
+  }
 
-    let generatedText = '';
-    let generationMode = '';
-    let promptTemplateError = null;
-    let promptTemplateRaw = null;
-    let templateAttempted = false;
-    let templateProducedOutput = false;
+  if (requirePromptTemplate && !apiKey) {
+    return res.status(500).json({
+      error: 'Outcome AG requires OpenAI access, but OPENAI_API_KEY is missing.'
+    });
+  }
 
-    if (promptTemplateId) {
-      templateAttempted = true;
-      try {
-        const promptVariables = usePromptVariables
-          ? {
-              requested_outcome: requestedOutcome,
-              inferred_initial_conditions: effectiveInitialConditions,
-              additional_context: userInitialContext,
-              persona_a_label: sanitizeText(personaA?.label || personaA?.key || 'Persona A', 120),
-              persona_b_label: sanitizeText(personaB?.label || personaB?.key || 'Persona B', 120),
-              persona_a_profile_json: safeJson(compactProfile(personaA?.profile)),
-              persona_b_profile_json: safeJson(compactProfile(personaB?.profile)),
-              node_count: String(config.node_count),
-              actions_per_node: String(config.actions_per_node)
-            }
-          : undefined;
-        failureStage = 'openai.prompt_template.primary_request';
-        const templated = await requestCompletionWithPromptTemplate({
-          apiKey,
-          promptId: promptTemplateId,
-          promptVersion: promptTemplateVersion,
-          promptVariables,
-          model,
-          systemPrompt,
-          userPrompt,
-          options: {
-            useMessageInput: false,
-            forceJsonObject: false,
-            maxOutputTokens: 4200
-          }
-        });
-        promptTemplateRaw = templated?.raw || null;
-        generatedText = String(templated?.text || '').trim();
+  if (apiKey) {
+    try {
+      const { systemPrompt, userPrompt } = buildGeneratorPrompt({
+        inferredInitialConditions,
+        additionalContext: userInitialContext,
+        requestedOutcome,
+        personaA,
+        personaB,
+        nodeCount: config.node_count,
+        actionsPerNode: config.actions_per_node
+      });
 
-        if (!generatedText) {
-          failureStage = 'openai.prompt_template.retry_request';
-          const retryTemplated = await requestCompletionWithPromptTemplate({
+      let generatedText = '';
+      let generationMode = '';
+      let promptTemplateError = null;
+      let promptTemplateRaw = null;
+      let templateAttempted = false;
+      let templateProducedOutput = false;
+
+      if (promptTemplateId) {
+        templateAttempted = true;
+        try {
+          const promptVariables = usePromptVariables
+            ? {
+                requested_outcome: requestedOutcome,
+                inferred_initial_conditions: effectiveInitialConditions,
+                additional_context: userInitialContext,
+                persona_a_label: sanitizeText(personaA?.label || personaA?.key || 'Persona A', 120),
+                persona_b_label: sanitizeText(personaB?.label || personaB?.key || 'Persona B', 120),
+                persona_a_profile_json: safeJson(compactProfile(personaA?.profile)),
+                persona_b_profile_json: safeJson(compactProfile(personaB?.profile)),
+                node_count: String(config.node_count),
+                actions_per_node: String(config.actions_per_node)
+              }
+            : undefined;
+          const templated = await requestCompletionWithPromptTemplate({
             apiKey,
             promptId: promptTemplateId,
             promptVersion: promptTemplateVersion,
@@ -1615,123 +1555,122 @@ module.exports = async function handler(req, res) {
             systemPrompt,
             userPrompt,
             options: {
-              useMessageInput: true,
-              forceJsonObject: true,
-              maxOutputTokens: 5200
+              useMessageInput: false,
+              forceJsonObject: false,
+              maxOutputTokens: 4200
             }
           });
-          promptTemplateRaw = retryTemplated?.raw || promptTemplateRaw;
-          generatedText = String(retryTemplated?.text || '').trim();
-        }
+          promptTemplateRaw = templated?.raw || null;
+          generatedText = String(templated?.text || '').trim();
 
+          if (!generatedText) {
+            const retryTemplated = await requestCompletionWithPromptTemplate({
+              apiKey,
+              promptId: promptTemplateId,
+              promptVersion: promptTemplateVersion,
+              promptVariables,
+              model,
+              systemPrompt,
+              userPrompt,
+              options: {
+                useMessageInput: true,
+                forceJsonObject: true,
+                maxOutputTokens: 5200
+              }
+            });
+            promptTemplateRaw = retryTemplated?.raw || promptTemplateRaw;
+            generatedText = String(retryTemplated?.text || '').trim();
+          }
+
+          if (generatedText) {
+            generationMode = 'llm_prompt_template';
+            promptTemplateIdUsed = promptTemplateId;
+            promptTemplateVersionUsed = promptTemplateVersion || null;
+            templateProducedOutput = true;
+          }
+        } catch (error) {
+          generatedText = '';
+          promptTemplateError = error;
+        }
+      }
+
+      if (!generatedText && requirePromptTemplate) {
+        if (allowInlineFallbackAfterTemplateEmpty) {
+          generationMode = 'llm_prompt_template_empty_inline_fallback';
+        } else {
+          const reason = sanitizeText(
+            promptTemplateError?.message || 'Prompt template generation returned no output.',
+            240
+          );
+          const rawStatus = sanitizeText(promptTemplateRaw?.status || '', 60);
+          const rawIncompleteReason = sanitizeText(promptTemplateRaw?.incomplete_details?.reason || '', 120);
+          return res.status(502).json({
+            error: `Outcome AG prompt-template generation failed: ${reason}`,
+            prompt_template_id: promptTemplateId,
+            prompt_template_version: promptTemplateVersion || null,
+            response_status: rawStatus || null,
+            response_incomplete_reason: rawIncompleteReason || null
+          });
+        }
+      }
+
+      if (!generatedText) {
+        const completion = await requestCompletion({
+          apiKey,
+          model,
+          messages: [
+            { role: 'system', content: systemPrompt },
+            { role: 'user', content: userPrompt }
+          ]
+        });
+        generatedText = String(completion?.choices?.[0]?.message?.content || '').trim();
         if (generatedText) {
-          generationMode = 'llm_prompt_template';
-          promptTemplateIdUsed = promptTemplateId;
-          promptTemplateVersionUsed = promptTemplateVersion || null;
-          templateProducedOutput = true;
+          generationMode = templateAttempted && !templateProducedOutput
+            ? 'llm_inline_after_template_empty'
+            : 'llm_inline_prompt';
+          promptTemplateIdUsed = templateAttempted ? promptTemplateId : null;
+          promptTemplateVersionUsed = templateAttempted ? (promptTemplateVersion || null) : null;
         }
-      } catch (error) {
-        generatedText = '';
-        promptTemplateError = error;
       }
-    }
 
-    if (!generatedText && requirePromptTemplate && !allowInlineRetryAfterTemplateEmpty) {
-      const reason = sanitizeText(
-        promptTemplateError?.message || 'Prompt template generation returned no output.',
-        280
-      );
-      const rawStatus = sanitizeText(promptTemplateRaw?.status || '', 60);
-      const rawIncompleteReason = sanitizeText(promptTemplateRaw?.incomplete_details?.reason || '', 120);
-      return fail(502, 'openai.prompt_template_generation', reason, {
-        prompt_template_id: promptTemplateId,
-        prompt_template_version: promptTemplateVersion || null,
-        response_status: rawStatus || null,
-        response_incomplete_reason: rawIncompleteReason || null,
-        response_id: sanitizeText(promptTemplateRaw?.id || '', 80) || null
-      });
-    }
-
-    if (!generatedText) {
-      failureStage = templateAttempted && !templateProducedOutput
-        ? 'openai.inline_retry_after_template_empty'
-        : 'openai.inline_generation';
-      const completion = await requestCompletion({
-        apiKey,
-        model,
-        messages: [
-          { role: 'system', content: systemPrompt },
-          { role: 'user', content: userPrompt }
-        ]
-      });
-      generatedText = String(completion?.choices?.[0]?.message?.content || '').trim();
-      if (generatedText) {
-        generationMode = templateAttempted && !templateProducedOutput
-          ? 'llm_inline_after_template_empty'
-          : 'llm_inline_prompt';
-        promptTemplateIdUsed = templateAttempted ? promptTemplateId : null;
-        promptTemplateVersionUsed = templateAttempted ? (promptTemplateVersion || null) : null;
+      if (!generatedText) {
+        const reason = sanitizeText(
+          promptTemplateError?.message || 'No usable output from both prompt template and inline generation.',
+          240
+        );
+        return res.status(502).json({
+          error: `Outcome AG generation failed: ${reason}`,
+          prompt_template_id: templateAttempted ? promptTemplateId : null,
+          prompt_template_version: templateAttempted ? (promptTemplateVersion || null) : null
+        });
       }
-    }
 
-    if (!generatedText) {
-      const reason = sanitizeText(
-        promptTemplateError?.message || 'OpenAI returned no text output.',
-        280
+      const text = generatedText;
+      const parsed = parseJsonObject(text);
+      const rawNodes = extractRawNodesFromGeneratedPayload(
+        parsed,
+        config.node_count,
+        config.actions_per_node
       );
-      return fail(502, 'openai.generation_empty', reason, {
-        prompt_template_id: templateAttempted ? promptTemplateId : null,
-        prompt_template_version: templateAttempted ? (promptTemplateVersion || null) : null
-      });
+      if (!rawNodes.length && requirePromptTemplate && generationMode === 'llm_prompt_template') {
+        const excerpt = sanitizeText(text, 300);
+        return res.status(502).json({
+          error: 'Outcome AG prompt-template output was not in a supported JSON shape.',
+          prompt_template_id: promptTemplateId,
+          prompt_template_version: promptTemplateVersion || null,
+          output_excerpt: excerpt
+        });
+      }
+      nodes = normalizeActionSpace(rawNodes, fallbackNodes, config.node_count, config.actions_per_node);
+      generatorSource = rawNodes.length ? generationMode || 'llm' : 'fallback';
+      modelUsed = model;
+    } catch (_) {
+      nodes = fallbackNodes;
+      generatorSource = 'fallback';
+      modelUsed = '';
+      promptTemplateIdUsed = null;
+      promptTemplateVersionUsed = null;
     }
-
-    failureStage = 'openai.output_json_parse';
-    const parsed = parseJsonObject(generatedText);
-    if (!parsed || typeof parsed !== 'object') {
-      return fail(502, failureStage, 'OpenAI output is not valid JSON object.', {
-        output_excerpt: sanitizeText(generatedText, 500)
-      });
-    }
-
-    failureStage = 'openai.output_node_extraction';
-    const rawNodes = extractRawNodesFromGeneratedPayload(
-      parsed,
-      config.node_count,
-      config.actions_per_node
-    );
-    if (!rawNodes.length) {
-      return fail(502, failureStage, 'No nodes were found in OpenAI output.', {
-        output_excerpt: sanitizeText(generatedText, 500)
-      });
-    }
-
-    failureStage = 'openai.output_validation';
-    const shapeValidation = validateGeneratedActionSpaceShape(
-      rawNodes,
-      config.node_count,
-      config.actions_per_node
-    );
-    if (!shapeValidation.ok) {
-      return fail(502, failureStage, sanitizeText(shapeValidation.reason, 320), {
-        output_excerpt: sanitizeText(generatedText, 500)
-      });
-    }
-
-    failureStage = 'openai.output_normalization';
-    nodes = normalizeActionSpace(rawNodes, config.node_count, config.actions_per_node);
-    if (!nodes.length) {
-      return fail(502, failureStage, 'Normalized action space is empty.');
-    }
-
-    generatorSource = generationMode || 'llm_prompt_template';
-    modelUsed = model;
-  } catch (error) {
-    const reason = sanitizeText(error?.message || 'Unexpected outcome generation error.', 320);
-    return fail(502, 'openai.unhandled_exception', reason);
-  }
-
-  if (!Array.isArray(nodes) || !nodes.length) {
-    return fail(502, 'openai.output_normalization', 'No usable action-space nodes were produced.');
   }
 
   const personaAKey = sanitizePersonaKey(personaA?.key);

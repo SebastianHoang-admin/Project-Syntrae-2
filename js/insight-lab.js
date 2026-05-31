@@ -5,12 +5,13 @@ const PERSONA_TABLE = 'personas';
 const SYNTHETIC_USER_KEY = '__user_persona__';
 const FITNESS_RESULT_STORAGE_KEY = 'insight-lab:last-fitness-test';
 const FITNESS_HISTORY_STORAGE_KEY = 'insight-lab:fitness-report-history';
+const OUTCOME_RESULT_STORAGE_KEY = 'insight-lab:last-outcome-test';
 const INSIGHT_LAB_PROFILE_KEY = 'insight_lab';
 const ACCOUNT_FITNESS_REPORTS_KEY = 'fitness_reports';
 const ACCOUNT_OUTCOME_REPORTS_KEY = 'outcome_reports';
-const ACCOUNT_OUTCOME_QUEUE_KEY = 'outcome_job_queue';
 const MAX_ACCOUNT_FITNESS_REPORTS = 20;
 const MAX_ACCOUNT_OUTCOME_REPORTS = 20;
+const OUTCOME_JOB_QUEUE_STORAGE_KEY = 'insight-lab:outcome-job-queue-v1';
 const MAX_OUTCOME_QUEUE_ITEMS = 10;
 const OUTCOME_PROMPT_TEMPLATE_ID = 'pmpt_69fa2fb3eefc8196b8ca8889f95f756903f3f05aace493de';
 const OUTCOME_PROMPT_TEMPLATE_VERSION = '2';
@@ -60,10 +61,6 @@ const outcomeResultsEl = document.getElementById('outcomeResults');
 const outcomeSummaryTitleEl = document.getElementById('outcomeSummaryTitle');
 const outcomeSummaryTextEl = document.getElementById('outcomeSummaryText');
 const outcomePathwayGridEl = document.getElementById('outcomePathwayGrid');
-const outcomeHistorySectionEl = document.getElementById('outcomeHistorySection');
-const outcomeHistoryMetaEl = document.getElementById('outcomeHistoryMeta');
-const outcomeHistoryListEl = document.getElementById('outcomeHistoryList');
-const outcomeHistoryEmptyEl = document.getElementById('outcomeHistoryEmpty');
 const outcomeRunOverlayEl = document.getElementById('outcomeRunOverlay');
 const outcomeRunProgressBarEl = document.getElementById('outcomeRunProgressBar');
 const outcomeRunProgressTextEl = document.getElementById('outcomeRunProgressText');
@@ -74,8 +71,6 @@ let optionByKey = new Map();
 let currentUserId = '';
 let currentUserProfileJson = {};
 let isOutcomeQueueRunning = false;
-let currentOutcomeRunningJobId = '';
-let outcomeHistoryReportMap = new Map();
 
 function sanitizePersonaKey(value) {
   const normalized = String(value || '').trim().toLowerCase();
@@ -186,49 +181,20 @@ function createOutcomeJobId() {
 }
 
 function loadOutcomeJobQueue() {
-  const insightLab = currentUserProfileJson?.[INSIGHT_LAB_PROFILE_KEY] && typeof currentUserProfileJson[INSIGHT_LAB_PROFILE_KEY] === 'object'
-    ? currentUserProfileJson[INSIGHT_LAB_PROFILE_KEY]
-    : {};
-  const queue = Array.isArray(insightLab?.[ACCOUNT_OUTCOME_QUEUE_KEY])
-    ? insightLab[ACCOUNT_OUTCOME_QUEUE_KEY]
-    : [];
-  return queue
-    .filter((item) => item && typeof item === 'object')
-    .slice(0, MAX_OUTCOME_QUEUE_ITEMS);
+  try {
+    const raw = localStorage.getItem(OUTCOME_JOB_QUEUE_STORAGE_KEY);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed)) return [];
+    return parsed.filter((item) => item && typeof item === 'object');
+  } catch (_) {
+    return [];
+  }
 }
 
-async function saveOutcomeJobQueue(queue) {
+function saveOutcomeJobQueue(queue) {
   const safeQueue = Array.isArray(queue) ? queue.slice(0, MAX_OUTCOME_QUEUE_ITEMS) : [];
-  const latestProfile = await loadLatestAccountProfileJson();
-  const baseProfile = latestProfile && typeof latestProfile === 'object' ? latestProfile : {};
-  const insightLab = baseProfile?.[INSIGHT_LAB_PROFILE_KEY] && typeof baseProfile[INSIGHT_LAB_PROFILE_KEY] === 'object'
-    ? baseProfile[INSIGHT_LAB_PROFILE_KEY]
-    : {};
-  const nextProfile = {
-    ...baseProfile,
-    [INSIGHT_LAB_PROFILE_KEY]: {
-      ...insightLab,
-      [ACCOUNT_OUTCOME_QUEUE_KEY]: safeQueue,
-      updated_at: new Date().toISOString()
-    }
-  };
-
-  if (currentUserId) {
-    const { error } = await supabase
-      .from(USER_PROFILE_TABLE)
-      .upsert(
-        {
-          user_id: currentUserId,
-          profile: nextProfile
-        },
-        { onConflict: 'user_id' }
-      );
-    if (error && !isMissingUserProfileTableError(error)) {
-      throw new Error(`Could not persist outcome queue: ${error.message || error}`);
-    }
-  }
-  currentUserProfileJson = nextProfile;
-  renderOutcomeTestHistory();
+  localStorage.setItem(OUTCOME_JOB_QUEUE_STORAGE_KEY, JSON.stringify(safeQueue));
 }
 
 function notifyOutcomeComplete(title, body) {
@@ -565,99 +531,6 @@ function reportTimestampValue(report) {
   return Number.isFinite(epoch) ? epoch : 0;
 }
 
-function formatHistoryDateTime(value) {
-  const stamp = String(value || '').trim();
-  if (!stamp) return 'Time unavailable';
-  const date = new Date(stamp);
-  if (Number.isNaN(date.getTime())) return 'Time unavailable';
-  return date.toLocaleString([], {
-    month: 'short',
-    day: '2-digit',
-    year: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit'
-  });
-}
-
-function getOutcomeReportsFromProfile(profileJson) {
-  const insightLab = profileJson?.[INSIGHT_LAB_PROFILE_KEY] && typeof profileJson[INSIGHT_LAB_PROFILE_KEY] === 'object'
-    ? profileJson[INSIGHT_LAB_PROFILE_KEY]
-    : {};
-  const accountReports = Array.isArray(insightLab?.[ACCOUNT_OUTCOME_REPORTS_KEY])
-    ? insightLab[ACCOUNT_OUTCOME_REPORTS_KEY]
-    : [];
-  const merged = [];
-  const seen = new Set();
-
-  const pushUnique = (report) => {
-    if (!report || typeof report !== 'object') return;
-    const fingerprint = getOutcomeReportStorageFingerprint(report);
-    const fallback = fingerprint || `fallback:${reportTimestampValue(report)}:${String(report?.requested_outcome || '').trim().toLowerCase()}`;
-    if (seen.has(fallback)) return;
-    seen.add(fallback);
-    merged.push(report);
-  };
-
-  accountReports.forEach(pushUnique);
-  merged.sort((left, right) => reportTimestampValue(right) - reportTimestampValue(left));
-  return merged.slice(0, MAX_ACCOUNT_OUTCOME_REPORTS);
-}
-
-function renderOutcomeTestHistory() {
-  if (!outcomeHistorySectionEl || !outcomeHistoryMetaEl || !outcomeHistoryListEl || !outcomeHistoryEmptyEl) return;
-
-  const queue = loadOutcomeJobQueue();
-  const reports = getOutcomeReportsFromProfile(currentUserProfileJson).slice(0, 10);
-  const historyRows = [];
-  outcomeHistoryReportMap = new Map();
-
-  queue.forEach((job, index) => {
-    const isRunning = isOutcomeQueueRunning && (currentOutcomeRunningJobId ? currentOutcomeRunningJobId === job.id : index === 0);
-    const pairLabel = `${String(job?.personaA?.label || 'Persona A').trim()} → ${String(job?.personaB?.label || 'Persona B').trim()}`;
-    const requestedOutcome = String(job?.requestedOutcome || '').trim() || 'No requested outcome provided';
-    historyRows.push(`
-      <article class="outcome-history-item">
-        <div class="outcome-history-top">
-          <span class="outcome-history-label">${escapeHtml(pairLabel)}</span>
-          <span class="history-pill ${isRunning ? 'running' : 'queued'}">${isRunning ? 'Running' : 'Queued'}</span>
-        </div>
-        <div class="outcome-history-meta"><strong>Outcome:</strong> ${escapeHtml(requestedOutcome)}</div>
-        <div class="outcome-history-time">${escapeHtml(formatHistoryDateTime(job?.queued_at))}</div>
-      </article>
-    `);
-  });
-
-  reports.forEach((report) => {
-    const personaALabel = String(report?.persona_a?.label || report?.personaA?.label || 'Persona A').trim();
-    const personaBLabel = String(report?.persona_b?.label || report?.personaB?.label || 'Persona B').trim();
-    const requestedOutcome = String(report?.requested_outcome || report?.requestedOutcome || '').trim() || 'No requested outcome provided';
-    const integrity = toSafePercent(report?.best_chain?.chain_metrics?.chain_integrity_percent, 0).toFixed(2);
-    const reportKeyBase = getOutcomeReportStorageFingerprint(report) || `${personaALabel}|${personaBLabel}|${requestedOutcome}|${reportTimestampValue(report)}`;
-    const reportKey = encodeURIComponent(reportKeyBase);
-    outcomeHistoryReportMap.set(reportKey, report);
-    historyRows.push(`
-      <article class="outcome-history-item outcome-history-item-clickable" data-report-key="${reportKey}" title="Open detailed result">
-        <div class="outcome-history-top">
-          <span class="outcome-history-label">${escapeHtml(`${personaALabel} → ${personaBLabel}`)}</span>
-          <span class="history-pill done">Done</span>
-        </div>
-        <div class="outcome-history-meta"><strong>Outcome:</strong> ${escapeHtml(requestedOutcome)} · <strong>Best integrity:</strong> ${escapeHtml(integrity)}% · <strong>Click to view details</strong></div>
-        <div class="outcome-history-time">${escapeHtml(formatHistoryDateTime(report?.generated_at || report?.generatedAt))}</div>
-      </article>
-    `);
-  });
-
-  const queuedCount = queue.length;
-  const completedCount = reports.length;
-  outcomeHistoryMetaEl.textContent = `${queuedCount} queued · ${completedCount} completed`;
-  outcomeHistoryListEl.innerHTML = historyRows.join('');
-  const hasHistory = historyRows.length > 0;
-  outcomeHistoryEmptyEl.hidden = hasHistory;
-  if (!hasHistory) {
-    outcomeHistoryMetaEl.textContent = 'No queued or completed tests yet';
-  }
-}
-
 function getReportStorageFingerprint(report) {
   if (!report || typeof report !== 'object') return '';
   const reportId = String(report.report_id || '').trim();
@@ -849,7 +722,6 @@ async function persistOutcomeReportToAccount(report) {
       return;
     }
     currentUserProfileJson = nextProfile;
-    renderOutcomeTestHistory();
   } catch (error) {
     console.warn('Unexpected error while saving outcome report to account storage:', error?.message || error);
   }
@@ -1365,25 +1237,6 @@ function toSafePercent(value, fallback = 0) {
   return Math.max(0, Math.min(100, numeric));
 }
 
-function openOutcomeReportDetails(report) {
-  if (!report || typeof report !== 'object') {
-    setOutcomeStatus('Unable to open report details: report payload is missing.', 'error');
-    return;
-  }
-  try {
-    const reportId = String(report?.report_id || '').trim();
-    const generatedAt = String(report?.generated_at || report?.generatedAt || '').trim();
-    const query = reportId
-      ? `?report_id=${encodeURIComponent(reportId)}`
-      : generatedAt
-        ? `?generated_at=${encodeURIComponent(generatedAt)}`
-        : '';
-    window.location.href = `outcome-test-results.html${query}`;
-  } catch (error) {
-    setOutcomeStatus(`Unable to open report details: ${error?.message || 'storage write failed'}`, 'error');
-  }
-}
-
 function renderOutcomeResults(report) {
   if (!outcomeResultsEl || !outcomeSummaryTitleEl || !outcomeSummaryTextEl || !outcomePathwayGridEl) return;
   if (!report || typeof report !== 'object') {
@@ -1562,18 +1415,7 @@ async function fetchOutcomeReport(payload) {
   });
   const json = await response.json().catch(() => null);
   if (!response.ok) {
-    const messageParts = [];
-    const primary = String(json?.error || 'Outcome test request failed').trim();
-    if (primary) messageParts.push(primary);
-    const stage = String(json?.stage || '').trim();
-    if (stage) messageParts.push(`stage=${stage}`);
-    const responseStatus = String(json?.response_status || '').trim();
-    if (responseStatus) messageParts.push(`openai_status=${responseStatus}`);
-    const incompleteReason = String(json?.response_incomplete_reason || '').trim();
-    if (incompleteReason) messageParts.push(`incomplete_reason=${incompleteReason}`);
-    const excerpt = String(json?.output_excerpt || '').trim();
-    if (excerpt) messageParts.push(`output_excerpt=${excerpt}`);
-    const message = messageParts.join(' | ') || 'Outcome test request failed';
+    const message = String(json?.error || 'Outcome test request failed');
     throw new Error(message);
   }
   if (!json || typeof json !== 'object') {
@@ -1585,15 +1427,11 @@ async function fetchOutcomeReport(payload) {
 async function processOutcomeQueue() {
   if (isOutcomeQueueRunning) return;
   isOutcomeQueueRunning = true;
-  renderOutcomeTestHistory();
   try {
     while (true) {
-      await loadLatestAccountProfileJson();
       const queue = loadOutcomeJobQueue();
       const nextJob = queue[0];
       if (!nextJob) break;
-      currentOutcomeRunningJobId = String(nextJob.id || '').trim();
-      renderOutcomeTestHistory();
 
       setOutcomeStatus(
         `Outcome test queued job ${nextJob.id} is running in background. You can continue using the app.`,
@@ -1626,11 +1464,12 @@ async function processOutcomeQueue() {
           requested_outcome: nextJob.requestedOutcome
         };
 
+        localStorage.setItem(OUTCOME_RESULT_STORAGE_KEY, JSON.stringify(report));
         await persistOutcomeReportToAccount(report);
 
         const refreshedQueue = loadOutcomeJobQueue();
         refreshedQueue.shift();
-        await saveOutcomeJobQueue(refreshedQueue);
+        saveOutcomeJobQueue(refreshedQueue);
 
         setOutcomeStatus(
           `Outcome test complete for "${nextJob.requestedOutcome}". Open Outcome Test Results to view scenarios.`,
@@ -1643,16 +1482,12 @@ async function processOutcomeQueue() {
       } catch (error) {
         const refreshedQueue = loadOutcomeJobQueue();
         refreshedQueue.shift();
-        await saveOutcomeJobQueue(refreshedQueue);
+        saveOutcomeJobQueue(refreshedQueue);
         setOutcomeStatus(`Outcomes Test failed: ${error?.message || 'Unexpected error'}`, 'error');
       }
-      currentOutcomeRunningJobId = '';
-      renderOutcomeTestHistory();
     }
   } finally {
     isOutcomeQueueRunning = false;
-    currentOutcomeRunningJobId = '';
-    renderOutcomeTestHistory();
   }
 }
 
@@ -1713,7 +1548,6 @@ async function initialize() {
   personaOptions = buildOptions(userProfileRow, personaRows, userMetadata);
   optionByKey = new Map(personaOptions.map((item) => [item.key, item]));
   populateSelectors();
-  renderOutcomeTestHistory();
   const queuedJobs = loadOutcomeJobQueue();
   if (queuedJobs.length) {
     setOutcomeStatus(
@@ -1731,20 +1565,6 @@ selectB.addEventListener('change', updateFitnessUI);
 if (outcomeSelectA) outcomeSelectA.addEventListener('change', updateOutcomeUI);
 if (outcomeSelectB) outcomeSelectB.addEventListener('change', updateOutcomeUI);
 if (outcomeRequestedOutcomeEl) outcomeRequestedOutcomeEl.addEventListener('input', updateOutcomeUI);
-if (outcomeHistoryListEl) {
-  outcomeHistoryListEl.addEventListener('click', (event) => {
-    const target = event.target instanceof Element ? event.target.closest('[data-report-key]') : null;
-    if (!target) return;
-    const reportKey = String(target.getAttribute('data-report-key') || '').trim();
-    if (!reportKey) return;
-    const report = outcomeHistoryReportMap.get(reportKey);
-    if (!report) {
-      setOutcomeStatus('Unable to open this test detail. The report is no longer available in cache.', 'error');
-      return;
-    }
-    openOutcomeReportDetails(report);
-  });
-}
 
 runBtn.addEventListener('click', async () => {
   const optionA = optionByKey.get(selectA.value);
@@ -1851,7 +1671,7 @@ if (outcomeRunBtn) {
         payload
       };
       queue.push(job);
-      await saveOutcomeJobQueue(queue);
+      saveOutcomeJobQueue(queue);
       setOutcomeStatus(
         `Outcome test queued (${queue.length} in queue). You can continue using the app; you’ll be notified when this run completes.`,
         'info'

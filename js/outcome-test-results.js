@@ -1,6 +1,7 @@
 import { supabase } from './supabase-client.js';
 
 const USER_PROFILE_TABLE = 'user_profiles';
+const OUTCOME_RESULT_STORAGE_KEY = 'insight-lab:last-outcome-test';
 const INSIGHT_LAB_PROFILE_KEY = 'insight_lab';
 const ACCOUNT_OUTCOME_REPORTS_KEY = 'outcome_reports';
 const MAX_HISTORY_REPORTS = 10;
@@ -102,48 +103,20 @@ function sortReportsNewestFirst(reports) {
   return [...reports].sort((left, right) => getReportTimestampValue(right) - getReportTimestampValue(left));
 }
 
-function getReportSelectorFromUrl() {
-  const params = new URLSearchParams(window.location.search || '');
-  const reportId = String(params.get('report_id') || '').trim();
-  const generatedAt = String(params.get('generated_at') || '').trim();
-  return {
-    report_id: reportId || '',
-    generated_at: generatedAt || ''
-  };
+function loadLatestLocalOutcomeReport() {
+  try {
+    const raw = localStorage.getItem(OUTCOME_RESULT_STORAGE_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    return parsed && typeof parsed === 'object' ? parsed : null;
+  } catch (_) {
+    return null;
+  }
 }
 
-function selectReportFromHistory(history, selector) {
-  if (!Array.isArray(history) || !history.length) return null;
-  const safeSelector = selector && typeof selector === 'object' ? selector : {};
-  const targetId = String(safeSelector.report_id || '').trim();
-  if (targetId) {
-    const byId = history.find((entry) => String(entry?.report_id || '').trim() === targetId);
-    if (byId) return byId;
-  }
-  const targetGeneratedAt = String(safeSelector.generated_at || '').trim();
-  if (targetGeneratedAt) {
-    const byGenerated = history.find((entry) => {
-      const stamp = String(entry?.generated_at || entry?.generatedAt || '').trim();
-      return stamp && stamp === targetGeneratedAt;
-    });
-    if (byGenerated) return byGenerated;
-  }
-  return history[0];
-}
-
-function updateUrlForReport(report) {
+function saveLatestLocalOutcomeReport(report) {
   if (!report || typeof report !== 'object') return;
-  const reportId = String(report?.report_id || '').trim();
-  const generatedAt = String(report?.generated_at || report?.generatedAt || '').trim();
-  const params = new URLSearchParams();
-  if (reportId) {
-    params.set('report_id', reportId);
-  } else if (generatedAt) {
-    params.set('generated_at', generatedAt);
-  }
-  const query = params.toString();
-  const target = `outcome-test-results.html${query ? `?${query}` : ''}`;
-  window.history.replaceState({}, '', target);
+  localStorage.setItem(OUTCOME_RESULT_STORAGE_KEY, JSON.stringify(report));
 }
 
 function normalizeScenarioList(report) {
@@ -295,8 +268,8 @@ function renderHistory(history) {
     `;
 
     item.addEventListener('click', () => {
+      saveLatestLocalOutcomeReport(entry);
       renderReport(entry);
-      updateUrlForReport(entry);
       historyModalEl.hidden = true;
     });
 
@@ -332,11 +305,16 @@ async function initialize() {
 
   currentUserId = data.session.user.id;
   const accountHistory = await loadOutcomeHistoryFromAccount(currentUserId);
-  const merged = dedupeReports(sortReportsNewestFirst(accountHistory));
+  const localLatest = loadLatestLocalOutcomeReport();
+
+  const merged = dedupeReports(
+    sortReportsNewestFirst([...(localLatest ? [localLatest] : []), ...accountHistory])
+  );
   cachedHistory = merged.slice(0, MAX_HISTORY_REPORTS);
-  const selected = selectReportFromHistory(cachedHistory, getReportSelectorFromUrl());
-  renderReport(selected);
-  if (selected) updateUrlForReport(selected);
+
+  const latest = cachedHistory[0] || localLatest || null;
+  if (latest) saveLatestLocalOutcomeReport(latest);
+  renderReport(latest);
   renderHistory(cachedHistory);
 }
 
