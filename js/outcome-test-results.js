@@ -73,11 +73,6 @@ function getReportTimestampValue(report) {
   return Number.isFinite(epoch) ? epoch : 0;
 }
 
-function isFallbackGeneratedOutcomeReport(report) {
-  const source = String(report?.generator_source || report?.generatorSource || '').trim().toLowerCase();
-  return source.startsWith('fallback');
-}
-
 function getReportFingerprint(report) {
   if (!report || typeof report !== 'object') return '';
   const reportId = String(report?.report_id || '').trim();
@@ -95,7 +90,6 @@ function dedupeReports(reports) {
   const output = [];
   reports.forEach((report) => {
     if (!report || typeof report !== 'object') return;
-    if (isFallbackGeneratedOutcomeReport(report)) return;
     const fingerprint = getReportFingerprint(report);
     if (fingerprint && seen.has(fingerprint)) return;
     if (fingerprint) seen.add(fingerprint);
@@ -326,7 +320,7 @@ async function loadOutcomeHistoryFromAccount(userId) {
   const reports = Array.isArray(insightLab?.[ACCOUNT_OUTCOME_REPORTS_KEY])
     ? insightLab[ACCOUNT_OUTCOME_REPORTS_KEY]
     : [];
-  return reports.filter((item) => item && typeof item === 'object' && !isFallbackGeneratedOutcomeReport(item));
+  return reports.filter((item) => item && typeof item === 'object');
 }
 
 async function initialize() {

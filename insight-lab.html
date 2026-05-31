@@ -340,17 +340,6 @@
         .run-btn:hover:not(:disabled) {
             transform:translateY(-1px);
         }
-        .outcome-actions {
-            display:flex;
-            align-items:center;
-            gap:10px;
-            flex-wrap:wrap;
-        }
-        .stop-btn {
-            background:linear-gradient(135deg,#ef4444,#f97316);
-            color:#fff;
-            box-shadow:0 12px 24px rgba(239,68,68,0.24);
-        }
         .outcome-results {
             border:1px solid var(--border);
             border-radius:14px;
@@ -455,11 +444,6 @@
             color:#bbf7d0;
             border-color:rgba(34,197,94,0.45);
             background:rgba(34,197,94,0.15);
-        }
-        .history-pill.failed {
-            color:#fecaca;
-            border-color:rgba(239,68,68,0.5);
-            background:rgba(239,68,68,0.15);
         }
         .outcome-history-empty {
             color:var(--muted);
@@ -685,10 +669,7 @@
                 </div>
 
                 <div id="outcomeStatus" class="status" data-type="info" hidden></div>
-                <div class="outcome-actions">
-                    <button type="button" id="runOutcomeBtn" class="run-btn"><i class="fas fa-play"></i>Run Outcomes Test</button>
-                    <button type="button" id="stopOutcomeBtn" class="run-btn stop-btn" disabled><i class="fas fa-stop"></i>Stop Outcomes Test</button>
-                </div>
+                <button type="button" id="runOutcomeBtn" class="run-btn"><i class="fas fa-play"></i>Run Outcomes Test</button>
                 <section class="outcome-history" id="outcomeHistorySection">
                     <div class="outcome-history-head">
                         <strong>Outcome Test History</strong>

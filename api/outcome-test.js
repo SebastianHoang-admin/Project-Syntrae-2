@@ -9,9 +9,164 @@ const DEFAULT_ELITE_COUNT = 8;
 const DEFAULT_TOP_PATHWAYS = 5;
 const DEFAULT_MONTE_CARLO_REPS = 1000;
 const DEFAULT_OUTCOME_PROMPT_ID = 'pmpt_69fa2fb3eefc8196b8ca8889f95f756903f3f05aace493de';
-const DEFAULT_OUTCOME_MAX_OUTPUT_TOKENS = 6000;
-const MAX_OUTCOME_MAX_OUTPUT_TOKENS = 100000;
-const DEFAULT_OUTCOME_MODEL_TIMEOUT_MS = 285000;
+const DEFAULT_OUTCOME_MAX_OUTPUT_TOKENS = 20000;
+
+const FALLBACK_NODE_TITLES = Object.freeze([
+  'Define Objective',
+  'Boundary Check',
+  'Timing Calibration',
+  'Opening Approach',
+  'Value-Aligned Ask',
+  'Friction Reduction',
+  'Logistics Lock-in',
+  'Execution',
+  'Follow-up',
+  'Outcome Consolidation'
+]);
+
+const FALLBACK_NODE_ACTIONS = Object.freeze([
+  [
+    'Write one sentence defining the exact outcome and deadline.',
+    'Draft a low-pressure outcome version with an easy opt-out.',
+    'Draft a medium-ambition outcome with a clear next step.',
+    'Write a high-clarity outcome statement with boundaries included.',
+    'Set a concrete outcome target plus a fallback outcome target.'
+  ],
+  [
+    'List two hard boundaries and remove any conflicting action.',
+    'Choose a channel (text/call/in-person) that minimizes pressure.',
+    'Write an invitation sentence that explicitly allows decline.',
+    'Check safety/legal constraints and remove risky logistics.',
+    'Prepare a lower-pressure alternative ask for this same week.'
+  ],
+  [
+    'Pick one exact send time and one backup send time.',
+    'Choose a low-stress day window and avoid deadline periods.',
+    'Set a 20-30 minute interaction window to reduce burden.',
+    'Schedule outreach right after a shared context touchpoint.',
+    'Delay outreach 24-72 hours if temporary stress is high.'
+  ],
+  [
+    'Send a two-line opener referencing shared context and intent.',
+    'Open with one shared interest, then ask one clear question.',
+    'Use a low-pressure opener with an explicit "no pressure" line.',
+    'Use a direct opener with one concrete plan option.',
+    'Use a preference-first opener offering two simple options.'
+  ],
+  [
+    'Propose a specific venue/activity aligned with known preferences.',
+    'Offer Option A and Option B with the same time cost.',
+    'Ask for a small first step (15-30 minutes) before bigger plans.',
+    'Frame value around mutual interest, not obligation.',
+    'Keep ask concrete: exact place, duration, and purpose.'
+  ],
+  [
+    'Offer a lower-effort fallback (shorter time or closer venue).',
+    'Reduce cost burden by proposing budget-friendly options.',
+    'Add an explicit fallback line if timing is not good.',
+    'Rewrite wording to preserve autonomy and easy exit.',
+    'Remove extra logistics so the plan fits one message.'
+  ],
+  [
+    'Confirm exact time and place in one concise follow-up.',
+    'Confirm one comfort preference (food/noise/transport timing).',
+    'Send one reminder only, then stop pushing.',
+    'Lock one next step and avoid multi-ask messages.',
+    'Confirm consent and expectations before meeting.'
+  ],
+  [
+    'Execute the plan as agreed without adding surprise pressure.',
+    'Watch response signals and adjust pace respectfully.',
+    'Keep tone consistent with earlier communication style.',
+    'Prioritize comfort, safety, and legal boundaries at all times.',
+    'If hesitation appears, offer a clear graceful exit.'
+  ],
+  [
+    'Send one same-day follow-up message acknowledging the interaction.',
+    'Ask one short check-in question about comfort and fit.',
+    'Express appreciation without adding immediate pressure.',
+    'If declined, close respectfully and keep dignity intact.',
+    'If positive, suggest one realistic second-step action.'
+  ],
+  [
+    'Evaluate if the requested outcome was reached within timeline.',
+    'If partial, define one incremental next action with date.',
+    'If no success, pivot to a lower-friction and respectful outcome.',
+    'Write what worked and what created friction for next run.',
+    'Prioritize long-term trust over short-term escalation.'
+  ]
+]);
+
+const FALLBACK_CHAIN_TEMPLATES = Object.freeze([
+  [
+    'After shared context ({context_anchor}), send one short text asking for a 25-minute tea/coffee break this week.',
+    'At the meetup, ask about {topic_hint} and share one related personal story.',
+    'Close the meetup by thanking them and asking if they would like to do this again next week.',
+    'That night, send one concise good-night text referencing the best moment from the meetup.',
+    'Wait 2-3 days, then propose a second meetup with a specific day/time window.',
+    'During the second meetup, ask one values-based question and listen without interrupting.',
+    'At the end, state romantic intent clearly and ask if they are open to an actual date.',
+    'If yes, schedule a first official date with exact plan, duration, and location.',
+    'After the date, send a short reflection text and ask for consent to keep progressing.',
+    'If mutual interest is explicit, ask to define the relationship toward {outcome_short}.'
+  ],
+  [
+    'Send a two-option message tied to {context_anchor}: Option A tea break, Option B short walk.',
+    'Choose the accepted option and open conversation with {topic_hint} plus one open-ended question.',
+    'Offer to cover a small part of cost only if they seem comfortable, without pressure.',
+    'When leaving, ask if they got home safely and avoid repeated follow-up texts.',
+    'After 72 hours, invite them to a low-noise activity aligned with {topic_hint}.',
+    'At that activity, validate their preferences and ask what pace feels comfortable.',
+    'State interest directly: "I like spending time with you and want to date intentionally."',
+    'If they agree, propose a concrete second date plan with clear start/end time.',
+    'Follow up the next day with one appreciation text and no escalation pressure.',
+    'If consistent reciprocity is present, discuss relationship expectations and boundaries.'
+  ],
+  [
+    'Right after group session, invite them to a 20-minute snack break near campus.',
+    'Use the break to discuss {topic_hint} and ask what projects excite them right now.',
+    'Before ending, confirm they felt comfortable and ask for preferred next activity type.',
+    'Send one summary text: highlight shared interest and propose one specific next plan.',
+    'Wait 48 hours, then ask for a weekend plan with an easy opt-out clause.',
+    'During the weekend plan, keep interaction balanced: ask/listen ratio near 50/50.',
+    'Near the end, ask whether they are open to trying an official date format.',
+    'If yes, schedule the official date and confirm logistical preferences in one message.',
+    'Afterward, check in briefly and ask how they felt about the date pace.',
+    'If feedback is positive and consistent, ask to move toward exclusive dating.'
+  ],
+  [
+    'Send a purpose-first message linked to {context_anchor}: "Want to swap ideas over tea for 30 minutes?"',
+    'At the meetup, center conversation on {topic_hint} and one future-oriented question.',
+    'Offer practical help related to their current workload only if invited.',
+    'After meeting, send one gratitude text and one concrete follow-up suggestion.',
+    'Pause 3-4 days, then invite them to a calm evening plan with exact timing.',
+    'During that plan, ask about boundaries and preferred communication rhythm.',
+    'Share your intention: "I’m interested in dating you if you’re open to it."',
+    'If response is positive, agree on what "dating" means for both of you.',
+    'Send a next-day check-in confirming consent and comfort with the new step.',
+    'If alignment remains strong over repeated interactions, define the relationship.'
+  ],
+  [
+    'Use a short voice note tied to {context_anchor} inviting them for a 30-minute dinner or tea.',
+    'During the meetup, ask two curiosity questions anchored to {topic_hint}.',
+    'Near midpoint, share one vulnerable but appropriate personal detail to build trust.',
+    'At the end, ask directly whether they’d like a second one-on-one plan.',
+    'If yes, send a calendar-ready invite with date/time/location and simple backup option.',
+    'On the second plan, prioritize consent cues and avoid physical/romantic pressure.',
+    'State your romantic interest and ask for their honest answer without urgency.',
+    'If they are open, schedule a date progression plan they co-design.',
+    'After each date, run one short check-in question about comfort and expectations.',
+    'When reciprocity is explicit and sustained, ask to become partners.'
+  ]
+]);
+
+const VARIANT_DELTAS = Object.freeze([
+  { fit: 6, feasibility: 8, ethics: 5, risk: -6, momentum: -2, intensity: -12 },
+  { fit: 10, feasibility: 6, ethics: 2, risk: 4, momentum: 7, intensity: 12 },
+  { fit: 8, feasibility: 5, ethics: 4, risk: -1, momentum: 4, intensity: -2 },
+  { fit: 7, feasibility: 9, ethics: 6, risk: -4, momentum: 1, intensity: -9 },
+  { fit: 9, feasibility: 4, ethics: 1, risk: 8, momentum: 10, intensity: 16 }
+]);
 
 function clamp(value, min, max) {
   const numeric = Number(value);
@@ -115,71 +270,6 @@ function parseRetryAfterSecondsFromText(value) {
   const seconds = Number(match[1]);
   if (!Number.isFinite(seconds) || seconds <= 0) return null;
   return seconds;
-}
-
-function parseRetryAfterSecondsFromHeader(value) {
-  const raw = String(value || '').trim();
-  if (!raw) return null;
-  const numeric = Number(raw);
-  if (Number.isFinite(numeric) && numeric > 0) return numeric;
-  const epoch = Date.parse(raw);
-  if (!Number.isFinite(epoch)) return null;
-  const deltaSeconds = (epoch - Date.now()) / 1000;
-  if (!Number.isFinite(deltaSeconds) || deltaSeconds <= 0) return null;
-  return deltaSeconds;
-}
-
-function parseRateLimitResetSeconds(value) {
-  const raw = String(value || '').trim();
-  if (!raw) return null;
-  const numeric = Number(raw);
-  if (Number.isFinite(numeric) && numeric > 0) return numeric;
-
-  const pattern = /([0-9]+(?:\.[0-9]+)?)(ms|s|m|h|d)/gi;
-  let matched = false;
-  let seconds = 0;
-  let match;
-  while ((match = pattern.exec(raw)) !== null) {
-    matched = true;
-    const amount = Number(match[1]);
-    const unit = String(match[2] || '').toLowerCase();
-    if (!Number.isFinite(amount) || amount <= 0) continue;
-    if (unit === 'ms') seconds += amount / 1000;
-    if (unit === 's') seconds += amount;
-    if (unit === 'm') seconds += amount * 60;
-    if (unit === 'h') seconds += amount * 60 * 60;
-    if (unit === 'd') seconds += amount * 60 * 60 * 24;
-  }
-  if (!matched || seconds <= 0) return null;
-  return seconds;
-}
-
-function buildOpenAiRateLimitInfo(headers) {
-  if (!headers || typeof headers.get !== 'function') return {};
-  const limitRequests = Number(headers.get('x-ratelimit-limit-requests'));
-  const limitTokens = Number(headers.get('x-ratelimit-limit-tokens'));
-  const remainingRequests = Number(headers.get('x-ratelimit-remaining-requests'));
-  const remainingTokens = Number(headers.get('x-ratelimit-remaining-tokens'));
-  const resetRequestsRaw = headers.get('x-ratelimit-reset-requests');
-  const resetTokensRaw = headers.get('x-ratelimit-reset-tokens');
-  const retryAfterRaw = headers.get('retry-after');
-
-  const resetRequestsSeconds = parseRateLimitResetSeconds(resetRequestsRaw);
-  const resetTokensSeconds = parseRateLimitResetSeconds(resetTokensRaw);
-  const retryAfterSeconds = parseRetryAfterSecondsFromHeader(retryAfterRaw);
-
-  return {
-    limit_requests: Number.isFinite(limitRequests) ? limitRequests : null,
-    limit_tokens: Number.isFinite(limitTokens) ? limitTokens : null,
-    remaining_requests: Number.isFinite(remainingRequests) ? remainingRequests : null,
-    remaining_tokens: Number.isFinite(remainingTokens) ? remainingTokens : null,
-    reset_requests: sanitizeText(resetRequestsRaw || '', 40) || null,
-    reset_tokens: sanitizeText(resetTokensRaw || '', 40) || null,
-    retry_after: sanitizeText(retryAfterRaw || '', 80) || null,
-    reset_requests_seconds: Number.isFinite(resetRequestsSeconds) ? Math.max(0, Math.ceil(resetRequestsSeconds)) : null,
-    reset_tokens_seconds: Number.isFinite(resetTokensSeconds) ? Math.max(0, Math.ceil(resetTokensSeconds)) : null,
-    retry_after_seconds: Number.isFinite(retryAfterSeconds) ? Math.max(0, Math.ceil(retryAfterSeconds)) : null
-  };
 }
 
 async function fetchJson(url, headers) {
@@ -323,6 +413,55 @@ function extractRawNodesFromGeneratedPayload(parsed, nodeCount, actionsPerNode) 
   }
 
   return outputNodes;
+}
+
+function extractTopicHintFromProfile(profile) {
+  const source = profile && typeof profile === 'object' ? profile : {};
+  const qualitative = source.qualitative_data && typeof source.qualitative_data === 'object'
+    ? source.qualitative_data
+    : {};
+  const fields = [
+    qualitative.personal_headline,
+    qualitative.goals,
+    qualitative.communication_style,
+    qualitative.constraints,
+    source?.personal_headline,
+    source?.goals
+  ]
+    .map((item) => sanitizeText(item, 180))
+    .filter(Boolean);
+
+  const text = fields.join(' | ');
+  if (!text) return 'a topic from their profile';
+  const phrases = text
+    .split(/[|.,;]+/g)
+    .map((item) => item.trim())
+    .filter((item) => item.length >= 4);
+  const phrase = phrases[0] || '';
+  if (!phrase) return 'a topic from their profile';
+  const words = phrase.split(/\s+/g).slice(0, 6).join(' ');
+  return sanitizeText(words, 80) || 'a topic from their profile';
+}
+
+function buildContextAnchor(initialConditions) {
+  const value = sanitizeText(initialConditions, 220);
+  if (!value) return 'the current context';
+  const words = value.split(/\s+/g).slice(0, 10).join(' ');
+  return sanitizeText(words, 90) || 'the current context';
+}
+
+function shortOutcomeLabel(requestedOutcome) {
+  const value = sanitizeText(requestedOutcome, 120);
+  if (!value) return 'the requested outcome';
+  const words = value.split(/\s+/g).slice(0, 8).join(' ');
+  return sanitizeText(words, 90) || 'the requested outcome';
+}
+
+function fillFallbackTemplate(template, replacements) {
+  return String(template || '').replace(/\{([a-z_]+)\}/gi, (_, key) => {
+    const value = replacements?.[key];
+    return sanitizeText(value, 90) || '';
+  });
 }
 
 function compactProfile(profile) {
@@ -608,7 +747,7 @@ async function requestCompletionWithPromptTemplate({
 
   const requestBody = {
     prompt: promptPayload,
-    max_output_tokens: clampInt(options.maxOutputTokens ?? DEFAULT_OUTCOME_MAX_OUTPUT_TOKENS, 600, MAX_OUTCOME_MAX_OUTPUT_TOKENS)
+    max_output_tokens: clampInt(options.maxOutputTokens ?? DEFAULT_OUTCOME_MAX_OUTPUT_TOKENS, 600, 20000)
   };
   if (options.useMessageInput) {
     const userOnlyInput = parseBoolean(options.useUserOnlyInput, false);
@@ -671,55 +810,97 @@ async function requestCompletionWithPromptTemplate({
     requestBody.metadata = options.metadata;
   }
 
-  const timeoutMs = clampInt(options.timeoutMs ?? DEFAULT_OUTCOME_MODEL_TIMEOUT_MS, 10000, 290000);
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(new Error(`OpenAI request timeout after ${timeoutMs}ms`)), timeoutMs);
-
-  let openaiRes;
-  let data;
-  try {
-    openaiRes = await fetch('https://api.openai.com/v1/responses', {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(requestBody),
-      signal: controller.signal
-    });
-    data = await openaiRes.json().catch(() => ({}));
-  } catch (error) {
-    const isAbort = String(error?.name || '') === 'AbortError' || String(error?.message || '').includes('timeout');
-    if (isAbort) {
-      const timeoutError = new Error(`OpenAI responses request timed out after ${timeoutMs}ms`);
-      timeoutError.status = 504;
-      timeoutError.code = 'openai_timeout';
-      throw timeoutError;
-    }
-    throw error;
-  } finally {
-    clearTimeout(timeoutId);
-  }
-
+  const openaiRes = await fetch('https://api.openai.com/v1/responses', {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${apiKey}`,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(requestBody)
+  });
+  const data = await openaiRes.json().catch(() => ({}));
   if (!openaiRes.ok) {
     const message = data?.error?.message || data?.error || 'OpenAI responses request failed';
     const err = new Error(message);
     err.status = openaiRes.status;
-    err.openaiRequestId = sanitizeText(
-      openaiRes.headers.get('x-request-id') || openaiRes.headers.get('openai-request-id') || '',
-      120
-    ) || '';
-    const rateLimit = buildOpenAiRateLimitInfo(openaiRes.headers);
-    err.rateLimit = rateLimit;
-    err.retryAfterSeconds = Number(rateLimit.retry_after_seconds || 0) || 0;
-    err.rateLimitResetRequestsSeconds = Number(rateLimit.reset_requests_seconds || 0) || 0;
-    err.rateLimitResetTokensSeconds = Number(rateLimit.reset_tokens_seconds || 0) || 0;
     throw err;
   }
   return {
     raw: data,
     text: extractTextFromResponsesApi(data)
   };
+}
+
+function buildFallbackActionSpace({
+  requestedOutcome,
+  initialConditions,
+  personaB,
+  nodeCount,
+  actionsPerNode
+}) {
+  const safeOutcome = sanitizeText(requestedOutcome, 140) || 'the requested outcome';
+  const topicHint = extractTopicHintFromProfile(personaB?.profile);
+  const contextAnchor = buildContextAnchor(initialConditions);
+  const outcomeShort = shortOutcomeLabel(requestedOutcome);
+  const nodes = [];
+
+  for (let nodeIndex = 0; nodeIndex < nodeCount; nodeIndex += 1) {
+    const title = FALLBACK_NODE_TITLES[nodeIndex] || `Node ${nodeIndex + 1}`;
+    const nodeActions = FALLBACK_NODE_ACTIONS[nodeIndex] || [];
+    const actions = [];
+
+    for (let actionIndex = 0; actionIndex < actionsPerNode; actionIndex += 1) {
+      const baseTemplate = nodeActions[actionIndex] || `Take a realistic action for step ${nodeIndex + 1}.`;
+      const chainTemplate = FALLBACK_CHAIN_TEMPLATES?.[actionIndex]?.[nodeIndex];
+      const baseText = fillFallbackTemplate(
+        chainTemplate || baseTemplate
+          .replaceAll('known preferences', topicHint)
+          .replaceAll('shared context', contextAnchor),
+        {
+          topic_hint: topicHint,
+          context_anchor: contextAnchor,
+          outcome_short: outcomeShort
+        }
+      );
+      const delta = VARIANT_DELTAS[actionIndex] || VARIANT_DELTAS[0];
+      const fitBase = 64 + nodeIndex * 1.4;
+      const feasibilityBase = 68 + (nodeIndex % 3) * 2.5;
+      const ethicsBase = 86 - (nodeIndex % 2) * 1.5;
+      const riskBase = 28 + (nodeIndex % 4) * 5;
+      const momentumBase = 62 + nodeIndex * 2;
+      const intensityBase = 30 + nodeIndex * 4;
+
+      actions.push({
+        id: `N${nodeIndex + 1}A${actionIndex + 1}`,
+        gene_slot: actionIndex + 1,
+        action: sanitizeText(baseText.replaceAll('the requested outcome', safeOutcome), 160),
+        rationale: sanitizeText(`Supports progress toward ${safeOutcome} while preserving consent and dignity.`, 180),
+        persona_anchor: sanitizeText(topicHint, 120),
+        next_link_hint: sanitizeText(
+          nodeIndex + 1 < nodeCount
+            ? `Sets up node ${nodeIndex + 2} with low-friction continuity.`
+            : `Consolidates into the final outcome: ${safeOutcome}.`,
+          180
+        ),
+        scores: {
+          fit: clampInt(fitBase + delta.fit, 0, 100),
+          feasibility: clampInt(feasibilityBase + delta.feasibility, 0, 100),
+          ethics: clampInt(ethicsBase + delta.ethics, 0, 100),
+          risk: clampInt(riskBase + delta.risk, 0, 100),
+          momentum: clampInt(momentumBase + delta.momentum, 0, 100),
+          intensity: clampInt(intensityBase + delta.intensity, 0, 100)
+        }
+      });
+    }
+
+    nodes.push({
+      node_index: nodeIndex + 1,
+      node_title: title,
+      actions
+    });
+  }
+
+  return nodes;
 }
 
 function normalizeScore(raw, fallback) {
@@ -1457,18 +1638,6 @@ module.exports = async function handler(req, res) {
     ) || '',
     16
   );
-  const modelTimeoutMs = clampInt(
-    pickFirstPresent(
-      body.model_timeout_ms,
-      body.modelTimeoutMs,
-      modelSettings.model_timeout_ms,
-      modelSettings.modelTimeoutMs,
-      resolveEnv(['OPENAI_OUTCOME_MODEL_TIMEOUT_MS']),
-      DEFAULT_OUTCOME_MODEL_TIMEOUT_MS
-    ),
-    10000,
-    290000
-  );
   const maxOutputTokens = clampInt(
     pickFirstPresent(
       body.max_output_tokens,
@@ -1479,7 +1648,7 @@ module.exports = async function handler(req, res) {
       DEFAULT_OUTCOME_MAX_OUTPUT_TOKENS
     ),
     600,
-    MAX_OUTCOME_MAX_OUTPUT_TOKENS
+    20000
   );
   const promptTemplateId = sanitizeText(
     pickFirstPresent(
@@ -1574,7 +1743,6 @@ module.exports = async function handler(req, res) {
             textFormat: 'text',
             ensureJsonKeyword: true,
             maxOutputTokens,
-            timeoutMs: modelTimeoutMs,
             reasoningEffort: reasoningEffortOverride,
             reasoningSummary: reasoningSummaryOverride,
             verbosity: responseVerbosityOverride,
@@ -1612,17 +1780,10 @@ module.exports = async function handler(req, res) {
         280
       );
       const hasSummaryMismatch = /unsupported value:\s*'concise'.*supported values are:\s*'detailed'/i.test(reason);
-      const retryAfterSeconds = Math.max(
-        Number(promptTemplateError?.retryAfterSeconds || 0) || 0,
-        Number(parseRetryAfterSecondsFromText(reason) || 0) || 0
-      );
-      const rateLimitResetSeconds = Math.max(
-        Number(promptTemplateError?.rateLimitResetRequestsSeconds || 0) || 0,
-        Number(promptTemplateError?.rateLimitResetTokensSeconds || 0) || 0
-      );
+      const retryAfterSeconds = parseRetryAfterSecondsFromText(reason);
       const rawStatus = sanitizeText(promptTemplateRaw?.status || '', 60);
       const rawIncompleteReason = sanitizeText(promptTemplateRaw?.incomplete_details?.reason || '', 120);
-      const statusCode = Number(promptTemplateError?.status) === 429 || retryAfterSeconds || rateLimitResetSeconds ? 429 : 502;
+      const statusCode = Number(promptTemplateError?.status) === 429 || retryAfterSeconds ? 429 : 502;
       return fail(statusCode, 'openai.prompt_template_generation', reason, {
         prompt_template_id: promptTemplateId,
         prompt_template_version: promptTemplateVersion || null,
@@ -1632,16 +1793,11 @@ module.exports = async function handler(req, res) {
         response_status: rawStatus || null,
         response_incomplete_reason: rawIncompleteReason || null,
         response_id: sanitizeText(promptTemplateRaw?.id || '', 80) || null,
-        retry_after_seconds: retryAfterSeconds || null,
-        rate_limit_reset_seconds: rateLimitResetSeconds || null,
-        rate_limit: promptTemplateError?.rateLimit && typeof promptTemplateError.rateLimit === 'object'
-          ? promptTemplateError.rateLimit
-          : null,
-        openai_request_id: sanitizeText(promptTemplateError?.openaiRequestId || '', 120) || null
+        retry_after_seconds: retryAfterSeconds
       });
     }
 
-    if (!generatedText && !nodes.length) {
+    if (!generatedText) {
       const reason = sanitizeText(
         promptTemplateError?.message || 'OpenAI returned no text output.',
         280
@@ -1652,78 +1808,52 @@ module.exports = async function handler(req, res) {
       });
     }
 
+    failureStage = 'openai.output_json_parse';
+    const parsed = parseJsonObject(generatedText);
+    if (!parsed || typeof parsed !== 'object') {
+      return fail(502, failureStage, 'OpenAI output is not valid JSON object.', {
+        output_excerpt: sanitizeText(generatedText, 500)
+      });
+    }
+
+    failureStage = 'openai.output_node_extraction';
+    const rawNodes = extractRawNodesFromGeneratedPayload(
+      parsed,
+      config.node_count,
+      config.actions_per_node
+    );
+    if (!rawNodes.length) {
+      return fail(502, failureStage, 'No nodes were found in OpenAI output.', {
+        output_excerpt: sanitizeText(generatedText, 500)
+      });
+    }
+
+    failureStage = 'openai.output_validation';
+    const shapeValidation = validateGeneratedActionSpaceShape(
+      rawNodes,
+      config.node_count,
+      config.actions_per_node
+    );
+    if (!shapeValidation.ok) {
+      return fail(502, failureStage, sanitizeText(shapeValidation.reason, 320), {
+        output_excerpt: sanitizeText(generatedText, 500)
+      });
+    }
+
+    failureStage = 'openai.output_normalization';
+    nodes = normalizeActionSpace(rawNodes, config.node_count, config.actions_per_node);
     if (!nodes.length) {
-      failureStage = 'openai.output_json_parse';
-      const parsed = parseJsonObject(generatedText);
-      if (!parsed || typeof parsed !== 'object') {
-        const reason = 'OpenAI output is not valid JSON object.';
-        return fail(502, failureStage, reason, {
-          output_excerpt: sanitizeText(generatedText, 500)
-        });
-      }
-
-      if (!nodes.length) {
-        failureStage = 'openai.output_node_extraction';
-        const rawNodes = extractRawNodesFromGeneratedPayload(
-          parsed,
-          config.node_count,
-          config.actions_per_node
-        );
-        if (!rawNodes.length) {
-          const reason = 'No nodes were found in OpenAI output.';
-          return fail(502, failureStage, reason, {
-            output_excerpt: sanitizeText(generatedText, 500)
-          });
-        }
-
-        if (!nodes.length) {
-          failureStage = 'openai.output_validation';
-          const shapeValidation = validateGeneratedActionSpaceShape(
-            rawNodes,
-            config.node_count,
-            config.actions_per_node
-          );
-          if (!shapeValidation.ok) {
-            const reason = sanitizeText(shapeValidation.reason, 320);
-            return fail(502, failureStage, reason, {
-              output_excerpt: sanitizeText(generatedText, 500)
-            });
-          }
-        }
-
-        if (!nodes.length) {
-          failureStage = 'openai.output_normalization';
-          nodes = normalizeActionSpace(rawNodes, config.node_count, config.actions_per_node);
-          if (!nodes.length) {
-            const reason = 'Normalized action space is empty.';
-            return fail(502, failureStage, reason);
-          }
-        }
-      }
+      return fail(502, failureStage, 'Normalized action space is empty.');
     }
 
-    if (!generatorSource) {
-      generatorSource = generationMode || 'llm_prompt_template';
-    }
-    if (!modelUsed) {
-      modelUsed = modelOverride || sanitizeText(promptTemplateRaw?.model || '', 80) || null;
-    }
+    generatorSource = generationMode || 'llm_prompt_template';
+    modelUsed = modelOverride || sanitizeText(promptTemplateRaw?.model || '', 80) || null;
   } catch (error) {
     const reason = sanitizeText(error?.message || 'Unexpected outcome generation error.', 320);
-    const retryAfterSeconds = Math.max(
-      Number(error?.retryAfterSeconds || 0) || 0,
-      Number(parseRetryAfterSecondsFromText(reason) || 0) || 0
-    );
-    const rateLimitResetSeconds = Math.max(
-      Number(error?.rateLimitResetRequestsSeconds || 0) || 0,
-      Number(error?.rateLimitResetTokensSeconds || 0) || 0
-    );
-    const statusCode = Number(error?.status) === 429 || retryAfterSeconds || rateLimitResetSeconds ? 429 : 502;
+    const retryAfterSeconds = parseRetryAfterSecondsFromText(reason);
+    const statusCode = Number(error?.status) === 429 || retryAfterSeconds ? 429 : 502;
     return fail(statusCode, 'openai.unhandled_exception', reason, {
-      retry_after_seconds: retryAfterSeconds || null,
-      rate_limit_reset_seconds: rateLimitResetSeconds || null,
-      rate_limit: error?.rateLimit && typeof error.rateLimit === 'object' ? error.rateLimit : null,
-      openai_request_id: sanitizeText(error?.openaiRequestId || '', 120) || null
+      retry_after_seconds: retryAfterSeconds
     });
   }
 

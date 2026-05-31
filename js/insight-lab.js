@@ -9,13 +9,10 @@ const INSIGHT_LAB_PROFILE_KEY = 'insight_lab';
 const ACCOUNT_FITNESS_REPORTS_KEY = 'fitness_reports';
 const ACCOUNT_OUTCOME_REPORTS_KEY = 'outcome_reports';
 const ACCOUNT_OUTCOME_QUEUE_KEY = 'outcome_job_queue';
-const ACCOUNT_OUTCOME_FAILED_KEY = 'outcome_failed_jobs';
 const ACCOUNT_OUTCOME_MODEL_SETTINGS_KEY = 'outcome_model_settings';
 const MAX_ACCOUNT_FITNESS_REPORTS = 20;
 const MAX_ACCOUNT_OUTCOME_REPORTS = 20;
-const MAX_ACCOUNT_OUTCOME_FAILED = 30;
 const MAX_OUTCOME_QUEUE_ITEMS = 10;
-const MAX_OUTCOME_JOB_RETRIES = 3;
 
 const AXIS_LABELS = Object.freeze({
   L1_A1: 'Initiative',
@@ -55,7 +52,6 @@ const outcomeSelectB = document.getElementById('outcomePersonaB');
 const outcomeInitialConditionsEl = document.getElementById('outcomeInitialConditions');
 const outcomeRequestedOutcomeEl = document.getElementById('outcomeRequestedOutcome');
 const outcomeRunBtn = document.getElementById('runOutcomeBtn');
-const outcomeStopBtn = document.getElementById('stopOutcomeBtn');
 const outcomeStatusEl = document.getElementById('outcomeStatus');
 const outcomeReadyBadgeEl = document.getElementById('outcomeReadyBadge');
 const outcomeReadyLabelEl = document.getElementById('outcomeReadyLabel');
@@ -80,8 +76,6 @@ let isOutcomeQueueRunning = false;
 let currentOutcomeRunningJobId = '';
 let outcomeHistoryReportMap = new Map();
 let outcomeQueueRetryTimer = null;
-let outcomeQueueAbortController = null;
-let outcomeStopRequested = false;
 
 function sanitizePersonaKey(value) {
   const normalized = String(value || '').trim().toLowerCase();
@@ -187,12 +181,6 @@ function setOutcomeReadyState(isReady) {
   outcomeReadyLabelEl.textContent = 'Not ready';
 }
 
-function isAbortError(error) {
-  const name = String(error?.name || '').trim().toLowerCase();
-  const message = String(error?.message || '').trim().toLowerCase();
-  return name === 'aborterror' || message.includes('aborted') || message.includes('abort');
-}
-
 function createOutcomeJobId() {
   return `outcome-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
 }
@@ -241,7 +229,6 @@ async function saveOutcomeJobQueue(queue) {
   }
   currentUserProfileJson = nextProfile;
   renderOutcomeTestHistory();
-  updateOutcomeUI();
 }
 
 function parseRateLimitRetrySecondsFromMessage(message) {
@@ -252,99 +239,6 @@ function parseRateLimitRetrySecondsFromMessage(message) {
   const seconds = Number(match[1]);
   if (!Number.isFinite(seconds) || seconds <= 0) return null;
   return seconds;
-}
-
-function computeOutcomeRetryPlan(error, priorRetryCount = 0) {
-  const message = String(error?.message || '').trim();
-  const lowerMessage = message.toLowerCase();
-  const status = Number(error?.status || 0) || 0;
-  const stage = String(error?.stage || '').trim().toLowerCase();
-  const retryFromPayload = Number(error?.retryAfterSeconds || 0) || 0;
-  const resetFromPayload = Number(error?.rateLimitResetSeconds || 0) || 0;
-  const retryFromMessage = Number(parseRateLimitRetrySecondsFromMessage(message) || 0) || 0;
-  const retryAfterSeconds = Math.max(retryFromPayload, resetFromPayload, retryFromMessage);
-  const isAuthOrConfigError =
-    status === 400 ||
-    status === 401 ||
-    status === 403 ||
-    stage.startsWith('configuration.');
-  const isRateLimited =
-    status === 429 ||
-    lowerMessage.includes('rate limit') ||
-    retryAfterSeconds > 0;
-  const isTimeoutLike =
-    status === 408 ||
-    status === 504 ||
-    lowerMessage.includes('timed out') ||
-    lowerMessage.includes('timeout') ||
-    lowerMessage.includes('abort');
-  const isUpstreamTransient = status === 502 || status === 503;
-  const isNetworkTransient =
-    !status ||
-    lowerMessage.includes('failed to fetch') ||
-    lowerMessage.includes('network') ||
-    lowerMessage.includes('socket') ||
-    lowerMessage.includes('econn') ||
-    lowerMessage.includes('enotfound');
-  const isOpenAiPipelineError = stage.startsWith('openai.');
-
-  if (isAuthOrConfigError) {
-    return {
-      shouldRetry: false,
-      retrySeconds: 0,
-      reasonLabel: 'fatal'
-    };
-  }
-
-  const shouldRetry =
-    isOpenAiPipelineError ||
-    isRateLimited ||
-    isTimeoutLike ||
-    isUpstreamTransient ||
-    isNetworkTransient;
-  if (!shouldRetry) {
-    return {
-      shouldRetry: false,
-      retrySeconds: 0,
-      reasonLabel: 'fatal'
-    };
-  }
-
-  if (retryAfterSeconds > 0) {
-    return {
-      shouldRetry: true,
-      retrySeconds: Math.max(2, Math.ceil(retryAfterSeconds)),
-      reasonLabel: isRateLimited ? 'rate_limit' : 'retry_after'
-    };
-  }
-
-  const retryCount = Math.max(0, Number(priorRetryCount || 0));
-  const baseSeconds = isTimeoutLike
-    ? 45
-    : isUpstreamTransient
-      ? 35
-      : isNetworkTransient
-        ? 25
-        : isOpenAiPipelineError
-          ? 20
-          : 20;
-  const exponentialSeconds = Math.round(baseSeconds * Math.pow(1.75, Math.min(retryCount, 8)));
-
-  return {
-    shouldRetry: true,
-    retrySeconds: Math.max(baseSeconds, Math.min(15 * 60, exponentialSeconds)),
-    reasonLabel: isRateLimited
-      ? 'rate_limit'
-      : isTimeoutLike
-        ? 'timeout'
-        : isUpstreamTransient
-          ? 'upstream'
-          : isNetworkTransient
-            ? 'network'
-            : isOpenAiPipelineError
-              ? 'model_response'
-              : 'transient'
-  };
 }
 
 function scheduleOutcomeQueueRetry(delayMs) {
@@ -359,45 +253,6 @@ function scheduleOutcomeQueueRetry(delayMs) {
       setOutcomeStatus(`Outcomes Test failed: ${error?.message || 'Unexpected error'}`, 'error');
     });
   }, safeDelay);
-}
-
-function hasOutcomeQueueWork() {
-  return (
-    isOutcomeQueueRunning ||
-    Boolean(currentOutcomeRunningJobId) ||
-    Boolean(outcomeQueueRetryTimer) ||
-    loadOutcomeJobQueue().length > 0
-  );
-}
-
-async function stopOutcomeQueueByUser() {
-  outcomeStopRequested = true;
-  if (outcomeQueueRetryTimer) {
-    clearTimeout(outcomeQueueRetryTimer);
-    outcomeQueueRetryTimer = null;
-  }
-  if (outcomeQueueAbortController) {
-    try {
-      outcomeQueueAbortController.abort();
-    } catch (_) {
-      // no-op
-    }
-  }
-
-  const pendingJobs = loadOutcomeJobQueue();
-  const removedCount = pendingJobs.length;
-  if (removedCount) {
-    await saveOutcomeJobQueue([]);
-  } else {
-    updateOutcomeUI();
-  }
-
-  const wasRunning = isOutcomeQueueRunning || Boolean(currentOutcomeRunningJobId);
-  if (wasRunning || removedCount > 0) {
-    setOutcomeStatus(`Outcome test stopped by user. Removed ${removedCount} queued job${removedCount === 1 ? '' : 's'}.`, 'info');
-  } else {
-    setOutcomeStatus('No active outcome test to stop.', 'info');
-  }
 }
 
 function notifyOutcomeComplete(title, body) {
@@ -734,11 +589,6 @@ function reportTimestampValue(report) {
   return Number.isFinite(epoch) ? epoch : 0;
 }
 
-function isFallbackGeneratedOutcomeReport(report) {
-  const source = String(report?.generator_source || report?.generatorSource || '').trim().toLowerCase();
-  return source.startsWith('fallback');
-}
-
 function formatHistoryDateTime(value) {
   const stamp = String(value || '').trim();
   if (!stamp) return 'Time unavailable';
@@ -753,25 +603,6 @@ function formatHistoryDateTime(value) {
   });
 }
 
-function mergeUniqueOutcomeReports(reports) {
-  const source = Array.isArray(reports) ? reports : [];
-  const merged = [];
-  const seen = new Set();
-
-  source.forEach((report) => {
-    if (!report || typeof report !== 'object') return;
-    if (isFallbackGeneratedOutcomeReport(report)) return;
-    const fingerprint = getOutcomeReportStorageFingerprint(report);
-    const dedupeKey = fingerprint || `dedupe:${reportTimestampValue(report)}:${String(report?.requested_outcome || '').trim().toLowerCase()}`;
-    if (seen.has(dedupeKey)) return;
-    seen.add(dedupeKey);
-    merged.push(report);
-  });
-
-  merged.sort((left, right) => reportTimestampValue(right) - reportTimestampValue(left));
-  return merged.slice(0, MAX_ACCOUNT_OUTCOME_REPORTS);
-}
-
 function getOutcomeReportsFromProfile(profileJson) {
   const insightLab = profileJson?.[INSIGHT_LAB_PROFILE_KEY] && typeof profileJson[INSIGHT_LAB_PROFILE_KEY] === 'object'
     ? profileJson[INSIGHT_LAB_PROFILE_KEY]
@@ -779,137 +610,21 @@ function getOutcomeReportsFromProfile(profileJson) {
   const accountReports = Array.isArray(insightLab?.[ACCOUNT_OUTCOME_REPORTS_KEY])
     ? insightLab[ACCOUNT_OUTCOME_REPORTS_KEY]
     : [];
-  return mergeUniqueOutcomeReports(accountReports);
-}
-
-function failedOutcomeTimestampValue(entry) {
-  const stamp = String(entry?.failed_at || entry?.failedAt || entry?.updated_at || entry?.queued_at || '').trim();
-  if (!stamp) return 0;
-  const epoch = Date.parse(stamp);
-  return Number.isFinite(epoch) ? epoch : 0;
-}
-
-function normalizeOutcomeFailedJobForAccountStorage(failedJob) {
-  if (!failedJob || typeof failedJob !== 'object') return null;
-  const personaA = failedJob?.persona_a && typeof failedJob.persona_a === 'object'
-    ? failedJob.persona_a
-    : failedJob?.personaA && typeof failedJob.personaA === 'object'
-      ? failedJob.personaA
-      : {};
-  const personaB = failedJob?.persona_b && typeof failedJob.persona_b === 'object'
-    ? failedJob.persona_b
-    : failedJob?.personaB && typeof failedJob.personaB === 'object'
-      ? failedJob.personaB
-      : {};
-  const normalizedId = String(failedJob.id || '').trim() || `failed-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
-  const attempts = Math.max(1, Math.round(Number(failedJob.attempts || failedJob.retry_count || 1) || 1));
-  const lastErrorStatus = Number(failedJob.last_error_status);
-  return {
-    id: normalizedId,
-    queued_at: String(failedJob.queued_at || '').trim() || null,
-    failed_at: String(failedJob.failed_at || '').trim() || new Date().toISOString(),
-    requested_outcome: sanitizeText(failedJob.requested_outcome || failedJob.requestedOutcome || '', 320),
-    persona_a: {
-      key: sanitizePersonaKey(personaA.key || ''),
-      label: sanitizeText(personaA.label || '', 120),
-      signature: personaA.signature && typeof personaA.signature === 'object' ? personaA.signature : {}
-    },
-    persona_b: {
-      key: sanitizePersonaKey(personaB.key || ''),
-      label: sanitizeText(personaB.label || '', 120),
-      signature: personaB.signature && typeof personaB.signature === 'object' ? personaB.signature : {}
-    },
-    attempts,
-    last_error: sanitizeText(failedJob.last_error || failedJob.error || 'Unknown error', 1000),
-    last_error_status: Number.isFinite(lastErrorStatus) ? lastErrorStatus : null,
-    last_retry_reason: sanitizeText(failedJob.last_retry_reason || '', 60).toLowerCase(),
-    stage: sanitizeText(failedJob.stage || '', 120).toLowerCase(),
-    updated_at: new Date().toISOString()
-  };
-}
-
-function mergeUniqueOutcomeFailedJobs(failedJobs) {
-  const source = Array.isArray(failedJobs) ? failedJobs : [];
   const merged = [];
   const seen = new Set();
-  source.forEach((entry) => {
-    const normalized = normalizeOutcomeFailedJobForAccountStorage(entry);
-    if (!normalized) return;
-    const id = String(normalized.id || '').trim();
-    const dedupeKey = id || `dedupe:${failedOutcomeTimestampValue(normalized)}:${normalized.requested_outcome}`;
-    if (seen.has(dedupeKey)) return;
-    seen.add(dedupeKey);
-    merged.push(normalized);
-  });
-  merged.sort((left, right) => failedOutcomeTimestampValue(right) - failedOutcomeTimestampValue(left));
-  return merged.slice(0, MAX_ACCOUNT_OUTCOME_FAILED);
-}
 
-function getOutcomeFailedJobsFromProfile(profileJson) {
-  const insightLab = profileJson?.[INSIGHT_LAB_PROFILE_KEY] && typeof profileJson[INSIGHT_LAB_PROFILE_KEY] === 'object'
-    ? profileJson[INSIGHT_LAB_PROFILE_KEY]
-    : {};
-  const failedJobs = Array.isArray(insightLab?.[ACCOUNT_OUTCOME_FAILED_KEY])
-    ? insightLab[ACCOUNT_OUTCOME_FAILED_KEY]
-    : [];
-  return mergeUniqueOutcomeFailedJobs(failedJobs);
-}
-
-function mergeOutcomeFailedJobIntoProfile(profileJson, failedJob) {
-  const baseProfile = profileJson && typeof profileJson === 'object' ? profileJson : {};
-  const insightLab = baseProfile?.[INSIGHT_LAB_PROFILE_KEY] && typeof baseProfile[INSIGHT_LAB_PROFILE_KEY] === 'object'
-    ? baseProfile[INSIGHT_LAB_PROFILE_KEY]
-    : {};
-  const existingFailedJobs = Array.isArray(insightLab?.[ACCOUNT_OUTCOME_FAILED_KEY])
-    ? insightLab[ACCOUNT_OUTCOME_FAILED_KEY]
-    : [];
-  const incoming = normalizeOutcomeFailedJobForAccountStorage(failedJob);
-  if (!incoming) return baseProfile;
-
-  const incomingId = String(incoming.id || '').trim();
-  const filtered = existingFailedJobs.filter((entry) => {
-    if (!entry || typeof entry !== 'object') return false;
-    if (!incomingId) return true;
-    return String(entry.id || '').trim() !== incomingId;
-  });
-  filtered.unshift(incoming);
-  const trimmed = mergeUniqueOutcomeFailedJobs(filtered);
-
-  return {
-    ...baseProfile,
-    [INSIGHT_LAB_PROFILE_KEY]: {
-      ...insightLab,
-      [ACCOUNT_OUTCOME_FAILED_KEY]: trimmed,
-      updated_at: new Date().toISOString()
-    }
+  const pushUnique = (report) => {
+    if (!report || typeof report !== 'object') return;
+    const fingerprint = getOutcomeReportStorageFingerprint(report);
+    const fallback = fingerprint || `fallback:${reportTimestampValue(report)}:${String(report?.requested_outcome || '').trim().toLowerCase()}`;
+    if (seen.has(fallback)) return;
+    seen.add(fallback);
+    merged.push(report);
   };
-}
 
-async function persistFailedOutcomeJob(failedJob) {
-  if (!currentUserId || !failedJob || typeof failedJob !== 'object') return;
-  try {
-    const latestProfile = await loadLatestAccountProfileJson();
-    const nextProfile = mergeOutcomeFailedJobIntoProfile(latestProfile, failedJob);
-    const { error } = await supabase
-      .from(USER_PROFILE_TABLE)
-      .upsert(
-        {
-          user_id: currentUserId,
-          profile: nextProfile
-        },
-        { onConflict: 'user_id' }
-      );
-    if (error) {
-      if (!isMissingUserProfileTableError(error)) {
-        console.warn('Could not persist failed outcome job to account storage:', error.message || error);
-      }
-      return;
-    }
-    currentUserProfileJson = nextProfile;
-    renderOutcomeTestHistory();
-  } catch (error) {
-    console.warn('Unexpected error while saving failed outcome job to account storage:', error?.message || error);
-  }
+  accountReports.forEach(pushUnique);
+  merged.sort((left, right) => reportTimestampValue(right) - reportTimestampValue(left));
+  return merged.slice(0, MAX_ACCOUNT_OUTCOME_REPORTS);
 }
 
 function renderOutcomeTestHistory() {
@@ -917,7 +632,6 @@ function renderOutcomeTestHistory() {
 
   const queue = loadOutcomeJobQueue();
   const reports = getOutcomeReportsFromProfile(currentUserProfileJson).slice(0, 10);
-  const failedJobs = getOutcomeFailedJobsFromProfile(currentUserProfileJson).slice(0, 10);
   const historyRows = [];
   outcomeHistoryReportMap = new Map();
 
@@ -937,26 +651,6 @@ function renderOutcomeTestHistory() {
         </div>
         <div class="outcome-history-meta"><strong>Outcome:</strong> ${escapeHtml(requestedOutcome)}${retryInfo}</div>
         <div class="outcome-history-time">${escapeHtml(formatHistoryDateTime(job?.queued_at))}</div>
-      </article>
-    `);
-  });
-
-  failedJobs.forEach((failedJob) => {
-    const personaALabel = String(failedJob?.persona_a?.label || failedJob?.personaA?.label || 'Persona A').trim();
-    const personaBLabel = String(failedJob?.persona_b?.label || failedJob?.personaB?.label || 'Persona B').trim();
-    const requestedOutcome = String(failedJob?.requested_outcome || failedJob?.requestedOutcome || '').trim() || 'No requested outcome provided';
-    const attempts = Math.max(1, Number(failedJob?.attempts || failedJob?.retry_count || 1) || 1);
-    const lastError = truncate(String(failedJob?.last_error || failedJob?.error || 'Unknown error').trim(), 180);
-    const statusInfo = failedJob?.last_error_status ? ` · <strong>Status:</strong> ${escapeHtml(String(failedJob.last_error_status))}` : '';
-    historyRows.push(`
-      <article class="outcome-history-item">
-        <div class="outcome-history-top">
-          <span class="outcome-history-label">${escapeHtml(`${personaALabel} → ${personaBLabel}`)}</span>
-          <span class="history-pill failed">Failed</span>
-        </div>
-        <div class="outcome-history-meta"><strong>Outcome:</strong> ${escapeHtml(requestedOutcome)} · <strong>Attempts:</strong> ${escapeHtml(String(attempts))}/${MAX_OUTCOME_JOB_RETRIES}${statusInfo}</div>
-        <div class="outcome-history-meta"><strong>Last error:</strong> ${escapeHtml(lastError)}</div>
-        <div class="outcome-history-time">${escapeHtml(formatHistoryDateTime(failedJob?.failed_at || failedJob?.updated_at || failedJob?.queued_at))}</div>
       </article>
     `);
   });
@@ -983,13 +677,12 @@ function renderOutcomeTestHistory() {
 
   const queuedCount = queue.length;
   const completedCount = reports.length;
-  const failedCount = failedJobs.length;
-  outcomeHistoryMetaEl.textContent = `${queuedCount} queued · ${completedCount} completed · ${failedCount} failed`;
+  outcomeHistoryMetaEl.textContent = `${queuedCount} queued · ${completedCount} completed`;
   outcomeHistoryListEl.innerHTML = historyRows.join('');
   const hasHistory = historyRows.length > 0;
   outcomeHistoryEmptyEl.hidden = hasHistory;
   if (!hasHistory) {
-    outcomeHistoryMetaEl.textContent = 'No queued, completed, or failed tests yet';
+    outcomeHistoryMetaEl.textContent = 'No queued or completed tests yet';
   }
 }
 
@@ -1842,33 +1535,15 @@ function updateOutcomeUI() {
   const optionB = optionByKey.get(outcomeSelectB.value);
   const requestedOutcome = outcomeRequestedOutcomeEl ? outcomeRequestedOutcomeEl.value : '';
   const evaluation = evaluateOutcomeSetup(optionA, optionB, requestedOutcome);
-  const queuedCount = loadOutcomeJobQueue().length;
-  const queueIsFull = queuedCount >= MAX_OUTCOME_QUEUE_ITEMS;
-  const hasActiveWork = hasOutcomeQueueWork();
-  if (outcomeStopBtn) {
-    outcomeStopBtn.disabled = !hasActiveWork;
-  }
   if (!evaluation.ready) {
     outcomeRunBtn.disabled = true;
     setOutcomeReadyState(false);
-    if (!hasActiveWork) {
-      setOutcomeStatus(evaluation.reason, 'error');
-    }
-    return;
-  }
-  if (queueIsFull) {
-    outcomeRunBtn.disabled = true;
-    setOutcomeReadyState(true);
-    if (!hasActiveWork) {
-      setOutcomeStatus(`Outcome queue is full (${MAX_OUTCOME_QUEUE_ITEMS}). Stop or wait for jobs to finish.`, 'error');
-    }
+    setOutcomeStatus(evaluation.reason, 'error');
     return;
   }
   outcomeRunBtn.disabled = false;
   setOutcomeReadyState(true);
-  if (!hasActiveWork) {
-    setOutcomeStatus('', 'info');
-  }
+  setOutcomeStatus('', 'info');
 }
 
 function getOutcomeModelSettingsFromProfile() {
@@ -1882,18 +1557,6 @@ function getOutcomeModelSettingsFromProfile() {
   } catch (_) {
     return null;
   }
-}
-
-function sanitizeOutcomeModelSettings(settings) {
-  if (!settings || typeof settings !== 'object' || Array.isArray(settings)) return null;
-  let cloned;
-  try {
-    cloned = JSON.parse(JSON.stringify(settings));
-  } catch (_) {
-    return null;
-  }
-  if (!cloned || typeof cloned !== 'object' || Array.isArray(cloned)) return null;
-  return cloned;
 }
 
 function buildOutcomePayload(optionA, optionB, signatureA, signatureB) {
@@ -1922,7 +1585,7 @@ function buildOutcomePayload(optionA, optionB, signatureA, signatureB) {
     }
   };
 
-  const modelSettings = sanitizeOutcomeModelSettings(getOutcomeModelSettingsFromProfile());
+  const modelSettings = getOutcomeModelSettingsFromProfile();
   if (modelSettings) {
     payload.model_settings = modelSettings;
   }
@@ -1930,18 +1593,16 @@ function buildOutcomePayload(optionA, optionB, signatureA, signatureB) {
   return payload;
 }
 
-async function fetchOutcomeReport(payload, options = {}) {
+async function fetchOutcomeReport(payload) {
   const { data } = await supabase.auth.getSession();
   const accessToken = data?.session?.access_token || '';
-  const signal = options && typeof options === 'object' ? options.signal : undefined;
   const response = await fetch('/api/outcome-test', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
       ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {})
     },
-    body: JSON.stringify(payload),
-    ...(signal ? { signal } : {})
+    body: JSON.stringify(payload)
   });
   const json = await response.json().catch(() => null);
   if (!response.ok) {
@@ -1961,11 +1622,6 @@ async function fetchOutcomeReport(payload, options = {}) {
     error.status = response.status;
     error.stage = String(json?.stage || '').trim();
     error.retryAfterSeconds = Number(json?.retry_after_seconds || 0) || 0;
-    error.rateLimitResetSeconds = Number(json?.rate_limit_reset_seconds || 0) || 0;
-    error.rateLimit = json?.rate_limit && typeof json.rate_limit === 'object'
-      ? json.rate_limit
-      : null;
-    error.openaiRequestId = String(json?.openai_request_id || '').trim();
     throw error;
   }
   if (!json || typeof json !== 'object') {
@@ -1976,21 +1632,12 @@ async function fetchOutcomeReport(payload, options = {}) {
 
 async function processOutcomeQueue() {
   if (isOutcomeQueueRunning) return;
-  outcomeStopRequested = false;
   isOutcomeQueueRunning = true;
   renderOutcomeTestHistory();
-  updateOutcomeUI();
   try {
     while (true) {
       await loadLatestAccountProfileJson();
       const queue = loadOutcomeJobQueue();
-      if (outcomeStopRequested) {
-        if (queue.length) {
-          await saveOutcomeJobQueue([]);
-        }
-        setOutcomeStatus('Outcome test queue stopped by user.', 'info');
-        break;
-      }
       const nextJob = queue[0];
       if (!nextJob) break;
 
@@ -1999,18 +1646,8 @@ async function processOutcomeQueue() {
       if (Number.isFinite(nextRetryAt) && nextRetryAt > now) {
         const waitMs = nextRetryAt - now;
         const waitSec = Math.max(1, Math.ceil(waitMs / 1000));
-        const retryReason = String(nextJob?.last_retry_reason || '').trim();
-        const reasonLabel = retryReason === 'rate_limit'
-          ? 'rate limit'
-          : retryReason === 'timeout'
-            ? 'timeout'
-            : retryReason === 'upstream'
-              ? 'upstream service issue'
-              : retryReason === 'network'
-                ? 'network issue'
-                : 'transient model issue';
         setOutcomeStatus(
-          `Outcome test queue is waiting for auto-retry (${reasonLabel}). Next retry for "${nextJob.requestedOutcome}" in ~${waitSec}s.`,
+          `Outcome test queue is rate-limited. Next retry for "${nextJob.requestedOutcome}" in ~${waitSec}s.`,
           'info'
         );
         scheduleOutcomeQueueRetry(waitMs + 500);
@@ -2026,11 +1663,7 @@ async function processOutcomeQueue() {
       );
 
       try {
-        const runAbortController = new AbortController();
-        outcomeQueueAbortController = runAbortController;
-        const response = await fetchOutcomeReport(nextJob.payload, {
-          signal: runAbortController.signal
-        });
+        const response = await fetchOutcomeReport(nextJob.payload);
         const report = {
           ...response,
           persona_a: {
@@ -2070,104 +1703,52 @@ async function processOutcomeQueue() {
           `Requested outcome: ${nextJob.requestedOutcome}`
         );
       } catch (error) {
-        if (outcomeStopRequested && isAbortError(error)) {
+        const message = String(error?.message || 'Unexpected error');
+        const retryFromPayload = Number(error?.retryAfterSeconds || 0);
+        const retryFromMessage = parseRateLimitRetrySecondsFromMessage(message) || 0;
+        const retryAfterSeconds = Math.max(retryFromPayload, retryFromMessage);
+        const isRateLimited =
+          Number(error?.status) === 429 ||
+          message.toLowerCase().includes('rate limit') ||
+          retryAfterSeconds > 0;
+
+        if (isRateLimited) {
           const refreshedQueue = loadOutcomeJobQueue();
           const targetIndex = refreshedQueue.findIndex((item) => String(item?.id || '') === String(nextJob.id || ''));
           if (targetIndex >= 0) {
-            refreshedQueue.splice(targetIndex, 1);
+            const retrySeconds = Math.max(2, Math.ceil(retryAfterSeconds || 45));
+            const nextRetryIso = new Date(Date.now() + retrySeconds * 1000).toISOString();
+            const existingRetryCount = Number(refreshedQueue[targetIndex]?.retry_count || 0) || 0;
+            refreshedQueue[targetIndex] = {
+              ...refreshedQueue[targetIndex],
+              retry_count: existingRetryCount + 1,
+              next_retry_at: nextRetryIso,
+              last_error: message
+            };
             await saveOutcomeJobQueue(refreshedQueue);
+            setOutcomeStatus(
+              `Outcome test hit OpenAI rate limit. Auto-retry scheduled in ~${retrySeconds}s.`,
+              'info'
+            );
+            scheduleOutcomeQueueRetry((retrySeconds * 1000) + 500);
+          } else {
+            setOutcomeStatus(`Outcomes Test failed: ${message}`, 'error');
           }
-          setOutcomeStatus('Outcome test stopped by user.', 'info');
           break;
         }
 
-        const message = String(error?.message || 'Unexpected error');
         const refreshedQueue = loadOutcomeJobQueue();
-        const targetIndex = refreshedQueue.findIndex((item) => String(item?.id || '') === String(nextJob.id || ''));
-        const existingRetryCount = targetIndex >= 0
-          ? (Number(refreshedQueue[targetIndex]?.retry_count || 0) || 0)
-          : 0;
-        const nextFailureCount = existingRetryCount + 1;
-        const retryPlan = computeOutcomeRetryPlan(error, existingRetryCount);
-
-        if (retryPlan.shouldRetry && targetIndex >= 0 && nextFailureCount < MAX_OUTCOME_JOB_RETRIES) {
-          const retrySeconds = Math.max(2, Math.ceil(retryPlan.retrySeconds || 45));
-          const nextRetryIso = new Date(Date.now() + retrySeconds * 1000).toISOString();
-          refreshedQueue[targetIndex] = {
-            ...refreshedQueue[targetIndex],
-            retry_count: nextFailureCount,
-            next_retry_at: nextRetryIso,
-            last_error: message,
-            last_error_status: Number(error?.status || 0) || null,
-            stage: String(error?.stage || '').trim(),
-            last_retry_reason: retryPlan.reasonLabel
-          };
-          await saveOutcomeJobQueue(refreshedQueue);
-          const reasonLabel = retryPlan.reasonLabel === 'rate_limit'
-            ? 'rate limit'
-            : retryPlan.reasonLabel === 'timeout'
-              ? 'timeout'
-              : retryPlan.reasonLabel === 'upstream'
-                ? 'upstream service issue'
-                : retryPlan.reasonLabel === 'network'
-                  ? 'network issue'
-                  : retryPlan.reasonLabel === 'model_response'
-                    ? 'model response formatting issue'
-                  : 'transient issue';
-          const nextAttempt = nextFailureCount + 1;
-          const limitTokens = Number(error?.rateLimit?.limit_tokens || 0) || 0;
-          const remainingTokens = Number(error?.rateLimit?.remaining_tokens || 0) || 0;
-          const rateLimitHint = limitTokens > 0
-            ? ` · tokens ${remainingTokens}/${limitTokens} remaining`
-            : '';
-          setOutcomeStatus(
-            `Outcome test hit a ${reasonLabel}. Auto-retry scheduled in ~${retrySeconds}s (attempt ${nextAttempt} of ${MAX_OUTCOME_JOB_RETRIES})${rateLimitHint}.`,
-            'info'
-          );
-          scheduleOutcomeQueueRetry((retrySeconds * 1000) + 500);
-          break;
-        }
-
-        const failedQueueJob = targetIndex >= 0 ? refreshedQueue[targetIndex] : nextJob;
-        if (targetIndex >= 0) {
-          refreshedQueue.splice(targetIndex, 1);
-          await saveOutcomeJobQueue(refreshedQueue);
-        } else if (refreshedQueue.length) {
-          refreshedQueue.shift();
-          await saveOutcomeJobQueue(refreshedQueue);
-        }
-        await persistFailedOutcomeJob({
-          id: String(failedQueueJob?.id || nextJob?.id || '').trim(),
-          queued_at: failedQueueJob?.queued_at || nextJob?.queued_at || null,
-          failed_at: new Date().toISOString(),
-          requested_outcome: failedQueueJob?.requestedOutcome || failedQueueJob?.requested_outcome || nextJob?.requestedOutcome || '',
-          persona_a: failedQueueJob?.personaA || failedQueueJob?.persona_a || nextJob?.personaA || {},
-          persona_b: failedQueueJob?.personaB || failedQueueJob?.persona_b || nextJob?.personaB || {},
-          attempts: nextFailureCount,
-          last_error: message,
-          last_error_status: Number(error?.status || 0) || null,
-          last_retry_reason: retryPlan.shouldRetry ? 'max_retries_exceeded' : 'fatal',
-          stage: String(error?.stage || '').trim()
-        });
-        if (retryPlan.shouldRetry && nextFailureCount >= MAX_OUTCOME_JOB_RETRIES) {
-          setOutcomeStatus(`Outcomes Test failed after ${MAX_OUTCOME_JOB_RETRIES} attempts: ${message}`, 'error');
-        } else {
-          setOutcomeStatus(`Outcomes Test failed: ${message}`, 'error');
-        }
-      } finally {
-        outcomeQueueAbortController = null;
+        refreshedQueue.shift();
+        await saveOutcomeJobQueue(refreshedQueue);
+        setOutcomeStatus(`Outcomes Test failed: ${message}`, 'error');
       }
       currentOutcomeRunningJobId = '';
       renderOutcomeTestHistory();
-      updateOutcomeUI();
     }
   } finally {
     isOutcomeQueueRunning = false;
     currentOutcomeRunningJobId = '';
-    outcomeStopRequested = false;
-    outcomeQueueAbortController = null;
     renderOutcomeTestHistory();
-    updateOutcomeUI();
   }
 }
 
@@ -2349,11 +1930,6 @@ if (outcomeRunBtn) {
       const signatureB = buildPersonaSignature(optionB);
       const payload = buildOutcomePayload(optionA, optionB, signatureA, signatureB);
       const queue = loadOutcomeJobQueue();
-      if (queue.length >= MAX_OUTCOME_QUEUE_ITEMS) {
-        setOutcomeStatus(`Outcome queue is full (${MAX_OUTCOME_QUEUE_ITEMS}). Stop or wait for jobs to finish.`, 'error');
-        updateOutcomeUI();
-        return;
-      }
       const job = {
         id: createOutcomeJobId(),
         queued_at: new Date().toISOString(),
@@ -2372,7 +1948,6 @@ if (outcomeRunBtn) {
       };
       queue.push(job);
       await saveOutcomeJobQueue(queue);
-      updateOutcomeUI();
       setOutcomeStatus(
         `Outcome test queued (${queue.length} in queue). You can continue using the app; you’ll be notified when this run completes.`,
         'info'
@@ -2383,16 +1958,6 @@ if (outcomeRunBtn) {
     } catch (error) {
       setOutcomeReadyState(false);
       setOutcomeStatus(`Outcomes Test failed: ${error?.message || 'Unexpected error'}`, 'error');
-    }
-  });
-}
-
-if (outcomeStopBtn) {
-  outcomeStopBtn.addEventListener('click', async () => {
-    try {
-      await stopOutcomeQueueByUser();
-    } catch (error) {
-      setOutcomeStatus(`Could not stop outcome test: ${error?.message || 'Unexpected error'}`, 'error');
     }
   });
 }
