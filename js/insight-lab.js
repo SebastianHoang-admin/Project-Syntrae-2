@@ -1131,7 +1131,7 @@ function setOutcomeRunOverlayProgress(progressPercent, stageText) {
 function openOutcomeRunOverlay() {
   if (!outcomeRunOverlayEl) return;
   outcomeRunOverlayEl.hidden = false;
-  setOutcomeRunOverlayProgress(0, 'Computing optimal pathway scenarios…');
+  setOutcomeRunOverlayProgress(0, 'Building action-space…');
 }
 
 function closeOutcomeRunOverlay() {
@@ -1143,10 +1143,10 @@ async function runOutcomeWithProgress(taskFn) {
   openOutcomeRunOverlay();
   let progress = 0;
   const stageFromProgress = (value) => {
-    if (value < 24) return 'Analyzing contextual and persona inputs…';
-    if (value < 56) return 'Computing optimal pathway scenarios…';
-    if (value < 86) return 'Evaluating scenario transitions and compliance…';
-    return 'Finalizing outcome strategy report…';
+    if (value < 24) return 'Reading persona context…';
+    if (value < 56) return 'Generating 10-node × 5-action matrix…';
+    if (value < 86) return 'Scoring and validating action candidates…';
+    return 'Finalizing action-space report…';
   };
 
   const timer = setInterval(() => {
@@ -1219,7 +1219,8 @@ function renderOutcomeResults(report) {
 
   const nodes = normalizeOutcomeNodeList(report?.action_space, 10);
   const chainCards = chains
-    .map((chain, index) => {
+    .map((chain) => {
+      const chainId = escapeHtml(chain?.chain_id || 'G?');
       const integrity = toSafePercent(chain?.chain_metrics?.chain_integrity_percent, 0).toFixed(2);
       const logic = toSafePercent(chain?.chain_metrics?.logicality_percent, 0).toFixed(2);
       const ethics = toSafePercent(chain?.chain_metrics?.ethics_legal_percent, 0).toFixed(2);
@@ -1244,13 +1245,15 @@ function renderOutcomeResults(report) {
         .map((item) => {
           const nodeIndex = Number(item?.node_index || 0) || 0;
           const actionText = escapeHtml(item?.action || '');
-          return `<div><strong>N${nodeIndex}</strong>: ${actionText}</div>`;
+          const anchor = escapeHtml(item?.persona_anchor || '');
+          const linkHint = escapeHtml(item?.next_link_hint || '');
+          return `<div><strong>N${nodeIndex}</strong>: ${actionText}${anchor ? `<br><span class="kv">Persona anchor: ${anchor}</span>` : ''}${linkHint ? `<br><span class="kv">Next-link: ${linkHint}</span>` : ''}</div>`;
         })
         .join('');
 
       return `
         <article class="pathway-card">
-          <h4>Scenario ${index + 1}</h4>
+          <h4>Chain ${chainId}</h4>
           <div class="pathway-meta">
             <span>Integrity ${integrity}%</span>
             <span>Logicality ${logic}%</span>
@@ -1277,7 +1280,8 @@ function renderOutcomeResults(report) {
           const actionText = escapeHtml(action?.action || '');
           const rationaleText = escapeHtml(action?.rationale || '');
           const geneSlot = Number(action?.gene_slot || 0) || 0;
-          return `<div><strong>${escapeHtml(action?.id || '')}${geneSlot ? ` · G${geneSlot}` : ''}</strong>: ${actionText}${rationaleText ? `<br><span class="kv">${rationaleText}</span>` : ''}</div>`;
+          const linkHint = escapeHtml(action?.next_link_hint || '');
+          return `<div><strong>${escapeHtml(action?.id || '')}${geneSlot ? ` · G${geneSlot}` : ''}</strong>: ${actionText}${rationaleText ? `<br><span class="kv">${rationaleText}</span>` : ''}${linkHint ? `<br><span class="kv">Next: ${linkHint}</span>` : ''}</div>`;
         })
         .join('');
 
@@ -1431,6 +1435,10 @@ async function initialize() {
   personaOptions = buildOptions(userProfileRow, personaRows, userMetadata);
   optionByKey = new Map(personaOptions.map((item) => [item.key, item]));
   populateSelectors();
+  const latestOutcome = loadStoredReportObject(OUTCOME_RESULT_STORAGE_KEY);
+  if (latestOutcome) {
+    renderOutcomeResults(latestOutcome);
+  }
 }
 
 selectA.addEventListener('change', updateFitnessUI);
@@ -1550,7 +1558,9 @@ if (outcomeRunBtn) {
 
       localStorage.setItem(OUTCOME_RESULT_STORAGE_KEY, JSON.stringify(report));
       await persistOutcomeReportToAccount(report);
-      window.location.href = 'outcome-test-results.html';
+      renderOutcomeResults(report);
+      setOutcomeReadyState(true);
+      setOutcomeStatus('Action-space generation completed and saved to account storage.', 'success');
     } catch (error) {
       setOutcomeReadyState(false);
       setOutcomeStatus(`Outcomes Test failed: ${error?.message || 'Unexpected error'}`, 'error');
