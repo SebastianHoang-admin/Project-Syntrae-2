@@ -182,18 +182,6 @@ function clamp01(value) {
   return clamp(value, 0, 1);
 }
 
-function parseBoolean(value, fallback = false) {
-  if (typeof value === 'boolean') return value;
-  if (typeof value === 'number') return value !== 0;
-  if (typeof value === 'string') {
-    const text = value.trim().toLowerCase();
-    if (!text) return fallback;
-    if (['1', 'true', 'yes', 'y', 'on'].includes(text)) return true;
-    if (['0', 'false', 'no', 'n', 'off'].includes(text)) return false;
-  }
-  return fallback;
-}
-
 function sanitizeText(value, maxLength = 280) {
   const text = String(value || '').replace(/\s+/g, ' ').trim();
   if (!text) return '';
@@ -208,37 +196,9 @@ function sanitizePersonaKey(value) {
     .replace(/[^a-z0-9_-]/g, '');
 }
 
-function toJsonSafeValue(value, seen = new WeakSet(), depth = 0) {
-  if (value === null || value === undefined) return value;
-  if (depth > 20) return '[Depth limit reached]';
-
-  const valueType = typeof value;
-  if (valueType === 'string' || valueType === 'number' || valueType === 'boolean') return value;
-  if (valueType === 'bigint') return value.toString();
-  if (valueType === 'function' || valueType === 'symbol') return undefined;
-
-  if (Array.isArray(value)) {
-    return value.map((item) => toJsonSafeValue(item, seen, depth + 1));
-  }
-
-  if (valueType === 'object') {
-    if (seen.has(value)) return '[Circular]';
-    seen.add(value);
-    const out = {};
-    Object.entries(value).forEach(([key, nested]) => {
-      const safeNested = toJsonSafeValue(nested, seen, depth + 1);
-      if (safeNested !== undefined) out[key] = safeNested;
-    });
-    seen.delete(value);
-    return out;
-  }
-
-  return String(value);
-}
-
 function safeJson(value) {
   try {
-    return JSON.stringify(toJsonSafeValue(value || {}), null, 2);
+    return JSON.stringify(value || {}, null, 2);
   } catch (_) {
     return '{}';
   }
@@ -260,118 +220,6 @@ function parseJsonObject(text) {
       return null;
     }
   }
-}
-
-function toArray(value) {
-  return Array.isArray(value) ? value : [];
-}
-
-function getScenarioNodeByIndex(nodes, nodeIndex) {
-  const list = toArray(nodes);
-  return (
-    list.find((item) => Number(item?.node_index || item?.index) === nodeIndex) ||
-    list[nodeIndex - 1] ||
-    null
-  );
-}
-
-function extractRawNodesFromGeneratedPayload(parsed, nodeCount, actionsPerNode) {
-  const directNodes = toArray(parsed?.nodes);
-  if (directNodes.length) return directNodes;
-
-  const directActionSpace = toArray(parsed?.action_space);
-  if (directActionSpace.length) return directActionSpace;
-
-  const scenarios = toArray(parsed?.scenarios).slice(0, actionsPerNode);
-  if (!scenarios.length) return [];
-
-  const outputNodes = [];
-  for (let nodeIndex = 1; nodeIndex <= nodeCount; nodeIndex += 1) {
-    const actions = [];
-    for (let slotIndex = 1; slotIndex <= actionsPerNode; slotIndex += 1) {
-      const scenario = scenarios[slotIndex - 1] || {};
-      const scenarioNode = getScenarioNodeByIndex(scenario?.nodes, nodeIndex);
-      const actionText = sanitizeText(
-        scenarioNode?.action || scenarioNode?.step || scenarioNode?.description || '',
-        180
-      );
-      if (!actionText) continue;
-
-      const scenarioScores = scenario?.scores && typeof scenario.scores === 'object'
-        ? scenario.scores
-        : scenario?.chain_metrics && typeof scenario.chain_metrics === 'object'
-          ? scenario.chain_metrics
-          : {};
-      const fit = clampInt(
-        scenarioScores.personalization_fit_percent ??
-          scenarioScores.fit ??
-          scenarioScores.outcome_alignment_percent ??
-          72,
-        0,
-        100
-      );
-      const feasibility = clampInt(
-        scenarioScores.practicality_percent ?? scenarioScores.feasibility ?? scenarioScores.logicality_percent ?? 70,
-        0,
-        100
-      );
-      const ethics = clampInt(
-        scenarioScores.ethics_legal_percent ?? scenarioScores.ethics ?? 84,
-        0,
-        100
-      );
-      const risk = clampInt(
-        scenarioScores.risk ?? Math.max(6, 100 - ethics),
-        0,
-        100
-      );
-      const momentum = clampInt(
-        scenarioScores.outcome_alignment_percent ?? scenarioScores.momentum ?? fit,
-        0,
-        100
-      );
-      const intensity = clampInt(24 + nodeIndex * 5 + (slotIndex - 1) * 3, 0, 100);
-
-      actions.push({
-        id: sanitizeText(scenarioNode?.id || `N${nodeIndex}A${slotIndex}`, 20),
-        gene_slot: slotIndex,
-        action: actionText,
-        rationale: sanitizeText(
-          scenarioNode?.next_link ||
-            scenarioNode?.rationale ||
-            `Node ${nodeIndex} step in scenario ${slotIndex}.`,
-          220
-        ),
-        persona_anchor: sanitizeText(
-          scenarioNode?.personalization_anchor || scenarioNode?.anchor || `Scenario ${slotIndex} persona fit`,
-          140
-        ),
-        next_link_hint: sanitizeText(
-          scenarioNode?.next_link || scenarioNode?.success_signal || 'Supports transition to the next node.',
-          180
-        ),
-        scores: {
-          fit,
-          feasibility,
-          ethics,
-          risk,
-          momentum,
-          intensity
-        }
-      });
-    }
-
-    outputNodes.push({
-      node_index: nodeIndex,
-      node_title: sanitizeText(
-        getScenarioNodeByIndex(scenarios?.[0]?.nodes, nodeIndex)?.node_title || `Node ${nodeIndex}`,
-        90
-      ),
-      actions
-    });
-  }
-
-  return outputNodes;
 }
 
 function extractTopicHintFromProfile(profile) {
@@ -551,27 +399,17 @@ function buildGeneratorPrompt({
   actionsPerNode
 }) {
   const safeOutcome = sanitizeText(requestedOutcome, 320);
-  const safeInferredContext = sanitizeText(inferredInitialConditions, 2200);
+  const safeInferredContext = sanitizeText(inferredInitialConditions, 700);
   const safeAdditionalContext = sanitizeText(additionalContext, 320);
-  const personaARecord = personaA?.db_record && typeof personaA.db_record === 'object'
-    ? personaA.db_record
-    : {};
-  const personaBRecord = personaB?.db_record && typeof personaB.db_record === 'object'
-    ? personaB.db_record
-    : {};
   const safePersonaA = {
     key: sanitizePersonaKey(personaA?.key),
     label: sanitizeText(personaA?.label, 120),
-    profile_compact: compactProfile(personaA?.profile),
-    profile_full: personaA?.profile && typeof personaA.profile === 'object' ? personaA.profile : {},
-    db_record_full: personaARecord
+    profile: compactProfile(personaA?.profile)
   };
   const safePersonaB = {
     key: sanitizePersonaKey(personaB?.key),
     label: sanitizeText(personaB?.label, 120),
-    profile_compact: compactProfile(personaB?.profile),
-    profile_full: personaB?.profile && typeof personaB.profile === 'object' ? personaB.profile : {},
-    db_record_full: personaBRecord
+    profile: compactProfile(personaB?.profile)
   };
 
   const systemPrompt = [
@@ -588,10 +426,6 @@ function buildGeneratorPrompt({
     `Requested outcome: ${safeOutcome || '(missing)'}`,
     `Initial conditions inferred from both personas: ${safeInferredContext || '(missing)'}`,
     safeAdditionalContext ? `Additional context from user: ${safeAdditionalContext}` : 'Additional context from user: (none provided)',
-    '',
-    'IMPORTANT: Full Supabase database objects for both active personas are provided below.',
-    'Use all available fields (including nested objects) to personalize actions.',
-    'Do not reduce interpretation to only compact fields when full records are available.',
     '',
     'Persona A (initiator):',
     safeJson(safePersonaA),
@@ -669,42 +503,20 @@ async function requestCompletion({ apiKey, model, messages }) {
 }
 
 function extractTextFromResponsesApi(data) {
-  const candidates = [];
-  const pushCandidate = (value) => {
-    const text = typeof value === 'string' ? value.trim() : '';
-    if (!text) return;
-    candidates.push(text);
-  };
-
-  pushCandidate(data?.output_text);
-
-  if (data?.output_json && typeof data.output_json === 'object') {
-    pushCandidate(JSON.stringify(data.output_json));
+  if (typeof data?.output_text === 'string' && data.output_text.trim()) {
+    return data.output_text.trim();
   }
-
   const output = Array.isArray(data?.output) ? data.output : [];
+  const chunks = [];
   output.forEach((item) => {
-    pushCandidate(item?.text);
-    pushCandidate(item?.arguments);
-    if (item?.json && typeof item.json === 'object') {
-      pushCandidate(JSON.stringify(item.json));
-    }
     const content = Array.isArray(item?.content) ? item.content : [];
     content.forEach((part) => {
-      pushCandidate(part?.text);
-      pushCandidate(part?.arguments);
-      if (part?.json && typeof part.json === 'object') {
-        pushCandidate(JSON.stringify(part.json));
-      }
-      if (part?.value && typeof part.value === 'object') {
-        pushCandidate(JSON.stringify(part.value));
+      if (typeof part?.text === 'string' && part.text.trim()) {
+        chunks.push(part.text.trim());
       }
     });
   });
-
-  if (!candidates.length) return '';
-  const jsonCandidate = candidates.find((value) => value.startsWith('{') || value.startsWith('['));
-  return (jsonCandidate || candidates.join('\n')).trim();
+  return chunks.join('\n').trim();
 }
 
 async function requestCompletionWithPromptTemplate({
@@ -714,8 +526,7 @@ async function requestCompletionWithPromptTemplate({
   promptVariables,
   model,
   systemPrompt,
-  userPrompt,
-  options = {}
+  userPrompt
 }) {
   const promptPayload = {
     id: String(promptId || '').trim()
@@ -728,27 +539,16 @@ async function requestCompletionWithPromptTemplate({
   }
 
   const inputText = [String(systemPrompt || '').trim(), String(userPrompt || '').trim()]
-    .filter(Boolean);
+    .filter(Boolean)
+    .join('\n\n');
 
   const requestBody = {
     prompt: promptPayload,
-    max_output_tokens: clampInt(options.maxOutputTokens ?? 4200, 800, 12000)
+    input: inputText,
+    max_output_tokens: 2600
   };
-  if (options.useMessageInput) {
-    requestBody.input = [
-      { role: 'developer', content: inputText[0] || '' },
-      { role: 'user', content: inputText[1] || '' }
-    ];
-  } else {
-    requestBody.input = inputText.join('\n\n');
-  }
   if (model) {
     requestBody.model = model;
-  }
-  if (options.forceJsonObject) {
-    requestBody.text = {
-      format: { type: 'json_object' }
-    };
   }
 
   const openaiRes = await fetch('https://api.openai.com/v1/responses', {
@@ -1477,32 +1277,6 @@ module.exports = async function handler(req, res) {
       DEFAULT_OUTCOME_PROMPT_VERSION,
     24
   );
-  const requirePromptTemplate = parseBoolean(
-    body.require_prompt_template ??
-      body.requirePromptTemplate ??
-      resolveEnv(['OPENAI_OUTCOME_REQUIRE_PROMPT_TEMPLATE']) ??
-      'true',
-    true
-  );
-  const usePromptVariables = parseBoolean(
-    body.use_prompt_variables ??
-      body.usePromptVariables ??
-      resolveEnv(['OPENAI_OUTCOME_USE_PROMPT_VARIABLES']) ??
-      'false',
-    false
-  );
-
-  if (requirePromptTemplate && !promptTemplateId) {
-    return res.status(500).json({
-      error: 'Outcome AG is configured to require a prompt template, but no prompt template ID was provided.'
-    });
-  }
-
-  if (requirePromptTemplate && !apiKey) {
-    return res.status(500).json({
-      error: 'Outcome AG requires OpenAI access, but OPENAI_API_KEY is missing.'
-    });
-  }
 
   if (apiKey) {
     try {
@@ -1518,85 +1292,37 @@ module.exports = async function handler(req, res) {
 
       let generatedText = '';
       let generationMode = '';
-      let promptTemplateError = null;
-      let promptTemplateRaw = null;
 
       if (promptTemplateId) {
         try {
-          const promptVariables = usePromptVariables
-            ? {
-                requested_outcome: requestedOutcome,
-                inferred_initial_conditions: effectiveInitialConditions,
-                additional_context: userInitialContext,
-                persona_a_label: sanitizeText(personaA?.label || personaA?.key || 'Persona A', 120),
-                persona_b_label: sanitizeText(personaB?.label || personaB?.key || 'Persona B', 120),
-                persona_a_profile_json: safeJson(compactProfile(personaA?.profile)),
-                persona_b_profile_json: safeJson(compactProfile(personaB?.profile)),
-                node_count: String(config.node_count),
-                actions_per_node: String(config.actions_per_node)
-              }
-            : undefined;
           const templated = await requestCompletionWithPromptTemplate({
             apiKey,
             promptId: promptTemplateId,
             promptVersion: promptTemplateVersion,
-            promptVariables,
+            promptVariables: {
+              requested_outcome: requestedOutcome,
+              inferred_initial_conditions: effectiveInitialConditions,
+              additional_context: userInitialContext,
+              persona_a_label: sanitizeText(personaA?.label || personaA?.key || 'Persona A', 120),
+              persona_b_label: sanitizeText(personaB?.label || personaB?.key || 'Persona B', 120),
+              persona_a_profile_json: safeJson(compactProfile(personaA?.profile)),
+              persona_b_profile_json: safeJson(compactProfile(personaB?.profile)),
+              node_count: String(config.node_count),
+              actions_per_node: String(config.actions_per_node)
+            },
             model,
             systemPrompt,
-            userPrompt,
-            options: {
-              useMessageInput: false,
-              forceJsonObject: false,
-              maxOutputTokens: 4200
-            }
+            userPrompt
           });
-          promptTemplateRaw = templated?.raw || null;
           generatedText = String(templated?.text || '').trim();
-
-          if (!generatedText) {
-            const retryTemplated = await requestCompletionWithPromptTemplate({
-              apiKey,
-              promptId: promptTemplateId,
-              promptVersion: promptTemplateVersion,
-              promptVariables,
-              model,
-              systemPrompt,
-              userPrompt,
-              options: {
-                useMessageInput: true,
-                forceJsonObject: true,
-                maxOutputTokens: 5200
-              }
-            });
-            promptTemplateRaw = retryTemplated?.raw || promptTemplateRaw;
-            generatedText = String(retryTemplated?.text || '').trim();
-          }
-
           if (generatedText) {
             generationMode = 'llm_prompt_template';
             promptTemplateIdUsed = promptTemplateId;
             promptTemplateVersionUsed = promptTemplateVersion || null;
           }
-        } catch (error) {
+        } catch (_) {
           generatedText = '';
-          promptTemplateError = error;
         }
-      }
-
-      if (!generatedText && requirePromptTemplate) {
-        const reason = sanitizeText(
-          promptTemplateError?.message || 'Prompt template generation returned no output.',
-          240
-        );
-        const rawStatus = sanitizeText(promptTemplateRaw?.status || '', 60);
-        const rawIncompleteReason = sanitizeText(promptTemplateRaw?.incomplete_details?.reason || '', 120);
-        return res.status(502).json({
-          error: `Outcome AG prompt-template generation failed: ${reason}`,
-          prompt_template_id: promptTemplateId,
-          prompt_template_version: promptTemplateVersion || null,
-          response_status: rawStatus || null,
-          response_incomplete_reason: rawIncompleteReason || null
-        });
       }
 
       if (!generatedText) {
@@ -1618,20 +1344,7 @@ module.exports = async function handler(req, res) {
 
       const text = generatedText;
       const parsed = parseJsonObject(text);
-      const rawNodes = extractRawNodesFromGeneratedPayload(
-        parsed,
-        config.node_count,
-        config.actions_per_node
-      );
-      if (!rawNodes.length && requirePromptTemplate && generationMode === 'llm_prompt_template') {
-        const excerpt = sanitizeText(text, 300);
-        return res.status(502).json({
-          error: 'Outcome AG prompt-template output was not in a supported JSON shape.',
-          prompt_template_id: promptTemplateId,
-          prompt_template_version: promptTemplateVersion || null,
-          output_excerpt: excerpt
-        });
-      }
+      const rawNodes = Array.isArray(parsed?.nodes) ? parsed.nodes : [];
       nodes = normalizeActionSpace(rawNodes, fallbackNodes, config.node_count, config.actions_per_node);
       generatorSource = rawNodes.length ? generationMode || 'llm' : 'fallback';
       modelUsed = model;

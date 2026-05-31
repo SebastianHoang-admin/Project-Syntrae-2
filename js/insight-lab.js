@@ -1056,8 +1056,6 @@ function buildOptions(userProfileRow, personaRows, userMetadata) {
         isLinkedUser: Boolean(isPrimaryLinked),
         data: {
           ...row,
-          raw_db_row: row,
-          raw_db_profile: rowProfile,
           profile: mergedRowProfile,
           avatar_url: getPersonaRowAvatarUrl(row)
         }
@@ -1340,20 +1338,17 @@ function buildOutcomePayload(optionA, optionB, signatureA, signatureB) {
       id: OUTCOME_PROMPT_TEMPLATE_ID,
       version: OUTCOME_PROMPT_TEMPLATE_VERSION
     },
-    require_prompt_template: true,
     personaA: {
       key: optionA.key,
       label: optionA.label,
       signature: signatureA,
-      profile: getProfilePayload(optionA),
-      db_record: optionA?.data && typeof optionA.data === 'object' ? optionA.data : {}
+      profile: getProfilePayload(optionA)
     },
     personaB: {
       key: optionB.key,
       label: optionB.label,
       signature: signatureB,
-      profile: getProfilePayload(optionB),
-      db_record: optionB?.data && typeof optionB.data === 'object' ? optionB.data : {}
+      profile: getProfilePayload(optionB)
     },
     action_space_only: true,
     config: {
