@@ -9,7 +9,7 @@ const DEFAULT_ELITE_COUNT = 8;
 const DEFAULT_TOP_PATHWAYS = 5;
 const DEFAULT_MONTE_CARLO_REPS = 1000;
 const DEFAULT_OUTCOME_PROMPT_ID = 'pmpt_69fa2fb3eefc8196b8ca8889f95f756903f3f05aace493de';
-const DEFAULT_OUTCOME_MAX_OUTPUT_TOKENS = 20000;
+const DEFAULT_OUTCOME_PROMPT_VERSION = '2';
 
 const FALLBACK_NODE_TITLES = Object.freeze([
   'Define Objective',
@@ -252,19 +252,6 @@ function parseRetryAfterSecondsFromText(value) {
   const seconds = Number(match[1]);
   if (!Number.isFinite(seconds) || seconds <= 0) return null;
   return seconds;
-}
-
-async function fetchJson(url, headers) {
-  const response = await fetch(url, { method: 'GET', headers });
-  const body = await response.json().catch(() => ({}));
-  return { ok: response.ok, status: response.status, body };
-}
-
-async function fetchSupabaseUser(supabaseUrl, anonKey, accessToken) {
-  return fetchJson(`${supabaseUrl}/auth/v1/user`, {
-    apikey: anonKey,
-    Authorization: `Bearer ${accessToken}`
-  });
 }
 
 function parseJsonObject(text) {
@@ -729,7 +716,7 @@ async function requestCompletionWithPromptTemplate({
 
   const requestBody = {
     prompt: promptPayload,
-    max_output_tokens: clampInt(options.maxOutputTokens ?? DEFAULT_OUTCOME_MAX_OUTPUT_TOKENS, 600, 20000)
+    max_output_tokens: clampInt(options.maxOutputTokens ?? 5200, 600, 12000)
   };
   if (options.useMessageInput) {
     const userOnlyInput = parseBoolean(options.useUserOnlyInput, false);
@@ -740,53 +727,22 @@ async function requestCompletionWithPromptTemplate({
   } else {
     requestBody.input = inputText.join('\n\n');
   }
-  if (model && parseBoolean(options.overridePromptModel, false)) {
+  if (model) {
     requestBody.model = model;
   }
-  const reasoningEffort = sanitizeText(options.reasoningEffort || '', 16);
-  const reasoningSummary = sanitizeText(options.reasoningSummary || '', 16);
-  if (reasoningEffort || reasoningSummary) {
-    requestBody.reasoning = {};
-    if (reasoningEffort) requestBody.reasoning.effort = reasoningEffort;
-    if (reasoningSummary) requestBody.reasoning.summary = reasoningSummary;
-  }
-  const textFormat = sanitizeText(options.textFormat || '', 32);
+  requestBody.reasoning = {
+    effort: sanitizeText(options.reasoningEffort || 'low', 16) || 'low',
+    summary: sanitizeText(options.reasoningSummary || 'concise', 16) || 'concise'
+  };
   if (options.forceJsonObject) {
     requestBody.text = {
-      format: { type: 'json_object' }
+      format: { type: 'json_object' },
+      verbosity: sanitizeText(options.verbosity || 'low', 16) || 'low'
     };
-  } else if (textFormat) {
+  } else if (options.verbosity) {
     requestBody.text = {
-      format: { type: textFormat }
+      verbosity: sanitizeText(options.verbosity, 16) || 'low'
     };
-  }
-  const verbosity = sanitizeText(options.verbosity || '', 16);
-  if (verbosity) {
-    requestBody.text = {
-      ...(requestBody.text || {}),
-      verbosity
-    };
-  }
-  if (typeof options.store === 'boolean') {
-    requestBody.store = options.store;
-  }
-  if (Array.isArray(options.include) && options.include.length) {
-    requestBody.include = options.include
-      .map((item) => sanitizeText(item, 120))
-      .filter(Boolean);
-  }
-  if (parseBoolean(options.ensureJsonKeyword, false)) {
-    const jsonInstruction = 'Return valid json output.';
-    if (Array.isArray(requestBody.input)) {
-      const lastMessage = requestBody.input[requestBody.input.length - 1];
-      if (lastMessage && typeof lastMessage.content === 'string') {
-        lastMessage.content = `${jsonInstruction}\n\n${lastMessage.content}`;
-      } else {
-        requestBody.input.push({ role: 'user', content: jsonInstruction });
-      }
-    } else if (typeof requestBody.input === 'string') {
-      requestBody.input = `${jsonInstruction}\n\n${requestBody.input}`;
-    }
   }
   if (options.metadata && typeof options.metadata === 'object') {
     requestBody.metadata = options.metadata;
@@ -1514,22 +1470,6 @@ module.exports = async function handler(req, res) {
     return res.status(405).json({ error: 'POST only' });
   }
 
-  const supabaseUrl = resolveEnv(['SUPABASE_URL']);
-  const supabaseAnonKey = resolveEnv(['SUPABASE_ANON_KEY', 'SUPABASE_ANON_KEY_LOCAL']);
-  const authHeader = String(req.headers.authorization || '');
-  const accessToken = authHeader.startsWith('Bearer ') ? authHeader.slice(7).trim() : '';
-
-  if (supabaseUrl && supabaseAnonKey) {
-    if (!accessToken) {
-      return res.status(401).json({ error: 'Missing authenticated session token' });
-    }
-
-    const userResult = await fetchSupabaseUser(supabaseUrl, supabaseAnonKey, accessToken);
-    if (!userResult.ok || !userResult.body?.id) {
-      return res.status(401).json({ error: 'Invalid or expired session token' });
-    }
-  }
-
   const body = req.body && typeof req.body === 'object' ? req.body : {};
   const userInitialContext = sanitizeText(body.initial_conditions || body.initialConditions || '', 1200);
   const requestedOutcome = sanitizeText(body.requested_outcome || body.requestedOutcome || '', 380);
@@ -1557,21 +1497,7 @@ module.exports = async function handler(req, res) {
   let promptTemplateVersionUsed = null;
 
   const apiKey = resolveEnv(['OPENAI_API_KEY', 'OPENAI_API_KEY_LOCAL', 'OPENAI_KEY']);
-  const modelOverride = sanitizeText(
-    body.model_override ||
-      body.modelOverride ||
-      resolveEnv(['OPENAI_OUTCOME_MODEL_OVERRIDE', 'OPENAI_OUTCOME_FORCE_MODEL']) ||
-      '',
-    80
-  );
-  const maxOutputTokens = clampInt(
-    body.max_output_tokens ||
-      body.maxOutputTokens ||
-      resolveEnv(['OPENAI_OUTCOME_MAX_OUTPUT_TOKENS']) ||
-      DEFAULT_OUTCOME_MAX_OUTPUT_TOKENS,
-    600,
-    20000
-  );
+  const model = resolveEnv(['OPENAI_OUTCOME_MODEL', 'OPENAI_MODEL']) || 'gpt-5-nano';
   const promptTemplateId = sanitizeText(
     body?.prompt?.id ||
       body.outcome_prompt_id ||
@@ -1580,9 +1506,14 @@ module.exports = async function handler(req, res) {
       DEFAULT_OUTCOME_PROMPT_ID,
     128
   );
-  // Leave prompt template version unspecified so OpenAI uses the default
-  // prompt/model configuration selected in the web UI.
-  const promptTemplateVersion = '';
+  const promptTemplateVersion = sanitizeText(
+    body?.prompt?.version ||
+      body.outcome_prompt_version ||
+      body.prompt_version ||
+      resolveEnv(['OPENAI_OUTCOME_PROMPT_VERSION']) ||
+      DEFAULT_OUTCOME_PROMPT_VERSION,
+    24
+  );
   const requirePromptTemplate = parseBoolean(
     body.require_prompt_template ??
       body.requirePromptTemplate ??
@@ -1652,22 +1583,17 @@ module.exports = async function handler(req, res) {
           promptId: promptTemplateId,
           promptVersion: promptTemplateVersion,
           promptVariables,
-          model: modelOverride,
+          model,
           systemPrompt,
           userPrompt,
           options: {
             useMessageInput: true,
             useUserOnlyInput: true,
-            textFormat: 'text',
-            ensureJsonKeyword: true,
-            maxOutputTokens,
+            forceJsonObject: true,
+            maxOutputTokens: 7600,
+            reasoningEffort: 'low',
             reasoningSummary: 'concise',
-            store: true,
-            include: [
-              'reasoning.encrypted_content',
-              'web_search_call.action.sources'
-            ],
-            overridePromptModel: Boolean(modelOverride),
+            verbosity: 'low',
             metadata: {
               syntrae_feature: 'outcome_test',
               syntrae_stage: 'prompt_template_generation',
@@ -1759,7 +1685,7 @@ module.exports = async function handler(req, res) {
     }
 
     generatorSource = generationMode || 'llm_prompt_template';
-    modelUsed = modelOverride || sanitizeText(promptTemplateRaw?.model || '', 80) || null;
+    modelUsed = model;
   } catch (error) {
     const reason = sanitizeText(error?.message || 'Unexpected outcome generation error.', 320);
     const retryAfterSeconds = parseRetryAfterSecondsFromText(reason);
