@@ -194,24 +194,6 @@ function parseBoolean(value, fallback = false) {
   return fallback;
 }
 
-function pickFirstPresent(...values) {
-  for (const value of values) {
-    if (value === undefined || value === null) continue;
-    if (typeof value === 'string' && !value.trim()) continue;
-    return value;
-  }
-  return undefined;
-}
-
-function mergePlainObjects(...values) {
-  const merged = {};
-  values.forEach((value) => {
-    if (!value || typeof value !== 'object' || Array.isArray(value)) return;
-    Object.assign(merged, value);
-  });
-  return merged;
-}
-
 function sanitizeText(value, maxLength = 280) {
   const text = String(value || '').replace(/\s+/g, ' ').trim();
   if (!text) return '';
@@ -1549,21 +1531,6 @@ module.exports = async function handler(req, res) {
   }
 
   const body = req.body && typeof req.body === 'object' ? req.body : {};
-  const promptConfig = body?.prompt && typeof body.prompt === 'object' ? body.prompt : {};
-  const modelSettings = mergePlainObjects(
-    promptConfig.model_settings,
-    promptConfig.modelSettings,
-    body.model_settings,
-    body.modelSettings
-  );
-  const modelReasoningSettings =
-    modelSettings?.reasoning && typeof modelSettings.reasoning === 'object' && !Array.isArray(modelSettings.reasoning)
-      ? modelSettings.reasoning
-      : {};
-  const modelTextSettings =
-    modelSettings?.text && typeof modelSettings.text === 'object' && !Array.isArray(modelSettings.text)
-      ? modelSettings.text
-      : {};
   const userInitialContext = sanitizeText(body.initial_conditions || body.initialConditions || '', 1200);
   const requestedOutcome = sanitizeText(body.requested_outcome || body.requestedOutcome || '', 380);
   const personaA = body.personaA && typeof body.personaA === 'object' ? body.personaA : {};
@@ -1591,75 +1558,26 @@ module.exports = async function handler(req, res) {
 
   const apiKey = resolveEnv(['OPENAI_API_KEY', 'OPENAI_API_KEY_LOCAL', 'OPENAI_KEY']);
   const modelOverride = sanitizeText(
-    pickFirstPresent(
-      body.model_override,
-      body.modelOverride,
-      modelSettings.model_override,
-      modelSettings.modelOverride,
-      typeof modelSettings.model === 'string' ? modelSettings.model : undefined,
-      resolveEnv(['OPENAI_OUTCOME_MODEL_OVERRIDE', 'OPENAI_OUTCOME_FORCE_MODEL'])
-    ) || '',
+    body.model_override ||
+      body.modelOverride ||
+      resolveEnv(['OPENAI_OUTCOME_MODEL_OVERRIDE', 'OPENAI_OUTCOME_FORCE_MODEL']) ||
+      '',
     80
   );
-  const overridePromptModel = parseBoolean(
-    pickFirstPresent(
-      body.override_prompt_model,
-      body.overridePromptModel,
-      modelSettings.override_prompt_model,
-      modelSettings.overridePromptModel
-    ),
-    Boolean(modelOverride)
-  );
-  const reasoningEffortOverride = sanitizeText(
-    pickFirstPresent(
-      body.reasoning_effort,
-      body.reasoningEffort,
-      modelSettings.reasoning_effort,
-      modelSettings.reasoningEffort,
-      modelReasoningSettings.effort
-    ) || '',
-    16
-  );
-  const reasoningSummaryOverride = sanitizeText(
-    pickFirstPresent(
-      body.reasoning_summary,
-      body.reasoningSummary,
-      modelSettings.reasoning_summary,
-      modelSettings.reasoningSummary,
-      modelReasoningSettings.summary
-    ) || '',
-    16
-  );
-  const responseVerbosityOverride = sanitizeText(
-    pickFirstPresent(
-      body.verbosity,
-      modelSettings.verbosity,
-      modelTextSettings.verbosity
-    ) || '',
-    16
-  );
   const maxOutputTokens = clampInt(
-    pickFirstPresent(
-      body.max_output_tokens,
-      body.maxOutputTokens,
-      modelSettings.max_output_tokens,
-      modelSettings.maxOutputTokens,
-      resolveEnv(['OPENAI_OUTCOME_MAX_OUTPUT_TOKENS']),
-      DEFAULT_OUTCOME_MAX_OUTPUT_TOKENS
-    ),
+    body.max_output_tokens ||
+      body.maxOutputTokens ||
+      resolveEnv(['OPENAI_OUTCOME_MAX_OUTPUT_TOKENS']) ||
+      DEFAULT_OUTCOME_MAX_OUTPUT_TOKENS,
     600,
     20000
   );
   const promptTemplateId = sanitizeText(
-    pickFirstPresent(
-      promptConfig.id,
-      body.outcome_prompt_id,
-      body.prompt_id,
-      modelSettings.prompt_id,
-      modelSettings.promptId,
-      resolveEnv(['OPENAI_OUTCOME_PROMPT_ID']),
-      DEFAULT_OUTCOME_PROMPT_ID
-    ),
+    body?.prompt?.id ||
+      body.outcome_prompt_id ||
+      body.prompt_id ||
+      resolveEnv(['OPENAI_OUTCOME_PROMPT_ID']) ||
+      DEFAULT_OUTCOME_PROMPT_ID,
     128
   );
   // Leave prompt template version unspecified so OpenAI uses the default
@@ -1743,15 +1661,13 @@ module.exports = async function handler(req, res) {
             textFormat: 'text',
             ensureJsonKeyword: true,
             maxOutputTokens,
-            reasoningEffort: reasoningEffortOverride,
-            reasoningSummary: reasoningSummaryOverride,
-            verbosity: responseVerbosityOverride,
+            reasoningSummary: 'concise',
             store: true,
             include: [
               'reasoning.encrypted_content',
               'web_search_call.action.sources'
             ],
-            overridePromptModel,
+            overridePromptModel: Boolean(modelOverride),
             metadata: {
               syntrae_feature: 'outcome_test',
               syntrae_stage: 'prompt_template_generation',
@@ -1779,7 +1695,6 @@ module.exports = async function handler(req, res) {
         promptTemplateError?.message || 'Prompt template generation returned no output.',
         280
       );
-      const hasSummaryMismatch = /unsupported value:\s*'concise'.*supported values are:\s*'detailed'/i.test(reason);
       const retryAfterSeconds = parseRetryAfterSecondsFromText(reason);
       const rawStatus = sanitizeText(promptTemplateRaw?.status || '', 60);
       const rawIncompleteReason = sanitizeText(promptTemplateRaw?.incomplete_details?.reason || '', 120);
@@ -1787,9 +1702,6 @@ module.exports = async function handler(req, res) {
       return fail(statusCode, 'openai.prompt_template_generation', reason, {
         prompt_template_id: promptTemplateId,
         prompt_template_version: promptTemplateVersion || null,
-        hint: hasSummaryMismatch
-          ? 'Your prompt template model settings currently use reasoning summary=concise, but this model only supports detailed. In the OpenAI prompt editor, change Summary to detailed (or auto/null) and click Update.'
-          : null,
         response_status: rawStatus || null,
         response_incomplete_reason: rawIncompleteReason || null,
         response_id: sanitizeText(promptTemplateRaw?.id || '', 80) || null,
