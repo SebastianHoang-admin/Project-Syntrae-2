@@ -1453,30 +1453,6 @@ function normalizeQualityGates(rawQualityGates, nodeCount, actionsPerNode) {
   return normalized;
 }
 
-function synthesizeQualityGatesFromNodes(rawNodes, nodeCount, actionsPerNode) {
-  const sourceNodes = Array.isArray(rawNodes) ? rawNodes : [];
-  if (!sourceNodes.length) return [];
-  const gates = [];
-  for (let slot = 1; slot <= actionsPerNode; slot += 1) {
-    const transitions = [];
-    for (let nodeIndex = 1; nodeIndex < Math.max(1, nodeCount); nodeIndex += 1) {
-      transitions.push({
-        from: `N${nodeIndex}A${slot}`,
-        to: `N${nodeIndex + 1}A${slot}`,
-        logicality_pass: true,
-        practicality_pass: true,
-        ethics_pass: true,
-        legality_pass: true,
-        consent_pass: true,
-        overall_pass: true,
-        note: 'Synthesized from node/action chain because chain_quality_gates were missing.'
-      });
-    }
-    gates.push({ gene_slot: slot, transitions });
-  }
-  return gates;
-}
-
 function buildQualityGateSlotMetrics(rawQualityGates) {
   const map = new Map();
   const gates = Array.isArray(rawQualityGates) ? rawQualityGates : [];
@@ -2833,7 +2809,6 @@ module.exports = async function handler(req, res) {
         });
       }
 
-      let missingQualityGatesInOutput = false;
       if (!chainQualityGates.length) {
         failureStage = 'openai.output_quality_gates_extraction';
         const rawQualityGates = extractRawQualityGatesFromGeneratedPayload(
@@ -2841,26 +2816,29 @@ module.exports = async function handler(req, res) {
           config.actions_per_node
         );
         if (!rawQualityGates.length) {
-          missingQualityGatesInOutput = true;
-        } else {
-          const gateShapeValidation = validateGeneratedQualityGatesShape(
-            rawQualityGates,
-            config.node_count,
-            config.actions_per_node
-          );
-          if (!gateShapeValidation.ok) {
-            const reason = sanitizeText(gateShapeValidation.reason, 320);
-            return fail(502, 'openai.output_quality_gates_validation', reason, {
-              context_build: responseContextBuild,
-              output_excerpt: sanitizeText(generatedText, 500)
-            });
-          }
-          chainQualityGates = normalizeQualityGates(
-            rawQualityGates,
-            config.node_count,
-            config.actions_per_node
-          );
+          const reason = 'No chain_quality_gates were found in OpenAI output.';
+          return fail(502, failureStage, reason, {
+            context_build: responseContextBuild,
+            output_excerpt: sanitizeText(generatedText, 500)
+          });
         }
+        const gateShapeValidation = validateGeneratedQualityGatesShape(
+          rawQualityGates,
+          config.node_count,
+          config.actions_per_node
+        );
+        if (!gateShapeValidation.ok) {
+          const reason = sanitizeText(gateShapeValidation.reason, 320);
+          return fail(502, 'openai.output_quality_gates_validation', reason, {
+            context_build: responseContextBuild,
+            output_excerpt: sanitizeText(generatedText, 500)
+          });
+        }
+        chainQualityGates = normalizeQualityGates(
+          rawQualityGates,
+          config.node_count,
+          config.actions_per_node
+        );
       }
 
       if (!nodes.length) {
@@ -2896,20 +2874,6 @@ module.exports = async function handler(req, res) {
 
         if (!nodes.length) {
           failureStage = 'openai.output_normalization';
-          if (!chainQualityGates.length && missingQualityGatesInOutput) {
-            const synthesized = synthesizeQualityGatesFromNodes(
-              rawNodes,
-              config.node_count,
-              config.actions_per_node
-            );
-            if (synthesized.length) {
-              chainQualityGates = normalizeQualityGates(
-                synthesized,
-                config.node_count,
-                config.actions_per_node
-              );
-            }
-          }
           const slotMetrics = buildQualityGateSlotMetrics(chainQualityGates);
           nodes = normalizeActionSpace(rawNodes, config.node_count, config.actions_per_node, slotMetrics);
           if (!nodes.length) {
