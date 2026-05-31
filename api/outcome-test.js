@@ -1,13 +1,4 @@
 const { resolveEnv } = require('./env-utils');
-const {
-  DEFAULT_CONTEXT_BUDGET_TOKENS,
-  DEFAULT_DIGEST_TOKEN_LIMIT,
-  buildDeterministicPersonaDigest,
-  buildPackedOutcomeContext,
-  buildPersonaSourceHash,
-  shouldFallbackDigestToLlm,
-  validateDigestShape
-} = require('./outcome-context-utils');
 
 const DEFAULT_NODE_COUNT = 10;
 const DEFAULT_ACTIONS_PER_NODE = 5;
@@ -18,15 +9,13 @@ const DEFAULT_ELITE_COUNT = 8;
 const DEFAULT_TOP_PATHWAYS = 5;
 const DEFAULT_MONTE_CARLO_REPS = 1000;
 const DEFAULT_OUTCOME_PROMPT_ID = 'pmpt_69fa2fb3eefc8196b8ca8889f95f756903f3f05aace493de';
-const DEFAULT_OUTCOME_MAX_OUTPUT_TOKENS = 100000;
+const DEFAULT_OUTCOME_MAX_OUTPUT_TOKENS = 6000;
 const MAX_OUTCOME_MAX_OUTPUT_TOKENS = 100000;
 const DEFAULT_OUTCOME_MODEL_TIMEOUT_MS = 285000;
 const DEFAULT_OUTCOME_MIN_ADAPTIVE_OUTPUT_CAP = 6000;
 const DEFAULT_OUTCOME_GLOBAL_TPM_LIMIT = 30000;
 const DEFAULT_OUTCOME_TPM_WINDOW_SECONDS = 60;
 const DEFAULT_OUTCOME_TPM_WAIT_TIMEOUT_MS = 240000;
-const DEFAULT_OUTCOME_CONTEXT_BUDGET_TOKENS = DEFAULT_CONTEXT_BUDGET_TOKENS;
-const DEFAULT_OUTCOME_MAX_DIGEST_AGE_SECONDS = 86400;
 
 function clamp(value, min, max) {
   const numeric = Number(value);
@@ -470,278 +459,6 @@ async function releaseOutcomeTokenReservation({
   }
 }
 
-function buildServiceRoleHeaders(serviceRoleKey, extra = {}) {
-  return {
-    apikey: serviceRoleKey,
-    Authorization: `Bearer ${serviceRoleKey}`,
-    'Content-Type': 'application/json',
-    ...extra
-  };
-}
-
-async function callSupabaseRest({
-  supabaseUrl,
-  serviceRoleKey,
-  method,
-  path,
-  body,
-  prefer
-}) {
-  const headers = buildServiceRoleHeaders(
-    serviceRoleKey,
-    prefer ? { Prefer: prefer } : {}
-  );
-  const response = await fetch(`${supabaseUrl}${path}`, {
-    method,
-    headers,
-    ...(body === undefined ? {} : { body: JSON.stringify(body) })
-  });
-  const data = await response.json().catch(() => ({}));
-  if (!response.ok) {
-    const message = sanitizeText(
-      data?.message || data?.hint || data?.error || `Supabase ${method} ${path} failed`,
-      260
-    ) || `Supabase ${method} ${path} failed`;
-    const error = new Error(message);
-    error.status = response.status;
-    error.code = sanitizeText(data?.code || '', 32);
-    throw error;
-  }
-  return data;
-}
-
-async function fetchOutcomePromptVariables({
-  supabaseUrl,
-  serviceRoleKey,
-  userId
-}) {
-  if (!supabaseUrl || !serviceRoleKey || !userId) return null;
-  const query = [
-    'select=user_id,node_count,actions_per_node,context_budget_tokens,max_digest_age_seconds,compaction_policy,updated_at',
-    `user_id=eq.${encodeURIComponent(userId)}`,
-    'limit=1'
-  ].join('&');
-  const rows = await callSupabaseRest({
-    supabaseUrl,
-    serviceRoleKey,
-    method: 'GET',
-    path: `/rest/v1/outcome_prompt_variables?${query}`
-  });
-  return Array.isArray(rows) && rows.length ? rows[0] : null;
-}
-
-async function fetchPersonaDigestRow({
-  supabaseUrl,
-  serviceRoleKey,
-  userId,
-  personaId
-}) {
-  if (!supabaseUrl || !serviceRoleKey || !userId || !personaId) return null;
-  const query = [
-    'select=id,user_id,persona_id,persona_key,digest_json,digest_version,source_hash,token_estimate,status,last_error,created_at,updated_at',
-    `user_id=eq.${encodeURIComponent(userId)}`,
-    `persona_id=eq.${encodeURIComponent(personaId)}`,
-    'limit=1'
-  ].join('&');
-  const rows = await callSupabaseRest({
-    supabaseUrl,
-    serviceRoleKey,
-    method: 'GET',
-    path: `/rest/v1/persona_context_digests?${query}`
-  });
-  return Array.isArray(rows) && rows.length ? rows[0] : null;
-}
-
-async function fetchPersonaRowForDigest({
-  supabaseUrl,
-  serviceRoleKey,
-  userId,
-  personaId
-}) {
-  if (!supabaseUrl || !serviceRoleKey || !userId || !personaId) return null;
-  const query = [
-    'select=id,user_id,persona_key,name,profile,state,traits,updated_at',
-    `user_id=eq.${encodeURIComponent(userId)}`,
-    `id=eq.${encodeURIComponent(personaId)}`,
-    'limit=1'
-  ].join('&');
-  const rows = await callSupabaseRest({
-    supabaseUrl,
-    serviceRoleKey,
-    method: 'GET',
-    path: `/rest/v1/personas?${query}`
-  });
-  return Array.isArray(rows) && rows.length ? rows[0] : null;
-}
-
-async function upsertPersonaDigestRow({
-  supabaseUrl,
-  serviceRoleKey,
-  row
-}) {
-  if (!supabaseUrl || !serviceRoleKey || !row?.persona_id) return;
-  await callSupabaseRest({
-    supabaseUrl,
-    serviceRoleKey,
-    method: 'POST',
-    path: '/rest/v1/persona_context_digests?on_conflict=persona_id',
-    body: [row],
-    prefer: 'resolution=merge-duplicates,return=minimal'
-  });
-}
-
-async function enqueuePersonaDigestJob({
-  supabaseUrl,
-  serviceRoleKey,
-  userId,
-  personaId,
-  reason
-}) {
-  if (!supabaseUrl || !serviceRoleKey || !userId || !personaId) return;
-  try {
-    await callSupabaseRest({
-      supabaseUrl,
-      serviceRoleKey,
-      method: 'POST',
-      path: '/rest/v1/rpc/enqueue_persona_digest_job',
-      body: {
-        p_user_id: userId,
-        p_persona_id: personaId,
-        p_reason: sanitizeText(reason || 'outcome_request', 120)
-      },
-      prefer: 'return=minimal'
-    });
-  } catch (error) {
-    console.warn('Could not enqueue persona digest job:', error?.message || error);
-  }
-}
-
-function parseIsoAgeSeconds(rawTimestamp) {
-  const ms = Date.parse(String(rawTimestamp || ''));
-  if (!Number.isFinite(ms)) return Number.POSITIVE_INFINITY;
-  return Math.max(0, (Date.now() - ms) / 1000);
-}
-
-function extractPersonaDbRecord(persona) {
-  const raw = persona && typeof persona === 'object' ? persona : {};
-  const db = raw?.db_record && typeof raw.db_record === 'object' ? raw.db_record : {};
-  return db;
-}
-
-function buildPersonaSourceForDigest(persona) {
-  const raw = persona && typeof persona === 'object' ? persona : {};
-  const db = extractPersonaDbRecord(raw);
-  const profile = raw?.profile && typeof raw.profile === 'object'
-    ? raw.profile
-    : db?.profile && typeof db.profile === 'object'
-      ? db.profile
-      : {};
-  return {
-    id: sanitizeText(db?.id || raw?.id || '', 120),
-    user_id: sanitizeText(db?.user_id || raw?.user_id || '', 120),
-    persona_key: sanitizeText(db?.persona_key || raw?.key || '', 120),
-    name: sanitizeText(db?.name || raw?.label || raw?.key || 'Persona', 120),
-    profile,
-    state: db?.state && typeof db.state === 'object' ? db.state : {},
-    traits: db?.traits && typeof db.traits === 'object' ? db.traits : {}
-  };
-}
-
-function getDigestForPrompt(digestRow, personaFallback) {
-  const digestJson = digestRow?.digest_json && typeof digestRow.digest_json === 'object'
-    ? digestRow.digest_json
-    : {};
-  const identity = digestJson?.identity && typeof digestJson.identity === 'object'
-    ? digestJson.identity
-    : {};
-  return {
-    identity: {
-      persona_key: sanitizeText(identity.persona_key || personaFallback?.persona_key || '', 80),
-      label: sanitizeText(identity.label || personaFallback?.name || personaFallback?.persona_key || 'Persona', 120),
-      personal_headline: sanitizeText(identity.personal_headline || '', 220),
-      communication_style: sanitizeText(identity.communication_style || '', 160)
-    },
-    goals_top3: Array.isArray(digestJson?.goals_top3) ? digestJson.goals_top3.slice(0, 3) : [],
-    constraints_top5: Array.isArray(digestJson?.constraints_top5) ? digestJson.constraints_top5.slice(0, 5) : [],
-    hard_boundaries_top5: Array.isArray(digestJson?.hard_boundaries_top5) ? digestJson.hard_boundaries_top5.slice(0, 5) : [],
-    topic_anchors_top5: Array.isArray(digestJson?.topic_anchors_top5) ? digestJson.topic_anchors_top5.slice(0, 5) : [],
-    shared_activity_preferences_top5: Array.isArray(digestJson?.shared_activity_preferences_top5)
-      ? digestJson.shared_activity_preferences_top5.slice(0, 5)
-      : [],
-    quant_axes_top8: Array.isArray(digestJson?.quant_axes_top8) ? digestJson.quant_axes_top8.slice(0, 8) : [],
-    risk_flags: Array.isArray(digestJson?.risk_flags) ? digestJson.risk_flags.slice(0, 5) : [],
-    legal_ethics_guardrails: Array.isArray(digestJson?.legal_ethics_guardrails)
-      ? digestJson.legal_ethics_guardrails.slice(0, 5)
-      : []
-  };
-}
-
-async function summarizePersonaDigestWithLlm({
-  apiKey,
-  personaSource,
-  maxDigestTokens
-}) {
-  if (!apiKey) throw new Error('OPENAI_API_KEY missing for digest fallback summarizer.');
-  const prompt = [
-    'Compress persona profile into strict JSON object.',
-    'Allowed keys only:',
-    'identity, goals_top3, constraints_top5, hard_boundaries_top5, topic_anchors_top5, shared_activity_preferences_top5, quant_axes_top8, risk_flags, legal_ethics_guardrails.',
-    'Keep concise and safe. No markdown.',
-    `Persona JSON: ${safeJson(personaSource)}`
-  ].join('\n');
-  const openaiRes = await fetch('https://api.openai.com/v1/responses', {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify({
-      model: sanitizeText(resolveEnv(['OPENAI_OUTCOME_DIGEST_MODEL']) || 'gpt-5.4-nano', 80),
-      input: prompt,
-      max_output_tokens: clampInt(maxDigestTokens || DEFAULT_DIGEST_TOKEN_LIMIT, 300, 6000),
-      reasoning: { effort: 'minimal', summary: 'auto' },
-      text: { format: { type: 'json_object' }, verbosity: 'low' },
-      store: false
-    })
-  });
-  const data = await openaiRes.json().catch(() => ({}));
-  if (!openaiRes.ok) {
-    const message = sanitizeText(data?.error?.message || data?.error || 'Digest summarizer failed', 260);
-    const error = new Error(message);
-    error.status = openaiRes.status;
-    throw error;
-  }
-  const parsed = parseJsonObject(String(data?.output_text || ''));
-  if (!parsed || typeof parsed !== 'object') {
-    throw new Error('Digest summarizer returned invalid JSON output.');
-  }
-  const validation = validateDigestShape(parsed);
-  if (!validation.ok) {
-    throw new Error(`Digest summarizer output failed validation: ${validation.reason}`);
-  }
-  return parsed;
-}
-
-async function storeOutcomeContextRun({
-  supabaseUrl,
-  serviceRoleKey,
-  row
-}) {
-  if (!supabaseUrl || !serviceRoleKey || !row?.user_id) return;
-  try {
-    await callSupabaseRest({
-      supabaseUrl,
-      serviceRoleKey,
-      method: 'POST',
-      path: '/rest/v1/outcome_context_runs',
-      body: [row],
-      prefer: 'return=minimal'
-    });
-  } catch (error) {
-    console.warn('Could not store outcome context run:', error?.message || error);
-  }
-}
-
 function parseJsonObject(text) {
   const raw = String(text || '').trim();
   if (!raw) return null;
@@ -1023,17 +740,11 @@ function buildPromptTemplateVariables({
   additionalContext,
   personaA,
   personaB,
-  personaADigest,
-  personaBDigest,
   nodeCount,
   actionsPerNode
 }) {
-  const safePersonaA = personaADigest && typeof personaADigest === 'object'
-    ? personaADigest
-    : buildPersonaModelContext(personaA);
-  const safePersonaB = personaBDigest && typeof personaBDigest === 'object'
-    ? personaBDigest
-    : buildPersonaModelContext(personaB);
+  const safePersonaA = buildPersonaModelContext(personaA);
+  const safePersonaB = buildPersonaModelContext(personaB);
   return {
     requested_outcome: sanitizeText(requestedOutcome, 320),
     inferred_initial_conditions: sanitizeText(inferredInitialConditions, 1200),
@@ -1153,7 +864,7 @@ async function requestCompletionWithPromptTemplate({
     prompt: promptPayload,
     max_output_tokens: clampInt(options.maxOutputTokens ?? DEFAULT_OUTCOME_MAX_OUTPUT_TOKENS, 600, MAX_OUTCOME_MAX_OUTPUT_TOKENS)
   };
-  const inputText = sanitizeText(options.inputText || '', 24000);
+  const inputText = sanitizeText(options.inputText || '', 4000);
   if (inputText) requestBody.input = inputText;
   if (model && parseBoolean(options.overridePromptModel, false)) {
     requestBody.model = model;
@@ -2091,8 +1802,8 @@ function buildSummary(topPathway, requestedOutcome) {
 function sanitizeConfig(rawConfig) {
   const config = rawConfig && typeof rawConfig === 'object' ? rawConfig : {};
   return {
-    node_count: clampInt(config.node_count ?? DEFAULT_NODE_COUNT, 1, 20),
-    actions_per_node: clampInt(config.actions_per_node ?? DEFAULT_ACTIONS_PER_NODE, 1, 12),
+    node_count: clampInt(config.node_count ?? DEFAULT_NODE_COUNT, 10, 10),
+    actions_per_node: clampInt(config.actions_per_node ?? DEFAULT_ACTIONS_PER_NODE, 5, 5),
     population_size: clampInt(config.population_size ?? DEFAULT_POPULATION_SIZE, 40, 260),
     generations: clampInt(config.generations ?? DEFAULT_GENERATIONS, 20, 220),
     mutation_rate: clamp(config.mutation_rate ?? DEFAULT_MUTATION_RATE, 0.03, 0.45),
@@ -2146,57 +1857,8 @@ module.exports = async function handler(req, res) {
   const requestedOutcome = sanitizeText(body.requested_outcome || body.requestedOutcome || '', 380);
   const personaA = body.personaA && typeof body.personaA === 'object' ? body.personaA : {};
   const personaB = body.personaB && typeof body.personaB === 'object' ? body.personaB : {};
-  const promptVariablesRow =
-    supabaseUrl && supabaseServiceRoleKey && authenticatedUserId
-      ? await fetchOutcomePromptVariables({
-        supabaseUrl,
-        serviceRoleKey: supabaseServiceRoleKey,
-        userId: authenticatedUserId
-      }).catch((error) => {
-        console.warn('Could not load outcome_prompt_variables:', error?.message || error);
-        return null;
-      })
-      : null;
-  const configInput = body?.config && typeof body.config === 'object' ? body.config : {};
-  const config = sanitizeConfig({
-    ...configInput,
-    node_count: pickFirstPresent(configInput.node_count, promptVariablesRow?.node_count, DEFAULT_NODE_COUNT),
-    actions_per_node: pickFirstPresent(configInput.actions_per_node, promptVariablesRow?.actions_per_node, DEFAULT_ACTIONS_PER_NODE)
-  });
+  const config = sanitizeConfig(body.config);
   const actionSpaceOnly = Boolean(body.action_space_only || body.actionSpaceOnly);
-  const contextBudgetTokens = clampInt(
-    pickFirstPresent(
-      body.context_budget_tokens,
-      body.contextBudgetTokens,
-      modelSettings.context_budget_tokens,
-      modelSettings.contextBudgetTokens,
-      promptVariablesRow?.context_budget_tokens,
-      DEFAULT_OUTCOME_CONTEXT_BUDGET_TOKENS
-    ),
-    500,
-    12000
-  );
-  const requireFreshDigest = parseBoolean(
-    pickFirstPresent(
-      body.require_fresh_digest,
-      body.requireFreshDigest,
-      modelSettings.require_fresh_digest,
-      modelSettings.requireFreshDigest
-    ),
-    false
-  );
-  const maxDigestAgeSeconds = clampInt(
-    pickFirstPresent(
-      body.max_digest_age_seconds,
-      body.maxDigestAgeSeconds,
-      modelSettings.max_digest_age_seconds,
-      modelSettings.maxDigestAgeSeconds,
-      promptVariablesRow?.max_digest_age_seconds,
-      DEFAULT_OUTCOME_MAX_DIGEST_AGE_SECONDS
-    ),
-    60,
-    1209600
-  );
   const inferredInitialConditions = summarizeInitialConditionsFromPersonas(personaA, personaB, userInitialContext);
   const effectiveInitialConditions = sanitizeText(inferredInitialConditions, 1200);
   const fail = (status, stage, message, extra = {}) =>
@@ -2216,7 +1878,6 @@ module.exports = async function handler(req, res) {
   let modelUsed = '';
   let promptTemplateIdUsed = null;
   let promptTemplateVersionUsed = null;
-  let promptTemplateResponseId = null;
 
   const apiKey = resolveEnv(['OPENAI_API_KEY', 'OPENAI_API_KEY_LOCAL', 'OPENAI_KEY']);
   const modelOverride = sanitizeText(
@@ -2306,12 +1967,7 @@ module.exports = async function handler(req, res) {
   );
   const effectiveAdaptiveOutputTokenCap = Math.max(adaptiveOutputTokenCap, minAdaptiveOutputTokenCap);
   const maxOutputTokens = clampInt(
-    configuredMaxOutputTokens,
-    600,
-    MAX_OUTCOME_MAX_OUTPUT_TOKENS
-  );
-  const reservationOutputTokenEstimate = clampInt(
-    Math.min(maxOutputTokens, effectiveAdaptiveOutputTokenCap),
+    Math.min(configuredMaxOutputTokens, effectiveAdaptiveOutputTokenCap),
     600,
     MAX_OUTCOME_MAX_OUTPUT_TOKENS
   );
@@ -2399,225 +2055,18 @@ module.exports = async function handler(req, res) {
 
   let responseUsageSummary = { input_tokens: 0, output_tokens: 0, total_tokens: 0 };
   let responseTokenBudgetInfo = null;
-  let responseContextBuild = null;
-  let responsePromptVariables = null;
-  let responseDigestVersions = {};
-  let responsePackedInput = '';
 
   try {
     let failureStage = 'build_prompt_variables';
-    const personaASource = buildPersonaSourceForDigest(personaA);
-    const personaBSource = buildPersonaSourceForDigest(personaB);
-    const personaAId = sanitizeText(personaASource.id || '', 120);
-    const personaBId = sanitizeText(personaBSource.id || '', 120);
-    const digestTokenLimit = clampInt(
-      pickFirstPresent(
-        modelSettings.max_digest_tokens,
-        modelSettings.maxDigestTokens,
-        promptVariablesRow?.compaction_policy?.max_digest_tokens,
-        DEFAULT_DIGEST_TOKEN_LIMIT
-      ),
-      300,
-      6000
-    );
-
-    const resolvePersonaDigest = async ({
-      personaSource,
-      personaId,
-      personaLabel
-    }) => {
-      let effectivePersonaSource = personaSource;
-      const hasEmbeddedProfile =
-        personaSource?.profile &&
-        typeof personaSource.profile === 'object' &&
-        Object.keys(personaSource.profile).length > 0;
-      if (!hasEmbeddedProfile && supabaseUrl && supabaseServiceRoleKey && authenticatedUserId && personaId) {
-        const personaRow = await fetchPersonaRowForDigest({
-          supabaseUrl,
-          serviceRoleKey: supabaseServiceRoleKey,
-          userId: authenticatedUserId,
-          personaId
-        }).catch((error) => {
-          console.warn('Could not fetch persona row for digest:', error?.message || error);
-          return null;
-        });
-        if (personaRow && typeof personaRow === 'object') {
-          effectivePersonaSource = {
-            id: sanitizeText(personaRow.id || '', 120),
-            user_id: sanitizeText(personaRow.user_id || '', 120),
-            persona_key: sanitizeText(personaRow.persona_key || personaSource?.persona_key || '', 120),
-            name: sanitizeText(personaRow.name || personaLabel || personaSource?.name || 'Persona', 120),
-            profile: personaRow.profile && typeof personaRow.profile === 'object' ? personaRow.profile : {},
-            state: personaRow.state && typeof personaRow.state === 'object' ? personaRow.state : {},
-            traits: personaRow.traits && typeof personaRow.traits === 'object' ? personaRow.traits : {}
-          };
-        }
-      }
-      const sourceHash = buildPersonaSourceHash(effectivePersonaSource);
-      const existing = supabaseUrl && supabaseServiceRoleKey && authenticatedUserId && personaId
-        ? await fetchPersonaDigestRow({
-          supabaseUrl,
-          serviceRoleKey: supabaseServiceRoleKey,
-          userId: authenticatedUserId,
-          personaId
-        }).catch((error) => {
-          console.warn('Could not fetch persona digest:', error?.message || error);
-          return null;
-        })
-        : null;
-
-      const hasExistingDigest = Boolean(existing?.digest_json && typeof existing.digest_json === 'object');
-      const isHashMatch = hasExistingDigest && sanitizeText(existing?.source_hash || '', 180) === sourceHash;
-      const ageSeconds = hasExistingDigest ? parseIsoAgeSeconds(existing?.updated_at) : Number.POSITIVE_INFINITY;
-      const isReady = sanitizeText(existing?.status || '', 24) === 'ready';
-      const stale = !hasExistingDigest || !isReady || !isHashMatch || ageSeconds > maxDigestAgeSeconds;
-
-      if (stale && hasExistingDigest) {
-        await enqueuePersonaDigestJob({
-          supabaseUrl,
-          serviceRoleKey: supabaseServiceRoleKey,
-          userId: authenticatedUserId,
-          personaId,
-          reason: isHashMatch ? 'stale_digest_refresh' : 'source_hash_changed'
-        });
-      }
-
-      if (stale && hasExistingDigest && requireFreshDigest && ageSeconds > maxDigestAgeSeconds) {
-        const staleError = new Error(`Digest for ${personaLabel} is stale and freshness is required.`);
-        staleError.status = 409;
-        staleError.stage = 'context.digest_stale_requires_refresh';
-        staleError.retryAfterSeconds = 15;
-        throw staleError;
-      }
-
-      if (hasExistingDigest) {
-        return {
-          digestRow: existing,
-          promptDigest: getDigestForPrompt(existing, effectivePersonaSource),
-          source: stale ? 'stale_digest' : 'digest_cache'
-        };
-      }
-
-      const deterministic = buildDeterministicPersonaDigest(effectivePersonaSource);
-      let digestJson = deterministic.digest;
-      let digestSource = 'sync_deterministic';
-      if (shouldFallbackDigestToLlm({
-        digest: digestJson,
-        tokenEstimate: deterministic.token_estimate,
-        maxDigestTokens: digestTokenLimit
-      })) {
-        digestJson = await summarizePersonaDigestWithLlm({
-          apiKey,
-          personaSource: effectivePersonaSource,
-          maxDigestTokens: digestTokenLimit
-        });
-        digestSource = 'sync_llm_fallback';
-      }
-      const validation = validateDigestShape(digestJson);
-      if (!validation.ok) {
-        const digestShapeError = new Error(`Sync digest validation failed for ${personaLabel}: ${validation.reason}`);
-        digestShapeError.status = 500;
-        digestShapeError.stage = 'context.digest_sync_validation';
-        throw digestShapeError;
-      }
-      const seededRow = {
-        user_id: authenticatedUserId || null,
-        persona_id: personaId || null,
-        persona_key: sanitizeText(effectivePersonaSource.persona_key || '', 80),
-        digest_json: digestJson,
-        digest_version: Number(deterministic.digest_version || 1) || 1,
-        source_hash: sourceHash,
-        token_estimate: Math.max(1, Math.ceil(safeJson(digestJson).length / 4)),
-        status: 'stale',
-        last_error: null
-      };
-      if (supabaseUrl && supabaseServiceRoleKey && authenticatedUserId && personaId) {
-        await upsertPersonaDigestRow({
-          supabaseUrl,
-          serviceRoleKey: supabaseServiceRoleKey,
-          row: seededRow
-        });
-        await enqueuePersonaDigestJob({
-          supabaseUrl,
-          serviceRoleKey: supabaseServiceRoleKey,
-          userId: authenticatedUserId,
-          personaId,
-          reason: 'sync_seed_missing_digest'
-        });
-      }
-      return {
-        digestRow: seededRow,
-        promptDigest: getDigestForPrompt(seededRow, effectivePersonaSource),
-        source: digestSource
-      };
-    };
-
-    failureStage = 'context.digest_resolution';
-    const personaADigestResolved = await resolvePersonaDigest({
-      personaSource: personaASource,
-      personaId: personaAId,
-      personaLabel: sanitizeText(personaA?.label || personaA?.key || 'Persona A', 120)
-    });
-    const personaBDigestResolved = await resolvePersonaDigest({
-      personaSource: personaBSource,
-      personaId: personaBId,
-      personaLabel: sanitizeText(personaB?.label || personaB?.key || 'Persona B', 120)
-    });
-
-    failureStage = 'context.pack_context';
-    const packedContext = buildPackedOutcomeContext({
+    const promptVariables = buildPromptTemplateVariables({
       requestedOutcome,
       inferredInitialConditions: effectiveInitialConditions,
       additionalContext: userInitialContext,
-      personaADigest: personaADigestResolved.promptDigest,
-      personaBDigest: personaBDigestResolved.promptDigest,
-      contextBudgetTokens
-    });
-
-    const packedAdditionalContext = packedContext.sections
-      .map((section) => section.text)
-      .join(' ')
-      .slice(0, 1600);
-    const promptVariables = buildPromptTemplateVariables({
-      requestedOutcome,
-      inferredInitialConditions: packedContext.input,
-      additionalContext: packedAdditionalContext,
       personaA,
       personaB,
-      personaADigest: personaADigestResolved.promptDigest,
-      personaBDigest: personaBDigestResolved.promptDigest,
       nodeCount: config.node_count,
       actionsPerNode: config.actions_per_node
     });
-    const inputText = sanitizeText(packedContext.input, 12000);
-    if (!inputText) {
-      return fail(502, 'context.pack_context', 'Packed context input is empty.');
-    }
-
-    responseContextBuild = {
-      source:
-        personaADigestResolved.source === 'sync_llm_fallback' ||
-        personaBDigestResolved.source === 'sync_llm_fallback'
-          ? 'digest_plus_secondary_summarizer'
-          : 'digest_only',
-      input_tokens_estimate: packedContext.input_tokens_estimate,
-      digest_versions: {
-        persona_a: Number(personaADigestResolved?.digestRow?.digest_version || 0) || null,
-        persona_b: Number(personaBDigestResolved?.digestRow?.digest_version || 0) || null
-      },
-      sections: Array.isArray(packedContext.sections) ? packedContext.sections : [],
-      section_token_estimates:
-        packedContext.section_token_estimates && typeof packedContext.section_token_estimates === 'object'
-          ? packedContext.section_token_estimates
-          : {},
-      truncation_applied: Boolean(packedContext.truncation_applied),
-      context_budget_tokens: contextBudgetTokens,
-      max_digest_age_seconds: maxDigestAgeSeconds,
-      require_fresh_digest: requireFreshDigest
-    };
-    responsePromptVariables = promptVariables;
-    responseDigestVersions = responseContextBuild.digest_versions;
-    responsePackedInput = inputText;
 
     let generatedText = '';
     let generationMode = '';
@@ -2635,11 +2084,10 @@ module.exports = async function handler(req, res) {
       try {
         const estimatedInputTokens =
           estimateTokenCountFromJson(promptVariables) +
-          estimateTokenCountFromText(responsePackedInput) +
           220;
         const estimatedRequestTokens = Math.max(
           700,
-          clampInt(estimatedInputTokens + reservationOutputTokenEstimate, 700, 2_000_000)
+          clampInt(estimatedInputTokens + maxOutputTokens, 700, 2_000_000)
         );
 
         if (supabaseUrl && supabaseServiceRoleKey) {
@@ -2658,7 +2106,6 @@ module.exports = async function handler(req, res) {
             estimated_tokens: estimatedRequestTokens,
             limit_tokens: Math.max(0, Math.round(toFiniteNumber(reservation?.limit_tokens, outcomeTpmLimit))),
             remaining_tokens_after_reservation: Math.max(0, Math.round(toFiniteNumber(reservation?.remaining_tokens, 0))),
-            reservation_output_tokens: Math.max(0, Math.round(toFiniteNumber(reservationOutputTokenEstimate, 0))),
             requested_max_output_tokens: Math.max(0, Math.round(toFiniteNumber(maxOutputTokens, 0))),
             queued_wait_ms: Math.max(0, Math.round(toFiniteNumber(reservation?.wait_ms, 0)))
           };
@@ -2673,7 +2120,6 @@ module.exports = async function handler(req, res) {
           promptVariables,
           model: modelOverride,
           options: {
-            inputText: responsePackedInput,
             textFormat: 'text',
             maxOutputTokens,
             timeoutMs: modelTimeoutMs,
@@ -2694,7 +2140,6 @@ module.exports = async function handler(req, res) {
           }
         });
         promptTemplateRaw = templated?.raw || null;
-        promptTemplateResponseId = sanitizeText(promptTemplateRaw?.id || '', 80) || null;
         generatedText = String(templated?.text || '').trim();
         usageSummary = templated?.usage && typeof templated.usage === 'object'
           ? templated.usage
@@ -2772,14 +2217,12 @@ module.exports = async function handler(req, res) {
           ? promptTemplateError.rateLimit
           : null,
         openai_request_id: sanitizeText(promptTemplateError?.openaiRequestId || '', 120) || null,
-        context_build: responseContextBuild,
         token_budget: responseTokenBudgetInfo,
         output_token_policy: {
           configured_max_output_tokens: configuredMaxOutputTokens,
           adaptive_cap: adaptiveOutputTokenCap,
           adaptive_floor: minAdaptiveOutputTokenCap,
           effective_adaptive_cap: effectiveAdaptiveOutputTokenCap,
-          reservation_output_estimate: reservationOutputTokenEstimate,
           applied_max_output_tokens: maxOutputTokens
         }
       });
@@ -2793,7 +2236,6 @@ module.exports = async function handler(req, res) {
       return fail(502, 'openai.generation_empty', reason, {
         prompt_template_id: templateAttempted ? promptTemplateId : null,
         prompt_template_version: templateAttempted ? (promptTemplateVersion || null) : null,
-        context_build: responseContextBuild,
         token_budget: responseTokenBudgetInfo
       });
     }
@@ -2804,7 +2246,6 @@ module.exports = async function handler(req, res) {
       if (!parsed || typeof parsed !== 'object') {
         const reason = 'OpenAI output is not valid JSON object.';
         return fail(502, failureStage, reason, {
-          context_build: responseContextBuild,
           output_excerpt: sanitizeText(generatedText, 500)
         });
       }
@@ -2818,7 +2259,6 @@ module.exports = async function handler(req, res) {
         if (!rawQualityGates.length) {
           const reason = 'No chain_quality_gates were found in OpenAI output.';
           return fail(502, failureStage, reason, {
-            context_build: responseContextBuild,
             output_excerpt: sanitizeText(generatedText, 500)
           });
         }
@@ -2830,7 +2270,6 @@ module.exports = async function handler(req, res) {
         if (!gateShapeValidation.ok) {
           const reason = sanitizeText(gateShapeValidation.reason, 320);
           return fail(502, 'openai.output_quality_gates_validation', reason, {
-            context_build: responseContextBuild,
             output_excerpt: sanitizeText(generatedText, 500)
           });
         }
@@ -2851,7 +2290,6 @@ module.exports = async function handler(req, res) {
         if (!rawNodes.length) {
           const reason = 'No nodes were found in OpenAI output.';
           return fail(502, failureStage, reason, {
-            context_build: responseContextBuild,
             output_excerpt: sanitizeText(generatedText, 500)
           });
         }
@@ -2866,7 +2304,6 @@ module.exports = async function handler(req, res) {
           if (!shapeValidation.ok) {
             const reason = sanitizeText(shapeValidation.reason, 320);
             return fail(502, failureStage, reason, {
-              context_build: responseContextBuild,
               output_excerpt: sanitizeText(generatedText, 500)
             });
           }
@@ -2900,24 +2337,18 @@ module.exports = async function handler(req, res) {
       Number(error?.rateLimitResetRequestsSeconds || 0) || 0,
       Number(error?.rateLimitResetTokensSeconds || 0) || 0
     );
-    const errorStage = sanitizeText(error?.stage || '', 120) || 'openai.unhandled_exception';
-    const mappedStatus = Number(error?.status) || 0;
-    const statusCode = mappedStatus >= 400 && mappedStatus <= 599
-      ? mappedStatus
-      : (retryAfterSeconds || rateLimitResetSeconds ? 429 : 502);
-    return fail(statusCode, errorStage, reason, {
+    const statusCode = Number(error?.status) === 429 || retryAfterSeconds || rateLimitResetSeconds ? 429 : 502;
+    return fail(statusCode, 'openai.unhandled_exception', reason, {
       retry_after_seconds: retryAfterSeconds || null,
       rate_limit_reset_seconds: rateLimitResetSeconds || null,
       rate_limit: error?.rateLimit && typeof error.rateLimit === 'object' ? error.rateLimit : null,
       openai_request_id: sanitizeText(error?.openaiRequestId || '', 120) || null,
-      context_build: responseContextBuild,
       token_budget: responseTokenBudgetInfo,
       output_token_policy: {
         configured_max_output_tokens: configuredMaxOutputTokens,
         adaptive_cap: adaptiveOutputTokenCap,
         adaptive_floor: minAdaptiveOutputTokenCap,
         effective_adaptive_cap: effectiveAdaptiveOutputTokenCap,
-        reservation_output_estimate: reservationOutputTokenEstimate,
         applied_max_output_tokens: maxOutputTokens
       }
     });
@@ -2940,47 +2371,6 @@ module.exports = async function handler(req, res) {
   );
   const chainActionMatrix = buildChainActionMatrix(nodes, config.actions_per_node);
   const bestChain = chainCandidates[0] || null;
-  const personaARecordId = sanitizeText(extractPersonaDbRecord(personaA)?.id || personaA?.id || '', 120) || null;
-  const personaBRecordId = sanitizeText(extractPersonaDbRecord(personaB)?.id || personaB?.id || '', 120) || null;
-  await storeOutcomeContextRun({
-    supabaseUrl,
-    serviceRoleKey: supabaseServiceRoleKey,
-    row: {
-      request_id: internalRequestId,
-      user_id: authenticatedUserId || null,
-      persona_a_id: personaARecordId,
-      persona_b_id: personaBRecordId,
-      requested_outcome: sanitizeText(requestedOutcome, 500),
-      packed_context_json: {
-        input: responsePackedInput,
-        sections: Array.isArray(responseContextBuild?.sections) ? responseContextBuild.sections : [],
-        source: sanitizeText(responseContextBuild?.source || 'digest_only', 80)
-      },
-      section_token_estimates:
-        responseContextBuild?.section_token_estimates && typeof responseContextBuild.section_token_estimates === 'object'
-          ? responseContextBuild.section_token_estimates
-          : {},
-      final_input_token_estimate: Math.max(
-        0,
-        Math.round(
-          toFiniteNumber(
-            responseContextBuild?.input_tokens_estimate,
-            estimateTokenCountFromText(responsePackedInput)
-          )
-        )
-      ),
-      prompt_variables_used:
-        responsePromptVariables && typeof responsePromptVariables === 'object'
-          ? responsePromptVariables
-          : {},
-      digest_versions_used:
-        responseDigestVersions && typeof responseDigestVersions === 'object'
-          ? responseDigestVersions
-          : {},
-      model: sanitizeText(modelUsed || modelOverride || '', 120) || null,
-      response_id: promptTemplateResponseId
-    }
-  });
 
   if (actionSpaceOnly) {
     return res.status(200).json({
@@ -3015,7 +2405,6 @@ module.exports = async function handler(req, res) {
       model_used: modelUsed || null,
       prompt_template_id_used: promptTemplateIdUsed,
       prompt_template_version_used: promptTemplateVersionUsed,
-      context_build: responseContextBuild,
       usage: responseUsageSummary,
       token_budget: responseTokenBudgetInfo,
       output_token_policy: {
@@ -3023,7 +2412,6 @@ module.exports = async function handler(req, res) {
         adaptive_cap: adaptiveOutputTokenCap,
         adaptive_floor: minAdaptiveOutputTokenCap,
         effective_adaptive_cap: effectiveAdaptiveOutputTokenCap,
-        reservation_output_estimate: reservationOutputTokenEstimate,
         applied_max_output_tokens: maxOutputTokens
       }
     });
@@ -3074,7 +2462,6 @@ module.exports = async function handler(req, res) {
     model_used: modelUsed || null,
     prompt_template_id_used: promptTemplateIdUsed,
     prompt_template_version_used: promptTemplateVersionUsed,
-    context_build: responseContextBuild,
     usage: responseUsageSummary,
     token_budget: responseTokenBudgetInfo,
     output_token_policy: {
@@ -3082,7 +2469,6 @@ module.exports = async function handler(req, res) {
       adaptive_cap: adaptiveOutputTokenCap,
       adaptive_floor: minAdaptiveOutputTokenCap,
       effective_adaptive_cap: effectiveAdaptiveOutputTokenCap,
-      reservation_output_estimate: reservationOutputTokenEstimate,
       applied_max_output_tokens: maxOutputTokens
     }
   };

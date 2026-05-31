@@ -2038,36 +2038,29 @@ function sanitizeOutcomeModelSettings(settings) {
 }
 
 function buildOutcomePayload(optionA, optionB, signatureA, signatureB) {
-  const buildPersonaRequest = (option, signature) => {
-    const row = option?.data && typeof option.data === 'object' ? option.data : {};
-    const personaId = String(row.id || '').trim();
-    const payload = {
-      key: option.key,
-      label: option.label,
-      signature,
-      db_record: {
-        id: personaId || null,
-        user_id: String(row.user_id || '').trim() || null,
-        persona_key: String(row.persona_key || option.key || '').trim() || null,
-        name: String(row.name || option.label || '').trim() || null
-      }
-    };
-    if (!personaId) {
-      const profile = getProfilePayload(option);
-      if (profile && typeof profile === 'object' && Object.keys(profile).length) {
-        payload.profile = profile;
-      }
-    }
-    return payload;
-  };
-
   const payload = {
     initial_conditions: String(outcomeInitialConditionsEl?.value || '').trim(),
     requested_outcome: String(outcomeRequestedOutcomeEl?.value || '').trim(),
     require_prompt_template: true,
-    personaA: buildPersonaRequest(optionA, signatureA),
-    personaB: buildPersonaRequest(optionB, signatureB),
-    action_space_only: true
+    personaA: {
+      key: optionA.key,
+      label: optionA.label,
+      signature: signatureA,
+      profile: getProfilePayload(optionA),
+      db_record: optionA?.data && typeof optionA.data === 'object' ? optionA.data : {}
+    },
+    personaB: {
+      key: optionB.key,
+      label: optionB.label,
+      signature: signatureB,
+      profile: getProfilePayload(optionB),
+      db_record: optionB?.data && typeof optionB.data === 'object' ? optionB.data : {}
+    },
+    action_space_only: true,
+    config: {
+      node_count: 10,
+      actions_per_node: 5
+    }
   };
 
   const modelSettings = sanitizeOutcomeModelSettings(getOutcomeModelSettingsFromProfile());
