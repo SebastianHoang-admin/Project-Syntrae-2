@@ -12,8 +12,6 @@ const FIRST_PERSON_BIO_RE =
 const MAX_TEST_HISTORY_ITEMS = 8;
 const COMPATIBILITY_INTENT_RE =
   /\b(compatib(?:ility)?|fitness\s*test|fit\s*score|match\s*score|how\s+well\s+.*\b(match|fit|align))\b/i;
-const OUTCOME_REPORT_INTENT_RE =
-  /\b(outcomes?\s*test|outcome\s*report|best\s*pathway|pathway\s*result|latest\s*outcome\s*result)\b/i;
 
 const CRITICAL_FIELD_ID_TO_KEY = Object.freeze({
   L6_S1_F1: 'physical_incapability',
@@ -162,51 +160,18 @@ function sanitizeOutcomeReport(report, activePersonaKey) {
       report.probabilityPercent ??
       report.success_probability_percent ??
       report.successProbabilityPercent ??
-      report.percent ??
-      report?.best_pathway?.empirical_success_percent
+      report.percent
   );
-  const requestedOutcome = sanitizeText(
-    report.requested_outcome || report.requestedOutcome || report.outcome || '',
-    180
-  );
-  const bestPathway = report?.best_pathway && typeof report.best_pathway === 'object'
-    ? report.best_pathway
-    : null;
   const outcomes = (Array.isArray(report.outcomes) ? report.outcomes : [])
     .map((item) => sanitizeOutcomeItem(item))
     .filter(Boolean)
     .slice(0, 10);
-  if (!outcomes.length && requestedOutcome && singleProbability !== null) {
-    outcomes.push({
-      label: requestedOutcome,
-      probability_percent: singleProbability
-    });
-  }
-  const topPathways = (Array.isArray(report?.top_pathways) ? report.top_pathways : [])
-    .filter((item) => item && typeof item === 'object')
-    .slice(0, 3)
-    .map((item) => ({
-      rank: Number(item.rank) || null,
-      empirical_success_percent: toPercent(item.empirical_success_percent),
-      expected_success_percent: toPercent(item.expected_success_percent),
-      first_action: sanitizeText(item?.actions?.[0]?.action || '', 140)
-    }));
-
   return {
     report_id: sanitizeText(report.report_id || '', 64),
     generated_at: sanitizeText(report.generatedAt || report.generated_at || report.comparedAt || '', 40),
     summary: sanitizeText(report.summary || report.title || report.note || '', 240),
-    requested_outcome: requestedOutcome,
     probability_percent: singleProbability,
-    outcomes,
-    top_pathways: topPathways,
-    best_pathway: bestPathway
-      ? {
-          empirical_success_percent: toPercent(bestPathway.empirical_success_percent),
-          expected_success_percent: toPercent(bestPathway.expected_success_percent),
-          first_action: sanitizeText(bestPathway?.actions?.[0]?.action || '', 140)
-        }
-      : null
+    outcomes
   };
 }
 
@@ -600,12 +565,6 @@ function hasCompatibilityIntent(text) {
   return COMPATIBILITY_INTENT_RE.test(value);
 }
 
-function hasOutcomeReportIntent(text) {
-  const value = String(text || '').trim();
-  if (!value) return false;
-  return OUTCOME_REPORT_INTENT_RE.test(value);
-}
-
 function buildNoFitnessResultReply() {
   return 'I don\'t have a Fitness Test result for this persona yet. Go to "Insight Lab" and hit "Run Fitness Test", then ask again.';
 }
@@ -630,29 +589,6 @@ function buildCompatibilityReplyFromFitnessReport({ personaName, fitnessReport }
   const line1 = `Compatibility with ${safePersonaName}: ${compatibility}%.`;
   const line2 = `Top match: ${matchAxis || 'not available yet'}. Top mismatch: ${mismatchAxis || 'not available yet'}.`;
   const line3 = 'To refresh this score, go to "Insight Lab" and hit "Run Fitness Test".';
-  return `${line1} ${line2} ${line3}`;
-}
-
-function buildNoOutcomeResultReply() {
-  return 'I don\'t have an Outcomes Test result for this persona yet. Go to "Insight Lab", complete the outcome context, and hit "Run Outcomes Test", then ask again.';
-}
-
-function buildOutcomeReplyFromReport({ outcomeReport }) {
-  const report = outcomeReport && typeof outcomeReport === 'object' ? outcomeReport : {};
-  const requestedOutcome = sanitizeText(report.requested_outcome || report?.outcomes?.[0]?.label || 'latest requested outcome', 140);
-  const bestEmpirical = toPercent(
-    report?.best_pathway?.empirical_success_percent ??
-      report?.probability_percent ??
-      report?.outcomes?.[0]?.probability_percent
-  );
-  if (bestEmpirical === null) return buildNoOutcomeResultReply();
-
-  const bestPathway = report?.top_pathways?.[0] || report?.best_pathway || null;
-  const firstAction = sanitizeText(bestPathway?.first_action || '', 120);
-
-  const line1 = `Latest Outcomes Test for "${requestedOutcome}": ${bestEmpirical}% simulated success.`;
-  const line2 = firstAction ? `First action in the top pathway: ${firstAction}.` : 'Top pathway is available in your Outcomes Test report.';
-  const line3 = 'To recompute with new context, go to "Insight Lab" and hit "Run Outcomes Test".';
   return `${line1} ${line2} ${line3}`;
 }
 
@@ -758,14 +694,6 @@ module.exports = async function handler(req, res) {
           fitnessReport: latestFitness
         })
       : buildNoFitnessResultReply();
-    return res.status(200).json({ reply, usage: null });
-  }
-
-  if (hasOutcomeReportIntent(latestUserMessage)) {
-    const latestOutcome = personaTestContext?.outcomes?.latest || null;
-    const reply = latestOutcome
-      ? buildOutcomeReplyFromReport({ outcomeReport: latestOutcome })
-      : buildNoOutcomeResultReply();
     return res.status(200).json({ reply, usage: null });
   }
 
