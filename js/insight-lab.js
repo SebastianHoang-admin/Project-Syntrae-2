@@ -1143,10 +1143,11 @@ async function runOutcomeWithProgress(taskFn) {
   openOutcomeRunOverlay();
   let progress = 0;
   const stageFromProgress = (value) => {
-    if (value < 24) return 'Reading persona context…';
-    if (value < 56) return 'Generating 10-node × 5-action matrix…';
-    if (value < 86) return 'Scoring and validating action candidates…';
-    return 'Finalizing action-space report…';
+    if (value < 18) return 'Building action-space from context…';
+    if (value < 42) return 'Generating 10-node × 5-action matrix…';
+    if (value < 68) return 'Evolving pathways across action genes…';
+    if (value < 90) return 'Simulating pathway success rates…';
+    return 'Finalizing outcome report…';
   };
 
   const timer = setInterval(() => {
@@ -1174,11 +1175,17 @@ async function runOutcomeWithProgress(taskFn) {
   }
 }
 
-function normalizeOutcomeNodeList(value, limit = 10) {
+function normalizeOutcomePathwayList(value, limit = 3) {
   if (!Array.isArray(value)) return [];
   return value
     .filter((item) => item && typeof item === 'object')
     .slice(0, limit);
+}
+
+function getNumericPercent(value, fallback = 0) {
+  const numeric = Number(value);
+  if (!Number.isFinite(numeric)) return fallback;
+  return Math.max(0, Math.min(100, numeric));
 }
 
 function renderOutcomeResults(report) {
@@ -1189,36 +1196,45 @@ function renderOutcomeResults(report) {
     return;
   }
 
+  const best = report.best_pathway && typeof report.best_pathway === 'object'
+    ? report.best_pathway
+    : null;
   const personaALabel = String(report?.persona_a?.label || 'Persona A').trim();
   const personaBLabel = String(report?.persona_b?.label || 'Persona B').trim();
   const requestedOutcome = String(report?.requested_outcome || '').trim();
-  const nodeCount = Number(report?.config?.node_count || 10) || 10;
-  const actionsPerNode = Number(report?.config?.actions_per_node || 5) || 5;
+  const bestPercent = getNumericPercent(best?.empirical_success_percent, 0).toFixed(2);
 
   outcomeSummaryTitleEl.textContent = `${personaALabel} → ${personaBLabel}`;
   outcomeSummaryTextEl.textContent =
-    `${requestedOutcome ? `"${requestedOutcome}"` : 'Requested outcome'} · Generated ${nodeCount} nodes × ${actionsPerNode} actions`;
+    `${requestedOutcome ? `"${requestedOutcome}"` : 'Requested outcome'} · Best simulated success: ${bestPercent}%`;
 
-  const nodes = normalizeOutcomeNodeList(report?.action_space, 10);
-  outcomePathwayGridEl.innerHTML = nodes
-    .map((node) => {
-      const nodeIndex = Number(node?.node_index || 0) || 0;
-      const nodeTitle = escapeHtml(node?.node_title || `Node ${nodeIndex || '?'}`);
-      const actions = Array.isArray(node?.actions) ? node.actions : [];
+  const pathways = normalizeOutcomePathwayList(report?.top_pathways, 3);
+  outcomePathwayGridEl.innerHTML = pathways
+    .map((pathway) => {
+      const rank = Number(pathway?.rank || 0) || 0;
+      const empirical = getNumericPercent(pathway?.empirical_success_percent, 0).toFixed(2);
+      const expected = getNumericPercent(pathway?.expected_success_percent, 0).toFixed(2);
+      const risk = getNumericPercent(pathway?.average_risk_percent, 0).toFixed(1);
+      const ethics = getNumericPercent(pathway?.average_ethics_percent, 0).toFixed(1);
+      const actions = Array.isArray(pathway?.actions) ? pathway.actions : [];
       const actionRows = actions
-        .slice(0, 5)
+        .slice(0, 10)
         .map((action) => {
+          const nodeIndex = Number(action?.node_index || 0) || 0;
+          const nodeTitle = escapeHtml(action?.node_title || `Node ${nodeIndex}`);
           const actionText = escapeHtml(action?.action || '');
-          const rationaleText = escapeHtml(action?.rationale || '');
-          return `<div><strong>${escapeHtml(action?.id || '')}</strong>: ${actionText}${rationaleText ? `<br><span class="kv">${rationaleText}</span>` : ''}</div>`;
+          return `<div><strong>N${nodeIndex} · ${nodeTitle}:</strong> ${actionText}</div>`;
         })
         .join('');
 
       return `
         <article class="pathway-card">
-          <h4>N${nodeIndex} · ${nodeTitle}</h4>
+          <h4>Pathway ${rank}</h4>
           <div class="pathway-meta">
-            <span>${actions.length} actions</span>
+            <span>Empirical ${empirical}%</span>
+            <span>Expected ${expected}%</span>
+            <span>Risk ${risk}%</span>
+            <span>Ethics ${ethics}%</span>
           </div>
           <div class="pathway-actions">${actionRows}</div>
         </article>
@@ -1275,10 +1291,15 @@ function buildOutcomePayload(optionA, optionB, signatureA, signatureB) {
       signature: signatureB,
       profile: getProfilePayload(optionB)
     },
-    action_space_only: true,
     config: {
       node_count: 10,
-      actions_per_node: 5
+      actions_per_node: 5,
+      population_size: 140,
+      generations: 90,
+      mutation_rate: 0.14,
+      elite_count: 8,
+      top_pathways: 5,
+      simulation_reps: 1000
     }
   };
 }
@@ -1487,7 +1508,7 @@ if (outcomeRunBtn) {
       await persistOutcomeReportToAccount(report);
       renderOutcomeResults(report);
       setOutcomeReadyState(true);
-      setOutcomeStatus('Action-space generation completed and saved to account storage.', 'success');
+      setOutcomeStatus('Outcomes Test completed and saved to account storage.', 'success');
     } catch (error) {
       setOutcomeReadyState(false);
       setOutcomeStatus(`Outcomes Test failed: ${error?.message || 'Unexpected error'}`, 'error');
