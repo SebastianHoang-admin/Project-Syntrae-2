@@ -969,34 +969,9 @@ function normalizeScore(raw, fallback) {
   return clampInt(fallback, 0, 100);
 }
 
-function computeFallbackScores({
-  slotMetrics,
-  nodeIndex,
-  actionIndex
-}) {
-  const logicality = clamp(Number(slotMetrics?.logicality_percent ?? 72), 0, 100);
-  const practicality = clamp(Number(slotMetrics?.practicality_percent ?? 70), 0, 100);
-  const ethicsLegalConsent = clamp(Number(slotMetrics?.ethics_legal_consent_percent ?? 84), 0, 100);
-  const overallPass = clamp(Number(slotMetrics?.overall_pass_percent ?? 74), 0, 100);
-
-  return {
-    fit: clampInt((logicality * 0.42) + (practicality * 0.28) + (overallPass * 0.3), 0, 100),
-    feasibility: clampInt((practicality * 0.78) + (logicality * 0.22), 0, 100),
-    ethics: clampInt(ethicsLegalConsent, 0, 100),
-    risk: clampInt(100 - ((overallPass * 0.72) + (ethicsLegalConsent * 0.28)), 5, 95),
-    momentum: clampInt((logicality * 0.55) + (overallPass * 0.45), 0, 100),
-    intensity: clampInt(24 + nodeIndex * 5 + actionIndex * 3, 0, 100)
-  };
-}
-
-function normalizeAction(rawAction, nodeIndex, actionIndex, slotMetrics) {
+function normalizeAction(rawAction, nodeIndex, actionIndex) {
   const raw = rawAction && typeof rawAction === 'object' ? rawAction : {};
   const scoreSource = raw.scores && typeof raw.scores === 'object' ? raw.scores : raw;
-  const fallbackScores = computeFallbackScores({
-    slotMetrics,
-    nodeIndex,
-    actionIndex
-  });
 
   return {
     id: sanitizeText(raw.id || `N${nodeIndex + 1}A${actionIndex + 1}`, 20),
@@ -1015,23 +990,14 @@ function normalizeAction(rawAction, nodeIndex, actionIndex, slotMetrics) {
       180
     ),
     scores: {
-      fit: normalizeScore(scoreSource.fit, fallbackScores.fit),
-      feasibility: normalizeScore(scoreSource.feasibility, fallbackScores.feasibility),
-      ethics: normalizeScore(scoreSource.ethics, fallbackScores.ethics),
-      risk: normalizeScore(scoreSource.risk, fallbackScores.risk),
-      momentum: normalizeScore(scoreSource.momentum, fallbackScores.momentum),
-      intensity: normalizeScore(scoreSource.intensity, fallbackScores.intensity)
+      fit: normalizeScore(scoreSource.fit, 0),
+      feasibility: normalizeScore(scoreSource.feasibility, 0),
+      ethics: normalizeScore(scoreSource.ethics, 0),
+      risk: normalizeScore(scoreSource.risk, 0),
+      momentum: normalizeScore(scoreSource.momentum, 0),
+      intensity: normalizeScore(scoreSource.intensity, 0)
     }
   };
-}
-
-function parseNodeIndexFromActionId(actionId) {
-  const text = String(actionId || '').trim();
-  const match = text.match(/^N(\d+)A(\d+)$/i);
-  if (!match) return null;
-  const nodeIndex = Number(match[1]);
-  if (!Number.isFinite(nodeIndex) || nodeIndex <= 0) return null;
-  return nodeIndex;
 }
 
 function resolveRawNodeAtIndex(rawNodes, nodeIndex) {
@@ -1062,70 +1028,20 @@ function validateGeneratedActionSpaceShape(rawNodes, nodeCount, actionsPerNode) 
       if (!rawAction || typeof rawAction !== 'object') {
         return { ok: false, reason: `Node ${nodeIndex + 1} action ${actionIndex + 1} is missing.` };
       }
-      const actionId = sanitizeText(rawAction.id || `N${nodeIndex + 1}A${actionIndex + 1}`, 20);
-      if (!actionId) {
-        return { ok: false, reason: `Node ${nodeIndex + 1} action ${actionIndex + 1} is missing id.` };
-      }
       const actionText = sanitizeText(rawAction.action || rawAction.name || rawAction.title || '', 180);
       if (!actionText) {
         return { ok: false, reason: `Node ${nodeIndex + 1} action ${actionIndex + 1} has no action text.` };
       }
-      const slot = Number(rawAction.gene_slot ?? rawAction.geneSlot ?? actionIndex + 1);
-      if (!Number.isFinite(slot)) {
-        return { ok: false, reason: `Node ${nodeIndex + 1} action ${actionIndex + 1} has invalid gene_slot.` };
-      }
-    }
-  }
-  return { ok: true };
-}
-
-function extractRawQualityGatesFromGeneratedPayload(parsed, actionsPerNode) {
-  const direct = toArray(parsed?.chain_quality_gates);
-  if (direct.length) return direct.slice(0, actionsPerNode);
-  const fallback = toArray(parsed?.quality_gates);
-  return fallback.slice(0, actionsPerNode);
-}
-
-function validateGeneratedQualityGatesShape(rawQualityGates, nodeCount, actionsPerNode) {
-  const gates = Array.isArray(rawQualityGates) ? rawQualityGates : [];
-  if (!gates.length) {
-    return { ok: false, reason: 'OpenAI output had no chain_quality_gates array.' };
-  }
-
-  for (let slot = 1; slot <= actionsPerNode; slot += 1) {
-    const gate = gates.find((item) => Number(item?.gene_slot) === slot) || gates[slot - 1];
-    if (!gate || typeof gate !== 'object') {
-      return { ok: false, reason: `Missing chain_quality_gates entry for gene_slot ${slot}.` };
-    }
-    const transitions = Array.isArray(gate.transitions) ? gate.transitions : [];
-    if (transitions.length < Math.max(1, nodeCount - 1)) {
-      return {
-        ok: false,
-        reason: `chain_quality_gates gene_slot ${slot} has ${transitions.length} transitions; expected at least ${Math.max(1, nodeCount - 1)}.`
-      };
-    }
-    for (let i = 0; i < Math.max(1, nodeCount - 1); i += 1) {
-      const transition = transitions[i];
-      if (!transition || typeof transition !== 'object') {
-        return { ok: false, reason: `chain_quality_gates gene_slot ${slot} transition ${i + 1} is missing.` };
-      }
-      const from = sanitizeText(transition.from || '', 24);
-      const to = sanitizeText(transition.to || '', 24);
-      if (!from || !to) {
-        return { ok: false, reason: `chain_quality_gates gene_slot ${slot} transition ${i + 1} missing "from" or "to".` };
-      }
-      const requiredFlags = [
-        'logicality_pass',
-        'practicality_pass',
-        'ethics_pass',
-        'legality_pass',
-        'consent_pass',
-        'overall_pass'
-      ];
-      for (let j = 0; j < requiredFlags.length; j += 1) {
-        const key = requiredFlags[j];
-        if (typeof transition[key] !== 'boolean') {
-          return { ok: false, reason: `chain_quality_gates gene_slot ${slot} transition ${i + 1} missing boolean "${key}".` };
+      const scores = rawAction?.scores && typeof rawAction.scores === 'object' ? rawAction.scores : rawAction;
+      const requiredScores = ['fit', 'feasibility', 'ethics', 'risk', 'momentum', 'intensity'];
+      for (let i = 0; i < requiredScores.length; i += 1) {
+        const key = requiredScores[i];
+        const value = Number(scores?.[key]);
+        if (!Number.isFinite(value)) {
+          return {
+            ok: false,
+            reason: `Node ${nodeIndex + 1} action ${actionIndex + 1} is missing numeric score "${key}".`
+          };
         }
       }
     }
@@ -1133,62 +1049,7 @@ function validateGeneratedQualityGatesShape(rawQualityGates, nodeCount, actionsP
   return { ok: true };
 }
 
-function normalizeQualityGates(rawQualityGates, nodeCount, actionsPerNode) {
-  const gates = Array.isArray(rawQualityGates) ? rawQualityGates : [];
-  const normalized = [];
-
-  for (let slot = 1; slot <= actionsPerNode; slot += 1) {
-    const gate = gates.find((item) => Number(item?.gene_slot) === slot) || gates[slot - 1] || {};
-    const transitions = Array.isArray(gate.transitions) ? gate.transitions : [];
-    const rows = [];
-    for (let i = 0; i < Math.max(1, nodeCount - 1); i += 1) {
-      const transition = transitions[i] || {};
-      rows.push({
-        from: sanitizeText(transition.from || `N${i + 1}A${slot}`, 24),
-        to: sanitizeText(transition.to || `N${i + 2}A${slot}`, 24),
-        logicality_pass: parseBoolean(transition.logicality_pass, false),
-        practicality_pass: parseBoolean(transition.practicality_pass, false),
-        ethics_pass: parseBoolean(transition.ethics_pass, false),
-        legality_pass: parseBoolean(transition.legality_pass, false),
-        consent_pass: parseBoolean(transition.consent_pass, false),
-        overall_pass: parseBoolean(transition.overall_pass, false),
-        note: sanitizeText(transition.note || '', 260)
-      });
-    }
-    normalized.push({
-      gene_slot: slot,
-      transitions: rows
-    });
-  }
-
-  return normalized;
-}
-
-function buildQualityGateSlotMetrics(rawQualityGates) {
-  const map = new Map();
-  const gates = Array.isArray(rawQualityGates) ? rawQualityGates : [];
-  gates.forEach((gate, index) => {
-    const slot = clampInt(gate?.gene_slot ?? index + 1, 1, DEFAULT_ACTIONS_PER_NODE);
-    const transitions = Array.isArray(gate?.transitions) ? gate.transitions : [];
-    if (!transitions.length) return;
-    const asPct = (value) => (parseBoolean(value, false) ? 100 : 0);
-    const logicality = average(transitions.map((t) => asPct(t?.logicality_pass)));
-    const practicality = average(transitions.map((t) => asPct(t?.practicality_pass)));
-    const ethics = average(transitions.map((t) => asPct(t?.ethics_pass)));
-    const legality = average(transitions.map((t) => asPct(t?.legality_pass)));
-    const consent = average(transitions.map((t) => asPct(t?.consent_pass)));
-    const overall = average(transitions.map((t) => asPct(t?.overall_pass)));
-    map.set(slot, {
-      logicality_percent: logicality,
-      practicality_percent: practicality,
-      ethics_legal_consent_percent: average([ethics, legality, consent]),
-      overall_pass_percent: overall
-    });
-  });
-  return map;
-}
-
-function normalizeActionSpace(rawNodes, nodeCount, actionsPerNode, qualityGateSlotMetrics) {
+function normalizeActionSpace(rawNodes, nodeCount, actionsPerNode) {
   const sourceNodes = Array.isArray(rawNodes) ? rawNodes : [];
   const normalized = [];
 
@@ -1199,12 +1060,7 @@ function normalizeActionSpace(rawNodes, nodeCount, actionsPerNode, qualityGateSl
 
     for (let actionIndex = 0; actionIndex < actionsPerNode; actionIndex += 1) {
       const rawAction = rawActions[actionIndex];
-      const rawSlot = Number(rawAction?.gene_slot ?? rawAction?.geneSlot ?? actionIndex + 1);
-      const slot = Number.isFinite(rawSlot) ? clampInt(rawSlot, 1, actionsPerNode) : actionIndex + 1;
-      const slotMetrics = qualityGateSlotMetrics instanceof Map
-        ? (qualityGateSlotMetrics.get(slot) || null)
-        : null;
-      actions.push(normalizeAction(rawAction, nodeIndex, actionIndex, slotMetrics));
+      actions.push(normalizeAction(rawAction, nodeIndex, actionIndex));
     }
 
     normalized.push({
@@ -1381,45 +1237,9 @@ function toPercent(value) {
   return clamp(Number((clamp01(value) * 100).toFixed(2)), 0, 100);
 }
 
-function convertGateTransitionToCheck(transition) {
-  const logicalityPass = parseBoolean(transition?.logicality_pass, false);
-  const practicalityPass = parseBoolean(transition?.practicality_pass, false);
-  const ethicsPass = parseBoolean(transition?.ethics_pass, false);
-  const legalityPass = parseBoolean(transition?.legality_pass, false);
-  const consentPass = parseBoolean(transition?.consent_pass, false);
-  const overallPass = parseBoolean(
-    transition?.overall_pass,
-    logicalityPass && practicalityPass && ethicsPass && legalityPass && consentPass
-  );
-  const ethicsLegalPercent = Number(
-    average([
-      ethicsPass ? 100 : 0,
-      legalityPass ? 100 : 0,
-      consentPass ? 100 : 0
-    ]).toFixed(2)
-  );
-  return {
-    from_node_index: parseNodeIndexFromActionId(transition?.from),
-    to_node_index: parseNodeIndexFromActionId(transition?.to),
-    logicality_percent: logicalityPass ? 100 : 0,
-    practicality_percent: practicalityPass ? 100 : 0,
-    ethics_legal_percent: ethicsLegalPercent,
-    pass: overallPass,
-    note: sanitizeText(transition?.note || '', 240)
-  };
-}
-
-function buildChainCandidates(actionSpace, requestedOutcome, initialConditions, actionsPerNode, qualityGates) {
+function buildChainCandidates(actionSpace, requestedOutcome, initialConditions, actionsPerNode) {
   const chains = [];
   const nodeCount = actionSpace.length || 0;
-  const qualityGateBySlot = new Map();
-  if (Array.isArray(qualityGates)) {
-    qualityGates.forEach((gate, index) => {
-      const slot = clampInt(gate?.gene_slot ?? index + 1, 1, actionsPerNode);
-      qualityGateBySlot.set(slot, gate);
-    });
-  }
-
   for (let slot = 1; slot <= actionsPerNode; slot += 1) {
     const steps = [];
     const realismParts = [];
@@ -1458,20 +1278,11 @@ function buildChainCandidates(actionSpace, requestedOutcome, initialConditions, 
       });
     }
 
-    let transitionChecks = [];
-    const slotGate = qualityGateBySlot.get(slot);
-    if (slotGate && Array.isArray(slotGate.transitions) && slotGate.transitions.length) {
-      transitionChecks = slotGate.transitions
-        .slice(0, Math.max(0, steps.length - 1))
-        .map((transition) => convertGateTransitionToCheck(transition));
-    }
-    if (!transitionChecks.length) {
-      transitionChecks = [];
-      for (let i = 0; i < steps.length - 1; i += 1) {
-        const current = steps[i];
-        const next = steps[i + 1];
-        transitionChecks.push(scoreTransitionCheck(current, next));
-      }
+    const transitionChecks = [];
+    for (let i = 0; i < steps.length - 1; i += 1) {
+      const current = steps[i];
+      const next = steps[i + 1];
+      transitionChecks.push(scoreTransitionCheck(current, next));
     }
 
     const realism = average(realismParts);
@@ -1873,7 +1684,6 @@ module.exports = async function handler(req, res) {
   }
 
   let nodes = [];
-  let chainQualityGates = [];
   let generatorSource = '';
   let modelUsed = '';
   let promptTemplateIdUsed = null;
@@ -2250,36 +2060,6 @@ module.exports = async function handler(req, res) {
         });
       }
 
-      if (!chainQualityGates.length) {
-        failureStage = 'openai.output_quality_gates_extraction';
-        const rawQualityGates = extractRawQualityGatesFromGeneratedPayload(
-          parsed,
-          config.actions_per_node
-        );
-        if (!rawQualityGates.length) {
-          const reason = 'No chain_quality_gates were found in OpenAI output.';
-          return fail(502, failureStage, reason, {
-            output_excerpt: sanitizeText(generatedText, 500)
-          });
-        }
-        const gateShapeValidation = validateGeneratedQualityGatesShape(
-          rawQualityGates,
-          config.node_count,
-          config.actions_per_node
-        );
-        if (!gateShapeValidation.ok) {
-          const reason = sanitizeText(gateShapeValidation.reason, 320);
-          return fail(502, 'openai.output_quality_gates_validation', reason, {
-            output_excerpt: sanitizeText(generatedText, 500)
-          });
-        }
-        chainQualityGates = normalizeQualityGates(
-          rawQualityGates,
-          config.node_count,
-          config.actions_per_node
-        );
-      }
-
       if (!nodes.length) {
         failureStage = 'openai.output_node_extraction';
         const rawNodes = extractRawNodesFromGeneratedPayload(
@@ -2311,8 +2091,7 @@ module.exports = async function handler(req, res) {
 
         if (!nodes.length) {
           failureStage = 'openai.output_normalization';
-          const slotMetrics = buildQualityGateSlotMetrics(chainQualityGates);
-          nodes = normalizeActionSpace(rawNodes, config.node_count, config.actions_per_node, slotMetrics);
+          nodes = normalizeActionSpace(rawNodes, config.node_count, config.actions_per_node);
           if (!nodes.length) {
             const reason = 'Normalized action space is empty.';
             return fail(502, failureStage, reason);
@@ -2366,8 +2145,7 @@ module.exports = async function handler(req, res) {
     nodes,
     requestedOutcome,
     effectiveInitialConditions,
-    config.actions_per_node,
-    chainQualityGates
+    config.actions_per_node
   );
   const chainActionMatrix = buildChainActionMatrix(nodes, config.actions_per_node);
   const bestChain = chainCandidates[0] || null;
@@ -2396,7 +2174,6 @@ module.exports = async function handler(req, res) {
       },
       total_action_combinations: Math.pow(config.actions_per_node, config.node_count),
       action_space: nodes,
-      chain_quality_gates: chainQualityGates,
       chain_action_matrix: chainActionMatrix,
       chain_candidates: chainCandidates,
       best_chain: bestChain,
@@ -2451,7 +2228,6 @@ module.exports = async function handler(req, res) {
     config,
     total_action_combinations: Math.pow(config.actions_per_node, config.node_count),
     action_space: nodes,
-    chain_quality_gates: chainQualityGates,
     chain_action_matrix: chainActionMatrix,
     chain_candidates: chainCandidates,
     best_chain: bestChain,
