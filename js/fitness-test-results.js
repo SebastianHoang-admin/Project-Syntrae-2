@@ -362,7 +362,7 @@ async function fetchModelAreas(payload) {
     return {
       areas_match: normalizeTextArray(result.areas_match, 4),
       areas_mismatch: normalizeTextArray(result.areas_mismatch, 4),
-      model: String(result.model || '').trim() || 'Deterministic heuristic'
+      model: String(result.model || '').trim() || 'LLM'
     };
   } catch (_) {
     return null;
@@ -967,7 +967,7 @@ async function maybeRegenerateReport(latestReport) {
     areas_mismatch: normalizeTextArray(areas.areas_mismatch, 4),
     top_matches_axes: topMatchesAxes,
     top_mismatches_axes: topMismatchesAxes,
-    llm_model: String(areas.model || 'Deterministic heuristic')
+    llm_model: String(areas.model || 'LLM')
   };
 }
 

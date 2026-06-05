@@ -386,29 +386,6 @@
     let lastCloudPayload = '';
     let personaKey = '';
 
-    async function requestPersonaDigestRefresh(targetPersonaKey = personaKey) {
-      if (!syntraeSupabase || !targetPersonaKey) return;
-      try {
-        const { data } = await syntraeSupabase.auth.getSession();
-        const accessToken = data?.session?.access_token || '';
-        if (!accessToken) return;
-        const response = await fetch('/api/persona-digest', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${accessToken}`
-          },
-          body: JSON.stringify({ personaKey: targetPersonaKey })
-        });
-        if (!response.ok) {
-          const body = await response.json().catch(() => ({}));
-          console.warn('Persona digest refresh failed:', body?.error || response.statusText);
-        }
-      } catch (err) {
-        console.warn('Persona digest refresh failed:', err);
-      }
-    }
-
     function sanitizePersonaKey(value) {
       const normalized = String(value || '').trim().toLowerCase();
       if (!normalized) return '';
@@ -806,7 +783,7 @@
       }
     }
 
-    async function savePersonaToCloudNow(options = {}) {
+    async function savePersonaToCloudNow() {
       if (cloudHydrating || !syntraeSupabase) return;
       try {
         const { data, error: userError } = await syntraeSupabase.auth.getUser();
@@ -814,12 +791,7 @@
 
         const payload = collectPersonaState();
         const serialized = JSON.stringify(payload);
-        if (serialized === lastCloudPayload) {
-          if (options.refreshDigest) {
-            void requestPersonaDigestRefresh(personaKey);
-          }
-          return;
-        }
+        if (serialized === lastCloudPayload) return;
         const personaName = normalizePersonaName(payload.personaName);
         const portraitDataUrl = payload.personaPortrait || null;
         const portraitStoragePath = payload.personaPortraitPath || null;
@@ -843,23 +815,20 @@
           return;
         }
         lastCloudPayload = serialized;
-        if (options.refreshDigest) {
-          void requestPersonaDigestRefresh(personaKey);
-        }
       } catch (err) {
         console.warn('Persona save failed:', err);
       }
     }
 
-    function queueCloudSave(immediate = false, options = {}) {
+    function queueCloudSave(immediate = false) {
       if (cloudHydrating || !syntraeSupabase) return Promise.resolve();
       if (immediate) {
         clearTimeout(cloudSaveTimer);
-        return savePersonaToCloudNow(options);
+        return savePersonaToCloudNow();
       }
       clearTimeout(cloudSaveTimer);
       cloudSaveTimer = setTimeout(() => {
-        void savePersonaToCloudNow(options);
+        void savePersonaToCloudNow();
       }, 650);
       return Promise.resolve();
     }
@@ -867,7 +836,7 @@
     personaKey = resolvePersonaKey();
     backToAnalyze.href = buildPersonaUrl('analyze.html');
 
-    // Utility: persist combined user input for persona digest storage.
+    // Utility: persist combined user input for LLM wiring
     function saveUsersInput() {
       const payload = {
         answers: currentAnswers,
@@ -1194,7 +1163,6 @@
         saveAnswers();
         saveUsersInput();
         saveAxisAggregates();
-        void queueCloudSave(true, { refreshDigest: true });
         updateSaveState(true, 'Saved locally');
         if (safeIndex < total - 1) {
           currentIndex = safeIndex + 1;
@@ -1449,7 +1417,6 @@
           saveAnswers();
           saveUsersInput();
           saveAxisAggregates();
-          void queueCloudSave(true, { refreshDigest: true });
           updateSaveState(!!currentAnswers[q.id], 'Saved locally');
         });
 
