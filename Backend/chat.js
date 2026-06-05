@@ -18,31 +18,6 @@ function normalizeMessages(messages) {
     .slice(-40);
 }
 
-function safeJson(value) {
-  try {
-    return JSON.stringify(value || {}, null, 2);
-  } catch (_) {
-    return '{}';
-  }
-}
-
-function buildContextPrompt({ userProfile, personaProfile, personaName, personaKey }) {
-  return [
-    'You are Syntrae AI.',
-    'Use account-scoped profile context exactly as provided.',
-    'If context fields are missing, ask concise follow-up questions instead of guessing.',
-    '',
-    `Active persona name: ${personaName || 'Unknown persona'}`,
-    `Active persona key: ${personaKey || 'unknown'}`,
-    '',
-    'USER_PROFILE_JSON:',
-    safeJson(userProfile),
-    '',
-    'PERSONA_PROFILE_JSON:',
-    safeJson(personaProfile)
-  ].join('\n');
-}
-
 async function fetchJson(url, headers) {
   const response = await fetch(url, { method: 'GET', headers });
   const body = await response.json().catch(() => ({}));
@@ -112,9 +87,6 @@ function buildPersonaProfile(personaRow) {
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'POST only' });
 
-  const apiKey = process.env.OPENAI_API_KEY;
-  if (!apiKey) return res.status(500).json({ error: 'Missing OPENAI_API_KEY' });
-
   const { messages, personaKey } = req.body || {};
   if (!Array.isArray(messages)) return res.status(400).json({ error: 'messages must be an array' });
 
@@ -153,43 +125,8 @@ export default async function handler(req, res) {
     personaProfile = buildPersonaProfile(personaRow);
   }
 
-  const systemPrompt = buildContextPrompt({
-    userProfile,
-    personaProfile,
-    personaName: activePersonaName,
-    personaKey: safePersonaKey
+  return res.status(200).json({
+    reply: 'Syntrae chat generation is currently disabled. Persona digest generation is handled by the Syntrae backend after persona saves.',
+    usage: null
   });
-
-  const upstreamMessages = [
-    { role: 'system', content: systemPrompt },
-    ...normalizeMessages(messages)
-  ];
-
-  try {
-    const openaiRes = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        model: process.env.OPENAI_MODEL || 'gpt-5-nano',
-        messages: upstreamMessages
-      })
-    });
-
-    const data = await openaiRes.json().catch(() => ({}));
-    if (!openaiRes.ok) {
-      const message = data?.error?.message || data?.error || 'OpenAI request failed';
-      return res.status(openaiRes.status).json({ error: message });
-    }
-
-    const reply = data?.choices?.[0]?.message?.content || 'No reply';
-    return res.status(200).json({
-      reply,
-      usage: data?.usage || null
-    });
-  } catch (err) {
-    return res.status(500).json({ error: err?.message || 'OpenAI request failed' });
-  }
 }

@@ -14,6 +14,8 @@ create table if not exists public.personas (
   state jsonb not null default '{}'::jsonb,
   traits jsonb not null default '{}'::jsonb,
   profile jsonb not null default '{}'::jsonb,
+  digest_cache jsonb not null default '{}'::jsonb,
+  stale_digests jsonb not null default '[]'::jsonb,
   created_at timestamptz not null default timezone('utc', now()),
   updated_at timestamptz not null default timezone('utc', now()),
   constraint personas_user_key_unique unique (user_id, persona_key)
@@ -24,6 +26,12 @@ alter table public.personas
 
 alter table public.personas
   add column if not exists profile jsonb not null default '{}'::jsonb;
+
+alter table public.personas
+  add column if not exists digest_cache jsonb not null default '{}'::jsonb;
+
+alter table public.personas
+  add column if not exists stale_digests jsonb not null default '[]'::jsonb;
 
 alter table public.personas
   alter column persona_key drop default;

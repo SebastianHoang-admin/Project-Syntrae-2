@@ -627,7 +627,7 @@ async function fetchModelAreas(payload) {
     return {
       areas_match: normalizeTextArray(result.areas_match),
       areas_mismatch: normalizeTextArray(result.areas_mismatch),
-      model: String(result.model || '').trim() || 'LLM'
+      model: String(result.model || '').trim() || 'Deterministic heuristic'
     };
   } catch (_) {
     return null;
@@ -1077,8 +1077,8 @@ runBtn.addEventListener('click', async () => {
         areas_mismatch: normalizeTextArray(areas.areas_mismatch),
         top_matches_axes: topMatchesAxes,
         top_mismatches_axes: topMismatchesAxes,
-        llm_model: String(areas.model || 'LLM'),
-        powered_by: 'LLM model'
+        llm_model: String(areas.model || 'Deterministic heuristic'),
+        powered_by: 'Deterministic heuristic'
       };
     });
 
