@@ -597,11 +597,12 @@
             }
         }
     </style>
+    <link rel="stylesheet" href="css/syntrae-product-theme.css">
 </head>
 <body>
     <header class="header">
         <a class="logo" href="Chat.html">
-            <div class="logo-icon">🧪</div>
+            <div class="logo-icon"><i class="fas fa-chart-line" aria-hidden="true"></i></div>
             <div class="logo-text">
                 <span>SYNTRAE</span>
                 <span>Insight Lab</span>
@@ -617,13 +618,13 @@
     <main class="container">
         <section class="hero">
             <h1>Insight Lab</h1>
-            <p>Use controlled experiments to test compatibility and strategy before real-world communication. Fitness Test and Outcomes Test are both available for account-level persona analysis.</p>
+            <p>Use private decision rehearsals to compare compatibility, timing, and possible next steps before real-world communication.</p>
         </section>
 
         <div class="grid">
             <section class="panel">
                 <div class="panel-head">
-                    <h2>I. Fitness Test</h2>
+                    <h2>I. Compatibility Review</h2>
                     <span class="badge not-ready" id="fitnessReadyBadge">
                         <span class="state-dot" aria-hidden="true"></span>
                         <i class="fas fa-xmark state-x" aria-hidden="true"></i>
@@ -649,19 +650,19 @@
                 </div>
 
                 <div id="fitnessStatus" class="status" data-type="info" hidden></div>
-                <button type="button" id="runFitnessBtn" class="run-btn"><i class="fas fa-play"></i>Run Fitness Test</button>
+                <button type="button" id="runFitnessBtn" class="run-btn"><i class="fas fa-play"></i>Run Compatibility Review</button>
             </section>
 
             <section class="panel">
                 <div class="panel-head">
-                    <h2>II. Outcomes Test</h2>
+                    <h2>II. Outcome Pathways</h2>
                     <span class="badge not-ready" id="outcomeReadyBadge">
                         <span class="state-dot" aria-hidden="true"></span>
                         <i class="fas fa-xmark state-x" aria-hidden="true"></i>
                         <span id="outcomeReadyLabel">Not ready</span>
                     </span>
                 </div>
-                <p class="kv">Generate a 10-node action space for a requested outcome. Each node contains 5 candidate actions, and actions are chained into gene-based sequences that can be tested and evolved later.</p>
+                <p class="kv">Generate a structured action space for a requested outcome. Syntrae compares possible next steps so your action can be chosen with more context and care.</p>
 
                 <div class="row">
                     <div class="field">
@@ -686,16 +687,16 @@
 
                 <div id="outcomeStatus" class="status" data-type="info" hidden></div>
                 <div class="outcome-actions">
-                    <button type="button" id="runOutcomeBtn" class="run-btn"><i class="fas fa-play"></i>Run Outcomes Test</button>
-                    <button type="button" id="stopOutcomeBtn" class="run-btn stop-btn" disabled><i class="fas fa-stop"></i>Stop Outcomes Test</button>
+                    <button type="button" id="runOutcomeBtn" class="run-btn"><i class="fas fa-play"></i>Run Outcome Pathways</button>
+                    <button type="button" id="stopOutcomeBtn" class="run-btn stop-btn" disabled><i class="fas fa-stop"></i>Stop Outcome Pathways</button>
                 </div>
                 <section class="outcome-history" id="outcomeHistorySection">
                     <div class="outcome-history-head">
-                        <strong>Outcome Test History</strong>
+                        <strong>Outcome Pathway History</strong>
                         <span class="kv" id="outcomeHistoryMeta">Loading history…</span>
                     </div>
                     <div class="outcome-history-list" id="outcomeHistoryList"></div>
-                    <div class="outcome-history-empty" id="outcomeHistoryEmpty" hidden>No outcome tests yet. Run Outcomes Test to create your first report.</div>
+                    <div class="outcome-history-empty" id="outcomeHistoryEmpty" hidden>No outcome pathways yet. Run Outcome Pathways to create your first report.</div>
                 </section>
 
                 <section id="outcomeResults" class="outcome-results" hidden>
@@ -713,7 +714,7 @@
         <section class="run-card">
             <div class="run-head">
                 <span class="run-spinner" aria-hidden="true"></span>
-                <h3 class="run-title">Running Fitness Test</h3>
+                <h3 class="run-title">Reviewing Compatibility</h3>
             </div>
             <p class="run-stage" id="fitnessRunStage">Initializing profile comparison…</p>
             <div class="progress-track">
@@ -737,9 +738,9 @@
         </section>
     </div>
 
-    <footer class="footer">© 2026 Syntrae AI Insight Engine.</footer>
+    <footer class="footer">© 2026 Syntrae LLC. Predictive social science for considerate decisions.</footer>
 
     <script src="js/supabase-config.js"></script>
-    <script type="module" src="js/insight-lab.js"></script>
+    <script type="module" src="js/insight-lab.js?v=20260701"></script>
 </body>
 </html>

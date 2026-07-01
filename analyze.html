@@ -564,7 +564,35 @@
             from { transform: rotate(0deg); }
             to { transform: rotate(360deg); }
         }
+        @media (max-width: 640px) {
+            body {
+                padding: 18px 12px 42px;
+                overflow-x: hidden;
+            }
+            header {
+                align-items: flex-start;
+                gap: 12px;
+                flex-direction: column;
+            }
+            .panel {
+                grid-template-columns: minmax(0, 1fr);
+                gap: 18px;
+                padding: 16px;
+            }
+            .portrait {
+                min-height: 280px;
+            }
+            .primary-btn {
+                width: 100%;
+                justify-content: center;
+                text-align: center;
+            }
+            .persona-check .actions {
+                flex-direction: column;
+            }
+        }
     </style>
+    <link rel="stylesheet" href="css/syntrae-product-theme.css">
 </head>
 <body>
     <div class="persona-check-overlay" id="personaCheckOverlay" role="dialog" aria-modal="true" aria-labelledby="personaCheckTitle">
@@ -604,10 +632,10 @@
     </div>
     <header>
         <a class="brand" href="Chat.html">
-            <div class="logo-icon">🧠</div>
+            <div class="logo-icon"><i class="fas fa-chart-line" aria-hidden="true"></i></div>
             <div class="brand-text">
                 <span>SYNTRAE</span>
-                <span>Persona Prediction</span>
+                <span>Relationship Persona</span>
             </div>
         </a>
         <a class="primary-btn" href="Chat.html">Back to Chat</a>
@@ -1521,7 +1549,7 @@ Authority figure</div>
             L2_A2: ['Autonomy', 'Coordination'],
             L2_A3: ['Immediate reward', 'Deferred reward'],
             L2_A4: ['Status', 'Belonging'],
-            L2_A5: ['Internal validation', 'External validation'],
+            L2_A5: ['Inner confidence', 'Social reassurance'],
             L2_A6: ['Depth', 'Breadth'],
             L3_A1: ['Flexible honesty', 'Strict honesty'],
             L3_A2: ['Low dignity sensitivity', 'High dignity sensitivity'],

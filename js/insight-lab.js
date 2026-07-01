@@ -2066,7 +2066,7 @@ async function processOutcomeQueue() {
           'success'
         );
         notifyOutcomeComplete(
-          'Syntrae AI: Outcome Test Complete',
+          'Syntrae: Outcome Pathways Complete',
           `Requested outcome: ${nextJob.requestedOutcome}`
         );
       } catch (error) {
@@ -2210,7 +2210,7 @@ function buildInsightsPayload(optionA, optionB, evaluation) {
 async function initialize() {
   const { data, error } = await supabase.auth.getSession();
   if (error || !data?.session?.user) {
-    window.location.href = 'sign-in.html';
+    window.location.href = 'sign-in.html?auth=required';
     return;
   }
 

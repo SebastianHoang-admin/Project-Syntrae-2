@@ -332,7 +332,7 @@ async function loadOutcomeHistoryFromAccount(userId) {
 async function initialize() {
   const { data, error } = await supabase.auth.getSession();
   if (error || !data?.session?.user) {
-    window.location.href = 'sign-in.html';
+    window.location.href = 'sign-in.html?auth=required';
     return;
   }
 

@@ -126,4 +126,6 @@ if (params.get('verified') === 'true') {
   showMessage('You have signed out successfully.', 'success');
 } else if (params.get('magic') === 'verified') {
   showMessage('Magic link verified. Redirecting to your account...', 'success');
+} else if (params.get('auth') === 'required') {
+  showMessage('Sign in to continue to your private decision studio.', 'info');
 }

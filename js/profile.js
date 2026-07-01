@@ -149,7 +149,7 @@ async function loadPersonas(userId) {
 async function loadExisting() {
   const { data, error } = await supabase.auth.getUser();
   if (error || !data.user) {
-    window.location.href = 'sign-in.html';
+    window.location.href = 'sign-in.html?auth=required';
     return;
   }
   currentUserId = data.user.id;

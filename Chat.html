@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Syntrae - Insight Engine</title>
+    <title>Syntrae - Decision Studio</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -647,26 +647,18 @@
             }
         }
     </style>
+    <link rel="stylesheet" href="css/syntrae-product-theme.css">
 </head>
 <body>
     
     <header class="header">
         <div class="logo">
             <div class="logo-icon" aria-label="Syntrae logo">
-                <svg viewBox="0 0 512 512" aria-hidden="true">
-                    <defs>
-                        <linearGradient id="logoGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                            <stop offset="0%" stop-color="#ff6a3d"/>
-                            <stop offset="100%" stop-color="#a30017"/>
-                        </linearGradient>
-                    </defs>
-                    <path fill="url(#logoGradient)" d="M256 480c-8.5 0-17-3-23.8-9.1L92.9 358.2C35.5 304.7 24.4 213 70.1 147.5 111.8 88 184.3 72 256 122.6 327.7 72 400.2 88 441.9 147.5c45.7 65.5 34.6 157.2-22.8 210.7L279.8 470.9c-6.8 6.1-15.3 9.1-23.8 9.1z"/>
-                    <path fill="none" stroke="#fff" stroke-width="16" stroke-linecap="round" stroke-linejoin="round" opacity="0.35" d="M140 206c26-18 58-24 87-12m0 0c17 7 33 19 42 36 6 11 9 24 6 36-9 43-77 32-94-6-8-17-3-38 8-52l38-43c7-8 19-10 28-4l33 22c11 7 15 22 7 33l-21 30m44-67 53-24c10-5 22 1 24 12l7 40c2 10-5 20-16 22l-72 11"/>
-                </svg>
+                <i class="fas fa-chart-line" aria-hidden="true"></i>
             </div>
             <div class="logo-text">
                 <span>SYNTRAE</span>
-                <span>Insight Engine</span>
+                <span>Decision Studio</span>
             </div>
         </div>
 
@@ -699,10 +691,10 @@
 
         <section class="chat-column">
             <div class="chat-header">
-                <div class="agent-avatar">AI</div>
+                <div class="agent-avatar">S</div>
                 <div class="agent-info">
-                    <h3>Syntrae AI <span class="status-indicator"></span></h3>
-                    <p>Ask me anything about your persona and get practical insights</p>
+                    <h3>Syntrae Guide <span class="status-indicator"></span></h3>
+                    <p>Rehearse relationship moments and surface practical insights</p>
                 </div>
             </div>
 
@@ -726,7 +718,7 @@
     </main>
 
     <footer class="footer">
-        © 2026 Syntrae AI Insight Engine. Helping users understand social situations with AI.
+        © 2026 Syntrae LLC. Predictive social science for considerate decisions.
     </footer>
 
     <script src="js/supabase-config.js"></script>
@@ -1532,7 +1524,7 @@
                 if (error || !data.session) {
                     accountIndicator.textContent = 'Not signed in';
                     accountIndicator.dataset.state = 'signed-out';
-                    window.location.href = 'sign-in.html';
+                    window.location.href = 'sign-in.html?auth=required';
                     return;
                 }
                 currentUser = data.session.user;
@@ -1669,7 +1661,7 @@
                 await touchActiveSession();
             } catch (err) {
                 loadingWrapper.remove();
-                addMessage(`Error contacting Syntrae AI: ${err.message}`, 'agent');
+                addMessage(`Error contacting Syntrae Guide: ${err.message}`, 'agent');
             } finally {
                 isSending = false;
                 sendBtn.disabled = false;

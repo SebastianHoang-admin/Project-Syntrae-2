@@ -242,21 +242,22 @@
             }
         }
     </style>
+    <link rel="stylesheet" href="css/syntrae-product-theme.css">
 </head>
 <body>
     <main class="main">
         <a class="brand" href="landing.html">
-            <div class="logo-icon" aria-label="Syntrae logo">🧠</div>
+            <div class="logo-icon" aria-label="Syntrae logo"><i class="fas fa-chart-line" aria-hidden="true"></i></div>
             <div class="logo-text">
                 <span>SYNTRAE</span>
-                <span>Insight Engine</span>
+                <span>Decision Studio</span>
             </div>
         </a>
         <div class="card">
             <div class="title-row">
                 <div>
                     <h1>Your Persona</h1>
-                    <p>This is your account-level persona profile. Syntrae uses this page as the primary source of user context in analysis and testing tools.</p>
+                    <p>This is your account-level persona profile. Syntrae uses this page as the primary source of private context for decision rehearsal and insight tools.</p>
                 </div>
             </div>
 
@@ -266,7 +267,7 @@
                 <section class="section">
                     <div class="section-head">
                         <h2><i class="fas fa-id-card"></i> Core Profile</h2>
-                        <p>Traditional account information</p>
+                        <p>Basic account information</p>
                     </div>
                     <div class="grid">
                         <div class="field">
@@ -295,7 +296,7 @@
                 <section class="section">
                     <div class="section-head">
                         <h2><i class="fas fa-user-gear"></i> User Persona Context</h2>
-                        <p>Personal context used by Syntrae insight tools</p>
+                        <p>Personal context used by Syntrae decision tools</p>
                     </div>
                     <div class="grid">
                         <div class="field">
@@ -328,14 +329,14 @@
                 <section class="section">
                     <div class="section-head">
                         <h2><i class="fas fa-link"></i> Persona Link</h2>
-                        <p>Select which persona represents you in testing tools</p>
+                        <p>Select which persona represents you in decision tools</p>
                     </div>
                     <div class="field">
                         <label for="primary_persona_key">Primary user persona (optional)</label>
                         <select id="primary_persona_key" name="primary_persona_key">
                             <option value="">No linked persona</option>
                         </select>
-                        <div class="hint">This option is used by Insight Lab Fitness Test to include your own persona in comparisons.</div>
+                        <div class="hint">This option is used by Insight Lab to include your own persona in private comparisons.</div>
                     </div>
                 </section>
 
@@ -348,10 +349,10 @@
     </main>
 
     <div class="footer">
-        © 2026 Syntrae AI Insight Engine.
+        © 2026 Syntrae LLC.
     </div>
 
     <script src="js/supabase-config.js"></script>
-    <script type="module" src="js/profile.js"></script>
+    <script type="module" src="js/profile.js?v=20260701"></script>
 </body>
 </html>
