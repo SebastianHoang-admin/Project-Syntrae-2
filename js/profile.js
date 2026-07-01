@@ -5,6 +5,7 @@ const statusEl = document.getElementById('status');
 const primaryPersonaSelect = document.getElementById('primary_persona_key');
 const USER_PROFILE_TABLE = 'user_profiles';
 const PERSONA_TABLE = 'personas';
+const DECISION_TREE_DEMO = 'decision-tree';
 
 let currentUserId = '';
 let personaRows = [];
@@ -36,6 +37,22 @@ function showStatus(text, type = 'info') {
   statusEl.textContent = text;
   statusEl.dataset.type = type;
   statusEl.hidden = false;
+}
+
+function isDecisionTreeDemo() {
+  const params = new URLSearchParams(window.location.search || '');
+  return params.get('demo') === DECISION_TREE_DEMO;
+}
+
+function demoUrl(path, params = {}) {
+  const url = new URL(path, window.location.href);
+  url.searchParams.set('demo', DECISION_TREE_DEMO);
+  Object.entries(params).forEach(([key, value]) => {
+    if (value !== undefined && value !== null && value !== '') {
+      url.searchParams.set(key, String(value));
+    }
+  });
+  return `${url.pathname.split('/').pop()}?${url.searchParams.toString()}`;
 }
 
 function clearStatus() {
@@ -147,6 +164,11 @@ async function loadPersonas(userId) {
 }
 
 async function loadExisting() {
+  if (isDecisionTreeDemo()) {
+    loadDemoProfile();
+    return;
+  }
+
   const { data, error } = await supabase.auth.getUser();
   if (error || !data.user) {
     window.location.href = 'sign-in.html?auth=required';
@@ -184,9 +206,58 @@ async function loadExisting() {
   renderPrimaryPersonaOptions(profileJson.primary_persona_key || '');
 }
 
+function loadDemoProfile() {
+  document.body.classList.add('demo-mode');
+  document.title = 'Maya Chen Persona - Syntrae Demo';
+  personaRows = [{ persona_key: 'daniel-rivera-demo', name: 'Daniel Rivera' }];
+
+  setInputValue('first_name', 'Maya');
+  setInputValue('last_name', 'Chen');
+  setInputValue('occupation', 'Creative Strategy Lead');
+  setInputValue('organization', 'Independent studio');
+  setInputValue('location', 'San Francisco, CA');
+  setInputValue('display_name', 'Maya Chen');
+  setInputValue('personal_headline', 'Thoughtful communicator preparing for an important relationship conversation');
+  setInputValue('goals', 'Invite Daniel into a deeper conversation about where the relationship is going while keeping the tone warm, low pressure, and respectful.');
+  setInputValue('strengths', 'Maya is emotionally observant, patient, sincere, and willing to communicate clearly when the moment matters.');
+  setInputValue('constraints', 'She only gets one real-world attempt at the conversation and wants to avoid making Daniel feel cornered or rushed.');
+  setInputValue('communication_style', 'Warm, reflective, considerate, and direct when clarity is important. Maya prefers invitations over demands.');
+  renderPrimaryPersonaOptions('daniel-rivera-demo');
+
+  const titleRow = document.querySelector('.title-row');
+  if (titleRow && !document.querySelector('.demo-video-strip')) {
+    titleRow.insertAdjacentHTML('afterend', `
+      <section class="demo-video-strip" aria-label="Demo profile context">
+        <div>
+          <h3>Maya Chen demo profile</h3>
+          <p>This page shows the private user context Syntrae uses before Maya rehearses one real romantic relationship decision.</p>
+        </div>
+        <div class="demo-chip-row">
+          <span class="demo-chip">Maya Chen</span>
+          <span class="demo-chip">Linked to Daniel Rivera</span>
+          <span class="demo-chip">Private decision context</span>
+          <span class="demo-chip">One real action</span>
+        </div>
+      </section>
+    `);
+  }
+
+  const brand = document.querySelector('.brand');
+  if (brand) brand.setAttribute('href', demoUrl('Chat.html', { state: 'start' }));
+  const skipBtn = document.getElementById('skipBtn');
+  if (skipBtn) skipBtn.textContent = 'Back to demo chat';
+  showStatus('Demo profile loaded for recording. These fields represent Maya Chen.', 'success');
+}
+
 form.addEventListener('submit', async (e) => {
   e.preventDefault();
   clearStatus();
+
+  if (isDecisionTreeDemo()) {
+    showStatus('Demo profile ready. Returning to the decision rehearsal scene…', 'success');
+    setTimeout(() => window.location.href = demoUrl('Chat.html', { state: 'start' }), 550);
+    return;
+  }
 
   const payload = {
     first_name: getInputValue('first_name'),
@@ -252,6 +323,10 @@ form.addEventListener('submit', async (e) => {
 
 document.getElementById('skipBtn').addEventListener('click', async () => {
   clearStatus();
+  if (isDecisionTreeDemo()) {
+    window.location.href = demoUrl('Chat.html', { state: 'start' });
+    return;
+  }
   try {
     await supabase.auth.updateUser({ data: { profile_completed: true } });
   } catch (_) {

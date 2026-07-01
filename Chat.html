@@ -532,6 +532,374 @@
             to { opacity: 1; transform: translateY(0); }
         }
 
+        .demo-mode .container {
+            max-width: 1680px;
+            gap: 22px;
+            padding-top: 24px;
+        }
+
+        .demo-mode .persona-column {
+            flex: 0 0 30%;
+        }
+
+        .demo-mode .chat-column {
+            min-height: 760px;
+        }
+
+        .demo-kicker {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            width: fit-content;
+            padding: 8px 10px;
+            border: 1px solid rgba(18, 150, 141, 0.18);
+            border-radius: 999px;
+            background: rgba(223, 244, 237, 0.72);
+            color: var(--leaf);
+            font-size: 12px;
+            font-weight: 800;
+            text-transform: uppercase;
+        }
+
+        .demo-persona-card {
+            display: grid;
+            gap: 14px;
+            padding: 18px;
+            border: 1px solid rgba(32, 50, 54, 0.12);
+            border-radius: 14px;
+            background: rgba(255, 255, 255, 0.92);
+            box-shadow: 0 14px 34px rgba(32, 50, 54, 0.08);
+        }
+
+        .demo-persona-head {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .demo-persona-avatar {
+            width: 58px;
+            height: 58px;
+            border-radius: 16px;
+            display: grid;
+            place-items: center;
+            color: #fff;
+            font-weight: 900;
+            font-size: 20px;
+            background: linear-gradient(135deg, var(--leaf), var(--teal) 54%, var(--coral));
+            box-shadow: 0 14px 26px rgba(45, 125, 103, 0.18);
+        }
+
+        .demo-persona-head h3,
+        .demo-card h3,
+        .tree-card h4 {
+            color: var(--ink);
+        }
+
+        .demo-persona-head p,
+        .demo-card p,
+        .tree-card p,
+        .demo-small,
+        .outcome-list li {
+            color: var(--quiet);
+        }
+
+        .demo-chip-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .demo-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 10px;
+            border-radius: 999px;
+            border: 1px solid rgba(32, 50, 54, 0.12);
+            background: rgba(251, 255, 248, 0.9);
+            color: var(--ink);
+            font-size: 12px;
+            font-weight: 800;
+        }
+
+        .demo-side-note {
+            padding: 14px;
+            border-left: 4px solid var(--sun);
+            border-radius: 12px;
+            background: rgba(243, 201, 79, 0.12);
+            color: var(--ink);
+            line-height: 1.55;
+        }
+
+        .demo-stage {
+            display: grid;
+            gap: 18px;
+        }
+
+        .demo-hero {
+            display: grid;
+            grid-template-columns: minmax(0, 1.1fr) minmax(260px, 0.9fr);
+            gap: 18px;
+            align-items: stretch;
+        }
+
+        .demo-card {
+            border: 1px solid rgba(32, 50, 54, 0.12);
+            border-radius: 14px;
+            background: rgba(255, 255, 255, 0.9);
+            box-shadow: 0 16px 38px rgba(32, 50, 54, 0.08);
+            padding: 18px;
+        }
+
+        .demo-card h3 {
+            font-size: 20px;
+            margin-bottom: 8px;
+        }
+
+        .demo-prompt-box {
+            min-height: 132px;
+            margin-top: 14px;
+            padding: 16px;
+            border: 1px solid rgba(32, 50, 54, 0.14);
+            border-radius: 14px;
+            background: linear-gradient(180deg, #fbfff8 0%, #f4fbf7 100%);
+            color: var(--ink);
+            font-size: 17px;
+            line-height: 1.55;
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9);
+        }
+
+        .demo-candidate-grid {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 10px;
+            margin-top: 14px;
+        }
+
+        .candidate-card {
+            padding: 12px;
+            border: 1px solid rgba(18, 150, 141, 0.2);
+            border-radius: 12px;
+            background: rgba(223, 244, 237, 0.5);
+        }
+
+        .candidate-card strong {
+            display: block;
+            color: var(--ink);
+            margin-bottom: 4px;
+        }
+
+        .candidate-card span {
+            color: var(--quiet);
+            font-size: 12px;
+            line-height: 1.4;
+        }
+
+        .rehearsal-settings {
+            display: grid;
+            gap: 12px;
+        }
+
+        .setting-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            padding: 12px;
+            border-radius: 12px;
+            background: rgba(251, 255, 248, 0.88);
+            border: 1px solid rgba(32, 50, 54, 0.1);
+        }
+
+        .setting-row span {
+            color: var(--quiet);
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        .setting-row strong {
+            color: var(--ink);
+            font-size: 15px;
+        }
+
+        .run-rehearsal-btn {
+            width: 100%;
+            justify-content: center;
+            min-height: 52px;
+            margin-top: 4px;
+        }
+
+        .demo-loading {
+            display: none;
+            align-items: center;
+            gap: 12px;
+            padding: 14px;
+            border-radius: 14px;
+            background: rgba(223, 244, 237, 0.58);
+            border: 1px solid rgba(18, 150, 141, 0.18);
+            color: var(--ink);
+            font-weight: 800;
+        }
+
+        .demo-loading.is-visible {
+            display: flex;
+        }
+
+        .demo-spinner {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            border: 3px solid rgba(18, 150, 141, 0.18);
+            border-top-color: var(--leaf);
+            animation: spin 0.9s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .consequence-tree {
+            display: none;
+            gap: 14px;
+        }
+
+        .consequence-tree.is-visible {
+            display: grid;
+        }
+
+        .tree-root {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 14px;
+            padding: 16px 18px;
+            border-radius: 14px;
+            background: linear-gradient(135deg, var(--leaf), var(--teal));
+            color: #fff;
+            box-shadow: 0 16px 32px rgba(45, 125, 103, 0.18);
+        }
+
+        .tree-root strong {
+            font-size: 18px;
+        }
+
+        .tree-root span {
+            opacity: 0.9;
+            font-size: 13px;
+            font-weight: 800;
+        }
+
+        .tree-grid {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 14px;
+            position: relative;
+        }
+
+        .tree-card {
+            border: 1px solid rgba(32, 50, 54, 0.12);
+            border-radius: 14px;
+            background: rgba(255, 255, 255, 0.94);
+            box-shadow: 0 16px 36px rgba(32, 50, 54, 0.08);
+            padding: 16px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .tree-card::before {
+            content: '';
+            position: absolute;
+            inset: 0 0 auto;
+            height: 5px;
+            background: linear-gradient(90deg, var(--leaf), var(--teal), var(--coral));
+        }
+
+        .tree-card h4 {
+            margin: 6px 0 8px;
+            font-size: 17px;
+        }
+
+        .tree-card p {
+            font-size: 13px;
+            line-height: 1.5;
+            margin-bottom: 12px;
+        }
+
+        .outcome-list {
+            list-style: none;
+            display: grid;
+            gap: 10px;
+        }
+
+        .outcome-list li {
+            display: grid;
+            gap: 6px;
+            padding: 10px;
+            border: 1px solid rgba(32, 50, 54, 0.08);
+            border-radius: 12px;
+            background: rgba(251, 255, 248, 0.82);
+            font-size: 12px;
+            line-height: 1.35;
+        }
+
+        .outcome-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            color: var(--ink);
+            font-weight: 800;
+        }
+
+        .probability {
+            color: var(--leaf);
+            white-space: nowrap;
+        }
+
+        .probability-track {
+            height: 8px;
+            overflow: hidden;
+            border-radius: 999px;
+            background: rgba(32, 50, 54, 0.08);
+        }
+
+        .probability-fill {
+            height: 100%;
+            border-radius: inherit;
+            background: linear-gradient(90deg, var(--leaf), var(--teal), var(--coral));
+        }
+
+        .recommendation-card {
+            display: grid;
+            grid-template-columns: auto minmax(0, 1fr);
+            gap: 12px;
+            align-items: start;
+            padding: 16px;
+            border-radius: 14px;
+            background: rgba(243, 201, 79, 0.15);
+            border: 1px solid rgba(243, 201, 79, 0.36);
+            color: var(--ink);
+        }
+
+        .recommendation-card i {
+            color: #b58410;
+            margin-top: 3px;
+        }
+
+        .principle-strip {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            gap: 10px;
+            padding: 12px 14px;
+            border-radius: 999px;
+            background: rgba(32, 50, 54, 0.05);
+            color: var(--quiet);
+            font-size: 12px;
+            font-weight: 800;
+        }
+
         .chat-input-container {
             display: flex;
             gap: 12px;
@@ -630,6 +998,10 @@
             .persona-column {
                 width: 100%;
             }
+            .demo-hero,
+            .tree-grid {
+                grid-template-columns: 1fr;
+            }
         }
 
         @media (max-width: 768px) {
@@ -644,6 +1016,12 @@
             }
             .message {
                 max-width: 100%;
+            }
+            .demo-candidate-grid {
+                grid-template-columns: 1fr;
+            }
+            .principle-strip {
+                border-radius: 14px;
             }
         }
     </style>
@@ -746,6 +1124,7 @@
         const PERSONA_QUERY_PARAM = 'persona';
         const CHAT_QUERY_PARAM = 'chat';
         const EMPTY_PERSONA_SCOPE = '__none__';
+        const DECISION_TREE_DEMO = 'decision-tree';
 
         let currentUser = null;
         let personas = [];
@@ -754,6 +1133,27 @@
         let activeSession = null;
         let activeMessages = [];
         let isSending = false;
+
+        function isDecisionTreeDemo() {
+            const params = new URLSearchParams(window.location.search);
+            return params.get('demo') === DECISION_TREE_DEMO;
+        }
+
+        function demoUrl(path, params = {}) {
+            const url = new URL(path, window.location.href);
+            url.searchParams.set('demo', DECISION_TREE_DEMO);
+            Object.entries(params).forEach(([key, value]) => {
+                if (value !== undefined && value !== null && value !== '') {
+                    url.searchParams.set(key, String(value));
+                }
+            });
+            return `${url.pathname.split('/').pop()}?${url.searchParams.toString()}`;
+        }
+
+        function getDemoState() {
+            const params = new URLSearchParams(window.location.search);
+            return params.get('state') === 'end' ? 'end' : 'start';
+        }
 
         function sanitizePersonaKey(value) {
             const normalized = String(value || '').trim().toLowerCase();
@@ -1518,6 +1918,208 @@
             renderChatSessionList();
         }
 
+        function buildOutcomeItems(items) {
+            return items.map((item) => `
+                <li>
+                    <div class="outcome-head">
+                        <span>${item.label}</span>
+                        <span class="probability">${item.range}</span>
+                    </div>
+                    <div class="probability-track" aria-hidden="true">
+                        <div class="probability-fill" style="width:${item.width}%;"></div>
+                    </div>
+                    <span>${item.note}</span>
+                </li>
+            `).join('');
+        }
+
+        function setupDecisionTreeDemo() {
+            document.body.classList.add('demo-mode');
+            document.title = 'Syntrae - Decision Rehearsal Demo';
+            accountIndicator.textContent = 'Maya Chen';
+            accountIndicator.dataset.state = 'signed-in';
+            document.querySelector('[data-destination="analyze"]').setAttribute('href', demoUrl('analyze.html', { persona: 'daniel-rivera-demo' }));
+            document.querySelector('[data-destination="profile"]').setAttribute('href', demoUrl('profile.html'));
+            document.querySelector('[data-destination="lab"]').setAttribute('href', demoUrl('insight-lab.html'));
+
+            const demoPrompt = "I want to invite Daniel to talk about where we're going, but I don't want the message to feel heavy. What are the possible consequences of different ways to ask?";
+            const outcomes = [
+                {
+                    title: 'Option A',
+                    action: 'Warm and direct',
+                    description: 'A clear invitation that signals the conversation matters.',
+                    items: [
+                        { label: 'Daniel appreciates clarity', range: '46-54%', width: 54, note: 'The directness makes the purpose easy to understand.' },
+                        { label: 'Daniel feels pressure', range: '18-26%', width: 26, note: 'The topic may feel serious if timing is rushed.' },
+                        { label: 'Conversation happens but feels serious', range: '22-30%', width: 30, note: 'Useful when clarity matters more than lightness.' }
+                    ]
+                },
+                {
+                    title: 'Option B',
+                    action: 'Light and open-ended',
+                    description: 'A softer opening that makes it easier for Daniel to say yes.',
+                    items: [
+                        { label: 'Daniel feels invited, not cornered', range: '52-60%', width: 60, note: 'The tone keeps the moment approachable.' },
+                        { label: 'Topic stays too vague', range: '20-28%', width: 28, note: 'You may need a follow-up sentence for clarity.' },
+                        { label: 'Conversation opens naturally', range: '18-26%', width: 26, note: 'Works well if the relationship already feels warm.' }
+                    ]
+                },
+                {
+                    title: 'Option C',
+                    action: 'Reflective and intentional',
+                    description: 'A sincere message that shows emotional honesty upfront.',
+                    items: [
+                        { label: 'Daniel recognizes sincerity', range: '42-50%', width: 50, note: 'The message communicates care and intention.' },
+                        { label: 'Tone feels emotionally heavy', range: '24-32%', width: 32, note: 'Could feel intense if Daniel is not expecting it.' },
+                        { label: 'Deeper conversation starts quickly', range: '22-30%', width: 30, note: 'Best when both people already value direct reflection.' }
+                    ]
+                }
+            ];
+
+            personaListEl.innerHTML = `
+                <div class="demo-persona-card">
+                    <div class="demo-persona-head">
+                        <div class="demo-persona-avatar" aria-hidden="true">D</div>
+                        <div>
+                            <h3>Daniel Rivera</h3>
+                            <p>Romantic relationship context</p>
+                        </div>
+                    </div>
+                    <div class="demo-chip-row">
+                        <span class="demo-chip"><i class="fas fa-check"></i> Context ready</span>
+                        <span class="demo-chip"><i class="fas fa-heart"></i> Relationship focus</span>
+                        <span class="demo-chip"><i class="fas fa-lock"></i> Private rehearsal</span>
+                    </div>
+                    <div class="demo-side-note">
+                        Syntrae uses persona context to rehearse possible paths in a private computer environment before acting in the real world.
+                    </div>
+                </div>
+                <div class="demo-persona-card">
+                    <span class="demo-kicker"><i class="fas fa-route"></i> Decision loop</span>
+                    <div class="demo-chip-row">
+                        <span class="demo-chip">Build persona</span>
+                        <span class="demo-chip">Run rehearsals</span>
+                        <span class="demo-chip">Review consequences</span>
+                        <span class="demo-chip">Choose next move</span>
+                    </div>
+                </div>
+            `;
+            createPersonaBtn.style.display = 'none';
+
+            const chatColumn = document.querySelector('.chat-column');
+            chatColumn.innerHTML = `
+                <div class="chat-header">
+                    <div class="agent-avatar">S</div>
+                    <div class="agent-info">
+                        <h3>Syntrae Guide <span class="status-indicator"></span></h3>
+                        <p>Persona-based decision rehearsal for relationship moments</p>
+                    </div>
+                </div>
+
+                <section class="demo-stage" aria-label="Syntrae decision rehearsal demo">
+                    <div class="demo-hero">
+                        <div class="demo-card">
+                            <span class="demo-kicker"><i class="fas fa-seedling"></i> One real chance, many rehearsals</span>
+                            <h3>Decision Rehearsal</h3>
+                            <p>Compare possible next moves before choosing the one action Maya will take in real life.</p>
+                            <div class="demo-prompt-box">${demoPrompt}</div>
+                            <div class="demo-candidate-grid" aria-label="Candidate actions">
+                                <div class="candidate-card">
+                                    <strong>Warm and direct</strong>
+                                    <span>Clear, respectful, low pressure.</span>
+                                </div>
+                                <div class="candidate-card">
+                                    <strong>Light and open-ended</strong>
+                                    <span>Gentle invitation with room to respond.</span>
+                                </div>
+                                <div class="candidate-card">
+                                    <strong>Reflective and intentional</strong>
+                                    <span>More sincere and emotionally direct.</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <aside class="demo-card rehearsal-settings">
+                            <span class="demo-kicker"><i class="fas fa-sliders"></i> Rehearsal settings</span>
+                            <div class="setting-row">
+                                <span>Persona profile</span>
+                                <strong>Daniel Rivera</strong>
+                            </div>
+                            <div class="setting-row">
+                                <span>Iterations</span>
+                                <strong>300</strong>
+                            </div>
+                            <div class="setting-row">
+                                <span>Output</span>
+                                <strong>Consequence tree</strong>
+                            </div>
+                            <button class="send-btn run-rehearsal-btn" id="runRehearsalBtn" type="button">
+                                <i class="fas fa-play"></i> Run decision rehearsal
+                            </button>
+                            <div class="demo-small">Rehearse before you act.</div>
+                        </aside>
+                    </div>
+
+                    <div class="demo-loading" id="demoLoading">
+                        <span class="demo-spinner" aria-hidden="true"></span>
+                        Running 300 persona-based rehearsals and mapping likely consequences...
+                    </div>
+
+                    <section class="consequence-tree" id="consequenceTree" aria-label="Consequence tree">
+                        <div class="tree-root">
+                            <div>
+                                <strong>Consequence Tree</strong>
+                                <div>300 persona-based rehearsals for one real-world decision</div>
+                            </div>
+                            <span>Probability ranges</span>
+                        </div>
+                        <div class="tree-grid">
+                            ${outcomes.map((branch) => `
+                                <article class="tree-card">
+                                    <p>${branch.title}</p>
+                                    <h4>${branch.action}</h4>
+                                    <p>${branch.description}</p>
+                                    <ul class="outcome-list">${buildOutcomeItems(branch.items)}</ul>
+                                </article>
+                            `).join('')}
+                        </div>
+                        <div class="recommendation-card">
+                            <i class="fas fa-lightbulb"></i>
+                            <div>
+                                <strong>Suggested first move: Option B.</strong>
+                                <p>It preserves warmth while reducing pressure. Choose Option A if clarity matters more than lightness.</p>
+                            </div>
+                        </div>
+                        <div class="principle-strip">
+                            <span>Probability ranges are guidance.</span>
+                            <span>Your action determines the outcome.</span>
+                        </div>
+                    </section>
+                </section>
+            `;
+
+            const loadingEl = document.getElementById('demoLoading');
+            const treeEl = document.getElementById('consequenceTree');
+            const runButton = document.getElementById('runRehearsalBtn');
+
+            function revealTree() {
+                runButton.disabled = true;
+                runButton.innerHTML = '<i class="fas fa-check"></i> Rehearsal complete';
+                loadingEl.classList.remove('is-visible');
+                treeEl.classList.add('is-visible');
+                treeEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }
+
+            runButton.addEventListener('click', () => {
+                loadingEl.classList.add('is-visible');
+                window.setTimeout(revealTree, 1100);
+            });
+
+            if (getDemoState() === 'end') {
+                revealTree();
+            }
+        }
+
         async function loadSession() {
             try {
                 const { data, error } = await supabase.auth.getSession();
@@ -1576,8 +2178,20 @@
             e.preventDefault();
             const dest = link.dataset.destination;
             if (dest === 'analyze') {
+                if (isDecisionTreeDemo()) {
+                    window.location.href = demoUrl('analyze.html', { persona: 'daniel-rivera-demo' });
+                    return;
+                }
                 const activeKey = activePersona?.persona_key || getActivePersonaKey();
                 window.location.href = buildPersonaUrl('analyze.html', activeKey);
+                return;
+            }
+            if (isDecisionTreeDemo() && dest === 'profile') {
+                window.location.href = demoUrl('profile.html');
+                return;
+            }
+            if (isDecisionTreeDemo() && dest === 'lab') {
+                window.location.href = demoUrl('insight-lab.html');
                 return;
             }
             const base = window.location.pathname.replace(/[^/]+$/, '');
@@ -1668,23 +2282,27 @@
             }
         }
 
-        sendBtn.addEventListener('click', () => {
-            void sendMessage();
-        });
-        chatInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
-                e.preventDefault();
+        if (isDecisionTreeDemo()) {
+            setupDecisionTreeDemo();
+        } else {
+            sendBtn.addEventListener('click', () => {
                 void sendMessage();
-            }
-        });
-        createPersonaBtn?.addEventListener('click', () => {
-            void createPersona();
-        });
-        newChatBtn?.addEventListener('click', () => {
-            void createNewChat();
-        });
+            });
+            chatInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    void sendMessage();
+                }
+            });
+            createPersonaBtn?.addEventListener('click', () => {
+                void createPersona();
+            });
+            newChatBtn?.addEventListener('click', () => {
+                void createNewChat();
+            });
 
-        await loadSession();
+            await loadSession();
+        }
     </script>
 </body>
 </html>

@@ -371,6 +371,7 @@
     const PERSONA_TABLE = 'personas';
     const ACTIVE_PERSONA_KEY_STORAGE = 'active-persona-key';
     const PERSONA_QUERY_PARAM = 'persona';
+    const DECISION_TREE_DEMO = 'decision-tree';
     const syntraeSupabase = window.syntraeSupabaseClient || null;
 
     const fallbackQuestions = [];
@@ -387,11 +388,43 @@
     let lastCloudPayload = '';
     let personaKey = '';
 
+    if (isDecisionTreeDemo()) {
+      document.body.classList.add('demo-mode');
+      document.title = 'Edit Daniel Rivera Persona - Syntrae Demo';
+      personaKey = 'daniel-rivera-demo';
+      localStorage.setItem(ACTIVE_PERSONA_KEY_STORAGE, personaKey);
+      localStorage.setItem('persona-name', 'Daniel Rivera');
+      backToAnalyze.href = demoUrl('analyze.html', { persona: personaKey });
+      statusEl.textContent = 'Demo mode: editing Daniel Rivera relationship persona for Maya Chen.';
+      statusEl.insertAdjacentHTML('afterend', `
+        <section class="status" data-type="success" style="display:grid;gap:6px;margin-bottom:14px;">
+          <strong>Daniel Rivera demo persona</strong>
+          <span>This question flow represents the relationship persona Maya Chen uses before running decision rehearsals.</span>
+        </section>
+      `);
+    }
+
     function sanitizePersonaKey(value) {
       const normalized = String(value || '').trim().toLowerCase();
       if (!normalized) return '';
       const cleaned = normalized.replace(/[^a-z0-9_-]/g, '');
       return cleaned || '';
+    }
+
+    function isDecisionTreeDemo() {
+      const params = new URLSearchParams(window.location.search || '');
+      return params.get('demo') === DECISION_TREE_DEMO;
+    }
+
+    function demoUrl(path, params = {}) {
+      const url = new URL(path, window.location.href);
+      url.searchParams.set('demo', DECISION_TREE_DEMO);
+      Object.entries(params).forEach(([key, value]) => {
+        if (value !== undefined && value !== null && value !== '') {
+          url.searchParams.set(key, String(value));
+        }
+      });
+      return `${url.pathname.split('/').pop()}?${url.searchParams.toString()}`;
     }
 
     function createPersonaKeyFromSeed(name, seed = '') {
@@ -413,6 +446,9 @@
     }
 
     function buildPersonaUrl(path, key = personaKey) {
+      if (isDecisionTreeDemo()) {
+        return demoUrl(path, { persona: key || 'daniel-rivera-demo' });
+      }
       const safeKey = sanitizePersonaKey(key);
       if (!safeKey) return path;
       return `${path}?${PERSONA_QUERY_PARAM}=${encodeURIComponent(safeKey)}`;

@@ -16,6 +16,7 @@ const MAX_ACCOUNT_OUTCOME_REPORTS = 20;
 const MAX_ACCOUNT_OUTCOME_FAILED = 30;
 const MAX_OUTCOME_QUEUE_ITEMS = 10;
 const MAX_OUTCOME_JOB_RETRIES = 3;
+const DECISION_TREE_DEMO = 'decision-tree';
 
 const AXIS_LABELS = Object.freeze({
   L1_A1: 'Initiative',
@@ -28,7 +29,7 @@ const AXIS_LABELS = Object.freeze({
   L2_A2: 'Autonomy ↔ Coordination',
   L2_A3: 'Immediate ↔ Deferred Reward',
   L2_A4: 'Status ↔ Belonging',
-  L2_A5: 'Internal ↔ External Validation',
+  L2_A5: 'Inner Confidence ↔ Social Reassurance',
   L2_A6: 'Depth ↔ Breadth',
   L3_A1: 'Honesty Boundary',
   L3_A2: 'Respect / Dignity Boundary',
@@ -82,6 +83,22 @@ let outcomeHistoryReportMap = new Map();
 let outcomeQueueRetryTimer = null;
 let outcomeQueueAbortController = null;
 let outcomeStopRequested = false;
+
+function isDecisionTreeDemo() {
+  const params = new URLSearchParams(window.location.search || '');
+  return params.get('demo') === DECISION_TREE_DEMO;
+}
+
+function demoUrl(path, params = {}) {
+  const url = new URL(path, window.location.href);
+  url.searchParams.set('demo', DECISION_TREE_DEMO);
+  Object.entries(params).forEach(([key, value]) => {
+    if (value !== undefined && value !== null && value !== '') {
+      url.searchParams.set(key, String(value));
+    }
+  });
+  return `${url.pathname.split('/').pop()}?${url.searchParams.toString()}`;
+}
 
 function sanitizePersonaKey(value) {
   const normalized = String(value || '').trim().toLowerCase();
@@ -1713,6 +1730,12 @@ function openOutcomeReportDetails(report) {
       : generatedAt
         ? `?generated_at=${encodeURIComponent(generatedAt)}`
         : '';
+    if (isDecisionTreeDemo()) {
+      const params = new URLSearchParams(query ? query.slice(1) : '');
+      params.set('demo', DECISION_TREE_DEMO);
+      window.location.href = `outcome-test-results.html?${params.toString()}`;
+      return;
+    }
     window.location.href = `outcome-test-results.html${query}`;
   } catch (error) {
     setOutcomeStatus(`Unable to open report details: ${error?.message || 'storage write failed'}`, 'error');
@@ -1820,7 +1843,282 @@ function renderOutcomeResults(report) {
 
   outcomePathwayGridEl.innerHTML = `${chainCards}${nodeCards}`;
 
-  outcomeResultsEl.hidden = false;
+outcomeResultsEl.hidden = false;
+}
+
+function buildDemoProfile(name, axisScores, extras, headline) {
+  const traitVector = {};
+  Object.entries(axisScores).forEach(([layerId, layer]) => {
+    Object.entries(layer).forEach(([axisId, value]) => {
+      traitVector[axisId] = {
+        layer_id: layerId,
+        value,
+        confidence: 0.76
+      };
+    });
+  });
+
+  return {
+    schema_version: 'demo-1.0',
+    persona_name: name,
+    personal_headline: headline,
+    quantitative_data: {
+      axis_scores: axisScores,
+      trait_vector: traitVector
+    },
+    qualitative_data: {
+      personal_headline: headline,
+      extras_text: extras,
+      qualitative_tags: Object.values(extras)
+        .join(' ')
+        .toLowerCase()
+        .split(/\W+/)
+        .filter((token) => token.length > 3)
+        .slice(0, 80)
+    },
+    extras
+  };
+}
+
+function buildDemoOptions() {
+  const mayaAxis = {
+    L1: { L1_A1: 0.68, L1_A2: 0.72, L1_A3: 0.42, L1_A4: 0.55, L1_A5: 0.58, L1_A6: 0.61 },
+    L2: { L2_A1: 0.52, L2_A2: 0.48, L2_A3: 0.62, L2_A4: 0.32, L2_A5: 0.64, L2_A6: 0.76 },
+    L3: { L3_A1: 0.78, L3_A2: 0.82, L3_A3: 0.7, L3_A4: 0.66, L3_A5: 0.76, L3_A6: 0.54 }
+  };
+  const danielAxis = {
+    L1: { L1_A1: 0.62, L1_A2: 0.66, L1_A3: 0.42, L1_A4: 0.56, L1_A5: 0.48, L1_A6: 0.58 },
+    L2: { L2_A1: 0.54, L2_A2: 0.46, L2_A3: 0.63, L2_A4: 0.35, L2_A5: 0.58, L2_A6: 0.72 },
+    L3: { L3_A1: 0.73, L3_A2: 0.76, L3_A3: 0.66, L3_A4: 0.62, L3_A5: 0.68, L3_A6: 0.52 }
+  };
+
+  return [
+    {
+      key: SYNTHETIC_USER_KEY,
+      label: 'Maya Chen (You)',
+      sourceLabel: 'Demo User Persona',
+      type: 'user',
+      data: {
+        display_name: 'Maya Chen',
+        personal_headline: 'Thoughtful communicator preparing for a relationship-defining conversation',
+        goals: 'Invite Daniel to talk about where the relationship is going while keeping the tone warm and low pressure.',
+        strengths: 'Emotionally observant, sincere, patient, and willing to communicate clearly.',
+        constraints: 'Only one real-world attempt; wants to avoid making Daniel feel cornered.',
+        communication_style: 'Warm, reflective, considerate, and direct when clarity matters.',
+        user_profile: buildDemoProfile(
+          'Maya Chen',
+          mayaAxis,
+          {
+            goal: 'Invite a deeper conversation with care',
+            tone: 'Warm, thoughtful, low pressure',
+            decision_context: 'One real-world relationship action'
+          },
+          'Thoughtful communicator preparing for a relationship-defining conversation'
+        )
+      }
+    },
+    {
+      key: 'daniel-rivera-demo',
+      label: 'Daniel Rivera',
+      sourceLabel: 'Demo Relationship Persona',
+      type: 'persona',
+      data: {
+        name: 'Daniel Rivera',
+        profile: buildDemoProfile(
+          'Daniel Rivera',
+          danielAxis,
+          {
+            relationship_role: 'Romantic interest',
+            likely_response_pattern: 'Responds well to warm invitations and steady pacing',
+            concern: 'May withdraw if the tone feels rushed or emotionally heavy'
+          },
+          'Warm, sincere, and receptive when directness is paired with emotional room'
+        )
+      }
+    }
+  ];
+}
+
+function buildDemoOutcomeReport() {
+  return {
+    report_id: 'demo-maya-daniel-outcome',
+    generated_at: new Date().toISOString(),
+    requested_outcome: "Invite Daniel to talk about where the relationship is going without making the message feel heavy.",
+    persona_a: { key: SYNTHETIC_USER_KEY, label: 'Maya Chen' },
+    persona_b: { key: 'daniel-rivera-demo', label: 'Daniel Rivera' },
+    config: { node_count: 3, actions_per_node: 3 },
+    best_chain: {
+      chain_metrics: {
+        chain_integrity_percent: 86,
+        logicality_percent: 88,
+        ethics_legal_percent: 96,
+        practicality_percent: 91,
+        specificity_percent: 84,
+        transitions_passed: 3,
+        transitions_total: 3
+      }
+    },
+    chain_candidates: [
+      {
+        chain_metrics: {
+          chain_integrity_percent: 86,
+          logicality_percent: 88,
+          ethics_legal_percent: 96,
+          practicality_percent: 91,
+          specificity_percent: 84,
+          transitions_passed: 3,
+          transitions_total: 3
+        },
+        actions: [
+          { node_index: 1, action: 'Use the light and open-ended invitation first.' },
+          { node_index: 2, action: 'If Daniel responds warmly, name the topic with one clear sentence.' },
+          { node_index: 3, action: 'Let the conversation breathe before asking for a firm answer.' }
+        ],
+        transition_checks: [
+          { from_node_index: 1, to_node_index: 2, pass: true, logicality_percent: 89, practicality_percent: 92, ethics_legal_percent: 96, note: 'Warmth lowers pressure before clarity.' },
+          { from_node_index: 2, to_node_index: 3, pass: true, logicality_percent: 87, practicality_percent: 91, ethics_legal_percent: 97, note: 'Space keeps the invitation mutual.' }
+        ]
+      }
+    ],
+    action_space: [
+      {
+        node_index: 1,
+        node_title: 'Opening message',
+        actions: [
+          { id: 'A1', gene_slot: 1, action: 'Would you be up for a relaxed check-in this weekend?', rationale: 'Highest probability of feeling invitational rather than pressuring.' },
+          { id: 'A2', gene_slot: 2, action: "I've valued our time together. Could we talk about where this is going?", rationale: 'Clearer but more serious.' },
+          { id: 'A3', gene_slot: 3, action: "I've been thinking about us in a good way.", rationale: 'Sincere, but may feel heavier upfront.' }
+        ]
+      },
+      {
+        node_index: 2,
+        node_title: 'Likely consequence range',
+        actions: [
+          { id: 'B1', gene_slot: 1, action: 'Daniel feels invited, not cornered: 52-60%', rationale: 'Best match for his warm but careful response pattern.' },
+          { id: 'B2', gene_slot: 2, action: 'Topic stays too vague: 20-28%', rationale: 'May require one follow-up clarifying sentence.' },
+          { id: 'B3', gene_slot: 3, action: 'Conversation opens naturally: 18-26%', rationale: 'Most likely if timing and mood are calm.' }
+        ]
+      },
+      {
+        node_index: 3,
+        node_title: 'Recommended next move',
+        actions: [
+          { id: 'C1', gene_slot: 1, action: 'Start with Option B, then clarify gently if Daniel responds warmly.', rationale: 'Balances warmth and clarity.' },
+          { id: 'C2', gene_slot: 2, action: 'Choose Option A if clarity matters more than lightness.', rationale: 'Better when avoiding ambiguity is the top priority.' },
+          { id: 'C3', gene_slot: 3, action: 'Avoid compressing the invitation and the desired answer into one message.', rationale: 'Reduces emotional pressure.' }
+        ]
+      }
+    ]
+  };
+}
+
+async function runDemoFitnessReview() {
+  const optionA = optionByKey.get(selectA.value);
+  const optionB = optionByKey.get(selectB.value);
+  const evaluation = evaluatePair(optionA, optionB);
+  if (!evaluation.ready) {
+    setStatus(evaluation.reason, 'error');
+    return;
+  }
+  const report = await runWithProgress(async () => {
+    await wait(700);
+    return {
+      report_id: 'demo-maya-daniel-compatibility',
+      comparedAt: new Date().toISOString(),
+      personaA: { key: optionA.key, label: optionA.label, signature: { key: optionA.key, profile_hash: 'demo-a' } },
+      personaB: { key: optionB.key, label: optionB.label, signature: { key: optionB.key, profile_hash: 'demo-b' } },
+      compatibilityPercent: 78,
+      quantitativeDeviationPercent: 22,
+      qualitativeMisalignmentPercent: 18,
+      mutationRatePercent: 14,
+      areas_match: [
+        'Both prefer considerate communication over pressure',
+        'Depth and honesty signals are strongly aligned',
+        'Timing sensitivity suggests a gentle opening is appropriate'
+      ],
+      areas_mismatch: [
+        'Maya seeks clarity sooner than Daniel may expect',
+        'Daniel may need more emotional room before defining next steps'
+      ],
+      top_matches_axes: [],
+      top_mismatches_axes: [],
+      llm_model: 'Demo predictive model'
+    };
+  });
+  localStorage.setItem(FITNESS_RESULT_STORAGE_KEY, JSON.stringify(report));
+  setStatus('Compatibility Review complete for Maya Chen and Daniel Rivera.', 'success');
+  window.setTimeout(() => {
+    window.location.href = demoUrl('fitness-test-results.html');
+  }, 450);
+}
+
+async function runDemoOutcomePathways() {
+  const report = await runOutcomeWithProgress(async () => {
+    await wait(700);
+    return buildDemoOutcomeReport();
+  });
+  renderOutcomeResults(report);
+  setOutcomeStatus('Outcome Pathways complete: 300 persona-based rehearsals summarized for this decision.', 'success');
+}
+
+function setupDemoInsightLab() {
+  document.body.classList.add('demo-mode');
+  document.title = 'Insight Lab - Maya and Daniel Demo';
+  document.querySelectorAll('a[href="Chat.html"]').forEach((link) => {
+    link.setAttribute('href', demoUrl('Chat.html', { state: 'start' }));
+  });
+  document.querySelectorAll('a[href="analyze.html"]').forEach((link) => {
+    link.setAttribute('href', demoUrl('analyze.html', { persona: 'daniel-rivera-demo' }));
+  });
+  document.querySelectorAll('a[href="profile.html"]').forEach((link) => {
+    link.setAttribute('href', demoUrl('profile.html'));
+  });
+
+  const hero = document.querySelector('.hero');
+  if (hero && !document.querySelector('.demo-intro-grid')) {
+    hero.insertAdjacentHTML('beforeend', `
+      <div class="demo-intro-grid" aria-label="Maya and Daniel demo context">
+        <article class="demo-intro-card">
+          <h3>Maya Chen → Daniel Rivera</h3>
+          <p>Use this lab scene to show how Syntrae moves from persona context into structured compatibility review and consequence-path rehearsal.</p>
+        </article>
+        <article class="demo-intro-card">
+          <div class="demo-chip-row">
+            <span class="demo-chip">Maya Chen</span>
+            <span class="demo-chip">Daniel Rivera</span>
+            <span class="demo-chip">300 rehearsals</span>
+            <span class="demo-chip">Probability ranges</span>
+          </div>
+        </article>
+      </div>
+    `);
+  }
+
+  currentUserId = 'demo-user';
+  currentUserProfileJson = {
+    [INSIGHT_LAB_PROFILE_KEY]: {
+      [ACCOUNT_OUTCOME_REPORTS_KEY]: [buildDemoOutcomeReport()],
+      [ACCOUNT_OUTCOME_QUEUE_KEY]: []
+    }
+  };
+  personaOptions = buildDemoOptions();
+  optionByKey = new Map(personaOptions.map((item) => [item.key, item]));
+  populateSelectors();
+  if (selectA) selectA.value = SYNTHETIC_USER_KEY;
+  if (selectB) selectB.value = 'daniel-rivera-demo';
+  if (outcomeSelectA) outcomeSelectA.value = SYNTHETIC_USER_KEY;
+  if (outcomeSelectB) outcomeSelectB.value = 'daniel-rivera-demo';
+  if (outcomeInitialConditionsEl) {
+    outcomeInitialConditionsEl.value = 'Maya wants to invite Daniel into a deeper conversation this weekend while keeping the tone warm and low pressure.';
+  }
+  if (outcomeRequestedOutcomeEl) {
+    outcomeRequestedOutcomeEl.value = "Invite Daniel to talk about where the relationship is going without making the message feel heavy.";
+  }
+  updateFitnessUI();
+  updateOutcomeUI();
+  renderOutcomeTestHistory();
+  renderOutcomeResults(buildDemoOutcomeReport());
+  setOutcomeStatus('Demo consequence paths loaded for Maya Chen and Daniel Rivera.', 'success');
 }
 
 function evaluateOutcomeSetup(optionA, optionB, requestedOutcome) {
@@ -2208,6 +2506,11 @@ function buildInsightsPayload(optionA, optionB, evaluation) {
 }
 
 async function initialize() {
+  if (isDecisionTreeDemo()) {
+    setupDemoInsightLab();
+    return;
+  }
+
   const { data, error } = await supabase.auth.getSession();
   if (error || !data?.session?.user) {
     window.location.href = 'sign-in.html?auth=required';
@@ -2262,6 +2565,11 @@ if (outcomeHistoryListEl) {
 }
 
 runBtn.addEventListener('click', async () => {
+  if (isDecisionTreeDemo()) {
+    await runDemoFitnessReview();
+    return;
+  }
+
   const optionA = optionByKey.get(selectA.value);
   const optionB = optionByKey.get(selectB.value);
   const evaluation = evaluatePair(optionA, optionB);
@@ -2333,6 +2641,11 @@ runBtn.addEventListener('click', async () => {
 
 if (outcomeRunBtn) {
   outcomeRunBtn.addEventListener('click', async () => {
+    if (isDecisionTreeDemo()) {
+      await runDemoOutcomePathways();
+      return;
+    }
+
     const optionA = optionByKey.get(outcomeSelectA?.value || '');
     const optionB = optionByKey.get(outcomeSelectB?.value || '');
     const requestedOutcome = String(outcomeRequestedOutcomeEl?.value || '').trim();

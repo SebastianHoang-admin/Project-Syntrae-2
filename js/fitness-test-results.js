@@ -9,6 +9,7 @@ const INSIGHT_LAB_PROFILE_KEY = 'insight_lab';
 const ACCOUNT_FITNESS_REPORTS_KEY = 'fitness_reports';
 const MAX_ACCOUNT_FITNESS_REPORTS = 20;
 const MAX_HISTORY_REPORTS = 10;
+const DECISION_TREE_DEMO = 'decision-tree';
 
 const AXIS_LABELS = Object.freeze({
   L1_A1: 'Initiative',
@@ -21,7 +22,7 @@ const AXIS_LABELS = Object.freeze({
   L2_A2: 'Autonomy ↔ Coordination',
   L2_A3: 'Immediate ↔ Deferred Reward',
   L2_A4: 'Status ↔ Belonging',
-  L2_A5: 'Internal ↔ External Validation',
+  L2_A5: 'Inner Confidence ↔ Social Reassurance',
   L2_A6: 'Depth ↔ Breadth',
   L3_A1: 'Honesty Boundary',
   L3_A2: 'Respect / Dignity Boundary',
@@ -46,6 +47,54 @@ const historyCloseBtnEl = document.getElementById('historyCloseBtn');
 const historyListEl = document.getElementById('historyList');
 let currentUserId = '';
 let currentUserProfileJson = {};
+
+function isDecisionTreeDemo() {
+  const params = new URLSearchParams(window.location.search || '');
+  return params.get('demo') === DECISION_TREE_DEMO;
+}
+
+function demoUrl(path, params = {}) {
+  const url = new URL(path, window.location.href);
+  url.searchParams.set('demo', DECISION_TREE_DEMO);
+  Object.entries(params).forEach(([key, value]) => {
+    if (value !== undefined && value !== null && value !== '') {
+      url.searchParams.set(key, String(value));
+    }
+  });
+  return `${url.pathname.split('/').pop()}?${url.searchParams.toString()}`;
+}
+
+function buildDemoFitnessReport() {
+  return {
+    report_id: 'demo-maya-daniel-compatibility',
+    comparedAt: new Date().toISOString(),
+    personaA: { key: SYNTHETIC_USER_KEY, label: 'Maya Chen (You)', signature: { key: SYNTHETIC_USER_KEY, profile_hash: 'demo-a' } },
+    personaB: { key: 'daniel-rivera-demo', label: 'Daniel Rivera', signature: { key: 'daniel-rivera-demo', profile_hash: 'demo-b' } },
+    compatibilityPercent: 78,
+    quantitativeDeviationPercent: 22,
+    qualitativeMisalignmentPercent: 18,
+    mutationRatePercent: 14,
+    areas_match: [
+      'Both prefer considerate communication over pressure',
+      'Depth and honesty signals are strongly aligned',
+      'Timing sensitivity suggests a gentle opening is appropriate'
+    ],
+    areas_mismatch: [
+      'Maya seeks clarity sooner than Daniel may expect',
+      'Daniel may need more emotional room before defining next steps'
+    ],
+    top_matches_axes: [
+      { axis_name: 'Respect / Dignity Boundary', deviation: 0.06, persona_a_value: 0.82, persona_b_value: 0.76 },
+      { axis_name: 'Depth ↔ Breadth', deviation: 0.04, persona_a_value: 0.76, persona_b_value: 0.72 },
+      { axis_name: 'Immediate ↔ Deferred Reward', deviation: 0.01, persona_a_value: 0.62, persona_b_value: 0.63 }
+    ],
+    top_mismatches_axes: [
+      { axis_name: 'Conflict Response', deviation: 0.1, persona_a_value: 0.58, persona_b_value: 0.48 },
+      { axis_name: 'Loyalty / Commitment Boundary', deviation: 0.04, persona_a_value: 0.7, persona_b_value: 0.66 }
+    ],
+    llm_model: 'Demo predictive model'
+  };
+}
 
 function clamp01(value, fallback = 0) {
   const numeric = Number(value);
@@ -986,6 +1035,17 @@ function bindHistoryEvents() {
 
 async function initialize() {
   bindHistoryEvents();
+  if (isDecisionTreeDemo()) {
+    document.body.classList.add('demo-mode');
+    document.querySelectorAll('a[href="insight-lab.html"]').forEach((link) => {
+      link.setAttribute('href', demoUrl('insight-lab.html'));
+    });
+    const latestDemo = loadLatestReport() || buildDemoFitnessReport();
+    saveLatestReport(latestDemo);
+    renderReport(latestDemo);
+    if (latestDemo) upsertReportHistory(latestDemo);
+    return;
+  }
 
   try {
     const { data, error } = await supabase.auth.getSession();
