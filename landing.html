@@ -3,976 +3,1217 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Syntrae | Predict every yes</title>
+    <title>Syntrae | Founding Member Preview</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@600;700&family=Manrope:wght@400;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         :root {
-            --ink: #0b1224;
-            --panel: rgba(8, 10, 16, 0.6);
-            --border: rgba(255, 255, 255, 0.1);
-            --accent: #22d3ee;
-            --accent-hot: #f97316;
-            --text: #e2e8f0;
-            --muted: #94a3b8;
+            --paper: #fbfff8;
+            --mint: #dff4ed;
+            --leaf: #2d7d67;
+            --ink: #203236;
+            --quiet: #667979;
+            --coral: #ef745f;
+            --sun: #f3c94f;
+            --teal: #12968d;
+            --blue: #2f6f9f;
+            --line: rgba(32, 50, 54, 0.14);
+            --shadow: 0 18px 48px rgba(32, 50, 54, 0.12);
         }
-        * { margin:0; padding:0; box-sizing:border-box; font-family:'Space Grotesk','Helvetica Neue',Arial,sans-serif; }
-        html { scroll-behavior: smooth; }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
         body {
+            margin: 0;
             min-height: 100vh;
-            background: #04060f;
-            color: var(--text);
-            display: flex;
-            flex-direction: column;
+            color: var(--ink);
+            background: var(--paper);
+            font-family: "Manrope", "Helvetica Neue", Arial, sans-serif;
         }
-        a { color: inherit; text-decoration: none; }
+
+        a {
+            color: inherit;
+            text-decoration: none;
+        }
+
+        button,
+        input,
+        select {
+            font: inherit;
+        }
+
+        @keyframes fadeLift {
+            from {
+                opacity: 0;
+                transform: translateY(18px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes navDrop {
+            from {
+                opacity: 0;
+                transform: translateY(-12px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes photoDrift {
+            from {
+                background-position: center center;
+            }
+            to {
+                background-position: 54% center;
+            }
+        }
+
+        @keyframes softPulse {
+            0%, 100% {
+                box-shadow: 0 12px 24px rgba(45, 125, 103, 0.22);
+            }
+            50% {
+                box-shadow: 0 18px 34px rgba(45, 125, 103, 0.34);
+            }
+        }
+
+        @keyframes markGlow {
+            0%, 100% {
+                box-shadow: 0 10px 22px rgba(18, 150, 141, 0.22);
+            }
+            50% {
+                box-shadow: 0 14px 30px rgba(239, 116, 95, 0.24);
+            }
+        }
+
+        .reveal {
+            opacity: 0;
+            transform: translateY(24px);
+            transition: opacity 0.72s ease, transform 0.72s ease;
+        }
+
+        .reveal.is-visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
         .nav {
+            position: sticky;
+            top: 0;
+            z-index: 20;
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 16px 24px;
-            position: sticky;
-            top: 0;
-            z-index: 10;
-            background: rgba(0, 0, 0, 0.12);
-            backdrop-filter: blur(10px);
-            border-bottom: 1px solid var(--border);
+            gap: 18px;
+            padding: 14px 28px;
+            border-bottom: 1px solid rgba(32, 50, 54, 0.1);
+            background: rgba(251, 255, 248, 0.9);
+            backdrop-filter: blur(14px);
+            animation: navDrop 0.55s ease both;
         }
-        .brand { display: flex; align-items: center; gap: 10px; }
-        .brand-link { text-decoration: none; color: inherit; display: inline-flex; }
-        .logo-icon {
-            width: 42px; height: 42px; border-radius: 12px;
-            display: grid; place-items: center;
-            background: linear-gradient(135deg, #f84f25, #b8120e);
-            box-shadow: 0 10px 24px rgba(248, 79, 37, 0.35);
+
+        .brand {
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+            font-weight: 800;
         }
-        .brand-text { display: flex; flex-direction: column; gap: 2px; }
-        .brand-text span:first-child { font-weight: 700; letter-spacing: 1.6px; }
-        .brand-text span:last-child { color: var(--muted); font-size: 12px; }
-        .nav-links { display: flex; align-items: center; gap: 14px; }
-        .btn {
-            display: inline-flex; align-items: center; gap: 8px;
-            padding: 12px 20px; border-radius: 18px; border: 1px solid transparent;
-            font-weight: 700; font-size: 14px; cursor: pointer; transition: all 0.3s ease;
+
+        .mark {
+            width: 38px;
+            height: 38px;
+            border-radius: 8px;
+            display: grid;
+            place-items: center;
+            color: #fff;
+            background:
+                linear-gradient(135deg, var(--leaf), var(--teal) 52%, var(--coral));
+            box-shadow: 0 10px 22px rgba(18, 150, 141, 0.22);
+            animation: markGlow 4.8s ease-in-out infinite;
         }
-        .btn-ghost {
-            border-color: rgba(255,255,255,0.2);
-            background: rgba(255, 255, 255, 0.92);
+
+        .mark i {
+            font-size: 16px;
+        }
+
+        .brand-copy {
+            display: grid;
+            gap: 1px;
+        }
+
+        .brand-copy span:first-child {
+            font-size: 15px;
+            letter-spacing: 0;
+        }
+
+        .brand-copy span:last-child {
+            color: var(--quiet);
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        .nav-links {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .nav-links a:not(.button) {
+            color: var(--quiet);
+            font-size: 14px;
+            font-weight: 800;
+        }
+
+        .button {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 9px;
+            min-height: 44px;
+            border: 1px solid transparent;
+            border-radius: 8px;
+            padding: 11px 17px;
+            font-size: 14px;
+            font-weight: 800;
+            cursor: pointer;
+            transition: transform 0.18s ease, box-shadow 0.18s ease, background 0.18s ease;
+        }
+
+        .button:hover {
+            transform: translateY(-1px);
+        }
+
+        .button-primary {
+            color: #fff;
+            background: var(--leaf);
+            box-shadow: 0 12px 24px rgba(45, 125, 103, 0.22);
+        }
+
+        .button-primary:hover {
+            background: #246f5b;
+        }
+
+        .button-secondary {
             color: var(--ink);
-            box-shadow: 0 10px 20px rgba(0,0,0,0.15);
+            background: rgba(255, 255, 255, 0.82);
+            border-color: var(--line);
         }
-        .btn-primary {
-            background: linear-gradient(135deg, #00c7ff, #ff8b3d);
-            color: #0b1224;
-            border: 1px solid rgba(255,255,255,0.2);
-            box-shadow: 0 12px 26px rgba(34, 211, 238, 0.3);
+
+        .hero-actions .button-primary {
+            animation: softPulse 4.4s ease-in-out infinite;
         }
-        .btn:hover { transform: translateY(-1px); box-shadow: 0 12px 30px rgba(34, 211, 238, 0.18); }
+
         .hero {
-            padding: 480px 24px 420px;
-            text-align: center;
+            min-height: 86vh;
             position: relative;
+            display: grid;
+            align-items: end;
             overflow: hidden;
-            isolation: isolate;
-            --glow: 0;
-            background: radial-gradient(circle at 50% 30%, rgba(0,0,0,0.6), #010208 55%, #000105 100%);
-        }
-        .ambient {
-            position: relative;
-            z-index: 1;
-            overflow: hidden;
-        }
-        .ambient::before {
-            content: "";
-            position: absolute;
-            inset: -12%;
+            padding: 124px 28px 80px;
+            color: #fff;
             background:
-                radial-gradient(40% 35% at 20% 30%, rgba(34,211,238,0.14), transparent 70%),
-                radial-gradient(45% 40% at 80% 55%, rgba(249,115,22,0.12), transparent 70%),
-                radial-gradient(38% 35% at 50% 70%, rgba(255,255,255,0.12), transparent 75%);
-            mix-blend-mode: screen;
-            opacity: 0.7;
-            filter: blur(8px);
-            pointer-events: none;
-            animation: pageBeam 16s ease-in-out infinite alternate;
+                linear-gradient(90deg, rgba(23, 47, 43, 0.88) 0%, rgba(23, 47, 43, 0.62) 45%, rgba(23, 47, 43, 0.16) 100%),
+                url("assets/syntrae-relationship-hero.png") center / cover;
+            animation: photoDrift 18s ease-in-out infinite alternate;
         }
-        .ambient::after {
-            content: "";
-            position: absolute;
-            inset: -8%;
-            background:
-                radial-gradient(30% 30% at 65% 35%, rgba(255,255,255,0.08), transparent 70%),
-                radial-gradient(28% 28% at 35% 65%, rgba(34,211,238,0.08), transparent 72%);
-            filter: blur(22px);
-            opacity: 0.60;
-            mix-blend-mode: screen;
-            pointer-events: none;
-            animation: fogDrift 22s ease-in-out infinite alternate;
-        }
-        .ambient:not(.hero)::before,
-        .ambient:not(.hero)::after {
-            animation: none;
-        }
-        .hero .lights-out {
-            position: absolute;
-            inset: 0;
-            background: #000;
-            opacity: 1;
-            transition: opacity 1s ease;
-            z-index: 3;
-            pointer-events: none;
-        }
-        .hero .lights-out.fade {
-            opacity: 0;
-        }
-        .hero::before {
-            content: "";
-            position: absolute;
-            inset: -20%;
-            background:
-                radial-gradient(50% 50% at 60% 50%, rgba(34,211,238,0.12), transparent 60%),
-                radial-gradient(60% 60% at 40% 55%, rgba(249,115,22,0.10), transparent 70%),
-                radial-gradient(55% 55% at 55% 45%, rgba(255,255,255,0.10), transparent 65%);
-            opacity: calc(var(--glow) * 0.9);
-            filter: blur(24px);
-            pointer-events: none;
-            z-index: 0;
-        }
+
         .hero::after {
             content: "";
             position: absolute;
-            inset: -30%;
-            background:
-                radial-gradient(60% 60% at 60% 50%, rgba(34,211,238,0.12), transparent 65%),
-                radial-gradient(70% 70% at 45% 55%, rgba(249,115,22,0.12), transparent 75%);
-            mix-blend-mode: screen;
-            opacity: calc(var(--glow) * 0.65);
-            filter: blur(56px);
-            animation: fogShift 22s ease-in-out infinite alternate;
-            pointer-events: none;
-            z-index: 0;
-        }
-        .hero .fog {
-            position: absolute;
-            inset: -25%;
-            background:
-                radial-gradient(40% 40% at 30% 50%, rgba(255,255,255,0.10), transparent 70%),
-                radial-gradient(45% 45% at 70% 50%, rgba(34,211,238,0.15), transparent 70%),
-                radial-gradient(50% 50% at 50% 60%, rgba(249,115,22,0.12), transparent 70%);
-            mix-blend-mode: screen;
-            opacity: calc(var(--glow) * 0.7);
-            filter: blur(36px);
-            animation: fogDrift 18s ease-in-out infinite alternate;
-            pointer-events: none;
-            z-index: 1;
-        }
-        .hero .fog-stream {
-            position: absolute;
-            top: -20%;
-            bottom: -20%;
-            left: -20%;
-            width: 140%;
-            background:
-                linear-gradient(70deg,
-                    rgba(255,255,255,0) 0%,
-                    rgba(255,255,255,0.55) 28%,
-                    rgba(34,211,238,0.45) 48%,
-                    rgba(255,255,255,0.30) 65%,
-                    rgba(255,255,255,0) 95%);
-            mix-blend-mode: screen;
-            opacity: 0;
-            filter: blur(46px);
-            animation: fogSweep 1.6s ease-out forwards;
-            animation-iteration-count: 1;
-            animation-fill-mode: forwards;
-            animation-play-state: paused;
-            pointer-events: none;
-            z-index: 1;
-            transition: opacity 1.4s ease;
-            transform-origin: right center;
-            transform: scaleX(0);
-        }
-        .hero.fog-on .fog-stream {
-            opacity: 0.9;
-            animation-play-state: running;
-        }
-        .hero .gas-layer {
-            position: absolute;
-            inset: -20%;
-            background:
-                radial-gradient(18% 22% at 55% 45%, rgba(255,255,255,0.10), transparent 60%),
-                radial-gradient(20% 24% at 45% 55%, rgba(34,211,238,0.08), transparent 65%),
-                radial-gradient(16% 18% at 60% 60%, rgba(249,115,22,0.07), transparent 60%),
-                radial-gradient(14% 16% at 40% 50%, rgba(255,255,255,0.09), transparent 60%);
-            mix-blend-mode: screen;
-            opacity: calc(var(--glow) * 0.8);
-            filter: blur(40px);
-            animation: gasFlow 22s ease-in-out infinite alternate;
-            pointer-events: none;
-            z-index: 2;
-        }
-        .hero .light-burst {
-            position: absolute;
-            right: -10%;
-            top: 35%;
-            width: 70vw;
-            height: 70vw;
-            background: radial-gradient(circle, rgba(255,255,255,0.35), rgba(34,211,238,0.18), transparent 60%);
-            filter: blur(40px);
-            opacity: calc(var(--glow) * 0.8);
-            mix-blend-mode: screen;
-            pointer-events: none;
-            z-index: 1;
-        }
-        .hero > * { position: relative; z-index: 2; }
-        .hero-nav {
-            display: flex;
-            justify-content: center;
-            gap: 12px;
-            margin-bottom: 18px;
-            flex-wrap: wrap;
-        }
-        .hero-nav a {
-            padding: 10px 16px;
-            border-radius: 12px;
-            border: 1px solid var(--border);
-            background: rgba(255,255,255,0.04);
-            color: var(--text);
-            font-weight: 700;
-            transition: all 0.3s ease, transform 0.25s ease;
-            transform: scale(1);
-        }
-        .hero-nav a:hover { background: rgba(34, 211, 238, 0.12); border-color: rgba(34, 211, 238, 0.24); transform: scale(1.30); }
-        .title-wrap {
-            position: relative;
-            display: inline-block;
-        }
-        .title-wrap .hero-title {
-            font-size: clamp(64px, 14vw, 200px);
-            letter-spacing: 14px;
-            font-weight: 800;
-            background: linear-gradient(135deg, #22d3ee, #f97316);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            color: transparent;
-            position: relative;
-            display: inline-block;
-            transform: skewX(-4deg) rotate(-1deg) translateY(-4px);
-            text-shadow:
-                0 0 calc(34px * var(--glow)) rgba(34,211,238,0.5),
-                0 0 calc(80px * var(--glow)) rgba(249,115,22,0.35),
-                0 0 calc(120px * var(--glow)) rgba(255,255,255,0.18),
-                0 8px 28px rgba(0,0,0,0.6);
-            -webkit-text-stroke: 1px rgba(255,255,255,0.28);
-            opacity: calc(0.25 + var(--glow) * 0.75);
-            z-index: 3;
-        }
-        .title-wrap .hero-title::before {
-            content: attr(data-text);
-            position: absolute;
-            inset: 0;
-            color: transparent;
-            -webkit-text-stroke: 10px rgba(255,255,255,0.05);
-            filter: blur(12px);
-            mix-blend-mode: screen;
-            opacity: 0.65;
+            inset: auto 0 0;
+            height: 34%;
+            background: linear-gradient(180deg, rgba(251, 255, 248, 0), var(--paper));
             pointer-events: none;
         }
-        .title-wrap .hero-title::after {
-            content: attr(data-text);
-            position: absolute;
-            inset: 0;
-            background: linear-gradient(90deg, rgba(255,255,255,0.35), rgba(34,211,238,0.4), rgba(249,115,22,0.3));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            color: transparent;
-            mix-blend-mode: screen;
-            filter: drop-shadow(0 8px 18px rgba(0,0,0,0.4));
-            opacity: 0.6;
-            pointer-events: none;
-            -webkit-mask-image: repeating-linear-gradient( to right, #000 0 28px, transparent 28px 36px);
-                    mask-image: repeating-linear-gradient( to right, #000 0 28px, transparent 28px 36px);
-        }
-        .title-wrap .ray-trace {
-            position: absolute;
-            inset: -20%;
-            pointer-events: none;
-            overflow: hidden;
-            z-index: 2;
-        }
-        .title-wrap .ray-trace .ripple {
-            position: absolute;
-            width: 110px;
-            height: 110px;
-            margin-left: -55px;
-            margin-top: -55px;
-            border-radius: 50%;
-            background: radial-gradient(circle, rgba(255,255,255,0.55), rgba(34,211,238,0.25), rgba(255,255,255,0));
-            mix-blend-mode: screen;
-            filter: blur(8px);
-            animation: rayRipple 0.5s ease-out forwards;
-            opacity: 0;
-        }
-        .subcopy {
-            margin-top: 18px;
-            color: #f8fbff;
-            max-width: 780px;
-            margin-left: auto;
-            margin-right: auto;
-            line-height: 1.7;
-            font-size: 19px;
-            text-shadow: 0 6px 18px rgba(0, 0, 0, 0.5);
-        }
-        .steps {
-            padding: 48px 24px;
-            margin-top: 32px;
-            scroll-margin-top: 120px;
-        }
-        .mission-block {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-            gap: 32px;
-            align-items: center;
-            background: transparent;
-            border: none;
-            border-radius: 24px;
-            padding: 36px 0;
-            box-shadow: none;
-        }
-        .mission-media {
-            position: relative;
-            height: 1080px;
-            border-radius: 18px;
-            overflow: hidden;
-            background: url('https://aigc.uploads.dev/image/d082624d0f9afd4476e2ddc5d46ce6d91dffdbfeb7a3a289997428c4dfcc83fb.jpeg') center/cover no-repeat;
-            border: 1px solid var(--border);
-            display: grid;
-            place-items: center;
-            color: var(--muted);
-        }
-        .mission-copy h2 { font-size: clamp(36px, 4vw, 64px); margin-bottom: 18px; color: #e5ecf5; }
-        .mission-copy p { color: #d5deeb; line-height: 1.9; font-size: 18px; margin-bottom: 20px; }
-        .mission-copy .btn { font-size: 16px; padding: 14px 22px; }
-        /* How it works */
-        .how {
-            padding: 120px 24px 360px;
-            background: rgba(255,255,255,0.02);
-        }
-        @keyframes fogShift {
-            0% { transform: scale(1) translateX(0); filter: blur(42px); }
-            50% { transform: scale(1.05) translateX(-2%); filter: blur(48px); }
-            100% { transform: scale(1.02) translateX(3%); filter: blur(44px); }
-        }
-        @keyframes fogDrift {
-            0% { transform: translateX(0) scale(1); opacity: 0.65; }
-            50% { transform: translateX(-2%) scale(1.03); opacity: 0.9; }
-            100% { transform: translateX(3%) scale(1.01); opacity: 0.7; }
-        }
-        @keyframes pageBeam {
-            0% { transform: translateX(60%) scaleX(0.7); }
-            50% { transform: translateX(15%) scaleX(1); }
-            100% { transform: translateX(-25%) scaleX(1.05); }
-        }
-        @keyframes rayRipple {
-            0% { transform: scale(0.35); opacity: 0.55; }
-            50% { transform: scale(0.8); opacity: 0.38; }
-            100% { transform: scale(1.15); opacity: 0; }
-        }
-        @keyframes fogSweep {
-            0% { transform: scaleX(0); opacity: 0; }
-            25% { transform: scaleX(0.35); opacity: 0.35; }
-            50% { transform: scaleX(0.65); opacity: 0.75; }
-            75% { transform: scaleX(0.9); opacity: 0.92; }
-            100% { transform: scaleX(1); opacity: 0.95; }
-        }
-        .how-inner {
-            max-width: 1100px;
+
+        .hero-inner {
+            width: min(1180px, 100%);
             margin: 0 auto;
             position: relative;
-            overflow: hidden;
-        }
-        .how h2 {
-            text-align: center;
-            font-size: clamp(32px, 4vw, 56px);
-            margin-bottom: 60px;
-            letter-spacing: 1px;
-        }
-        .flow {
-            position: relative;
+            z-index: 1;
             display: grid;
-            gap: 72px;
+            gap: 26px;
         }
-        .flow-step {
-            background: rgba(255,255,255,0.03);
-            border: 1px solid var(--border);
-            border-radius: 18px;
-            padding: 48px 36px;
-            display: grid;
-            grid-template-columns: 96px 1fr;
-            gap: 24px;
-            align-items: center;
-            box-shadow: 0 12px 30px rgba(0,0,0,0.25);
-            transform-origin: center;
-            position: relative;
-            width: 100%;
+
+        .hero-inner > * {
             opacity: 0;
-            transform: translateY(12px);
-            transition: opacity 0.4s ease, transform 0.4s ease;
+            animation: fadeLift 0.72s ease forwards;
         }
-        .flow-step .badge {
-            width: 96px; height: 96px;
-            border-radius: 50%;
-            display: grid; place-items: center;
+
+        .hero-inner > *:nth-child(2) {
+            animation-delay: 0.1s;
+        }
+
+        .hero-inner > *:nth-child(3) {
+            animation-delay: 0.2s;
+        }
+
+        .hero-inner > *:nth-child(4) {
+            animation-delay: 0.3s;
+        }
+
+        .hero-inner > *:nth-child(5) {
+            animation-delay: 0.4s;
+        }
+
+        .eyebrow {
+            display: inline-flex;
+            width: fit-content;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 10px;
+            border-radius: 8px;
+            color: #18312e;
+            background: rgba(255, 255, 255, 0.88);
+            font-size: 13px;
             font-weight: 800;
-            color: #0b1224;
-            background: linear-gradient(135deg, #22d3ee, #f97316);
-            box-shadow: 0 10px 24px rgba(0,0,0,0.25);
         }
-        .flow-step h3 {
-            margin: 0 0 12px;
-            font-size: 26px;
-            letter-spacing: 0.5px;
-        }
-        .flow-step p {
+
+        .hero h1 {
+            width: min(760px, 100%);
             margin: 0;
-            color: #d5deeb;
-            line-height: 1.8;
-            font-size: 18px;
+            font-family: "Fraunces", Georgia, serif;
+            font-size: clamp(48px, 8vw, 102px);
+            line-height: 0.94;
+            letter-spacing: 0;
         }
-        .flow-step.active {
-            opacity: 1;
-            transform: translateY(0);
-            transition: opacity 0.05s ease, transform 0.05s ease;
-        }
-        .flow-step.fading {
-            opacity: 0;
-            transform: translateY(12px);
-            transition: opacity 0.7s ease, transform 0.35s ease;
-        }
-        .flow-step[data-step="1"] {
-            top: 0;
-            left: 0;
-        }
-        .flow-step[data-step="2"] {
-            top: 0;
-            left: 0;
-            transform: translate(0, 12px);
-        }
-        .flow-step[data-step="3"] {
-            top: 0;
-            right: 0;
-        }
-        /* Stories */
-        .stories {
-            padding: 120px 24px 160px;
-            background: rgba(255,255,255,0.01);
-        }
-        .stories-inner {
-            max-width: 1200px;
-            margin: 0 auto;
-            display: flex;
-            flex-direction: column;
-            gap: 36px;
-        }
-        .stories h2 {
-            text-align: center;
-            font-size: clamp(18px, 3vw, 30px);
-            letter-spacing: 1px;
-            color: #22d3ee;
-        }
-        .stories-stage {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 0;
-            border-radius: 22px;
-            overflow: hidden;
-            border: none;
-            box-shadow: none;
-            position: relative;
-            background: transparent;
-        }
-        .story-card {
-            position: relative;
-            min-height: 260px;
-            background: #0b1224;
-            cursor: pointer;
-            clip-path: polygon(0 0, 96% 0, 100% 50%, 96% 100%, 0 100%, 4% 50%);
-            transition: transform 0.25s ease, box-shadow 0.25s ease, filter 0.25s ease;
-            filter: brightness(0.72);
-            overflow: hidden;
-        }
-        .story-card:nth-child(even) {
-            clip-path: polygon(0 0, 96% 0, 100% 50%, 96% 100%, 0 100%, 6% 50%);
-        }
-        .story-card::before {
-            content: "";
-            position: absolute;
-            inset: 0;
-            background: radial-gradient(circle at 50% 40%, rgba(255,255,255,0.4), transparent 70%);
-            opacity: 0;
-            transition: opacity 0.2s ease;
-            pointer-events: none;
-        }
-        .story-card .label { display: none; }
-        .story-card.active {
-            transform: scale(1.3);
-            box-shadow: 0 22px 50px rgba(0,0,0,0.4);
-            filter: brightness(1);
-        }
-        .story-card.active::before {
-            opacity: 1;
-            animation: sweep 2.4s ease-in-out infinite;
-        }
-        @keyframes sweep {
-            0% { background-position: -40% 20%; }
-            50% { background-position: 120% 80%; }
-            100% { background-position: -40% 20%; }
-        }
-        .stories-quotes {
-            display: block;
-        }
-        .quote {
-            padding: 64px 72px;
-            border-radius: 22px;
-            background: rgba(255,255,255,0.03);
-            border: 1px solid var(--border);
-            box-shadow: 0 18px 44px rgba(0,0,0,0.28);
-            transition: border-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
-            display: none;
-        }
-        .quote p {
-            margin: 0 0 24px;
-            line-height: 2.1;
-            color: #e7edf8;
-            font-size: clamp(32px, 4vw, 44px);
-            font-weight: 800;
-        }
-        .quote .quote-name {
-            color: var(--muted);
-            font-weight: 700;
-            font-size: 24px;
-        }
-        .quote.active {
-            border-color: rgba(34,211,238,0.35);
-            transform: translateY(-2px);
-            box-shadow: 0 22px 60px rgba(0,0,0,0.32);
-            display: block;
-        }
-        /* Support */
-        .support {
-            padding: 120px 24px 160px;
-        }
-        .support-box {
-            max-width: 1100px;
-            margin: 0 auto;
-            border-radius: 28px;
-            padding: 96px 72px;
-            background: linear-gradient(135deg, rgba(34,211,238,0.22), rgba(249,115,22,0.22));
-            box-shadow: 0 24px 70px rgba(0,0,0,0.35);
-            text-align: center;
-        }
-        .support-box h2 {
-            font-size: clamp(32px, 4vw, 58px);
-            margin-bottom: 12px;
-        }
-        .support-box p {
-            color: #d8e3f2;
-            margin-bottom: 28px;
-            font-size: 16px;
-        }
-        .support-search {
-            position: relative;
-            max-width: 620px;
-            margin: 0 auto;
-        }
-        .support-search input {
-            width: 100%;
-            padding: 16px 16px 16px 48px;
-            border-radius: 18px;
-            border: 1px solid rgba(255,255,255,0.25);
-            background: rgba(255,255,255,0.12);
-            color: #f8fbff;
-            font-size: 16px;
-            outline: none;
-            transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
-        }
-        .support-search input::placeholder { color: rgba(248,251,255,0.75); }
-        .support-search:focus-within input {
-            border-color: rgba(34,211,238,0.5);
-            box-shadow: 0 0 0 4px rgba(34,211,238,0.25);
-            background: rgba(255,255,255,0.18);
-        }
-        .support-search:focus-within input::placeholder { color: transparent; }
-        .support-search .icon {
-            position: absolute;
-            left: 16px;
-            top: 50%;
-            transform: translateY(-50%);
-            color: rgba(248,251,255,0.75);
-            transition: opacity 0.2s ease;
-            pointer-events: none;
-        }
-        .support-search:focus-within .icon { opacity: 0; }
-        /* Footer */
-        .footer {
-            margin-top: 0;
-            background: rgba(6, 8, 14, 0.9);
-            padding: 72px 24px 48px;
-        }
-        .footer-inner {
-            max-width: 1200px;
-            margin: 0 auto;
-            display: grid;
-            grid-template-columns: repeat(4, minmax(160px, 1fr));
-            gap: 32px;
-            align-items: start;
-        }
-        .footer-brand {
-            font-size: 24px;
-            font-weight: 800;
-            letter-spacing: 1.2px;
-            color: #f8fbff;
-        }
-        .footer-col h4 {
-            color: var(--muted);
+
+        .hero p {
+            width: min(690px, 100%);
+            margin: 0;
+            color: rgba(255, 255, 255, 0.9);
+            font-size: clamp(18px, 2.1vw, 24px);
+            line-height: 1.55;
             font-weight: 600;
-            margin-bottom: 14px;
-            letter-spacing: 0.6px;
         }
-        .footer-col ul { list-style: none; display: grid; gap: 10px; padding: 0; margin: 0; }
-        .footer-col a {
-            color: #e7edf8;
-            font-weight: 700;
-            font-size: 15px;
-            text-decoration: none;
-            transition: color 0.2s ease;
+
+        .hero-actions {
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 12px;
         }
-        .footer-col a:hover { color: var(--accent); }
-        .footer-col .cta {
+
+        .hero-proof {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            padding-top: 8px;
+        }
+
+        .proof-item {
             display: inline-flex;
             align-items: center;
             gap: 8px;
-            padding: 12px 16px;
-            border-radius: 14px;
-            background: linear-gradient(135deg, #22d3ee, #f97316);
-            color: #0b1224;
+            min-height: 36px;
+            border-radius: 8px;
+            padding: 8px 10px;
+            color: #173330;
+            background: rgba(255, 255, 255, 0.84);
+            font-size: 13px;
             font-weight: 800;
-            border: none;
-            cursor: pointer;
-            box-shadow: 0 12px 30px rgba(0,0,0,0.28);
             transition: transform 0.2s ease, box-shadow 0.2s ease;
         }
-        .footer-col .cta:hover { transform: translateY(-2px); box-shadow: 0 18px 40px rgba(0,0,0,0.35); }
-        .footer-meta {
-            max-width: 1200px;
-            margin: 28px auto 0;
+
+        .proof-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 22px rgba(32, 50, 54, 0.12);
+        }
+
+        section {
+            scroll-margin-top: 86px;
+        }
+
+        .section {
+            padding: 86px 28px;
+        }
+
+        .section-inner {
+            width: min(1180px, 100%);
+            margin: 0 auto;
+        }
+
+        .section-kicker {
+            margin: 0 0 10px;
+            color: var(--leaf);
+            font-size: 13px;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+        }
+
+        h2 {
+            margin: 0;
+            font-family: "Fraunces", Georgia, serif;
+            color: var(--ink);
+            font-size: clamp(34px, 5vw, 64px);
+            line-height: 1.02;
+            letter-spacing: 0;
+        }
+
+        .lede {
+            margin: 18px 0 0;
+            width: min(780px, 100%);
+            color: var(--quiet);
+            font-size: 18px;
+            line-height: 1.75;
+            font-weight: 600;
+        }
+
+        .video-band {
+            background: linear-gradient(180deg, var(--paper) 0%, #eef9f4 100%);
+        }
+
+        .quote-band {
+            padding: 78px 28px;
+            background: #fff;
+        }
+
+        .quote-panel {
+            width: min(1180px, 100%);
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.05fr);
+            gap: 42px;
+            align-items: center;
+            border-top: 1px solid var(--line);
+            border-bottom: 1px solid var(--line);
+            padding: 48px 0;
+        }
+
+        .quote-mark {
+            margin: 0;
+            font-family: "Fraunces", Georgia, serif;
+            font-size: clamp(34px, 5vw, 66px);
+            line-height: 1.02;
+            letter-spacing: 0;
+            color: var(--leaf);
+        }
+
+        .quote-copy {
+            margin: 0;
+            color: var(--quiet);
+            font-size: 19px;
+            line-height: 1.75;
+            font-weight: 700;
+        }
+
+        .video-layout {
+            display: grid;
+            grid-template-columns: minmax(0, 1.12fr) minmax(320px, 0.88fr);
+            gap: 42px;
+            align-items: center;
+        }
+
+        .video-shell {
+            position: relative;
+            aspect-ratio: 16 / 9;
+            overflow: hidden;
+            border: 1px solid rgba(32, 50, 54, 0.12);
+            border-radius: 8px;
+            background:
+                linear-gradient(135deg, rgba(45, 125, 103, 0.9), rgba(18, 150, 141, 0.72)),
+                url("assets/syntrae-relationship-table.png") center / cover;
+            box-shadow: var(--shadow);
+            transition: transform 0.28s ease, box-shadow 0.28s ease;
+        }
+
+        .video-shell:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 24px 58px rgba(32, 50, 54, 0.16);
+        }
+
+        .video-shell iframe,
+        .video-fallback {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            border: 0;
+        }
+
+        .video-fallback {
+            display: grid;
+            align-content: end;
+            gap: 18px;
+            padding: clamp(20px, 4vw, 42px);
+            color: #fff;
+            background:
+                linear-gradient(180deg, rgba(16, 38, 35, 0.06) 0%, rgba(16, 38, 35, 0.84) 100%);
+        }
+
+        .play-button {
+            width: 74px;
+            height: 74px;
+            border: 0;
+            border-radius: 50%;
+            display: grid;
+            place-items: center;
+            color: var(--ink);
+            background: #fff;
+            cursor: pointer;
+            box-shadow: 0 18px 38px rgba(32, 50, 54, 0.22);
+            transition: transform 0.2s ease;
+            animation: softPulse 3.2s ease-in-out infinite;
+        }
+
+        .play-button:hover {
+            transform: scale(1.05);
+        }
+
+        .play-button i {
+            margin-left: 4px;
+            font-size: 24px;
+        }
+
+        .video-fallback h3 {
+            margin: 0;
+            width: min(560px, 100%);
+            font-family: "Fraunces", Georgia, serif;
+            font-size: clamp(28px, 4vw, 48px);
+            line-height: 1.02;
+        }
+
+        .video-fallback p {
+            margin: 0;
+            width: min(620px, 100%);
+            color: rgba(255, 255, 255, 0.88);
+            line-height: 1.65;
+            font-weight: 700;
+        }
+
+        .video-points {
+            display: grid;
+            gap: 14px;
+        }
+
+        .point {
+            display: grid;
+            grid-template-columns: 42px 1fr;
+            gap: 14px;
+            align-items: start;
+            padding: 18px 0;
+            border-top: 1px solid var(--line);
+            transition: transform 0.22s ease;
+        }
+
+        .point:hover {
+            transform: translateX(4px);
+        }
+
+        .point:first-child {
+            border-top: 0;
+        }
+
+        .point-icon {
+            width: 42px;
+            height: 42px;
+            border-radius: 8px;
+            display: grid;
+            place-items: center;
+            color: #fff;
+            background: var(--coral);
+        }
+
+        .point:nth-child(2) .point-icon {
+            background: var(--teal);
+        }
+
+        .point:nth-child(3) .point-icon {
+            color: var(--ink);
+            background: var(--sun);
+        }
+
+        .point h3 {
+            margin: 0 0 4px;
+            font-size: 18px;
+        }
+
+        .point p {
+            margin: 0;
+            color: var(--quiet);
+            line-height: 1.65;
+            font-weight: 600;
+        }
+
+        .science-band {
+            background: #fff;
+        }
+
+        .science-grid {
+            margin-top: 38px;
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 18px;
+        }
+
+        .science-card {
+            min-height: 250px;
+            padding: 24px;
+            border: 1px solid var(--line);
+            border-radius: 8px;
+            background: #fff;
+            box-shadow: 0 12px 34px rgba(32, 50, 54, 0.08);
+            overflow: hidden;
+            position: relative;
+            transition: transform 0.24s ease, box-shadow 0.24s ease, border-color 0.24s ease;
+        }
+
+        .science-card::before {
+            content: "";
+            position: absolute;
+            inset: 0 0 auto;
+            height: 4px;
+            background: linear-gradient(90deg, var(--leaf), var(--teal), var(--coral));
+            transform: scaleX(0);
+            transform-origin: left;
+            transition: transform 0.28s ease;
+        }
+
+        .science-card:hover {
+            transform: translateY(-5px);
+            border-color: rgba(18, 150, 141, 0.28);
+            box-shadow: 0 20px 46px rgba(32, 50, 54, 0.12);
+        }
+
+        .science-card:hover::before {
+            transform: scaleX(1);
+        }
+
+        .science-card .number {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 38px;
+            height: 38px;
+            border-radius: 8px;
+            margin-bottom: 28px;
+            color: #fff;
+            background: var(--leaf);
+            font-weight: 900;
+        }
+
+        .science-card:nth-child(2) .number {
+            background: var(--blue);
+        }
+
+        .science-card:nth-child(3) .number {
+            color: var(--ink);
+            background: var(--sun);
+        }
+
+        .science-card h3 {
+            margin: 0 0 10px;
+            font-size: 22px;
+        }
+
+        .science-card p {
+            margin: 0;
+            color: var(--quiet);
+            line-height: 1.75;
+            font-weight: 600;
+        }
+
+        .principles {
+            margin-top: 38px;
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 12px;
+        }
+
+        .principle {
+            padding: 16px;
+            border-left: 4px solid var(--teal);
+            background: #f4fbf7;
+            font-weight: 800;
+            line-height: 1.45;
+            transition: transform 0.2s ease, background 0.2s ease;
+        }
+
+        .principle:hover {
+            transform: translateY(-2px);
+            background: #eef8f2;
+        }
+
+        .principle:nth-child(2) {
+            border-left-color: var(--coral);
+        }
+
+        .principle:nth-child(3) {
+            border-left-color: var(--sun);
+        }
+
+        .principle:nth-child(4) {
+            border-left-color: var(--blue);
+        }
+
+        .founding-band {
+            background: linear-gradient(180deg, #fff 0%, #f7fbf8 100%);
+        }
+
+        .founding-layout {
+            display: grid;
+            grid-template-columns: minmax(0, 0.92fr) minmax(320px, 1.08fr);
+            gap: 48px;
+            align-items: start;
+        }
+
+        .price-lockup {
+            margin-top: 30px;
+            display: grid;
+            grid-template-columns: auto 1fr;
+            gap: 16px;
+            align-items: center;
+        }
+
+        .price {
+            display: grid;
+            place-items: center;
+            width: 104px;
+            height: 104px;
+            border-radius: 50%;
+            color: var(--ink);
+            background: var(--sun);
+            font-size: 32px;
+            font-weight: 900;
+            box-shadow: 0 14px 30px rgba(243, 201, 79, 0.28);
+        }
+
+        .price-note {
+            color: var(--quiet);
+            line-height: 1.65;
+            font-weight: 700;
+        }
+
+        .mission-callout {
+            margin-top: 24px;
+            padding: 20px;
+            border-radius: 8px;
+            color: var(--ink);
+            background: var(--mint);
+            border-left: 4px solid var(--coral);
+            font-size: 20px;
+            line-height: 1.45;
+            font-weight: 900;
+            transition: transform 0.22s ease, box-shadow 0.22s ease;
+        }
+
+        .mission-callout:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 16px 34px rgba(32, 50, 54, 0.1);
+        }
+
+        .member-form {
+            padding: 28px;
+            border: 1px solid var(--line);
+            border-radius: 8px;
+            background: #fff;
+            box-shadow: var(--shadow);
+            transition: transform 0.24s ease, box-shadow 0.24s ease;
+        }
+
+        .member-form:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 24px 58px rgba(32, 50, 54, 0.14);
+        }
+
+        .member-form h3 {
+            margin: 0 0 8px;
+            font-size: 24px;
+        }
+
+        .member-form p {
+            margin: 0 0 22px;
+            color: var(--quiet);
+            line-height: 1.65;
+            font-weight: 600;
+        }
+
+        .field-grid {
+            display: grid;
+            gap: 14px;
+        }
+
+        label {
+            display: grid;
+            gap: 7px;
+            color: var(--ink);
+            font-size: 13px;
+            font-weight: 900;
+        }
+
+        input,
+        select {
+            width: 100%;
+            min-height: 48px;
+            border: 1px solid rgba(32, 50, 54, 0.18);
+            border-radius: 8px;
+            padding: 12px 13px;
+            color: var(--ink);
+            background: #fbfff8;
+            outline: none;
+        }
+
+        input:focus,
+        select:focus {
+            border-color: var(--teal);
+            box-shadow: 0 0 0 4px rgba(18, 150, 141, 0.14);
+        }
+
+        .checkbox {
+            display: grid;
+            grid-template-columns: 18px 1fr;
+            gap: 10px;
+            align-items: start;
+            color: var(--quiet);
+            font-size: 13px;
+            line-height: 1.55;
+            font-weight: 700;
+        }
+
+        .checkbox input {
+            width: 18px;
+            min-height: 18px;
+            margin-top: 2px;
+        }
+
+        .form-footer {
+            display: grid;
+            gap: 12px;
+            margin-top: 18px;
+        }
+
+        .form-footer .button {
+            width: 100%;
+        }
+
+        .form-status {
+            min-height: 22px;
+            color: var(--leaf);
+            font-size: 13px;
+            font-weight: 800;
+            line-height: 1.5;
+        }
+
+        .disclaimer {
+            color: var(--quiet);
+            font-size: 12px;
+            line-height: 1.55;
+        }
+
+        .faq-band {
+            background: #203236;
+            color: #fff;
+        }
+
+        .faq-band h2,
+        .faq-band .section-kicker {
+            color: #fff;
+        }
+
+        .faq-band .lede {
+            color: rgba(255, 255, 255, 0.76);
+        }
+
+        .faq-grid {
+            margin-top: 38px;
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 18px;
+        }
+
+        .faq-item {
+            padding: 22px;
+            border: 1px solid rgba(255, 255, 255, 0.16);
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.06);
+            transition: transform 0.22s ease, border-color 0.22s ease, background 0.22s ease;
+        }
+
+        .faq-item:hover {
+            transform: translateY(-3px);
+            border-color: rgba(255, 255, 255, 0.28);
+            background: rgba(255, 255, 255, 0.09);
+        }
+
+        .faq-item h3 {
+            margin: 0 0 10px;
+            font-size: 18px;
+        }
+
+        .faq-item p {
+            margin: 0;
+            color: rgba(255, 255, 255, 0.75);
+            line-height: 1.65;
+            font-weight: 600;
+        }
+
+        .footer {
+            padding: 36px 28px;
+            color: var(--quiet);
+            background: #f5faf7;
+        }
+
+        .footer-inner {
+            width: min(1180px, 100%);
+            margin: 0 auto;
             display: flex;
             justify-content: space-between;
-            align-items: center;
-            color: var(--muted);
+            gap: 18px;
+            flex-wrap: wrap;
             font-size: 13px;
+            font-weight: 800;
         }
-        @media (max-width: 600px) {
-            .nav { flex-direction: column; gap: 10px; }
-            .nav-links { width: 100%; justify-content: center; flex-wrap: wrap; }
+
+        @media (prefers-reduced-motion: reduce) {
+            *,
+            *::before,
+            *::after {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                scroll-behavior: auto !important;
+                transition-duration: 0.01ms !important;
+            }
+
+            .reveal {
+                opacity: 1;
+                transform: none;
+            }
+        }
+
+        @media (max-width: 920px) {
+            .video-layout,
+            .quote-panel,
+            .founding-layout {
+                grid-template-columns: 1fr;
+            }
+
+            .science-grid,
+            .faq-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .principles {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+        }
+
+        @media (max-width: 680px) {
+            .nav {
+                align-items: flex-start;
+                padding: 12px 18px;
+            }
+
+            .brand-copy span:last-child,
+            .nav-links a:not(.button) {
+                display: none;
+            }
+
+            .nav-links {
+                margin-left: auto;
+            }
+
+            .hero {
+                min-height: 84vh;
+                padding: 104px 18px 58px;
+                background-position: center;
+            }
+
+            .section {
+                padding: 64px 18px;
+            }
+
+            .hero-actions,
+            .hero-proof {
+                align-items: stretch;
+                flex-direction: column;
+            }
+
+            .button,
+            .proof-item {
+                width: 100%;
+            }
+
+            .principles {
+                grid-template-columns: 1fr;
+            }
+
+            .price-lockup {
+                grid-template-columns: 1fr;
+            }
+
+            .member-form {
+                padding: 22px;
+            }
         }
     </style>
 </head>
 <body>
-    <nav class="nav">
-        <a class="brand brand-link" href="landing.html">
-            <div class="logo-icon">🧠</div>
-            <div class="brand-text">
+    <nav class="nav" aria-label="Primary">
+        <a class="brand" href="landing.html" aria-label="Syntrae home">
+            <span class="mark" aria-hidden="true"><i class="fas fa-chart-line"></i></span>
+            <span class="brand-copy">
                 <span>SYNTRAE</span>
-                <span>Persona Prediction</span>
-            </div>
+                <span>Predictive social science</span>
+            </span>
         </a>
         <div class="nav-links">
-            <a class="btn btn-ghost" href="sign-in.html">Sign in</a>
-            <a class="btn btn-primary" href="sign-up.html">Get started</a>
+            <a href="#vision">Vision</a>
+            <a href="#founding" class="button button-primary"><i class="fas fa-ticket-alt"></i> Founding member</a>
         </div>
     </nav>
 
-    <section class="hero ambient" id="top">
-        <div class="lights-out"></div>
-        <div class="hero-nav">
-            <a href="#mission">Mission</a>
-            <a href="#how">How it works</a>
-            <a href="#stories">Stories</a>
-            <a href="#support">Customer Support</a>
-        </div>
-        <div class="light-burst"></div>
-        <div class="gas-layer"></div>
-        <div class="fog"></div>
-        <div class="title-wrap">
-            <div class="fog-stream"></div>
-            <div class="ray-trace"></div>
-            <div class="hero-title" data-text="SYNTRAE">SYNTRAE</div>
-        </div>
-        <p class="subcopy"><strong>AI personas that help you predict human responses so every invite, gift, and message lands with confidence.</strong></p>
-    </section>
-
-    <section class="steps ambient" id="mission">
-        <div class="mission-block">
-            <div class="mission-media">
+    <main>
+        <section class="hero" id="top">
+            <div class="hero-inner">
+                <span class="eyebrow"><i class="fas fa-seedling"></i> Founding member access now open</span>
+                <h1>Syntrae</h1>
+                <p>Decision rehearsal for messages, invites, and relationship moments. Syntrae is being designed as a statistics-based way to compare possible next moves before you choose one.</p>
+                <div class="hero-actions">
+                    <a class="button button-primary" href="#founding"><i class="fas fa-star"></i> Join for $5</a>
+                    <a class="button button-secondary" href="#vision"><i class="fas fa-play"></i> Watch the vision</a>
+                </div>
+                <div class="hero-proof" aria-label="Positioning notes">
+                    <span class="proof-item"><i class="fas fa-percent"></i> Probability ranges</span>
+                    <span class="proof-item"><i class="fas fa-balance-scale"></i> Considerate choices</span>
+                    <span class="proof-item"><i class="fas fa-clipboard-list"></i> Scenario comparison</span>
+                </div>
             </div>
-            <div class="mission-copy">
-                <h2>Syntrae exists to reduce uncertainty in dating decisions.</h2>
-                <p>Syntrae’s mission is to revolutionize dating experience. We solve dating anxiety through AI-powered personas interactions. Our application allows users to construct a persona of their crush, quantifying likelihood of desired scenarios before committing in the real world.</p>
-                <a class="btn btn-ghost" href="sign-up.html">See more</a>
-            </div>
-        </div>
-    </section>
+        </section>
 
-    <section class="how ambient" id="how">
-        <div class="how-inner">
-            <h2>How it works</h2>
-            <div class="flow" id="flow">
-                <div class="flow-step" data-step="1">
-                    <div class="badge">1</div>
-                    <div>
-                        <h3>Construct their persona</h3>
-                        <p>Capture race, appearance, personality, background, political stance, and the nuances that make them who they are.</p>
+        <section class="quote-band" aria-label="Syntrae mission quote">
+            <div class="quote-panel">
+                <blockquote class="quote-mark">"What's the meaning of a forest when all you want is just a tree?"</blockquote>
+                <p class="quote-copy">Syntrae exists to deepen relationships between people. We are building for the moments when one person matters more than the crowd, and when a thoughtful next step can turn shallow connection into something more honest, intentional, and lasting.</p>
+            </div>
+        </section>
+
+        <section class="section video-band" id="vision">
+            <div class="section-inner video-layout">
+                <div class="video-shell" aria-label="Syntrae vision video">
+                    <iframe id="visionVideo" title="Syntrae vision walkthrough" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen hidden></iframe>
+                    <div class="video-fallback" id="videoFallback">
+                        <button class="play-button" id="videoPlayButton" type="button" aria-label="Play Syntrae vision video">
+                            <i class="fas fa-play"></i>
+                        </button>
+                        <h3>A short walkthrough of the future we are building.</h3>
+                        <p>The video should show a future Syntrae session: enter the situation, compare likely response paths, and pick a considerate next step.</p>
                     </div>
                 </div>
-                <div class="flow-step" data-step="2">
-                    <div class="badge">2</div>
-                    <div>
-                        <h3>Chat and prompt confidence</h3>
-                        <p>Converse with the AI persona, explore scenarios, and surface confidence points for what you want to say or do.</p>
+                <div>
+                    <p class="section-kicker">The vision</p>
+                    <h2>Less guessing. More informed timing.</h2>
+                    <p class="lede">Syntrae is a planning layer for social decisions: describe the situation, state the outcome you hope for, and review statistically framed paths that may make the next move easier to choose.</p>
+                    <div class="video-points">
+                        <article class="point">
+                            <span class="point-icon" aria-hidden="true"><i class="fas fa-map-signs"></i></span>
+                            <div>
+                                <h3>Start with the moment</h3>
+                                <p>Use real context: the message, timing, constraints, and what a good outcome would look like.</p>
+                            </div>
+                        </article>
+                        <article class="point">
+                            <span class="point-icon" aria-hidden="true"><i class="fas fa-chart-bar"></i></span>
+                            <div>
+                                <h3>Compare possible paths</h3>
+                                <p>See a few routes side by side with clear probability language instead of absolute promises.</p>
+                            </div>
+                        </article>
+                        <article class="point">
+                            <span class="point-icon" aria-hidden="true"><i class="fas fa-hand-holding-heart"></i></span>
+                            <div>
+                                <h3>Choose with care</h3>
+                                <p>Syntrae should encourage better judgment, not pressure, manipulation, or certainty theater.</p>
+                            </div>
+                        </article>
                     </div>
                 </div>
-                <div class="flow-step" data-step="3">
-                    <div class="badge">3</div>
-                    <div>
-                        <h3>Execute with certainty</h3>
-                        <p>Translate insights into real-world plans to improve the odds of positive outcomes.</p>
+            </div>
+        </section>
+
+        <section class="section science-band" id="science">
+            <div class="section-inner">
+                <p class="section-kicker">Predictive science</p>
+                <h2>Built to improve decision quality.</h2>
+                <p class="lede">Syntrae uses statistical framing to help people prepare for important relationship moments. Your data is kept private, and the product is designed to improve certainty around high-stakes decisions without guaranteeing the outcome.</p>
+                <div class="science-grid">
+                    <article class="science-card">
+                        <span class="number">1</span>
+                        <h3>Data stays private</h3>
+                        <p>Your context, goals, and relationship details should stay protected. Syntrae is built around private preparation, not public exposure.</p>
+                    </article>
+                    <article class="science-card">
+                        <span class="number">2</span>
+                        <h3>Decisions get clearer</h3>
+                        <p>Compare likely paths, tradeoffs, and confidence ranges before acting, so the next step is chosen with more evidence and less panic.</p>
+                    </article>
+                    <article class="science-card">
+                        <span class="number">3</span>
+                        <h3>Outcomes are not guaranteed</h3>
+                        <p>Syntrae can improve certainty in high-stakes moments, but people and relationships remain complex. The product supports better judgment, not promises.</p>
+                    </article>
+                </div>
+                <div class="principles" aria-label="Brand principles">
+                    <div class="principle">Private relationship context</div>
+                    <div class="principle">Higher-quality decisions</div>
+                    <div class="principle">Clear uncertainty</div>
+                    <div class="principle">No outcome guarantees</div>
+                </div>
+            </div>
+        </section>
+
+        <section class="section founding-band" id="founding">
+            <div class="section-inner founding-layout">
+                <div>
+                    <p class="section-kicker">Founding members</p>
+                    <h2>Help shape the first version.</h2>
+                    <p class="lede">A $5 founding membership reserves early access and invites you into the first circle of people helping Syntrae become a calmer way to make high-stakes social decisions.</p>
+                    <div class="price-lockup">
+                        <div class="price">$5</div>
+                        <p class="price-note">Founding-member access for people who believe relationships deserve more care, patience, and intentionality.</p>
                     </div>
+                    <div class="mission-callout">Join us in a mission of creating a better world.</div>
                 </div>
-            </div>
-        </div>
-    </section>
 
-    <section class="stories ambient" id="stories">
-        <div class="stories-inner">
-            <h2 style="text-align:left;">What Our Users Say</h2>
-            <div class="stories-stage" id="stories-stage">
-                <div class="story-card active" data-quote="0" style="background-image: url('https://aigc.uploads.dev/image/3379b93b6e667764e39c08a73bc1ea4f64fd7722d343e621717fd62f3e77b216.jpeg'); background-size: 100% auto; background-repeat: no-repeat; background-position: center 20%;">
-                    <div class="label">Jack</div>
-                </div>
-                <div class="story-card" data-quote="1" style="background-image: url('https://aigc.uploads.dev/image/5e23d4a3d0bbb1cfeab40d8b11c48803d6763196b4be9855faf2198785fed693.jpeg'); background-size: 100% auto; background-repeat: no-repeat; background-position: center 50%;">
-                    <div class="label">Alex</div>
-                </div>
-                <div class="story-card" data-quote="2" style="background-image: url('https://aigc.uploads.dev/image/74a66b4315467add1a426b9ea6b623bd2290929419888f0f0f0540e7765fd326.jpeg'); background-size: 100% auto; background-repeat: no-repeat; background-position: center 40%;">
-                    <div class="label">Vikansh</div>
-                </div>
-                <div class="story-card" data-quote="3" style="background-image: url('https://aigc.uploads.dev/image/ab7fa3b82a09fb43a6fd169dba67e97bb578eb5c0e7956605171945186f8a123.jpeg'); background-size: 100% auto; background-repeat: no-repeat; background-position: center 10%;">
-                    <div class="label">Mia</div>
-                </div>
+                <form class="member-form" id="foundingForm">
+                    <h3>Reserve founding access</h3>
+                    <p>Join the founding circle and tell us which kind of relationship moment you would want Syntrae to support first.</p>
+                    <div class="field-grid">
+                        <label>
+                            Email
+                            <input type="email" name="email" autocomplete="email" placeholder="you@example.com" required>
+                        </label>
+                        <label>
+                            First use case
+                            <select name="useCase" required>
+                                <option value="">Choose one</option>
+                                <option value="message">Preparing a message before sending it</option>
+                                <option value="invite">Planning an invite or follow-up</option>
+                                <option value="repair">Repairing an awkward moment</option>
+                                <option value="timing">Choosing the right timing</option>
+                            </select>
+                        </label>
+                        <label class="checkbox">
+                            <input type="checkbox" name="foundingConsent" required>
+                            <span>I understand the $5 founding-member offer is for early access and participation in Syntrae's first community.</span>
+                        </label>
+                    </div>
+                    <div class="form-footer">
+                        <button class="button button-primary" type="submit"><i class="fas fa-lock"></i> Reserve founding spot - $5</button>
+                        <div class="form-status" id="formStatus" role="status" aria-live="polite"></div>
+                        <div class="disclaimer">Founding members receive early access updates and a place in the first Syntrae community.</div>
+                    </div>
+                </form>
             </div>
-            <div class="stories-quotes" id="stories-quotes">
-                <div class="quote active" data-quote="0">
-                    <p>“Syntrae made it feel like I had a dress rehearsal for real life. I walked in knowing what to say.”</p>
-                    <span class="quote-name">— Jack B.</span>
-                </div>
-                <div class="quote" data-quote="1">
-                    <p>“I tested five different approaches in chat before picking the one that landed. Zero guesswork.”</p>
-                    <span class="quote-name">— Alex A.</span>
-                </div>
-                <div class="quote" data-quote="2">
-                    <p>“Confidence points told me which gestures mattered. The date felt natural, not scripted.”</p>
-                    <span class="quote-name">— Vikansh P.</span>
-                </div>
-                <div class="quote" data-quote="3">
-                    <p>“Running scenarios with his persona helped me avoid awkward moments and plan great ones.”</p>
-                    <span class="quote-name">— Mia N.</span>
-                </div>
-            </div>
-        </div>
-    </section>
+        </section>
 
-    <section class="support ambient" id="support">
-        <div class="support-box">
-            <h2>Questions?</h2>
-            <p>Contacting Syntrae customer support or search below</p>
-            <div class="support-search">
-                <span class="icon"><i class="fas fa-search"></i></span>
-                <input type="text" placeholder="Search">
+        <section class="section faq-band" id="questions">
+            <div class="section-inner">
+                <p class="section-kicker">Relationship-first</p>
+                <h2>Relationships deserve depth.</h2>
+                <p class="lede">Syntrae is built around the belief that better relationships begin with more considerate decisions. The product vision is practical, respectful, and centered on helping people choose with care.</p>
+                <div class="faq-grid">
+                    <article class="faq-item">
+                        <h3>Decision quality comes first</h3>
+                        <p>Syntrae is about helping people prepare with more context, clearer tradeoffs, and a calmer sense of what to do next.</p>
+                    </article>
+                    <article class="faq-item">
+                        <h3>Signals stay humble</h3>
+                        <p>Predictive science can frame patterns, scenarios, ranges, and tradeoffs without pretending every answer is certain.</p>
+                    </article>
+                    <article class="faq-item">
+                        <h3>What does founding member mean?</h3>
+                        <p>Founding members join the earliest Syntrae community and help carry the mission of deeper, more intentional relationships.</p>
+                    </article>
+                </div>
             </div>
-        </div>
-    </section>
+        </section>
+    </main>
 
     <footer class="footer">
         <div class="footer-inner">
-            <div class="footer-brand">SYNTRAE</div>
-            <div class="footer-col">
-                <h4>Our Product</h4>
-                <ul>
-                    <li><a href="#top">Syntrae Dating</a></li>
-                </ul>
-            </div>
-            <div class="footer-col">
-                <h4>Careers</h4>
-                <button class="cta" type="button">Join us now</button>
-            </div>
-            <div class="footer-col">
-                <h4>Legal</h4>
-                <ul>
-                    <li><a href="#">Our privacy policy</a></li>
-                </ul>
-            </div>
-        </div>
-        <div class="footer-meta">
-            <span>© 2026 Syntrae Inc.</span>
-            <span>Built for connection</span>
+            <span>© 2026 Syntrae LLC</span>
+            <span>Predictive social science for considerate decisions.</span>
         </div>
     </footer>
 
     <script>
-        // Always start at top on reload (clear hash anchors)
-        if (location.hash) {
-            history.replaceState(null, '', location.pathname + location.search);
-            window.scrollTo(0, 0);
+        const youtubeEmbedUrl = "";
+        const paymentUrl = "";
+
+        const visionVideo = document.getElementById("visionVideo");
+        const videoFallback = document.getElementById("videoFallback");
+        const videoPlayButton = document.getElementById("videoPlayButton");
+        const foundingForm = document.getElementById("foundingForm");
+        const formStatus = document.getElementById("formStatus");
+
+        const revealTargets = [
+            ...document.querySelectorAll(".quote-panel, .video-shell, .video-points .point, .science-card, .principle, .founding-layout > div, .member-form, .faq-item")
+        ];
+
+        if ("IntersectionObserver" in window) {
+            const revealObserver = new IntersectionObserver((entries, observer) => {
+                entries.forEach((entry) => {
+                    if (!entry.isIntersecting) return;
+                    entry.target.classList.add("is-visible");
+                    observer.unobserve(entry.target);
+                });
+            }, { threshold: 0.16 });
+
+            revealTargets.forEach((target, index) => {
+                target.classList.add("reveal");
+                target.style.transitionDelay = `${Math.min(index % 4, 3) * 0.07}s`;
+                revealObserver.observe(target);
+            });
         }
-        // How it works flow animation: instant entry, slower fade of previous
-        const flow = document.getElementById('flow');
-        const flowSteps = flow ? [...flow.querySelectorAll('.flow-step')] : [];
-        let activeStep = null;
 
-        const clamp01 = (v) => Math.min(Math.max(v, 0), 1);
+        if (youtubeEmbedUrl && visionVideo && videoFallback) {
+            visionVideo.src = youtubeEmbedUrl;
+            visionVideo.hidden = false;
+            videoFallback.hidden = true;
+        }
 
-        const updateFlow = () => {
-            if (!flow || flowSteps.length === 0) return;
+        if (videoPlayButton) {
+            videoPlayButton.addEventListener("click", () => {
+                if (youtubeEmbedUrl) return;
+                const foundingSection = document.getElementById("founding");
+                if (foundingSection) foundingSection.scrollIntoView({ behavior: "smooth", block: "start" });
+            });
+        }
 
-            const rect = flow.getBoundingClientRect();
-            const viewH = window.innerHeight || document.documentElement.clientHeight;
-            const viewCenter = viewH / 2;
+        if (foundingForm && formStatus) {
+            foundingForm.addEventListener("submit", (event) => {
+                event.preventDefault();
+                const data = new FormData(foundingForm);
+                const payload = {
+                    email: String(data.get("email") || "").trim(),
+                    useCase: String(data.get("useCase") || "").trim(),
+                    createdAt: new Date().toISOString()
+                };
 
-            // Determine which segment of the flow the viewport center is in
-            const segment = rect.height / flowSteps.length || 1;
-            const relative = viewCenter - rect.top;
-            const idx = Math.min(
-                flowSteps.length - 1,
-                Math.max(0, Math.floor(relative / segment))
-            );
-            const target = idx + 1;
+                localStorage.setItem("syntrae:founding-member-interest", JSON.stringify(payload));
 
-            if (target === activeStep) return;
-
-            flowSteps.forEach((step, i) => {
-                const index = i + 1;
-                if (index === target) {
-                    step.classList.remove('fading');
-                    step.classList.add('active');
-                } else {
-                    const wasActive = step.classList.contains('active');
-                    step.classList.remove('active');
-                    if (wasActive) {
-                        step.classList.add('fading');
-                        const handle = (e) => {
-                            if (e.propertyName === 'opacity') {
-                                step.classList.remove('fading');
-                                step.removeEventListener('transitionend', handle);
-                            }
-                        };
-                        step.addEventListener('transitionend', handle);
-                    } else {
-                        step.classList.remove('fading');
-                    }
+                if (paymentUrl) {
+                    window.location.href = paymentUrl;
+                    return;
                 }
-            });
 
-            activeStep = target;
-        };
-
-        // Stories interaction
-        const storyCards = [...document.querySelectorAll('.story-card')];
-        const storyQuotes = [...document.querySelectorAll('.stories-quotes .quote')];
-        const setActiveStory = (idx) => {
-            storyCards.forEach((card, i) => {
-                if (i === idx) card.classList.add('active');
-                else card.classList.remove('active');
-            });
-            storyQuotes.forEach((q, i) => {
-                if (i === idx) q.classList.add('active');
-                else q.classList.remove('active');
-            });
-        };
-        storyCards.forEach((card, idx) => {
-            card.addEventListener('click', () => setActiveStory(idx));
-        });
-
-        window.addEventListener('scroll', () => { updateFlow(); }, { passive: true });
-        window.addEventListener('resize', updateFlow);
-        updateFlow();
-
-        // Hero intro light-up then scroll-driven glow
-        const heroSection = document.querySelector('.hero');
-        const lightsOut = document.querySelector('.lights-out');
-        const fogStream = document.querySelector('.fog-stream');
-        const titleWrap = document.querySelector('.title-wrap');
-        const rayLayer = titleWrap ? titleWrap.querySelector('.ray-trace') : null;
-        let lockGlow = true;
-        let currentGlow = 0;
-
-        const setGlow = (v) => {
-            currentGlow = Math.max(0, Math.min(1, v));
-            heroSection.style.setProperty('--glow', currentGlow.toFixed(3));
-        };
-
-        setGlow(0);
-
-        function updateGlow() {
-            if (lockGlow) return;
-            const rect = heroSection.getBoundingClientRect();
-            const viewportHeight = window.innerHeight || 1;
-            const progress = Math.max(0, Math.min(1, (viewportHeight - rect.top) / (viewportHeight * 1.2)));
-            setGlow(progress);
-        }
-
-        function playIntro() {
-            if (lightsOut) lightsOut.classList.remove('fade');
-            lockGlow = true;
-            setGlow(0);
-            setTimeout(() => {
-                if (lightsOut) lightsOut.classList.add('fade');
-                if (heroSection && fogStream) heroSection.classList.add('fog-on');
-                const duration = 4000;
-                const start = performance.now();
-                function step(now) {
-                    const t = Math.min(1, (now - start) / duration);
-                    const eased = 1 - Math.pow(1 - t, 5); // even slower ease-out
-                    setGlow(eased);
-                    if (t < 1) requestAnimationFrame(step);
-                    else {
-                        lockGlow = false;
-                    }
-                }
-                requestAnimationFrame(step);
-            }, 2000);
-        }
-
-        window.addEventListener('scroll', updateGlow, { passive: true });
-        window.addEventListener('resize', updateGlow);
-
-        // Mouse disturbance ripples over the light ray
-        if (titleWrap && rayLayer) {
-            titleWrap.addEventListener('mousemove', (e) => {
-                const rect = titleWrap.getBoundingClientRect();
-                const x = e.clientX - rect.left;
-                const y = e.clientY - rect.top;
-                const ripple = document.createElement('span');
-                ripple.className = 'ripple';
-                ripple.style.left = `${x}px`;
-                ripple.style.top = `${y}px`;
-                rayLayer.appendChild(ripple);
-                ripple.addEventListener('animationend', () => ripple.remove());
+                formStatus.textContent = "Thanks. Your founding-member interest is recorded for this preview.";
             });
         }
-
-        playIntro();
     </script>
 </body>
 </html>
