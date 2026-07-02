@@ -1215,7 +1215,7 @@ Authority figure</div>
                 splitQualitativeTerms(value).forEach((term) => tags.add(`extra:${term}`));
             });
 
-            return Array.from(tags).slice(0, 300);
+            return Array.from(tags).slice(0, 320);
         }
 
         function buildQuantitativeTraitVector(axisScores) {
@@ -2418,8 +2418,11 @@ Authority figure</div>
             const axes = layer.axes;
             const axesCount = Math.min(baseAxes.length, axes.length);
             const labelRadius = size * ((layer.radiusScale || 0.42) + 0.07);
-            ctx.fillStyle = layer.textColor || layer.color || 'rgba(255,255,255,0.9)';
-            ctx.font = '12px \"Space Grotesk\", sans-serif';
+            ctx.fillStyle = layer.textColor || '#203236';
+            ctx.strokeStyle = 'rgba(255,255,255,0.92)';
+            ctx.lineWidth = 4;
+            ctx.lineJoin = 'round';
+            ctx.font = '700 12px \"Space Grotesk\", sans-serif';
             for (let i = 0; i < axesCount; i++) {
                 const angle = startAngle + step * i;
                 const basePoint = {
@@ -2435,6 +2438,7 @@ Authority figure</div>
                 ctx.rotate(angle);
                 ctx.textAlign = 'center';
                 ctx.textBaseline = 'middle';
+                ctx.strokeText(name, 0, 0);
                 ctx.fillText(name, 0, 0);
                 ctx.restore();
             }
@@ -2451,8 +2455,11 @@ Authority figure</div>
                 const y = center + Math.sin(angle) * labelRadius;
                 vertices.push({ x, y });
             });
-            ctx.fillStyle = 'rgba(255,255,255,0.9)';
-            ctx.font = '13px \"Space Grotesk\", sans-serif';
+            ctx.fillStyle = '#203236';
+            ctx.strokeStyle = 'rgba(255,255,255,0.94)';
+            ctx.lineWidth = 5;
+            ctx.lineJoin = 'round';
+            ctx.font = '800 13px \"Space Grotesk\", sans-serif';
             baseAxes.forEach((axis, i) => {
                 const p1 = vertices[i];
                 const p2 = vertices[(i + 1) % vertices.length];
@@ -2471,6 +2478,7 @@ Authority figure</div>
                 ctx.rotate(angle);
                 ctx.textAlign = 'center';
                 ctx.textBaseline = 'middle';
+                ctx.strokeText(name, 0, 0);
                 ctx.fillText(name, 0, 0);
                 ctx.restore();
             });
@@ -2608,7 +2616,7 @@ Authority figure</div>
                 gradient: ['rgba(102,242,255,0.6)', 'rgba(34,211,238,0.6)'],
                 color: '#22d3ee',
                 lineWidth: 1.5,
-                textColor: 'rgba(255,255,255,0.9)',
+                textColor: '#203236',
                 textFont: '12px "Space Grotesk", sans-serif'
             };
             radarLayers = [layer];
@@ -2673,7 +2681,7 @@ Authority figure</div>
                 personaAvatarPresent: 'yes',
                 answers: {},
                 session: {},
-                usersInput: 'Daniel is warm, thoughtful, and open to sincere conversation when it is framed gently. He values emotional honesty, but can withdraw if a conversation feels rushed or overly heavy.',
+                usersInput: 'Daniel Rivera is a 23-year-old graduate student in product design. He is warm, thoughtful, and open to sincere conversation when it is framed gently. He values emotional honesty, independence, and steady pacing, but can become quiet if a conversation feels rushed or too emotionally loaded at the wrong time.',
                 identityLayers: {
                     L1: JSON.stringify({
                         L1_A1: { value: 0.62, confidence: 0.78 },
@@ -2701,11 +2709,13 @@ Authority figure</div>
                     })
                 },
                 extras: {
-                    'time-life': 'Early 30s. Established career stage, emotionally mature but careful about major relationship decisions.',
-                    'current-context': 'Daniel and Maya have been spending more intentional time together. The relationship feels promising, but the next conversation needs care.',
-                    stressors: 'Busy work schedule, uncertainty about timing, and a desire not to rush emotional commitments.',
-                    'cultural-moment': 'Values honest communication, calm pacing, and conversations that feel mutual rather than pressured.',
-                    'relationship-role': 'Romantic interest and close relationship focus for Maya Chen.'
+                    'basic-profile': 'Daniel Rivera. Male. 23 yrs old. Graduate student in product design living in the Bay Area.',
+                    'relationship-role': 'Romantic interest and close relationship focus for Maya Chen.',
+                    'current-context': 'Daniel and Maya have been spending more intentional time together. The relationship feels promising, but neither person has clearly named where it is going yet.',
+                    'communication-pattern': 'Responds well to warmth, sincerity, and specific invitations. He can become reserved when the tone feels like an urgent decision must be made immediately.',
+                    'emotional-needs': 'Needs room to think, a sense that his answer is welcome either way, and a conversation that feels mutual rather than like a test.',
+                    stressors: 'Academic deadlines, part-time project work, and uncertainty about whether defining the relationship too quickly could change the easy trust he and Maya have built.',
+                    'decision-context': 'Best Way should weigh clarity against pressure and prefer messages that invite honest conversation without cornering either person.'
                 }
             };
             applyPersonaState(demoState);
@@ -2724,12 +2734,13 @@ Authority figure</div>
                     <section class="demo-context-strip" aria-label="Daniel Rivera demo context">
                         <div>
                             <h2>Daniel Rivera persona</h2>
-                            <p>This demo persona gives Syntrae a private, structured model for rehearsing Maya's relationship decision before she takes one real-world action.</p>
+                            <p>This demo persona gives Syntrae private, structured context for Maya's relationship decision before she takes one real-world action.</p>
                         </div>
                         <div class="demo-chip-row">
-                            <span class="demo-chip">Daniel Rivera</span>
-                            <span class="demo-chip">Relationship focus</span>
-                            <span class="demo-chip">300 rehearsals ready</span>
+                            <span class="demo-chip">Graduate student</span>
+                            <span class="demo-chip">Male</span>
+                            <span class="demo-chip">23 yrs old</span>
+                            <span class="demo-chip">Best Way ready</span>
                             <span class="demo-chip">Probability ranges</span>
                         </div>
                     </section>

@@ -696,7 +696,67 @@
             line-height: 1.4;
         }
 
-        .rehearsal-settings {
+        .demo-persona-switcher {
+            display: grid;
+            gap: 10px;
+            margin: 14px 0;
+        }
+
+        .demo-persona-option {
+            width: 100%;
+            border: 1px solid rgba(32, 50, 54, 0.12);
+            border-radius: 14px;
+            padding: 12px;
+            background: rgba(255, 255, 255, 0.86);
+            color: var(--ink);
+            text-align: left;
+            cursor: pointer;
+            box-shadow: 0 10px 24px rgba(32, 50, 54, 0.06);
+            transition: transform 0.22s ease, border-color 0.22s ease, box-shadow 0.22s ease;
+        }
+
+        .demo-persona-option:hover,
+        .demo-persona-option.active {
+            transform: translateY(-2px);
+            border-color: rgba(18, 150, 141, 0.36);
+            box-shadow: 0 16px 34px rgba(32, 50, 54, 0.1);
+        }
+
+        .demo-persona-option strong {
+            display: block;
+            font-size: 15px;
+            margin-bottom: 4px;
+        }
+
+        .demo-persona-option span {
+            color: var(--quiet);
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        .demo-profile-detail {
+            display: grid;
+            gap: 10px;
+            padding: 14px;
+            border-radius: 14px;
+            background: linear-gradient(135deg, rgba(223, 244, 237, 0.74), rgba(255, 248, 235, 0.72));
+            border: 1px solid rgba(18, 150, 141, 0.18);
+        }
+
+        .demo-profile-detail p {
+            color: var(--quiet);
+            font-size: 13px;
+            line-height: 1.5;
+            margin: 0;
+        }
+
+        .demo-persona-facts {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 7px;
+        }
+
+        .best-way-settings {
             display: grid;
             gap: 12px;
         }
@@ -723,7 +783,7 @@
             font-size: 15px;
         }
 
-        .run-rehearsal-btn {
+        .run-best-way-btn {
             width: 100%;
             justify-content: center;
             min-height: 52px;
@@ -1072,7 +1132,7 @@
                 <div class="agent-avatar">S</div>
                 <div class="agent-info">
                     <h3>Syntrae Guide <span class="status-indicator"></span></h3>
-                    <p>Rehearse relationship moments and surface practical insights</p>
+                    <p>Explore relationship moments and surface practical insights</p>
                 </div>
             </div>
 
@@ -1935,7 +1995,7 @@
 
         function setupDecisionTreeDemo() {
             document.body.classList.add('demo-mode');
-            document.title = 'Syntrae - Decision Rehearsal Demo';
+            document.title = 'Syntrae - Best Way Demo';
             accountIndicator.textContent = 'Maya Chen';
             accountIndicator.dataset.state = 'signed-in';
             document.querySelector('[data-destination="analyze"]').setAttribute('href', demoUrl('analyze.html', { persona: 'daniel-rivera-demo' }));
@@ -1975,30 +2035,68 @@
                     ]
                 }
             ];
+            const demoPersonas = {
+                daniel: {
+                    name: 'Daniel Rivera',
+                    initial: 'D',
+                    role: 'Relationship persona',
+                    facts: ['Graduate student', 'Male', '23 yrs old', 'Linked to Maya Chen'],
+                    headline: 'Warm, thoughtful, and responsive when serious topics are introduced with room to think.',
+                    summary: 'Daniel cares about sincerity and steady pacing. He tends to respond well when Maya names what matters without making the conversation feel like a demand.',
+                    logic: 'Best Way should favor messages that are clear enough to be understood, but gentle enough to preserve Daniel\'s sense of choice.'
+                },
+                maya: {
+                    name: 'Maya Chen',
+                    initial: 'M',
+                    role: 'User persona',
+                    facts: ['Student', 'Female', '22 yrs old', 'Private context'],
+                    headline: 'Considerate, emotionally observant, and careful with words when a relationship moment matters.',
+                    summary: 'Maya wants honest direction with Daniel while staying kind and low pressure. She values clarity, but does not want the message to feel heavy.',
+                    logic: 'Best Way should help Maya choose a message that protects warmth, keeps responsibility with her, and reduces unnecessary ambiguity.'
+                }
+            };
+
+            const personaFactChips = (facts) => facts.map((fact) => `<span class="demo-chip">${fact}</span>`).join('');
 
             personaListEl.innerHTML = `
                 <div class="demo-persona-card">
                     <div class="demo-persona-head">
-                        <div class="demo-persona-avatar" aria-hidden="true">D</div>
+                        <div class="demo-persona-avatar" id="demoActivePersonaAvatar" aria-hidden="true">${demoPersonas.daniel.initial}</div>
                         <div>
-                            <h3>Daniel Rivera</h3>
-                            <p>Romantic relationship context</p>
+                            <h3 id="demoActivePersonaName">${demoPersonas.daniel.name}</h3>
+                            <p id="demoActivePersonaRole">${demoPersonas.daniel.role}</p>
                         </div>
+                    </div>
+                    <div class="demo-persona-switcher" aria-label="Change active persona">
+                        <button type="button" class="demo-persona-option active" data-demo-persona="daniel">
+                            <strong>Daniel Rivera</strong>
+                            <span>Use Daniel's relationship context</span>
+                        </button>
+                        <button type="button" class="demo-persona-option" data-demo-persona="maya">
+                            <strong>Maya Chen</strong>
+                            <span>Use Maya's private decision context</span>
+                        </button>
+                    </div>
+                    <div class="demo-profile-detail">
+                        <div class="demo-persona-facts" id="demoPersonaFacts">${personaFactChips(demoPersonas.daniel.facts)}</div>
+                        <p><strong id="demoPersonaHeadline">${demoPersonas.daniel.headline}</strong></p>
+                        <p id="demoPersonaSummary">${demoPersonas.daniel.summary}</p>
+                        <p><strong>Decision logic:</strong> <span id="demoPersonaLogic">${demoPersonas.daniel.logic}</span></p>
                     </div>
                     <div class="demo-chip-row">
                         <span class="demo-chip"><i class="fas fa-check"></i> Context ready</span>
                         <span class="demo-chip"><i class="fas fa-heart"></i> Relationship focus</span>
-                        <span class="demo-chip"><i class="fas fa-lock"></i> Private rehearsal</span>
+                        <span class="demo-chip"><i class="fas fa-lock"></i> Private context</span>
                     </div>
                     <div class="demo-side-note">
-                        Syntrae uses persona context to rehearse possible paths in a private computer environment before acting in the real world.
+                        Syntrae uses private context to map likely consequence paths before Maya chooses what to do in the real world.
                     </div>
                 </div>
                 <div class="demo-persona-card">
                     <span class="demo-kicker"><i class="fas fa-route"></i> Decision loop</span>
                     <div class="demo-chip-row">
                         <span class="demo-chip">Build persona</span>
-                        <span class="demo-chip">Run rehearsals</span>
+                        <span class="demo-chip">Syntrae</span>
                         <span class="demo-chip">Review consequences</span>
                         <span class="demo-chip">Choose next move</span>
                     </div>
@@ -2012,15 +2110,15 @@
                     <div class="agent-avatar">S</div>
                     <div class="agent-info">
                         <h3>Syntrae Guide <span class="status-indicator"></span></h3>
-                        <p>Persona-based decision rehearsal for relationship moments</p>
+                        <p>Private decision context for clearer relationship choices</p>
                     </div>
                 </div>
 
-                <section class="demo-stage" aria-label="Syntrae decision rehearsal demo">
+                <section class="demo-stage" aria-label="Syntrae Best Way demo">
                     <div class="demo-hero">
                         <div class="demo-card">
-                            <span class="demo-kicker"><i class="fas fa-seedling"></i> One real chance, many rehearsals</span>
-                            <h3>Decision Rehearsal</h3>
+                            <span class="demo-kicker"><i class="fas fa-seedling"></i> One real choice, clearer paths</span>
+                            <h3>Best Way</h3>
                             <p>Compare possible next moves before choosing the one action Maya will take in real life.</p>
                             <div class="demo-prompt-box">${demoPrompt}</div>
                             <div class="demo-candidate-grid" aria-label="Candidate actions">
@@ -2039,37 +2137,37 @@
                             </div>
                         </div>
 
-                        <aside class="demo-card rehearsal-settings">
-                            <span class="demo-kicker"><i class="fas fa-sliders"></i> Rehearsal settings</span>
+                        <aside class="demo-card best-way-settings">
+                            <span class="demo-kicker"><i class="fas fa-sliders"></i> Best Way settings</span>
                             <div class="setting-row">
-                                <span>Persona profile</span>
-                                <strong>Daniel Rivera</strong>
+                                <span>Active persona</span>
+                                <strong id="demoPersonaProfileName">Daniel Rivera</strong>
                             </div>
                             <div class="setting-row">
-                                <span>Iterations</span>
-                                <strong>300</strong>
+                                <span>Decision method</span>
+                                <strong>Syntrae</strong>
                             </div>
                             <div class="setting-row">
                                 <span>Output</span>
                                 <strong>Consequence tree</strong>
                             </div>
-                            <button class="send-btn run-rehearsal-btn" id="runRehearsalBtn" type="button">
-                                <i class="fas fa-play"></i> Run decision rehearsal
+                            <button class="send-btn run-best-way-btn" id="runBestWayBtn" type="button">
+                                <i class="fas fa-play"></i> Syntrae
                             </button>
-                            <div class="demo-small">Rehearse before you act.</div>
+                            <div class="demo-small">Choose with more context.</div>
                         </aside>
                     </div>
 
                     <div class="demo-loading" id="demoLoading">
                         <span class="demo-spinner" aria-hidden="true"></span>
-                        Running 300 persona-based rehearsals and mapping likely consequences...
+                        Explore pathways consequence...
                     </div>
 
                     <section class="consequence-tree" id="consequenceTree" aria-label="Consequence tree">
                         <div class="tree-root">
                             <div>
                                 <strong>Consequence Tree</strong>
-                                <div>300 persona-based rehearsals for one real-world decision</div>
+                                <div>Syntrae consequence map</div>
                             </div>
                             <span>Probability ranges</span>
                         </div>
@@ -2100,11 +2198,37 @@
 
             const loadingEl = document.getElementById('demoLoading');
             const treeEl = document.getElementById('consequenceTree');
-            const runButton = document.getElementById('runRehearsalBtn');
+            const runButton = document.getElementById('runBestWayBtn');
+            const personaButtons = Array.from(document.querySelectorAll('[data-demo-persona]'));
+            const personaAvatar = document.getElementById('demoActivePersonaAvatar');
+            const personaName = document.getElementById('demoActivePersonaName');
+            const personaRole = document.getElementById('demoActivePersonaRole');
+            const personaFacts = document.getElementById('demoPersonaFacts');
+            const personaHeadline = document.getElementById('demoPersonaHeadline');
+            const personaSummary = document.getElementById('demoPersonaSummary');
+            const personaLogic = document.getElementById('demoPersonaLogic');
+            const personaSettingName = document.getElementById('demoPersonaProfileName');
+
+            function setActiveDemoPersona(personaKey) {
+                const persona = demoPersonas[personaKey] || demoPersonas.daniel;
+                personaButtons.forEach((button) => button.classList.toggle('active', button.dataset.demoPersona === personaKey));
+                if (personaAvatar) personaAvatar.textContent = persona.initial;
+                if (personaName) personaName.textContent = persona.name;
+                if (personaRole) personaRole.textContent = persona.role;
+                if (personaFacts) personaFacts.innerHTML = personaFactChips(persona.facts);
+                if (personaHeadline) personaHeadline.textContent = persona.headline;
+                if (personaSummary) personaSummary.textContent = persona.summary;
+                if (personaLogic) personaLogic.textContent = persona.logic;
+                if (personaSettingName) personaSettingName.textContent = persona.name;
+            }
+
+            personaButtons.forEach((button) => {
+                button.addEventListener('click', () => setActiveDemoPersona(button.dataset.demoPersona));
+            });
 
             function revealTree() {
                 runButton.disabled = true;
-                runButton.innerHTML = '<i class="fas fa-check"></i> Rehearsal complete';
+                runButton.innerHTML = '<i class="fas fa-check"></i> Syntrae complete';
                 loadingEl.classList.remove('is-visible');
                 treeEl.classList.add('is-visible');
                 treeEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
@@ -2112,7 +2236,7 @@
 
             runButton.addEventListener('click', () => {
                 loadingEl.classList.add('is-visible');
-                window.setTimeout(revealTree, 1100);
+                window.setTimeout(revealTree, 10000);
             });
 
             if (getDemoState() === 'end') {

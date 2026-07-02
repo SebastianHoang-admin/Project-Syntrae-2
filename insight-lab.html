@@ -664,7 +664,7 @@
     <main class="container">
         <section class="hero">
             <h1>Insight Lab</h1>
-            <p>Use private decision rehearsals to compare compatibility, timing, and possible next steps before real-world communication.</p>
+            <p>Use private decision context to compare compatibility, timing, and possible next steps before real-world communication.</p>
         </section>
 
         <div class="grid">
@@ -698,61 +698,6 @@
                 <div id="fitnessStatus" class="status" data-type="info" hidden></div>
                 <button type="button" id="runFitnessBtn" class="run-btn"><i class="fas fa-play"></i>Run Compatibility Review</button>
             </section>
-
-            <section class="panel">
-                <div class="panel-head">
-                    <h2>II. Outcome Pathways</h2>
-                    <span class="badge not-ready" id="outcomeReadyBadge">
-                        <span class="state-dot" aria-hidden="true"></span>
-                        <i class="fas fa-xmark state-x" aria-hidden="true"></i>
-                        <span id="outcomeReadyLabel">Not ready</span>
-                    </span>
-                </div>
-                <p class="kv">Generate a structured action space for a requested outcome. Syntrae compares possible next steps so your action can be chosen with more context and care.</p>
-
-                <div class="row">
-                    <div class="field">
-                        <label for="outcomePersonaA">Persona A (Initiator)</label>
-                        <select id="outcomePersonaA"></select>
-                    </div>
-                    <div class="field">
-                        <label for="outcomePersonaB">Persona B (Target)</label>
-                        <select id="outcomePersonaB"></select>
-                    </div>
-                </div>
-
-                <div class="field">
-                    <label for="outcomeInitialConditions">Additional Context (Optional)</label>
-                    <textarea id="outcomeInitialConditions" placeholder="Optional: temporary conditions that matter now (schedule constraints, budget, timing window)."></textarea>
-                </div>
-
-                <div class="field">
-                    <label for="outcomeRequestedOutcome">Requested Outcome</label>
-                    <textarea id="outcomeRequestedOutcome" placeholder="Example: Have a positive yes to a 30-minute tea meetup this weekend."></textarea>
-                </div>
-
-                <div id="outcomeStatus" class="status" data-type="info" hidden></div>
-                <div class="outcome-actions">
-                    <button type="button" id="runOutcomeBtn" class="run-btn"><i class="fas fa-play"></i>Run Outcome Pathways</button>
-                    <button type="button" id="stopOutcomeBtn" class="run-btn stop-btn" disabled><i class="fas fa-stop"></i>Stop Outcome Pathways</button>
-                </div>
-                <section class="outcome-history" id="outcomeHistorySection">
-                    <div class="outcome-history-head">
-                        <strong>Outcome Pathway History</strong>
-                        <span class="kv" id="outcomeHistoryMeta">Loading history…</span>
-                    </div>
-                    <div class="outcome-history-list" id="outcomeHistoryList"></div>
-                    <div class="outcome-history-empty" id="outcomeHistoryEmpty" hidden>No outcome pathways yet. Run Outcome Pathways to create your first report.</div>
-                </section>
-
-                <section id="outcomeResults" class="outcome-results" hidden>
-                    <article class="outcome-summary">
-                        <strong id="outcomeSummaryTitle">Generated Action Space</strong>
-                        <div class="kv" id="outcomeSummaryText"></div>
-                    </article>
-                    <div id="outcomePathwayGrid" class="pathway-grid"></div>
-                </section>
-            </section>
         </div>
     </main>
 
@@ -767,20 +712,6 @@
                 <div class="progress-fill" id="fitnessRunProgressBar"></div>
             </div>
             <div class="progress-text" id="fitnessRunProgressText">0%</div>
-        </section>
-    </div>
-
-    <div class="run-overlay" id="outcomeRunOverlay" hidden>
-        <section class="run-card">
-            <div class="run-head">
-                <span class="run-spinner" aria-hidden="true"></span>
-                <h3 class="run-title">Computing Outcomes Strategy</h3>
-            </div>
-            <p class="run-stage" id="outcomeRunStage">Computing optimal pathway scenarios…</p>
-            <div class="progress-track">
-                <div class="progress-fill" id="outcomeRunProgressBar"></div>
-            </div>
-            <div class="progress-text" id="outcomeRunProgressText">0%</div>
         </section>
     </div>
 

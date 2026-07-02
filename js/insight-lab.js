@@ -373,7 +373,7 @@ function scheduleOutcomeQueueRetry(delayMs) {
   outcomeQueueRetryTimer = setTimeout(() => {
     outcomeQueueRetryTimer = null;
     processOutcomeQueue().catch((error) => {
-      setOutcomeStatus(`Outcomes Test failed: ${error?.message || 'Unexpected error'}`, 'error');
+      setOutcomeStatus(`Best Way failed: ${error?.message || 'Unexpected error'}`, 'error');
     });
   }, safeDelay);
 }
@@ -411,9 +411,9 @@ async function stopOutcomeQueueByUser() {
 
   const wasRunning = isOutcomeQueueRunning || Boolean(currentOutcomeRunningJobId);
   if (wasRunning || removedCount > 0) {
-    setOutcomeStatus(`Outcome test stopped by user. Removed ${removedCount} queued job${removedCount === 1 ? '' : 's'}.`, 'info');
+    setOutcomeStatus(`Best Way stopped by user. Removed ${removedCount} queued job${removedCount === 1 ? '' : 's'}.`, 'info');
   } else {
-    setOutcomeStatus('No active outcome test to stop.', 'info');
+    setOutcomeStatus('No active Best Way run to stop.', 'info');
   }
 }
 
@@ -952,7 +952,7 @@ function renderOutcomeTestHistory() {
           <span class="outcome-history-label">${escapeHtml(pairLabel)}</span>
           <span class="history-pill ${isRunning ? 'running' : 'queued'}">${isRunning ? 'Running' : 'Queued'}</span>
         </div>
-        <div class="outcome-history-meta"><strong>Outcome:</strong> ${escapeHtml(requestedOutcome)}${retryInfo}</div>
+        <div class="outcome-history-meta"><strong>Goal:</strong> ${escapeHtml(requestedOutcome)}${retryInfo}</div>
         <div class="outcome-history-time">${escapeHtml(formatHistoryDateTime(job?.queued_at))}</div>
       </article>
     `);
@@ -971,7 +971,7 @@ function renderOutcomeTestHistory() {
           <span class="outcome-history-label">${escapeHtml(`${personaALabel} → ${personaBLabel}`)}</span>
           <span class="history-pill failed">Failed</span>
         </div>
-        <div class="outcome-history-meta"><strong>Outcome:</strong> ${escapeHtml(requestedOutcome)} · <strong>Attempts:</strong> ${escapeHtml(String(attempts))}/${MAX_OUTCOME_JOB_RETRIES}${statusInfo}</div>
+        <div class="outcome-history-meta"><strong>Goal:</strong> ${escapeHtml(requestedOutcome)} · <strong>Attempts:</strong> ${escapeHtml(String(attempts))}/${MAX_OUTCOME_JOB_RETRIES}${statusInfo}</div>
         <div class="outcome-history-meta"><strong>Last error:</strong> ${escapeHtml(lastError)}</div>
         <div class="outcome-history-time">${escapeHtml(formatHistoryDateTime(failedJob?.failed_at || failedJob?.updated_at || failedJob?.queued_at))}</div>
       </article>
@@ -992,7 +992,7 @@ function renderOutcomeTestHistory() {
           <span class="outcome-history-label">${escapeHtml(`${personaALabel} → ${personaBLabel}`)}</span>
           <span class="history-pill done">Done</span>
         </div>
-        <div class="outcome-history-meta"><strong>Outcome:</strong> ${escapeHtml(requestedOutcome)} · <strong>Best integrity:</strong> ${escapeHtml(integrity)}% · <strong>Click to view details</strong></div>
+        <div class="outcome-history-meta"><strong>Goal:</strong> ${escapeHtml(requestedOutcome)} · <strong>Best integrity:</strong> ${escapeHtml(integrity)}% · <strong>Click to view details</strong></div>
         <div class="outcome-history-time">${escapeHtml(formatHistoryDateTime(report?.generated_at || report?.generatedAt))}</div>
       </article>
     `);
@@ -1654,7 +1654,7 @@ function setOutcomeRunOverlayProgress(progressPercent, stageText) {
 function openOutcomeRunOverlay() {
   if (!outcomeRunOverlayEl) return;
   outcomeRunOverlayEl.hidden = false;
-  setOutcomeRunOverlayProgress(0, 'Computing optimal pathway scenarios…');
+  setOutcomeRunOverlayProgress(0, 'Computing Best Way scenarios...');
 }
 
 function closeOutcomeRunOverlay() {
@@ -1763,7 +1763,7 @@ function renderOutcomeResults(report) {
 
   outcomeSummaryTitleEl.textContent = `${personaALabel} → ${personaBLabel}`;
   outcomeSummaryTextEl.textContent =
-    `${requestedOutcome ? `"${requestedOutcome}"` : 'Requested outcome'} · Generated ${nodeCount} nodes × ${actionsPerNode} actions · Best chain integrity ${bestChainIntegrity}%`;
+    `${requestedOutcome ? `"${requestedOutcome}"` : 'Requested goal'} · Generated ${nodeCount} nodes × ${actionsPerNode} actions · Best chain integrity ${bestChainIntegrity}%`;
 
   const nodes = normalizeOutcomeNodeList(report?.action_space, 10);
   const chainCards = chains
@@ -1900,20 +1900,23 @@ function buildDemoOptions() {
       type: 'user',
       data: {
         display_name: 'Maya Chen',
-        personal_headline: 'Thoughtful communicator preparing for a relationship-defining conversation',
-        goals: 'Invite Daniel to talk about where the relationship is going while keeping the tone warm and low pressure.',
-        strengths: 'Emotionally observant, sincere, patient, and willing to communicate clearly.',
-        constraints: 'Only one real-world attempt; wants to avoid making Daniel feel cornered.',
-        communication_style: 'Warm, reflective, considerate, and direct when clarity matters.',
+        personal_headline: '22-year-old student who wants clarity while staying kind and low pressure',
+        goals: 'Invite Daniel to talk about where the relationship is going while keeping the message warm, respectful, and easy to answer honestly.',
+        strengths: 'Emotionally observant, sincere, patient, and careful with tone. Maya notices when timing, wording, or pressure could change how a message lands.',
+        constraints: 'Maya gets one real-world conversation to initiate and wants to avoid making Daniel feel cornered, rushed, or responsible for her anxiety.',
+        communication_style: 'Warm, reflective, considerate, and direct when clarity matters. Maya prefers invitations, plain language, and room for the other person to respond.',
         user_profile: buildDemoProfile(
           'Maya Chen',
           mayaAxis,
           {
-            goal: 'Invite a deeper conversation with care',
+            'basic-profile': 'Maya Chen. Female. 22 yrs old. Undergraduate student in San Francisco.',
+            goal: 'Invite a deeper relationship conversation with care',
             tone: 'Warm, thoughtful, low pressure',
-            decision_context: 'One real-world relationship action'
+            strengths: 'Notices emotional nuance and tries to choose words that respect both people.',
+            concern: 'Does not want clarity to sound like an ultimatum.',
+            decision_context: 'One real-world relationship action with Daniel Rivera'
           },
-          'Thoughtful communicator preparing for a relationship-defining conversation'
+          '22-year-old student who wants clarity while staying kind and low pressure'
         )
       }
     },
@@ -1928,9 +1931,12 @@ function buildDemoOptions() {
           'Daniel Rivera',
           danielAxis,
           {
-            relationship_role: 'Romantic interest',
-            likely_response_pattern: 'Responds well to warm invitations and steady pacing',
-            concern: 'May withdraw if the tone feels rushed or emotionally heavy'
+            'basic-profile': 'Daniel Rivera. Male. 23 yrs old. Graduate student in product design.',
+            relationship_role: 'Romantic interest and close relationship focus for Maya Chen',
+            likely_response_pattern: 'Responds well to warm invitations, specific wording, and steady pacing.',
+            emotional_needs: 'Needs room to think and a sense that his response is welcome either way.',
+            concern: 'May become reserved if the tone feels rushed, overly heavy, or like an immediate answer is required.',
+            decision_context: 'Best Way should balance clarity with emotional room.'
           },
           'Warm, sincere, and receptive when directness is paired with emotional room'
         )
@@ -2058,7 +2064,7 @@ async function runDemoOutcomePathways() {
     return buildDemoOutcomeReport();
   });
   renderOutcomeResults(report);
-  setOutcomeStatus('Outcome Pathways complete: 300 persona-based rehearsals summarized for this decision.', 'success');
+  setOutcomeStatus('Best Way paths complete for this decision.', 'success');
 }
 
 function setupDemoInsightLab() {
@@ -2080,13 +2086,14 @@ function setupDemoInsightLab() {
       <div class="demo-intro-grid" aria-label="Maya and Daniel demo context">
         <article class="demo-intro-card">
           <h3>Maya Chen → Daniel Rivera</h3>
-          <p>Use this lab scene to show how Syntrae moves from persona context into structured compatibility review and consequence-path rehearsal.</p>
+          <p>Use this lab scene to show how Syntrae moves from private persona context into a structured compatibility review.</p>
         </article>
         <article class="demo-intro-card">
           <div class="demo-chip-row">
-            <span class="demo-chip">Maya Chen</span>
-            <span class="demo-chip">Daniel Rivera</span>
-            <span class="demo-chip">300 rehearsals</span>
+            <span class="demo-chip">Maya: Student</span>
+            <span class="demo-chip">Maya: Female</span>
+            <span class="demo-chip">Maya: 22 yrs old</span>
+            <span class="demo-chip">Daniel persona ready</span>
             <span class="demo-chip">Probability ranges</span>
           </div>
         </article>
@@ -2116,17 +2123,14 @@ function setupDemoInsightLab() {
   }
   updateFitnessUI();
   updateOutcomeUI();
-  renderOutcomeTestHistory();
-  renderOutcomeResults(buildDemoOutcomeReport());
-  setOutcomeStatus('Demo consequence paths loaded for Maya Chen and Daniel Rivera.', 'success');
 }
 
 function evaluateOutcomeSetup(optionA, optionB, requestedOutcome) {
   if (!optionA || !optionB) {
-    return { ready: false, reason: 'Select both personas to run Outcomes Test.' };
+    return { ready: false, reason: 'Select both personas to run Best Way.' };
   }
   if (optionA.key === optionB.key) {
-    return { ready: false, reason: 'Choose two different personas for Outcomes Test.' };
+    return { ready: false, reason: 'Choose two different personas for Best Way.' };
   }
   if (!String(requestedOutcome || '').trim()) {
     return { ready: false, reason: 'Enter a requested outcome first.' };
@@ -2158,7 +2162,7 @@ function updateOutcomeUI() {
     outcomeRunBtn.disabled = true;
     setOutcomeReadyState(true);
     if (!hasActiveWork) {
-      setOutcomeStatus(`Outcome queue is full (${MAX_OUTCOME_QUEUE_ITEMS}). Stop or wait for jobs to finish.`, 'error');
+      setOutcomeStatus(`Best Way queue is full (${MAX_OUTCOME_QUEUE_ITEMS}). Stop or wait for jobs to finish.`, 'error');
     }
     return;
   }
@@ -2244,7 +2248,7 @@ async function fetchOutcomeReport(payload, options = {}) {
   const json = await response.json().catch(() => null);
   if (!response.ok) {
     const messageParts = [];
-    const primary = String(json?.error || 'Outcome test request failed').trim();
+    const primary = String(json?.error || 'Best Way request failed').trim();
     if (primary) messageParts.push(primary);
     const stage = String(json?.stage || '').trim();
     if (stage) messageParts.push(`stage=${stage}`);
@@ -2254,7 +2258,7 @@ async function fetchOutcomeReport(payload, options = {}) {
     if (incompleteReason) messageParts.push(`incomplete_reason=${incompleteReason}`);
     const excerpt = String(json?.output_excerpt || '').trim();
     if (excerpt) messageParts.push(`output_excerpt=${excerpt}`);
-    const message = messageParts.join(' | ') || 'Outcome test request failed';
+    const message = messageParts.join(' | ') || 'Best Way request failed';
     const error = new Error(message);
     error.status = response.status;
     error.stage = String(json?.stage || '').trim();
@@ -2267,7 +2271,7 @@ async function fetchOutcomeReport(payload, options = {}) {
     throw error;
   }
   if (!json || typeof json !== 'object') {
-    throw new Error('Outcome test returned an invalid response');
+    throw new Error('Best Way returned an invalid response');
   }
   return json;
 }
@@ -2286,7 +2290,7 @@ async function processOutcomeQueue() {
         if (queue.length) {
           await saveOutcomeJobQueue([]);
         }
-        setOutcomeStatus('Outcome test queue stopped by user.', 'info');
+        setOutcomeStatus('Best Way queue stopped by user.', 'info');
         break;
       }
       const nextJob = queue[0];
@@ -2308,7 +2312,7 @@ async function processOutcomeQueue() {
                 ? 'network issue'
                 : 'transient model issue';
         setOutcomeStatus(
-          `Outcome test queue is waiting for auto-retry (${reasonLabel}). Next retry for "${nextJob.requestedOutcome}" in ~${waitSec}s.`,
+          `Best Way queue is waiting for auto-retry (${reasonLabel}). Next retry for "${nextJob.requestedOutcome}" in ~${waitSec}s.`,
           'info'
         );
         scheduleOutcomeQueueRetry(waitMs + 500);
@@ -2319,7 +2323,7 @@ async function processOutcomeQueue() {
       renderOutcomeTestHistory();
 
       setOutcomeStatus(
-        `Outcome test queued job ${nextJob.id} is running in background. You can continue using the app.`,
+        `Best Way queued job ${nextJob.id} is running in background. You can continue using the app.`,
         'info'
       );
 
@@ -2360,12 +2364,12 @@ async function processOutcomeQueue() {
         await saveOutcomeJobQueue(refreshedQueue);
 
         setOutcomeStatus(
-          `Outcome test complete for "${nextJob.requestedOutcome}". Open Outcome Test Results to view scenarios.`,
+          `Best Way complete for "${nextJob.requestedOutcome}". Open the results page to view scenarios.`,
           'success'
         );
         notifyOutcomeComplete(
-          'Syntrae: Outcome Pathways Complete',
-          `Requested outcome: ${nextJob.requestedOutcome}`
+          'Syntrae: Best Way Complete',
+          `Requested goal: ${nextJob.requestedOutcome}`
         );
       } catch (error) {
         if (outcomeStopRequested && isAbortError(error)) {
@@ -2375,7 +2379,7 @@ async function processOutcomeQueue() {
             refreshedQueue.splice(targetIndex, 1);
             await saveOutcomeJobQueue(refreshedQueue);
           }
-          setOutcomeStatus('Outcome test stopped by user.', 'info');
+          setOutcomeStatus('Best Way stopped by user.', 'info');
           break;
         }
 
@@ -2419,7 +2423,7 @@ async function processOutcomeQueue() {
             ? ` · tokens ${remainingTokens}/${limitTokens} remaining`
             : '';
           setOutcomeStatus(
-            `Outcome test hit a ${reasonLabel}. Auto-retry scheduled in ~${retrySeconds}s (attempt ${nextAttempt} of ${MAX_OUTCOME_JOB_RETRIES})${rateLimitHint}.`,
+            `Best Way hit a ${reasonLabel}. Auto-retry scheduled in ~${retrySeconds}s (attempt ${nextAttempt} of ${MAX_OUTCOME_JOB_RETRIES})${rateLimitHint}.`,
             'info'
           );
           scheduleOutcomeQueueRetry((retrySeconds * 1000) + 500);
@@ -2448,9 +2452,9 @@ async function processOutcomeQueue() {
           stage: String(error?.stage || '').trim()
         });
         if (retryPlan.shouldRetry && nextFailureCount >= MAX_OUTCOME_JOB_RETRIES) {
-          setOutcomeStatus(`Outcomes Test failed after ${MAX_OUTCOME_JOB_RETRIES} attempts: ${message}`, 'error');
+          setOutcomeStatus(`Best Way failed after ${MAX_OUTCOME_JOB_RETRIES} attempts: ${message}`, 'error');
         } else {
-          setOutcomeStatus(`Outcomes Test failed: ${message}`, 'error');
+          setOutcomeStatus(`Best Way failed: ${message}`, 'error');
         }
       } finally {
         outcomeQueueAbortController = null;
@@ -2539,7 +2543,7 @@ async function initialize() {
       'info'
     );
     processOutcomeQueue().catch((error) => {
-      setOutcomeStatus(`Outcomes Test failed: ${error?.message || 'Unexpected error'}`, 'error');
+      setOutcomeStatus(`Best Way failed: ${error?.message || 'Unexpected error'}`, 'error');
     });
   }
 }
@@ -2557,7 +2561,7 @@ if (outcomeHistoryListEl) {
     if (!reportKey) return;
     const report = outcomeHistoryReportMap.get(reportKey);
     if (!report) {
-      setOutcomeStatus('Unable to open this test detail. The report is no longer available in cache.', 'error');
+      setOutcomeStatus('Unable to open this result detail. The report is no longer available in cache.', 'error');
       return;
     }
     openOutcomeReportDetails(report);
@@ -2663,7 +2667,7 @@ if (outcomeRunBtn) {
       const payload = buildOutcomePayload(optionA, optionB, signatureA, signatureB);
       const queue = loadOutcomeJobQueue();
       if (queue.length >= MAX_OUTCOME_QUEUE_ITEMS) {
-        setOutcomeStatus(`Outcome queue is full (${MAX_OUTCOME_QUEUE_ITEMS}). Stop or wait for jobs to finish.`, 'error');
+        setOutcomeStatus(`Best Way queue is full (${MAX_OUTCOME_QUEUE_ITEMS}). Stop or wait for jobs to finish.`, 'error');
         updateOutcomeUI();
         return;
       }
@@ -2687,15 +2691,15 @@ if (outcomeRunBtn) {
       await saveOutcomeJobQueue(queue);
       updateOutcomeUI();
       setOutcomeStatus(
-        `Outcome test queued (${queue.length} in queue). You can continue using the app; you’ll be notified when this run completes.`,
+        `Best Way queued (${queue.length} in queue). You can continue using the app; you’ll be notified when this run completes.`,
         'info'
       );
       processOutcomeQueue().catch((error) => {
-        setOutcomeStatus(`Outcomes Test failed: ${error?.message || 'Unexpected error'}`, 'error');
+        setOutcomeStatus(`Best Way failed: ${error?.message || 'Unexpected error'}`, 'error');
       });
     } catch (error) {
       setOutcomeReadyState(false);
-      setOutcomeStatus(`Outcomes Test failed: ${error?.message || 'Unexpected error'}`, 'error');
+      setOutcomeStatus(`Best Way failed: ${error?.message || 'Unexpected error'}`, 'error');
     }
   });
 }
@@ -2705,7 +2709,7 @@ if (outcomeStopBtn) {
     try {
       await stopOutcomeQueueByUser();
     } catch (error) {
-      setOutcomeStatus(`Could not stop outcome test: ${error?.message || 'Unexpected error'}`, 'error');
+      setOutcomeStatus(`Could not stop Best Way: ${error?.message || 'Unexpected error'}`, 'error');
     }
   });
 }

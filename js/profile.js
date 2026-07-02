@@ -213,15 +213,15 @@ function loadDemoProfile() {
 
   setInputValue('first_name', 'Maya');
   setInputValue('last_name', 'Chen');
-  setInputValue('occupation', 'Creative Strategy Lead');
-  setInputValue('organization', 'Independent studio');
+  setInputValue('occupation', 'Student');
+  setInputValue('organization', 'San Francisco State University');
   setInputValue('location', 'San Francisco, CA');
   setInputValue('display_name', 'Maya Chen');
-  setInputValue('personal_headline', 'Thoughtful communicator preparing for an important relationship conversation');
-  setInputValue('goals', 'Invite Daniel into a deeper conversation about where the relationship is going while keeping the tone warm, low pressure, and respectful.');
-  setInputValue('strengths', 'Maya is emotionally observant, patient, sincere, and willing to communicate clearly when the moment matters.');
-  setInputValue('constraints', 'She only gets one real-world attempt at the conversation and wants to avoid making Daniel feel cornered or rushed.');
-  setInputValue('communication_style', 'Warm, reflective, considerate, and direct when clarity is important. Maya prefers invitations over demands.');
+  setInputValue('personal_headline', '22-year-old student who wants clarity while staying kind and low pressure');
+  setInputValue('goals', 'Invite Daniel into a deeper conversation about where the relationship is going while keeping the message warm, respectful, and easy to answer honestly.');
+  setInputValue('strengths', 'Maya notices tone, timing, and emotional detail. She is patient, sincere, and willing to communicate clearly when the moment matters.');
+  setInputValue('constraints', 'She has one real-world conversation to initiate and wants to avoid making Daniel feel cornered, rushed, or responsible for her anxiety.');
+  setInputValue('communication_style', 'Warm, reflective, considerate, and direct when clarity is important. Maya prefers invitations, plain language, and room for the other person to respond.');
   renderPrimaryPersonaOptions('daniel-rivera-demo');
 
   const titleRow = document.querySelector('.title-row');
@@ -229,14 +229,13 @@ function loadDemoProfile() {
     titleRow.insertAdjacentHTML('afterend', `
       <section class="demo-video-strip" aria-label="Demo profile context">
         <div>
-          <h3>Maya Chen demo profile</h3>
-          <p>This page shows the private user context Syntrae uses before Maya rehearses one real romantic relationship decision.</p>
+          <h3>Maya Chen profile</h3>
+          <p>This page shows Maya's private context for choosing a considerate next step with Daniel.</p>
         </div>
         <div class="demo-chip-row">
-          <span class="demo-chip">Maya Chen</span>
-          <span class="demo-chip">Linked to Daniel Rivera</span>
-          <span class="demo-chip">Private decision context</span>
-          <span class="demo-chip">One real action</span>
+          <span class="demo-chip">Student</span>
+          <span class="demo-chip">Female</span>
+          <span class="demo-chip">22 yrs old</span>
         </div>
       </section>
     `);
@@ -254,7 +253,7 @@ form.addEventListener('submit', async (e) => {
   clearStatus();
 
   if (isDecisionTreeDemo()) {
-    showStatus('Demo profile ready. Returning to the decision rehearsal scene…', 'success');
+    showStatus('Demo profile ready. Returning to the Best Way scene...', 'success');
     setTimeout(() => window.location.href = demoUrl('Chat.html', { state: 'start' }), 550);
     return;
   }

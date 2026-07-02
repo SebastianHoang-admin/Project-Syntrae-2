@@ -300,7 +300,7 @@ function renderScenarioCard(scenario, index) {
 function renderReport(report) {
   if (!report || typeof report !== 'object') {
     summaryTitleEl.textContent = 'No outcome report loaded.';
-    summarySubEl.textContent = 'Run an Outcomes Test in Insight Lab to generate scenario guidance.';
+    summarySubEl.textContent = 'Run Best Way in Decision Studio to generate scenario guidance.';
     metricGeneratedAtEl.textContent = '-';
     metricCombinationsEl.textContent = '-';
     metricIntegrityEl.textContent = '-';
@@ -313,7 +313,7 @@ function renderReport(report) {
 
   const personaA = safeText(report?.persona_a?.label || report?.personaA?.label || 'Persona A');
   const personaB = safeText(report?.persona_b?.label || report?.personaB?.label || 'Persona B');
-  const outcome = safeText(report?.requested_outcome || report?.requestedOutcome || 'Requested outcome');
+  const outcome = safeText(report?.requested_outcome || report?.requestedOutcome || 'Requested goal');
   const scenarios = normalizeScenarioList(report);
   const bestScenario = report?.best_chain && typeof report.best_chain === 'object'
     ? report.best_chain
@@ -326,7 +326,7 @@ function renderReport(report) {
 
   summaryTitleEl.textContent = `${personaA} → ${personaB}`;
   const sourceLine = describeGenerationSource(report);
-  const probabilityLine = isDecisionTreeDemo() ? 'Probability ranges from 300 persona-based rehearsals' : '';
+  const probabilityLine = isDecisionTreeDemo() ? 'Best Way probability ranges' : '';
   summarySubEl.textContent = [outcome, sourceLine, probabilityLine].filter(Boolean).join(' · ');
   metricGeneratedAtEl.textContent = formatDateTime(report?.generated_at || report?.generatedAt);
   metricCombinationsEl.textContent = formatCombinations(report?.total_action_combinations);
@@ -370,7 +370,7 @@ function renderHistory(history) {
     item.className = 'history-item';
     const personaA = safeText(entry?.persona_a?.label || entry?.personaA?.label || 'Persona A');
     const personaB = safeText(entry?.persona_b?.label || entry?.personaB?.label || 'Persona B');
-    const outcome = safeText(entry?.requested_outcome || entry?.requestedOutcome || 'Requested outcome');
+    const outcome = safeText(entry?.requested_outcome || entry?.requestedOutcome || 'Requested goal');
     const generatedAt = formatDateTime(entry?.generated_at || entry?.generatedAt);
 
     const scenarioList = normalizeScenarioList(entry);
@@ -388,7 +388,7 @@ function renderHistory(history) {
       </div>
       <div class="history-meta">
         <span>Integrity: <strong>${escapeHtml(integrity)}</strong></span>
-        <span>Outcome: ${escapeHtml(outcome)}</span>
+        <span>Goal: ${escapeHtml(outcome)}</span>
       </div>
     `;
 
