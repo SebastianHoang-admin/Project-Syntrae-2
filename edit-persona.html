@@ -390,15 +390,15 @@
 
     if (isDecisionTreeDemo()) {
       document.body.classList.add('demo-mode');
-      document.title = 'Edit Daniel Rivera Persona - Syntrae Demo';
-      personaKey = 'daniel-rivera-demo';
+      document.title = 'Edit Daniel Smith Persona - Syntrae Demo';
+      personaKey = 'daniel-smith-demo';
       localStorage.setItem(ACTIVE_PERSONA_KEY_STORAGE, personaKey);
-      localStorage.setItem('persona-name', 'Daniel Rivera');
+      localStorage.setItem('persona-name', 'Daniel Smith');
       backToAnalyze.href = demoUrl('analyze.html', { persona: personaKey });
-      statusEl.textContent = 'Demo mode: editing Daniel Rivera relationship persona for Maya Chen.';
+      statusEl.textContent = 'Demo mode: editing Daniel Smith relationship persona for Maya Chen.';
       statusEl.insertAdjacentHTML('afterend', `
         <section class="status" data-type="success" style="display:grid;gap:6px;margin-bottom:14px;">
-          <strong>Daniel Rivera demo persona</strong>
+          <strong>Daniel Smith demo persona</strong>
           <span>This question flow represents the relationship persona Maya Chen uses before choosing a considerate next step.</span>
         </section>
       `);
@@ -447,7 +447,7 @@
 
     function buildPersonaUrl(path, key = personaKey) {
       if (isDecisionTreeDemo()) {
-        return demoUrl(path, { persona: key || 'daniel-rivera-demo' });
+        return demoUrl(path, { persona: key || 'daniel-smith-demo' });
       }
       const safeKey = sanitizePersonaKey(key);
       if (!safeKey) return path;

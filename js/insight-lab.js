@@ -1914,24 +1914,24 @@ function buildDemoOptions() {
             tone: 'Warm, thoughtful, low pressure',
             strengths: 'Notices emotional nuance and tries to choose words that respect both people.',
             concern: 'Does not want clarity to sound like an ultimatum.',
-            decision_context: 'One real-world relationship action with Daniel Rivera'
+            decision_context: 'One real-world relationship action with Daniel Smith'
           },
           '22-year-old student who wants clarity while staying kind and low pressure'
         )
       }
     },
     {
-      key: 'daniel-rivera-demo',
-      label: 'Daniel Rivera',
+      key: 'daniel-smith-demo',
+      label: 'Daniel Smith',
       sourceLabel: 'Demo Relationship Persona',
       type: 'persona',
       data: {
-        name: 'Daniel Rivera',
+        name: 'Daniel Smith',
         profile: buildDemoProfile(
-          'Daniel Rivera',
+          'Daniel Smith',
           danielAxis,
           {
-            'basic-profile': 'Daniel Rivera. Male. 23 yrs old. Graduate student in product design.',
+            'basic-profile': 'Daniel Smith. Male. 23 yrs old. Graduate student in product design.',
             relationship_role: 'Romantic interest and close relationship focus for Maya Chen',
             likely_response_pattern: 'Responds well to warm invitations, specific wording, and steady pacing.',
             emotional_needs: 'Needs room to think and a sense that his response is welcome either way.',
@@ -1951,7 +1951,7 @@ function buildDemoOutcomeReport() {
     generated_at: new Date().toISOString(),
     requested_outcome: "Invite Daniel to talk about where the relationship is going without making the message feel heavy.",
     persona_a: { key: SYNTHETIC_USER_KEY, label: 'Maya Chen' },
-    persona_b: { key: 'daniel-rivera-demo', label: 'Daniel Rivera' },
+    persona_b: { key: 'daniel-smith-demo', label: 'Daniel Smith' },
     config: { node_count: 3, actions_per_node: 3 },
     best_chain: {
       chain_metrics: {
@@ -2052,7 +2052,7 @@ async function runDemoFitnessReview() {
     };
   });
   localStorage.setItem(FITNESS_RESULT_STORAGE_KEY, JSON.stringify(report));
-  setStatus('Compatibility Review complete for Maya Chen and Daniel Rivera.', 'success');
+  setStatus('Compatibility Review complete for Maya Chen and Daniel Smith.', 'success');
   window.setTimeout(() => {
     window.location.href = demoUrl('fitness-test-results.html');
   }, 450);
@@ -2069,12 +2069,12 @@ async function runDemoOutcomePathways() {
 
 function setupDemoInsightLab() {
   document.body.classList.add('demo-mode');
-  document.title = 'Insight Lab - Maya and Daniel Demo';
+  document.title = 'Insight Lab - Maya and Daniel Smith Demo';
   document.querySelectorAll('a[href="Chat.html"]').forEach((link) => {
     link.setAttribute('href', demoUrl('Chat.html', { state: 'start' }));
   });
   document.querySelectorAll('a[href="analyze.html"]').forEach((link) => {
-    link.setAttribute('href', demoUrl('analyze.html', { persona: 'daniel-rivera-demo' }));
+    link.setAttribute('href', demoUrl('analyze.html', { persona: 'daniel-smith-demo' }));
   });
   document.querySelectorAll('a[href="profile.html"]').forEach((link) => {
     link.setAttribute('href', demoUrl('profile.html'));
@@ -2085,7 +2085,7 @@ function setupDemoInsightLab() {
     hero.insertAdjacentHTML('beforeend', `
       <div class="demo-intro-grid" aria-label="Maya and Daniel demo context">
         <article class="demo-intro-card">
-          <h3>Maya Chen → Daniel Rivera</h3>
+          <h3>Maya Chen → Daniel Smith</h3>
           <p>Use this lab scene to show how Syntrae moves from private persona context into a structured compatibility review.</p>
         </article>
         <article class="demo-intro-card">
@@ -2112,9 +2112,9 @@ function setupDemoInsightLab() {
   optionByKey = new Map(personaOptions.map((item) => [item.key, item]));
   populateSelectors();
   if (selectA) selectA.value = SYNTHETIC_USER_KEY;
-  if (selectB) selectB.value = 'daniel-rivera-demo';
+  if (selectB) selectB.value = 'daniel-smith-demo';
   if (outcomeSelectA) outcomeSelectA.value = SYNTHETIC_USER_KEY;
-  if (outcomeSelectB) outcomeSelectB.value = 'daniel-rivera-demo';
+  if (outcomeSelectB) outcomeSelectB.value = 'daniel-smith-demo';
   if (outcomeInitialConditionsEl) {
     outcomeInitialConditionsEl.value = 'Maya wants to invite Daniel into a deeper conversation this weekend while keeping the tone warm and low pressure.';
   }

@@ -44,7 +44,7 @@ function buildDemoOutcomeReport() {
     generated_at: new Date().toISOString(),
     requested_outcome: "Invite Daniel to talk about where the relationship is going without making the message feel heavy.",
     persona_a: { key: '__user_persona__', label: 'Maya Chen' },
-    persona_b: { key: 'daniel-rivera-demo', label: 'Daniel Rivera' },
+    persona_b: { key: 'daniel-smith-demo', label: 'Daniel Smith' },
     config: { node_count: 3, actions_per_node: 3 },
     best_chain: {
       chain_metrics: {

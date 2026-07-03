@@ -69,7 +69,7 @@ function buildDemoFitnessReport() {
     report_id: 'demo-maya-daniel-compatibility',
     comparedAt: new Date().toISOString(),
     personaA: { key: SYNTHETIC_USER_KEY, label: 'Maya Chen (You)', signature: { key: SYNTHETIC_USER_KEY, profile_hash: 'demo-a' } },
-    personaB: { key: 'daniel-rivera-demo', label: 'Daniel Rivera', signature: { key: 'daniel-rivera-demo', profile_hash: 'demo-b' } },
+    personaB: { key: 'daniel-smith-demo', label: 'Daniel Smith', signature: { key: 'daniel-smith-demo', profile_hash: 'demo-b' } },
     compatibilityPercent: 78,
     quantitativeDeviationPercent: 22,
     qualitativeMisalignmentPercent: 18,

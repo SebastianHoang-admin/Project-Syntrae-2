@@ -209,7 +209,7 @@ async function loadExisting() {
 function loadDemoProfile() {
   document.body.classList.add('demo-mode');
   document.title = 'Maya Chen Persona - Syntrae Demo';
-  personaRows = [{ persona_key: 'daniel-rivera-demo', name: 'Daniel Rivera' }];
+  personaRows = [{ persona_key: 'daniel-smith-demo', name: 'Daniel Smith' }];
 
   setInputValue('first_name', 'Maya');
   setInputValue('last_name', 'Chen');
@@ -222,15 +222,18 @@ function loadDemoProfile() {
   setInputValue('strengths', 'Maya notices tone, timing, and emotional detail. She is patient, sincere, and willing to communicate clearly when the moment matters.');
   setInputValue('constraints', 'She has one real-world conversation to initiate and wants to avoid making Daniel feel cornered, rushed, or responsible for her anxiety.');
   setInputValue('communication_style', 'Warm, reflective, considerate, and direct when clarity is important. Maya prefers invitations, plain language, and room for the other person to respond.');
-  renderPrimaryPersonaOptions('daniel-rivera-demo');
+  renderPrimaryPersonaOptions('daniel-smith-demo');
 
   const titleRow = document.querySelector('.title-row');
   if (titleRow && !document.querySelector('.demo-video-strip')) {
     titleRow.insertAdjacentHTML('afterend', `
       <section class="demo-video-strip" aria-label="Demo profile context">
-        <div>
-          <h3>Maya Chen profile</h3>
-          <p>This page shows Maya's private context for choosing a considerate next step with Daniel.</p>
+        <div class="demo-profile-intro">
+          <img class="demo-profile-avatar" src="assets/maya-chen-avatar.png" alt="Maya Chen avatar">
+          <div>
+            <h3>Maya Chen profile</h3>
+            <p>This page shows Maya's private context for choosing a considerate next step with Daniel.</p>
+          </div>
         </div>
         <div class="demo-chip-row">
           <span class="demo-chip">Student</span>

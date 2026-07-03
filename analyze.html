@@ -2639,34 +2639,13 @@ Authority figure</div>
         });
 
         function buildDemoPortraitDataUrl() {
-            const svg = `
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640">
-                    <defs>
-                        <linearGradient id="g" x1="0" x2="1" y1="0" y2="1">
-                            <stop offset="0" stop-color="#2d7d67"/>
-                            <stop offset=".55" stop-color="#12968d"/>
-                            <stop offset="1" stop-color="#ef745f"/>
-                        </linearGradient>
-                        <radialGradient id="r" cx=".28" cy=".22" r=".8">
-                            <stop offset="0" stop-color="#dff4ed" stop-opacity=".95"/>
-                            <stop offset="1" stop-color="#ffffff" stop-opacity="0"/>
-                        </radialGradient>
-                    </defs>
-                    <rect width="640" height="640" rx="56" fill="#fbfff8"/>
-                    <circle cx="462" cy="134" r="180" fill="#f3c94f" opacity=".22"/>
-                    <rect x="58" y="58" width="524" height="524" rx="44" fill="url(#g)"/>
-                    <rect x="58" y="58" width="524" height="524" rx="44" fill="url(#r)"/>
-                    <circle cx="320" cy="238" r="74" fill="#fbfff8" opacity=".95"/>
-                    <path d="M188 498c20-94 83-142 132-142s112 48 132 142" fill="#fbfff8" opacity=".95"/>
-                    <text x="320" y="570" text-anchor="middle" font-family="Manrope, Arial" font-size="34" font-weight="800" fill="#fbfff8">Daniel Rivera</text>
-                </svg>`;
-            return `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`;
+            return 'assets/daniel-smith-avatar.png';
         }
 
         function setupDanielDemoPersona() {
             document.body.classList.add('demo-mode');
-            document.title = 'Daniel Rivera Persona - Syntrae Demo';
-            personaKey = 'daniel-rivera-demo';
+            document.title = 'Daniel Smith Persona - Syntrae Demo';
+            personaKey = 'daniel-smith-demo';
             localStorage.setItem(ACTIVE_PERSONA_KEY_STORAGE, personaKey);
             const params = new URLSearchParams(window.location.search);
             params.set('demo', DECISION_TREE_DEMO);
@@ -2676,12 +2655,12 @@ Authority figure</div>
             const demoState = {
                 version: 1,
                 savedAt: new Date().toISOString(),
-                personaName: 'Daniel Rivera',
+                personaName: 'Daniel Smith',
                 personaPortrait: buildDemoPortraitDataUrl(),
                 personaAvatarPresent: 'yes',
                 answers: {},
                 session: {},
-                usersInput: 'Daniel Rivera is a 23-year-old graduate student in product design. He is warm, thoughtful, and open to sincere conversation when it is framed gently. He values emotional honesty, independence, and steady pacing, but can become quiet if a conversation feels rushed or too emotionally loaded at the wrong time.',
+                usersInput: 'Daniel Smith is a 23-year-old graduate student in product design. He is warm, thoughtful, and open to sincere conversation when it is framed gently. He values emotional honesty, independence, and steady pacing, but can become quiet if a conversation feels rushed or too emotionally loaded at the wrong time.',
                 identityLayers: {
                     L1: JSON.stringify({
                         L1_A1: { value: 0.62, confidence: 0.78 },
@@ -2709,9 +2688,9 @@ Authority figure</div>
                     })
                 },
                 extras: {
-                    'basic-profile': 'Daniel Rivera. Male. 23 yrs old. Graduate student in product design living in the Bay Area.',
+                    'basic-profile': 'Daniel Smith. Male. 23 yrs old. Graduate student in product design living in the Bay Area.',
                     'relationship-role': 'Romantic interest and close relationship focus for Maya Chen.',
-                    'current-context': 'Daniel and Maya have been spending more intentional time together. The relationship feels promising, but neither person has clearly named where it is going yet.',
+                    'current-context': 'Maya and Daniel have been spending more intentional time together. The relationship feels promising, but neither person has clearly named where it is going yet.',
                     'communication-pattern': 'Responds well to warmth, sincerity, and specific invitations. He can become reserved when the tone feels like an urgent decision must be made immediately.',
                     'emotional-needs': 'Needs room to think, a sense that his answer is welcome either way, and a conversation that feels mutual rather than like a test.',
                     stressors: 'Academic deadlines, part-time project work, and uncertainty about whether defining the relationship too quickly could change the easy trust he and Maya have built.',
@@ -2721,7 +2700,7 @@ Authority figure</div>
             applyPersonaState(demoState);
 
             if (personaSelectorEl) {
-                personaSelectorEl.innerHTML = '<option value="daniel-rivera-demo">Daniel Rivera</option>';
+                personaSelectorEl.innerHTML = '<option value="daniel-smith-demo">Daniel Smith</option>';
                 personaSelectorEl.value = personaKey;
             }
             if (editPersonaLink) editPersonaLink.href = demoUrl('edit-persona.html', { persona: personaKey });
@@ -2731,9 +2710,9 @@ Authority figure</div>
             const panel = document.querySelector('.panel');
             if (panel && !document.querySelector('.demo-context-strip')) {
                 panel.insertAdjacentHTML('afterbegin', `
-                    <section class="demo-context-strip" aria-label="Daniel Rivera demo context">
+                    <section class="demo-context-strip" aria-label="Daniel Smith demo context">
                         <div>
-                            <h2>Daniel Rivera persona</h2>
+                            <h2>Daniel Smith persona</h2>
                             <p>This demo persona gives Syntrae private, structured context for Maya's relationship decision before she takes one real-world action.</p>
                         </div>
                         <div class="demo-chip-row">
