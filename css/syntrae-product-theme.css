@@ -91,6 +91,25 @@ header,
   color: var(--ink) !important;
 }
 
+.syntrae-logo-image {
+  width: 148px;
+  max-width: 42vw;
+  height: auto;
+  display: block;
+  border-radius: 14px;
+  background: #fff;
+  padding: 4px;
+  box-shadow: 0 10px 24px rgba(32, 50, 54, 0.1);
+}
+
+.brand-page-label {
+  color: var(--quiet) !important;
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.02em !important;
+  white-space: nowrap;
+}
+
 .logo-icon,
 .mark,
 .agent-avatar,

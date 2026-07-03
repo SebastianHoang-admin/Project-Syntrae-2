@@ -185,7 +185,6 @@
             line-height: 1;
         }
 
-        .fa-chart-line::before { content: "S"; }
         .fa-user-pen::before,
         .fa-pen::before { content: "✎"; }
         .fa-trash::before { content: "🗑"; }
@@ -224,6 +223,32 @@
         .account-indicator[data-state="signed-out"] {
             color: #fca5a5;
             border-color: rgba(248, 79, 37, 0.35);
+        }
+
+        .demo-chat-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            margin-right: 14px;
+            padding: 10px 14px;
+            border-radius: 14px;
+            border: 1px solid rgba(18, 150, 141, 0.22);
+            background: rgba(251, 255, 248, 0.86);
+            color: var(--ink);
+            font-size: 13px;
+            font-weight: 800;
+            text-decoration: none;
+            white-space: nowrap;
+            box-shadow: 0 12px 28px rgba(18, 150, 141, 0.12);
+            transition: transform 180ms ease, box-shadow 220ms ease, border-color 180ms ease;
+        }
+
+        .demo-chat-link:hover,
+        .demo-chat-link:focus-visible {
+            transform: translateY(-2px);
+            border-color: rgba(18, 150, 141, 0.45);
+            box-shadow: 0 16px 34px rgba(18, 150, 141, 0.18);
+            outline: none;
         }
 
         .container {
@@ -1298,16 +1323,16 @@
     
     <header class="header">
         <div class="logo">
-            <div class="logo-icon" aria-label="Syntrae logo">
-                <i class="fas fa-chart-line" aria-hidden="true"></i>
-            </div>
-            <div class="logo-text">
-                <span>SYNTRAE</span>
-                <span>Decision Studio</span>
-            </div>
+            <img class="syntrae-logo-image" src="assets/syntrae-logo.png" alt="Syntrae logo">
+            <span class="brand-page-label">Decision Studio</span>
         </div>
 
         <div class="account-indicator" id="accountIndicator" title="Current account">Checking session…</div>
+
+        <a class="demo-chat-link" href="Chat.html?demo=decision-tree&amp;state=start" aria-label="Open demo chat">
+            <i class="fas fa-play"></i>
+            Demo Chat
+        </a>
 
         <div class="more-menu">
             <button class="more-btn" id="moreBtn" aria-label="More options">
