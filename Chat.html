@@ -225,32 +225,6 @@
             border-color: rgba(248, 79, 37, 0.35);
         }
 
-        .demo-chat-link {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            margin-right: 14px;
-            padding: 10px 14px;
-            border-radius: 14px;
-            border: 1px solid rgba(18, 150, 141, 0.22);
-            background: rgba(251, 255, 248, 0.86);
-            color: var(--ink);
-            font-size: 13px;
-            font-weight: 800;
-            text-decoration: none;
-            white-space: nowrap;
-            box-shadow: 0 12px 28px rgba(18, 150, 141, 0.12);
-            transition: transform 180ms ease, box-shadow 220ms ease, border-color 180ms ease;
-        }
-
-        .demo-chat-link:hover,
-        .demo-chat-link:focus-visible {
-            transform: translateY(-2px);
-            border-color: rgba(18, 150, 141, 0.45);
-            box-shadow: 0 16px 34px rgba(18, 150, 141, 0.18);
-            outline: none;
-        }
-
         .container {
             position: relative;
             z-index: 1;
@@ -1189,6 +1163,110 @@
             font-weight: 800;
         }
 
+        .demo-tour-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 2000;
+            display: block;
+            background: rgba(11, 18, 36, 0.72);
+            backdrop-filter: blur(2px);
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s ease;
+        }
+
+        .demo-tour-overlay.is-visible {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .demo-tour-card {
+            position: fixed;
+            z-index: 2002;
+            width: min(320px, calc(100vw - 28px));
+            padding: 16px;
+            border-radius: 18px;
+            border: 1px solid rgba(18, 150, 141, 0.18);
+            background: rgba(251, 255, 248, 0.98);
+            box-shadow: 0 24px 60px rgba(0, 0, 0, 0.32);
+            color: var(--ink);
+        }
+
+        .demo-tour-card::before {
+            content: "";
+            position: absolute;
+            width: 16px;
+            height: 16px;
+            background: inherit;
+            border-left: 1px solid rgba(18, 150, 141, 0.18);
+            border-top: 1px solid rgba(18, 150, 141, 0.18);
+            transform: rotate(45deg);
+        }
+
+        .demo-tour-card[data-placement="right"]::before {
+            left: -8px;
+            top: 32px;
+        }
+
+        .demo-tour-card[data-placement="left"]::before {
+            right: -8px;
+            top: 32px;
+        }
+
+        .demo-tour-card[data-placement="below"]::before {
+            top: -8px;
+            left: 32px;
+        }
+
+        .demo-tour-card[data-placement="above"]::before {
+            bottom: -8px;
+            left: 32px;
+        }
+
+        .demo-tour-card h3 {
+            margin: 6px 0 8px;
+            font-size: 20px;
+            line-height: 1.15;
+        }
+
+        .demo-tour-card p {
+            margin: 0;
+            color: var(--quiet);
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .demo-tour-actions {
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+            margin-top: 14px;
+        }
+
+        .demo-tour-btn {
+            border: 1px solid rgba(32, 50, 54, 0.14);
+            border-radius: 12px;
+            padding: 10px 14px;
+            background: rgba(255, 255, 255, 0.92);
+            color: var(--ink);
+            font-weight: 800;
+            cursor: pointer;
+        }
+
+        .demo-tour-btn-primary {
+            background: linear-gradient(135deg, var(--leaf), var(--teal));
+            color: #fff;
+            border-color: transparent;
+        }
+
+        .demo-tour-target {
+            position: relative;
+            z-index: 2001 !important;
+            box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.7), 0 0 0 8px rgba(18, 150, 141, 0.28), 0 26px 58px rgba(0, 0, 0, 0.16);
+            filter: none !important;
+            transition: box-shadow 0.25s ease, transform 0.25s ease;
+        }
+
         .chat-input-container {
             display: flex;
             gap: 12px;
@@ -1328,11 +1406,6 @@
         </div>
 
         <div class="account-indicator" id="accountIndicator" title="Current account">Checking session…</div>
-
-        <a class="demo-chat-link" href="Chat.html?demo=decision-tree&amp;state=start" aria-label="Open demo chat">
-            <i class="fas fa-play"></i>
-            Demo Chat
-        </a>
 
         <div class="more-menu">
             <button class="more-btn" id="moreBtn" aria-label="More options">
@@ -2520,7 +2593,6 @@
                         <span class="chat-session-label">Active persona</span>
                         <strong id="demoActivePersonaLabel">Daniel Smith</strong>
                     </div>
-                    <button class="nav-btn" id="demoNewChatBtn" type="button">${demoIcon('plus')} New chat</button>
                 </div>
 
                 <section class="demo-card demo-chat-shell" aria-label="Demo chat spaces">
@@ -2538,7 +2610,7 @@
 
                 <section class="demo-stage" aria-label="Syntrae Best Way demo">
                     <div class="demo-hero">
-                        <div class="demo-card">
+                        <div class="demo-card" data-tour-step="best-way">
                             <span class="demo-kicker">${demoIcon('leaf')} One real choice, clearer paths</span>
                             <h3 id="demoSimulationTitle">Best Way</h3>
                             <p id="demoSimulationCopy">Compare possible next moves before choosing the one action Maya will take in real life.</p>
@@ -2546,7 +2618,7 @@
                             <div class="demo-candidate-grid" id="demoCandidateGrid" aria-label="Candidate actions"></div>
                         </div>
 
-                        <aside class="demo-card best-way-settings">
+                        <aside class="demo-card best-way-settings" data-tour-step="settings">
                             <span class="demo-kicker">${demoIcon('sliders')} Syntrae Settings</span>
                             <div class="setting-row">
                                 <span>Active persona</span>
@@ -2564,7 +2636,7 @@
                         Explore pathways consequence...
                     </div>
 
-                    <section class="consequence-tree" id="consequenceTree" aria-label="Consequence tree">
+                    <section class="consequence-tree" id="consequenceTree" aria-label="Consequence tree" data-tour-step="tree">
                         <div class="tree-root">
                             <div>
                                 <strong>Consequence Tree</strong>
@@ -2586,6 +2658,18 @@
                         </div>
                     </section>
                 </section>
+
+                <div class="demo-tour-overlay" id="demoTourOverlay" hidden>
+                    <div class="demo-tour-card" id="demoTourCard" role="dialog" aria-live="polite">
+                        <span class="demo-kicker" id="demoTourStep">1 of 5</span>
+                        <h3 id="demoTourTitle">Your Persona</h3>
+                        <p id="demoTourCopy">This section holds the private relationship context used to guide the demo.</p>
+                        <div class="demo-tour-actions">
+                            <button class="demo-tour-btn" id="demoTourSkip" type="button">Skip</button>
+                            <button class="demo-tour-btn demo-tour-btn-primary" id="demoTourNext" type="button">Next</button>
+                        </div>
+                    </div>
+                </div>
             `;
 
             const loadingEl = document.getElementById('demoLoading');
@@ -2604,7 +2688,6 @@
             const demoChatList = document.getElementById('demoChatList');
             const demoChatHeading = document.getElementById('demoChatHeading');
             const demoChatTranscript = document.getElementById('demoChatTranscript');
-            const demoNewChatBtn = document.getElementById('demoNewChatBtn');
             const demoSimulationTitle = document.getElementById('demoSimulationTitle');
             const demoSimulationCopy = document.getElementById('demoSimulationCopy');
             const demoPromptBox = document.getElementById('demoPromptBox');
@@ -2612,7 +2695,146 @@
             const demoTreeGrid = document.getElementById('demoTreeGrid');
             const demoRecommendationTitle = document.getElementById('demoRecommendationTitle');
             const demoRecommendationText = document.getElementById('demoRecommendationText');
+            const demoTourOverlay = document.getElementById('demoTourOverlay');
+            const demoTourCard = document.getElementById('demoTourCard');
+            const demoTourStep = document.getElementById('demoTourStep');
+            const demoTourTitle = document.getElementById('demoTourTitle');
+            const demoTourCopy = document.getElementById('demoTourCopy');
+            const demoTourNext = document.getElementById('demoTourNext');
+            const demoTourSkip = document.getElementById('demoTourSkip');
             let demoRevealTimer = null;
+            let demoTourIndex = 0;
+            let demoTourActive = false;
+            let demoTourActiveTarget = null;
+
+            const demoTourSteps = [
+                {
+                    selector: '.persona-column',
+                    title: 'Your Persona',
+                    copy: 'This panel holds the private relationship context that Syntrae uses before Maya makes a decision.'
+                },
+                {
+                    selector: '.demo-chat-shell',
+                    title: 'Chat Spaces',
+                    copy: 'These are the template conversations. Pick a space to rehearse a specific relationship moment.'
+                },
+                {
+                    selector: '.demo-stage .demo-card',
+                    title: 'Best Way',
+                    copy: 'This section compares possible next moves and shows the likely response paths for each one.'
+                },
+                {
+                    selector: '.best-way-settings',
+                    title: 'Syntrae Settings',
+                    copy: 'This card shows the active persona and the run control used to generate the consequence map.'
+                },
+                {
+                    selector: '#consequenceTree',
+                    title: 'Consequence Tree',
+                    copy: 'This is the consequence map. It organizes the likely outcomes and probability ranges for the chosen action.'
+                }
+            ];
+
+            function clearDemoTourHighlight() {
+                document.querySelectorAll('.demo-tour-target').forEach((el) => {
+                    el.classList.remove('demo-tour-target');
+                });
+                demoTourActiveTarget = null;
+            }
+
+            function positionDemoTourCard(target) {
+                if (!demoTourCard || !target) return;
+                const rect = target.getBoundingClientRect();
+                const cardWidth = Math.min(320, window.innerWidth - 28);
+                const margin = 16;
+                let placement = 'right';
+                let left = rect.right + 18;
+                let top = Math.max(margin, rect.top + 8);
+
+                if (window.innerWidth - rect.right < cardWidth + 40) {
+                    placement = 'left';
+                    left = rect.left - cardWidth - 18;
+                }
+
+                if (left < margin) {
+                    placement = rect.top > 260 ? 'above' : 'below';
+                    left = Math.max(margin, Math.min(rect.left, window.innerWidth - cardWidth - margin));
+                }
+
+                if (placement === 'above') {
+                    top = Math.max(margin, rect.top - 180);
+                } else if (placement === 'below') {
+                    top = Math.min(window.innerHeight - 180, rect.bottom + 18);
+                }
+
+                demoTourCard.dataset.placement = placement;
+                demoTourCard.style.left = `${Math.max(margin, Math.min(left, window.innerWidth - cardWidth - margin))}px`;
+                demoTourCard.style.top = `${top}px`;
+            }
+
+            function setDemoTourStep(index) {
+                if (!demoTourOverlay || !demoTourCard) return;
+                const step = demoTourSteps[index];
+                if (!step) {
+                    demoTourOverlay.classList.remove('is-visible');
+                    demoTourOverlay.hidden = true;
+                    clearDemoTourHighlight();
+                    demoTourActive = false;
+                    return;
+                }
+
+                demoTourIndex = index;
+                demoTourActive = true;
+                demoTourOverlay.hidden = false;
+                demoTourOverlay.classList.add('is-visible');
+
+                const target = document.querySelector(step.selector);
+                if (target) {
+                    clearDemoTourHighlight();
+                    target.classList.add('demo-tour-target');
+                    demoTourActiveTarget = target;
+                    target.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });
+                    window.setTimeout(() => {
+                        positionDemoTourCard(target);
+                    }, 250);
+                }
+
+                if (demoTourStep) demoTourStep.textContent = `${index + 1} of ${demoTourSteps.length}`;
+                if (demoTourTitle) demoTourTitle.textContent = step.title;
+                if (demoTourCopy) demoTourCopy.textContent = step.copy;
+                if (demoTourNext) demoTourNext.textContent = index === demoTourSteps.length - 1 ? 'Done' : 'Next';
+            }
+
+            function finishDemoTour() {
+                if (!demoTourOverlay) return;
+                demoTourOverlay.classList.remove('is-visible');
+                demoTourOverlay.hidden = true;
+                clearDemoTourHighlight();
+                demoTourActive = false;
+                sessionStorage.setItem('syntrae-demo-tour-seen', '1');
+            }
+
+            function startDemoTour() {
+                if (!isDecisionTreeDemo()) return;
+                if (sessionStorage.getItem('syntrae-demo-tour-seen') === '1') return;
+                setDemoTourStep(0);
+            }
+
+            demoTourNext?.addEventListener('click', () => {
+                if (demoTourIndex >= demoTourSteps.length - 1) {
+                    finishDemoTour();
+                    return;
+                }
+                setDemoTourStep(demoTourIndex + 1);
+            });
+
+            demoTourSkip?.addEventListener('click', finishDemoTour);
+            window.addEventListener('resize', () => {
+                if (demoTourActive && demoTourActiveTarget) positionDemoTourCard(demoTourActiveTarget);
+            });
+            window.addEventListener('scroll', () => {
+                if (demoTourActive && demoTourActiveTarget) positionDemoTourCard(demoTourActiveTarget);
+            }, { passive: true });
 
             function syncDemoPersonaNames() {
                 document.querySelectorAll('[data-demo-persona-name]').forEach((el) => {
@@ -2782,64 +3004,6 @@
                 });
             }
 
-            demoNewChatBtn?.addEventListener('click', () => {
-                const nextIndex = Object.keys(demoChats).length + 1;
-                const key = `demo-${Date.now()}`;
-                demoChats[key] = {
-                    title: `New decision space ${nextIndex}`,
-                    meta: 'Draft conversation',
-                    prompt: 'What is another considerate next step Maya could compare before acting?',
-                    introTitle: 'New Decision Space',
-                    introCopy: 'Use this private space to explore a fresh relationship question before choosing a next move.',
-                    candidates: [
-                        { title: 'Ask directly', detail: 'Clear action with a defined next step.' },
-                        { title: 'Wait for context', detail: 'More information before acting.' },
-                        { title: 'Send a soft check-in', detail: 'Low-pressure signal that keeps the door open.' }
-                    ],
-                    outcomes: [
-                        {
-                            title: 'Draft A',
-                            action: 'Ask directly',
-                            description: 'A clear path that reduces ambiguity but may feel more serious.',
-                            items: [
-                                { label: 'Clarity improves', range: '42-50%', width: 50, note: 'The action makes the intention easier to understand.' },
-                                { label: 'Pressure increases', range: '22-30%', width: 30, note: 'Directness can feel heavier if timing is off.' },
-                                { label: 'Fast answer emerges', range: '20-28%', width: 28, note: 'Useful when uncertainty is costing energy.' }
-                            ]
-                        },
-                        {
-                            title: 'Draft B',
-                            action: 'Wait for context',
-                            description: 'A slower path that gathers more signal before acting.',
-                            items: [
-                                { label: 'Better timing appears', range: '36-44%', width: 44, note: 'Waiting may reveal a more natural opening.' },
-                                { label: 'Ambiguity continues', range: '28-36%', width: 36, note: 'Delay can keep Maya stuck in interpretation.' },
-                                { label: 'Pressure stays low', range: '24-30%', width: 30, note: 'No one is forced into a conversation too quickly.' }
-                            ]
-                        },
-                        {
-                            title: 'Draft C',
-                            action: 'Send a soft check-in',
-                            description: 'A gentle middle path that tests openness without forcing the topic.',
-                            items: [
-                                { label: 'Warmth is preserved', range: '48-56%', width: 56, note: 'The tone keeps the exchange approachable.' },
-                                { label: 'Signal remains incomplete', range: '24-32%', width: 32, note: 'May still require a clearer follow-up.' },
-                                { label: 'Conversation opens lightly', range: '18-26%', width: 26, note: 'Good when Maya wants movement without pressure.' }
-                            ]
-                        }
-                    ],
-                    recommendation: {
-                        title: 'Suggested first move: Soft check-in.',
-                        text: 'It creates movement while keeping the tone light enough for a new decision space.'
-                    },
-                    messages: [
-                        { role: 'agent', text: 'Start a new private space for another relationship decision, message, or invitation.' }
-                    ]
-                };
-                activeDemoChatKey = key;
-                renderDemoChats();
-                renderActiveDemoSimulation({ resetRun: true });
-            });
             renderDemoChats();
             renderActiveDemoSimulation({ resetRun: getDemoState() !== 'end' });
 
@@ -2859,6 +3023,10 @@
 
             if (getDemoState() === 'end') {
                 revealTree();
+            }
+
+            if (getDemoState() === 'start') {
+                window.setTimeout(startDemoTour, 700);
             }
         }
 

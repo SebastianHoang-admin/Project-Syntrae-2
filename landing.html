@@ -412,80 +412,43 @@
             align-items: center;
         }
 
-        .video-shell {
-            position: relative;
-            aspect-ratio: 16 / 9;
-            overflow: hidden;
-            border: 1px solid rgba(32, 50, 54, 0.12);
-            border-radius: 8px;
-            background:
-                linear-gradient(135deg, rgba(45, 125, 103, 0.9), rgba(18, 150, 141, 0.72)),
-                url("assets/syntrae-relationship-table.png") center / cover;
-            box-shadow: var(--shadow);
-            transition: transform 0.28s ease, box-shadow 0.28s ease;
-        }
-
-        .video-shell:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 24px 58px rgba(32, 50, 54, 0.16);
-        }
-
-        .video-shell iframe,
-        .video-fallback {
-            position: absolute;
-            inset: 0;
-            width: 100%;
-            height: 100%;
-            border: 0;
-        }
-
-        .video-fallback {
+        .demo-launch-card {
             display: grid;
-            align-content: end;
             gap: 18px;
-            padding: clamp(20px, 4vw, 42px);
-            color: #fff;
+            padding: clamp(24px, 4vw, 40px);
+            border-radius: 26px;
+            border: 1px solid rgba(32, 50, 54, 0.12);
             background:
-                linear-gradient(180deg, rgba(16, 38, 35, 0.06) 0%, rgba(16, 38, 35, 0.84) 100%);
+                radial-gradient(circle at 15% 15%, rgba(18, 150, 141, 0.14), transparent 30%),
+                radial-gradient(circle at 85% 20%, rgba(239, 116, 95, 0.16), transparent 26%),
+                linear-gradient(145deg, rgba(255,255,255,0.9), rgba(241, 250, 247, 0.96));
+            box-shadow: var(--shadow);
         }
 
-        .play-button {
-            width: 74px;
-            height: 74px;
-            border: 0;
-            border-radius: 50%;
-            display: grid;
-            place-items: center;
+        .demo-launch-card h2 {
+            margin: 0;
+            font-size: clamp(28px, 3vw, 42px);
+            line-height: 1.05;
+            letter-spacing: -0.04em;
             color: var(--ink);
-            background: #fff;
-            cursor: pointer;
-            box-shadow: 0 18px 38px rgba(32, 50, 54, 0.22);
-            transition: transform 0.2s ease;
-            animation: softPulse 3.2s ease-in-out infinite;
         }
 
-        .play-button:hover {
-            transform: scale(1.05);
-        }
-
-        .play-button i {
-            margin-left: 4px;
-            font-size: 24px;
-        }
-
-        .video-fallback h3 {
+        .demo-launch-card p {
             margin: 0;
-            width: min(560px, 100%);
-            font-family: "Fraunces", Georgia, serif;
-            font-size: clamp(28px, 4vw, 48px);
-            line-height: 1.02;
+            color: var(--quiet);
+            font-size: 16px;
+            line-height: 1.7;
+            max-width: 52ch;
         }
 
-        .video-fallback p {
-            margin: 0;
-            width: min(620px, 100%);
-            color: rgba(255, 255, 255, 0.88);
-            line-height: 1.65;
+        .demo-launch-btn {
+            width: fit-content;
+            box-shadow: 0 16px 34px rgba(45, 125, 103, 0.18);
+        }
+
+        .demo-launch-note {
+            font-size: 13px;
+            color: rgba(96, 113, 108, 0.9);
             font-weight: 700;
         }
 
@@ -576,6 +539,18 @@
             box-shadow: 0 14px 36px rgba(32, 50, 54, 0.08);
             transition: transform 0.24s ease, box-shadow 0.24s ease, border-color 0.24s ease;
             animation: fadeLift 0.72s ease both;
+            overflow: hidden;
+        }
+
+        .work-card::before {
+            content: "";
+            position: absolute;
+            inset: 0 0 auto;
+            height: 4px;
+            background: linear-gradient(90deg, var(--leaf), var(--teal), var(--coral));
+            transform: scaleX(0);
+            transform-origin: left;
+            transition: transform 0.28s ease;
         }
 
         .work-card:nth-child(2) {
@@ -590,6 +565,10 @@
             transform: translateY(-5px);
             border-color: rgba(18, 150, 141, 0.26);
             box-shadow: 0 22px 50px rgba(32, 50, 54, 0.12);
+        }
+
+        .work-card:hover::before {
+            transform: scaleX(1);
         }
 
         .work-icon {
@@ -613,6 +592,10 @@
         .work-card:nth-child(3) .work-icon {
             color: var(--ink);
             background: var(--sun);
+        }
+
+        .work-card:hover .work-icon {
+            transform: translateY(-2px) scale(1.04);
         }
 
         .work-step {
@@ -1063,7 +1046,7 @@
             </span>
         </a>
         <div class="nav-links">
-            <a href="#vision">Vision</a>
+            <a href="#vision">Feel the vision</a>
             <a href="#founding" class="button button-primary"><i class="fas fa-ticket-alt"></i> Founding member</a>
         </div>
     </nav>
@@ -1095,19 +1078,16 @@
 
         <section class="section video-band" id="vision">
             <div class="section-inner video-layout">
-                <div class="video-shell" aria-label="Syntrae vision video">
-                    <iframe id="visionVideo" title="Syntrae vision walkthrough" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen hidden></iframe>
-                    <div class="video-fallback" id="videoFallback">
-                        <button class="play-button" id="videoPlayButton" type="button" aria-label="Play Syntrae vision video">
-                            <i class="fas fa-play"></i>
-                        </button>
-                        <h3>A short walkthrough of the future we are building.</h3>
-                        <p>The video should show a future Syntrae session: enter the situation, compare likely response paths, and pick a considerate next step.</p>
-                    </div>
+                <div class="demo-launch-card" aria-label="Syntrae demo chat launch">
+                    <p class="section-kicker">Demo access</p>
+                    <h2>Open the demo.</h2>
+                    <p>See the founding-member experience directly in the chat interface, where the vision is introduced and the demo decision flow comes alive.</p>
+                    <a class="button button-primary demo-launch-btn" href="Chat.html?demo=decision-tree&amp;state=start"><i class="fas fa-play"></i> Try it here</a>
+                    <span class="demo-launch-note">Opens the demo view without any extra steps.</span>
                 </div>
                 <div>
                     <p class="section-kicker">The vision</p>
-                    <h2>Less guessing. More informed timing.</h2>
+                    <h2>Less guessing, more caring.</h2>
                     <p class="lede">Syntrae is a planning layer for social decisions: describe the situation, state the outcome you hope for, and review statistically framed paths that may make the next move easier to choose.</p>
                     <div class="video-points">
                         <article class="point">
@@ -1271,17 +1251,12 @@
     </footer>
 
     <script>
-        const youtubeEmbedUrl = "";
         const paymentUrl = "";
-
-        const visionVideo = document.getElementById("visionVideo");
-        const videoFallback = document.getElementById("videoFallback");
-        const videoPlayButton = document.getElementById("videoPlayButton");
         const foundingForm = document.getElementById("foundingForm");
         const formStatus = document.getElementById("formStatus");
 
         const revealTargets = [
-            ...document.querySelectorAll(".quote-panel, .video-shell, .video-points .point, .science-card, .principle, .founding-layout > div, .member-form, .faq-item")
+            ...document.querySelectorAll(".quote-panel, .demo-launch-card, .video-points .point, .science-card, .principle, .founding-layout > div, .member-form, .faq-item")
         ];
 
         if ("IntersectionObserver" in window) {
@@ -1314,20 +1289,6 @@
             requestAnimationFrame(revealVisibleNow);
             window.addEventListener("scroll", revealVisibleNow, { passive: true });
             window.addEventListener("resize", revealVisibleNow);
-        }
-
-        if (youtubeEmbedUrl && visionVideo && videoFallback) {
-            visionVideo.src = youtubeEmbedUrl;
-            visionVideo.hidden = false;
-            videoFallback.hidden = true;
-        }
-
-        if (videoPlayButton) {
-            videoPlayButton.addEventListener("click", () => {
-                if (youtubeEmbedUrl) return;
-                const foundingSection = document.getElementById("founding");
-                if (foundingSection) foundingSection.scrollIntoView({ behavior: "smooth", block: "start" });
-            });
         }
 
         if (foundingForm && formStatus) {
