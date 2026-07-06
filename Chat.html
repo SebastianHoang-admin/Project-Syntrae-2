@@ -1163,110 +1163,6 @@
             font-weight: 800;
         }
 
-        .demo-tour-overlay {
-            position: fixed;
-            inset: 0;
-            z-index: 2000;
-            display: block;
-            background: rgba(11, 18, 36, 0.72);
-            backdrop-filter: blur(2px);
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity 0.2s ease;
-        }
-
-        .demo-tour-overlay.is-visible {
-            opacity: 1;
-            pointer-events: auto;
-        }
-
-        .demo-tour-card {
-            position: fixed;
-            z-index: 2002;
-            width: min(320px, calc(100vw - 28px));
-            padding: 16px;
-            border-radius: 18px;
-            border: 1px solid rgba(18, 150, 141, 0.18);
-            background: rgba(251, 255, 248, 0.98);
-            box-shadow: 0 24px 60px rgba(0, 0, 0, 0.32);
-            color: var(--ink);
-        }
-
-        .demo-tour-card::before {
-            content: "";
-            position: absolute;
-            width: 16px;
-            height: 16px;
-            background: inherit;
-            border-left: 1px solid rgba(18, 150, 141, 0.18);
-            border-top: 1px solid rgba(18, 150, 141, 0.18);
-            transform: rotate(45deg);
-        }
-
-        .demo-tour-card[data-placement="right"]::before {
-            left: -8px;
-            top: 32px;
-        }
-
-        .demo-tour-card[data-placement="left"]::before {
-            right: -8px;
-            top: 32px;
-        }
-
-        .demo-tour-card[data-placement="below"]::before {
-            top: -8px;
-            left: 32px;
-        }
-
-        .demo-tour-card[data-placement="above"]::before {
-            bottom: -8px;
-            left: 32px;
-        }
-
-        .demo-tour-card h3 {
-            margin: 6px 0 8px;
-            font-size: 20px;
-            line-height: 1.15;
-        }
-
-        .demo-tour-card p {
-            margin: 0;
-            color: var(--quiet);
-            font-size: 14px;
-            line-height: 1.6;
-        }
-
-        .demo-tour-actions {
-            display: flex;
-            justify-content: space-between;
-            gap: 10px;
-            margin-top: 14px;
-        }
-
-        .demo-tour-btn {
-            border: 1px solid rgba(32, 50, 54, 0.14);
-            border-radius: 12px;
-            padding: 10px 14px;
-            background: rgba(255, 255, 255, 0.92);
-            color: var(--ink);
-            font-weight: 800;
-            cursor: pointer;
-        }
-
-        .demo-tour-btn-primary {
-            background: linear-gradient(135deg, var(--leaf), var(--teal));
-            color: #fff;
-            border-color: transparent;
-        }
-
-        .demo-tour-target {
-            position: relative;
-            z-index: 2001 !important;
-            box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.7), 0 0 0 8px rgba(18, 150, 141, 0.28), 0 26px 58px rgba(0, 0, 0, 0.16);
-            filter: none !important;
-            transition: box-shadow 0.25s ease, transform 0.25s ease;
-        }
-
         .chat-input-container {
             display: flex;
             gap: 12px;
@@ -2659,17 +2555,6 @@
                     </section>
                 </section>
 
-                <div class="demo-tour-overlay" id="demoTourOverlay" hidden>
-                    <div class="demo-tour-card" id="demoTourCard" role="dialog" aria-live="polite">
-                        <span class="demo-kicker" id="demoTourStep">1 of 5</span>
-                        <h3 id="demoTourTitle">Your Persona</h3>
-                        <p id="demoTourCopy">This section holds the private relationship context used to guide the demo.</p>
-                        <div class="demo-tour-actions">
-                            <button class="demo-tour-btn" id="demoTourSkip" type="button">Skip</button>
-                            <button class="demo-tour-btn demo-tour-btn-primary" id="demoTourNext" type="button">Next</button>
-                        </div>
-                    </div>
-                </div>
             `;
 
             const loadingEl = document.getElementById('demoLoading');
@@ -2695,146 +2580,7 @@
             const demoTreeGrid = document.getElementById('demoTreeGrid');
             const demoRecommendationTitle = document.getElementById('demoRecommendationTitle');
             const demoRecommendationText = document.getElementById('demoRecommendationText');
-            const demoTourOverlay = document.getElementById('demoTourOverlay');
-            const demoTourCard = document.getElementById('demoTourCard');
-            const demoTourStep = document.getElementById('demoTourStep');
-            const demoTourTitle = document.getElementById('demoTourTitle');
-            const demoTourCopy = document.getElementById('demoTourCopy');
-            const demoTourNext = document.getElementById('demoTourNext');
-            const demoTourSkip = document.getElementById('demoTourSkip');
             let demoRevealTimer = null;
-            let demoTourIndex = 0;
-            let demoTourActive = false;
-            let demoTourActiveTarget = null;
-
-            const demoTourSteps = [
-                {
-                    selector: '.persona-column',
-                    title: 'Your Persona',
-                    copy: 'This panel holds the private relationship context that Syntrae uses before Maya makes a decision.'
-                },
-                {
-                    selector: '.demo-chat-shell',
-                    title: 'Chat Spaces',
-                    copy: 'These are the template conversations. Pick a space to rehearse a specific relationship moment.'
-                },
-                {
-                    selector: '.demo-stage .demo-card',
-                    title: 'Best Way',
-                    copy: 'This section compares possible next moves and shows the likely response paths for each one.'
-                },
-                {
-                    selector: '.best-way-settings',
-                    title: 'Syntrae Settings',
-                    copy: 'This card shows the active persona and the run control used to generate the consequence map.'
-                },
-                {
-                    selector: '#consequenceTree',
-                    title: 'Consequence Tree',
-                    copy: 'This is the consequence map. It organizes the likely outcomes and probability ranges for the chosen action.'
-                }
-            ];
-
-            function clearDemoTourHighlight() {
-                document.querySelectorAll('.demo-tour-target').forEach((el) => {
-                    el.classList.remove('demo-tour-target');
-                });
-                demoTourActiveTarget = null;
-            }
-
-            function positionDemoTourCard(target) {
-                if (!demoTourCard || !target) return;
-                const rect = target.getBoundingClientRect();
-                const cardWidth = Math.min(320, window.innerWidth - 28);
-                const margin = 16;
-                let placement = 'right';
-                let left = rect.right + 18;
-                let top = Math.max(margin, rect.top + 8);
-
-                if (window.innerWidth - rect.right < cardWidth + 40) {
-                    placement = 'left';
-                    left = rect.left - cardWidth - 18;
-                }
-
-                if (left < margin) {
-                    placement = rect.top > 260 ? 'above' : 'below';
-                    left = Math.max(margin, Math.min(rect.left, window.innerWidth - cardWidth - margin));
-                }
-
-                if (placement === 'above') {
-                    top = Math.max(margin, rect.top - 180);
-                } else if (placement === 'below') {
-                    top = Math.min(window.innerHeight - 180, rect.bottom + 18);
-                }
-
-                demoTourCard.dataset.placement = placement;
-                demoTourCard.style.left = `${Math.max(margin, Math.min(left, window.innerWidth - cardWidth - margin))}px`;
-                demoTourCard.style.top = `${top}px`;
-            }
-
-            function setDemoTourStep(index) {
-                if (!demoTourOverlay || !demoTourCard) return;
-                const step = demoTourSteps[index];
-                if (!step) {
-                    demoTourOverlay.classList.remove('is-visible');
-                    demoTourOverlay.hidden = true;
-                    clearDemoTourHighlight();
-                    demoTourActive = false;
-                    return;
-                }
-
-                demoTourIndex = index;
-                demoTourActive = true;
-                demoTourOverlay.hidden = false;
-                demoTourOverlay.classList.add('is-visible');
-
-                const target = document.querySelector(step.selector);
-                if (target) {
-                    clearDemoTourHighlight();
-                    target.classList.add('demo-tour-target');
-                    demoTourActiveTarget = target;
-                    target.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });
-                    window.setTimeout(() => {
-                        positionDemoTourCard(target);
-                    }, 250);
-                }
-
-                if (demoTourStep) demoTourStep.textContent = `${index + 1} of ${demoTourSteps.length}`;
-                if (demoTourTitle) demoTourTitle.textContent = step.title;
-                if (demoTourCopy) demoTourCopy.textContent = step.copy;
-                if (demoTourNext) demoTourNext.textContent = index === demoTourSteps.length - 1 ? 'Done' : 'Next';
-            }
-
-            function finishDemoTour() {
-                if (!demoTourOverlay) return;
-                demoTourOverlay.classList.remove('is-visible');
-                demoTourOverlay.hidden = true;
-                clearDemoTourHighlight();
-                demoTourActive = false;
-                sessionStorage.setItem('syntrae-demo-tour-seen', '1');
-            }
-
-            function startDemoTour() {
-                if (!isDecisionTreeDemo()) return;
-                if (sessionStorage.getItem('syntrae-demo-tour-seen') === '1') return;
-                setDemoTourStep(0);
-            }
-
-            demoTourNext?.addEventListener('click', () => {
-                if (demoTourIndex >= demoTourSteps.length - 1) {
-                    finishDemoTour();
-                    return;
-                }
-                setDemoTourStep(demoTourIndex + 1);
-            });
-
-            demoTourSkip?.addEventListener('click', finishDemoTour);
-            window.addEventListener('resize', () => {
-                if (demoTourActive && demoTourActiveTarget) positionDemoTourCard(demoTourActiveTarget);
-            });
-            window.addEventListener('scroll', () => {
-                if (demoTourActive && demoTourActiveTarget) positionDemoTourCard(demoTourActiveTarget);
-            }, { passive: true });
 
             function syncDemoPersonaNames() {
                 document.querySelectorAll('[data-demo-persona-name]').forEach((el) => {
@@ -3025,9 +2771,6 @@
                 revealTree();
             }
 
-            if (getDemoState() === 'start') {
-                window.setTimeout(startDemoTour, 700);
-            }
         }
 
         async function loadSession() {
