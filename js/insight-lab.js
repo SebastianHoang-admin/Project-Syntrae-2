@@ -2029,7 +2029,7 @@ async function runDemoFitnessReview() {
   const report = await runWithProgress(async () => {
     await wait(700);
     return {
-      report_id: 'demo-maya-daniel-compatibility',
+      report_id: 'demo-fitness-test-compatibility',
       comparedAt: new Date().toISOString(),
       personaA: { key: optionA.key, label: optionA.label, signature: { key: optionA.key, profile_hash: 'demo-a' } },
       personaB: { key: optionB.key, label: optionB.label, signature: { key: optionB.key, profile_hash: 'demo-b' } },
@@ -2046,15 +2046,22 @@ async function runDemoFitnessReview() {
         'Maya seeks clarity sooner than Daniel may expect',
         'Daniel may need more emotional room before defining next steps'
       ],
-      top_matches_axes: [],
-      top_mismatches_axes: [],
+      top_matches_axes: [
+        { axis_name: 'Respect / Dignity Boundary', deviation: 0.06, persona_a_value: 0.82, persona_b_value: 0.76 },
+        { axis_name: 'Depth ↔ Breadth', deviation: 0.04, persona_a_value: 0.76, persona_b_value: 0.72 },
+        { axis_name: 'Immediate ↔ Deferred Reward', deviation: 0.01, persona_a_value: 0.62, persona_b_value: 0.63 }
+      ],
+      top_mismatches_axes: [
+        { axis_name: 'Conflict Response', deviation: 0.1, persona_a_value: 0.58, persona_b_value: 0.48 },
+        { axis_name: 'Loyalty / Commitment Boundary', deviation: 0.04, persona_a_value: 0.7, persona_b_value: 0.66 }
+      ],
       llm_model: 'Demo predictive model'
     };
   });
   localStorage.setItem(FITNESS_RESULT_STORAGE_KEY, JSON.stringify(report));
-  setStatus('Compatibility Review complete for Maya Chen and Daniel Smith.', 'success');
+  setStatus('Demo Fitness Test complete for Maya Chen and Daniel Smith.', 'success');
   window.setTimeout(() => {
-    window.location.href = demoUrl('fitness-test-results.html');
+    window.location.href = demoUrl('demo-fitness-test-results.html');
   }, 450);
 }
 

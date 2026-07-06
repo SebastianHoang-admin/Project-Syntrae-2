@@ -1,0 +1,1064 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Demo Fitness Test Results - Syntrae</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <style>
+    :root {
+      --paper: #f9fdf8;
+      --panel: rgba(255, 255, 255, 0.82);
+      --ink: #1f3236;
+      --quiet: #5f7073;
+      --line: rgba(31, 50, 54, 0.12);
+      --leaf: #2c7d68;
+      --teal: #11958f;
+      --coral: #ef765c;
+      --sun: #f1bf53;
+      --mint: #e3f4ee;
+      --shadow: 0 22px 60px rgba(31, 50, 54, 0.12);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--ink);
+      font-family: "Manrope", "Helvetica Neue", Arial, sans-serif;
+      background:
+        radial-gradient(circle at 12% 12%, rgba(17, 149, 143, 0.12), transparent 28%),
+        radial-gradient(circle at 88% 8%, rgba(239, 118, 92, 0.12), transparent 24%),
+        radial-gradient(circle at 50% 100%, rgba(241, 191, 83, 0.11), transparent 28%),
+        linear-gradient(180deg, #fbfff8 0%, #eef9f3 100%);
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    button {
+      font: inherit;
+    }
+
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      backdrop-filter: blur(16px);
+      background: rgba(249, 253, 248, 0.84);
+      border-bottom: 1px solid rgba(31, 50, 54, 0.08);
+    }
+
+    .topbar-inner {
+      max-width: 1320px;
+      margin: 0 auto;
+      padding: 14px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 18px;
+      flex-wrap: wrap;
+    }
+
+    .brand {
+      display: inline-flex;
+      align-items: center;
+      gap: 14px;
+      font-weight: 800;
+    }
+
+    .brand img {
+      width: 138px;
+      height: auto;
+      display: block;
+      border-radius: 14px;
+      background: #fff;
+      padding: 4px;
+      box-shadow: 0 10px 24px rgba(31, 50, 54, 0.1);
+    }
+
+    .brand-copy {
+      display: grid;
+      gap: 2px;
+    }
+
+    .brand-copy strong {
+      font-size: 15px;
+      letter-spacing: 0.01em;
+    }
+
+    .brand-copy span {
+      color: var(--quiet);
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .top-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .pill,
+    .back-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      min-height: 42px;
+      border-radius: 999px;
+      padding: 10px 14px;
+      border: 1px solid rgba(31, 50, 54, 0.12);
+      background: rgba(255, 255, 255, 0.88);
+      box-shadow: 0 10px 24px rgba(31, 50, 54, 0.06);
+      font-weight: 800;
+      transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+    }
+
+    .pill {
+      color: var(--leaf);
+      background: var(--mint);
+    }
+
+    .pill:hover,
+    .back-link:hover {
+      transform: translateY(-1px);
+      border-color: rgba(17, 149, 143, 0.28);
+      box-shadow: 0 14px 30px rgba(31, 50, 54, 0.08);
+    }
+
+    .shell {
+      width: min(1320px, 100%);
+      margin: 0 auto;
+      padding: 28px 24px 44px;
+      display: grid;
+      gap: 22px;
+    }
+
+    .hero {
+      display: grid;
+      grid-template-columns: minmax(0, 0.96fr) minmax(360px, 1.04fr);
+      gap: 20px;
+      align-items: stretch;
+    }
+
+    .panel {
+      border: 1px solid rgba(31, 50, 54, 0.12);
+      border-radius: 28px;
+      background: var(--panel);
+      backdrop-filter: blur(18px);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+      animation: rise 0.6s ease both;
+    }
+
+    .summary-panel,
+    .chart-panel,
+    .list-panel {
+      position: relative;
+    }
+
+    .summary-panel {
+      padding: 30px;
+    }
+
+    .summary-panel::before,
+    .chart-panel::before {
+      content: "";
+      position: absolute;
+      inset: auto -10% -20% auto;
+      width: 360px;
+      height: 360px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(17, 149, 143, 0.12), transparent 68%);
+      pointer-events: none;
+    }
+
+    .summary-panel::after {
+      content: "";
+      position: absolute;
+      inset: 12px 12px auto auto;
+      width: 130px;
+      height: 130px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(239, 118, 92, 0.16), transparent 70%);
+      pointer-events: none;
+    }
+
+    .kicker {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      border-radius: 999px;
+      border: 1px solid rgba(31, 50, 54, 0.1);
+      background: rgba(227, 244, 238, 0.9);
+      color: var(--leaf);
+      font-size: 13px;
+      font-weight: 900;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+    }
+
+    h1,
+    h2,
+    h3 {
+      margin: 0;
+    }
+
+    h1 {
+      margin-top: 14px;
+      font-family: "Fraunces", Georgia, serif;
+      font-size: clamp(42px, 5vw, 76px);
+      line-height: 0.96;
+      letter-spacing: -0.02em;
+      max-width: 11ch;
+    }
+
+    .lede {
+      margin: 16px 0 0;
+      color: var(--quiet);
+      font-size: 18px;
+      line-height: 1.72;
+      font-weight: 600;
+      max-width: 54ch;
+    }
+
+    .score-grid {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 20px;
+      align-items: center;
+      margin-top: 24px;
+    }
+
+    .score {
+      font-size: clamp(66px, 9vw, 112px);
+      line-height: 0.9;
+      font-weight: 800;
+      color: var(--leaf);
+      text-shadow: 0 0 26px rgba(44, 125, 104, 0.12);
+    }
+
+    .score-copy {
+      display: grid;
+      gap: 10px;
+    }
+
+    .score-copy p {
+      margin: 0;
+      color: var(--quiet);
+      font-size: 15px;
+      line-height: 1.65;
+      font-weight: 600;
+    }
+
+    .metric-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+      margin-top: 26px;
+    }
+
+    .metric {
+      padding: 14px 15px;
+      border-radius: 20px;
+      border: 1px solid rgba(31, 50, 54, 0.08);
+      background: linear-gradient(180deg, #f8fcf9, #eef8f3);
+      display: grid;
+      gap: 7px;
+      min-height: 94px;
+    }
+
+    .metric span {
+      color: var(--quiet);
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      font-weight: 900;
+    }
+
+    .metric strong {
+      font-size: 22px;
+      line-height: 1.05;
+    }
+
+    .chart-panel {
+      padding: 24px;
+      min-height: 640px;
+      background:
+        radial-gradient(circle at 18% 16%, rgba(17, 149, 143, 0.12), transparent 28%),
+        radial-gradient(circle at 82% 12%, rgba(239, 118, 92, 0.12), transparent 25%),
+        linear-gradient(180deg, rgba(255, 255, 255, 0.92), rgba(243, 250, 246, 0.94));
+    }
+
+    .chart-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      gap: 16px;
+      flex-wrap: wrap;
+      margin-bottom: 10px;
+    }
+
+    .chart-head h2 {
+      font-family: "Fraunces", Georgia, serif;
+      font-size: clamp(28px, 3vw, 40px);
+      letter-spacing: -0.03em;
+    }
+
+    .chart-head p {
+      margin: 0;
+      color: var(--quiet);
+      max-width: 38ch;
+      line-height: 1.55;
+      font-weight: 600;
+    }
+
+    .chart-stage {
+      position: relative;
+      min-height: 556px;
+      display: grid;
+      place-items: center;
+      isolation: isolate;
+    }
+
+    .orbit {
+      position: absolute;
+      border-radius: 50%;
+      aspect-ratio: 1;
+      filter: drop-shadow(0 16px 30px rgba(31, 50, 54, 0.12));
+      -webkit-mask: radial-gradient(circle at center, transparent 0 46%, #000 47% 100%);
+      mask: radial-gradient(circle at center, transparent 0 46%, #000 47% 100%);
+      mix-blend-mode: multiply;
+      opacity: 0.9;
+      transition: transform 0.4s ease, opacity 0.4s ease;
+    }
+
+    .orbit:hover {
+      transform: scale(1.02);
+      opacity: 0.98;
+    }
+
+    .orbit.a {
+      width: min(62vw, 390px);
+      left: 7%;
+      top: 8%;
+    }
+
+    .orbit.b {
+      width: min(66vw, 420px);
+      right: 7%;
+      bottom: 7%;
+    }
+
+    .orbit-glow {
+      position: absolute;
+      inset: auto;
+      border-radius: 50%;
+      pointer-events: none;
+      filter: blur(6px);
+      opacity: 0.7;
+    }
+
+    .orbit-glow.a {
+      width: min(68vw, 430px);
+      left: 4%;
+      top: 4%;
+      background: radial-gradient(circle, rgba(17, 149, 143, 0.18), transparent 66%);
+    }
+
+    .orbit-glow.b {
+      width: min(70vw, 450px);
+      right: 2%;
+      bottom: 3%;
+      background: radial-gradient(circle, rgba(239, 118, 92, 0.16), transparent 66%);
+    }
+
+    .chart-core {
+      position: relative;
+      z-index: 1;
+      width: min(46vw, 258px);
+      aspect-ratio: 1;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      text-align: center;
+      padding: 26px;
+      border: 1px solid rgba(31, 50, 54, 0.1);
+      background: rgba(251, 255, 248, 0.92);
+      box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.72),
+        0 24px 42px rgba(31, 50, 54, 0.12);
+      backdrop-filter: blur(18px);
+    }
+
+    .chart-core .label {
+      color: var(--quiet);
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.16em;
+      font-weight: 900;
+    }
+
+    .chart-core .percent {
+      display: block;
+      margin-top: 10px;
+      font-size: clamp(54px, 8vw, 92px);
+      line-height: 0.9;
+      font-weight: 800;
+      color: var(--leaf);
+    }
+
+    .chart-core p {
+      margin: 10px 0 0;
+      color: var(--quiet);
+      font-size: 14px;
+      line-height: 1.6;
+      font-weight: 600;
+    }
+
+    .chart-badge {
+      position: absolute;
+      z-index: 2;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 12px;
+      border-radius: 999px;
+      border: 1px solid rgba(31, 50, 54, 0.08);
+      background: rgba(255, 255, 255, 0.9);
+      box-shadow: 0 12px 28px rgba(31, 50, 54, 0.08);
+      font-size: 12px;
+      font-weight: 900;
+      letter-spacing: 0.01em;
+      white-space: nowrap;
+    }
+
+    .chart-badge.a {
+      left: 10%;
+      top: 12%;
+      color: var(--teal);
+    }
+
+    .chart-badge.b {
+      right: 12%;
+      bottom: 14%;
+      color: var(--coral);
+    }
+
+    .chart-badge i {
+      font-size: 11px;
+    }
+
+    .chart-foot {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-top: 8px;
+    }
+
+    .legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .legend-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      min-height: 36px;
+      padding: 8px 12px;
+      border-radius: 999px;
+      border: 1px solid rgba(31, 50, 54, 0.08);
+      background: rgba(255, 255, 255, 0.84);
+      box-shadow: 0 10px 22px rgba(31, 50, 54, 0.06);
+      font-size: 13px;
+      font-weight: 800;
+      color: var(--ink);
+    }
+
+    .dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      flex: none;
+    }
+
+    .dot.a { background: var(--teal); box-shadow: 0 0 0 3px rgba(17, 149, 143, 0.12); }
+    .dot.b { background: var(--coral); box-shadow: 0 0 0 3px rgba(239, 118, 92, 0.12); }
+
+    .sections {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 20px;
+    }
+
+    .list-panel {
+      padding: 22px;
+    }
+
+    .list-panel h2 {
+      font-family: "Fraunces", Georgia, serif;
+      font-size: 30px;
+      letter-spacing: -0.02em;
+      margin-bottom: 14px;
+    }
+
+    .list-panel p.lead {
+      margin: 0 0 18px;
+      color: var(--quiet);
+      line-height: 1.62;
+      font-weight: 600;
+    }
+
+    .check-list {
+      list-style: none;
+      display: grid;
+      gap: 10px;
+      margin: 0;
+      padding: 0;
+    }
+
+    .check-list li {
+      padding: 14px 15px 14px 40px;
+      border-radius: 18px;
+      border: 1px solid rgba(31, 50, 54, 0.08);
+      background: linear-gradient(180deg, rgba(248, 252, 249, 0.95), rgba(239, 247, 243, 0.95));
+      position: relative;
+      line-height: 1.5;
+      font-weight: 600;
+      color: var(--ink);
+    }
+
+    .check-list li::before {
+      content: '\f058';
+      font-family: 'Font Awesome 6 Free';
+      font-weight: 900;
+      position: absolute;
+      left: 14px;
+      top: 14px;
+      color: var(--leaf);
+    }
+
+    .check-list.mismatch li::before {
+      content: '\f071';
+      color: var(--coral);
+    }
+
+    .axis-grid {
+      display: grid;
+      gap: 12px;
+      margin-top: 14px;
+    }
+
+    .axis-card {
+      padding: 16px;
+      border-radius: 20px;
+      border: 1px solid rgba(31, 50, 54, 0.08);
+      background: rgba(255, 255, 255, 0.85);
+      display: grid;
+      gap: 10px;
+    }
+
+    .axis-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .axis-name {
+      font-weight: 800;
+      line-height: 1.35;
+    }
+
+    .axis-score {
+      font-size: 13px;
+      font-weight: 900;
+      color: var(--leaf);
+      white-space: nowrap;
+    }
+
+    .axis-track {
+      height: 14px;
+      border-radius: 999px;
+      background: rgba(31, 50, 54, 0.08);
+      overflow: hidden;
+      position: relative;
+    }
+
+    .axis-fill {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      border-radius: inherit;
+      opacity: 0.92;
+    }
+
+    .axis-fill.a {
+      left: 0;
+      background: linear-gradient(90deg, rgba(17, 149, 143, 0.92), rgba(44, 125, 104, 0.86));
+    }
+
+    .axis-fill.b {
+      right: 0;
+      background: linear-gradient(270deg, rgba(239, 118, 92, 0.9), rgba(241, 191, 83, 0.86));
+    }
+
+    .axis-values {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      min-height: 30px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 800;
+      border: 1px solid transparent;
+    }
+
+    .tag.a {
+      background: rgba(17, 149, 143, 0.12);
+      border-color: rgba(17, 149, 143, 0.28);
+      color: var(--teal);
+    }
+
+    .tag.b {
+      background: rgba(239, 118, 92, 0.12);
+      border-color: rgba(239, 118, 92, 0.28);
+      color: var(--coral);
+    }
+
+    .footer {
+      padding: 8px 24px 24px;
+      color: var(--quiet);
+      font-size: 13px;
+      font-weight: 700;
+      text-align: center;
+    }
+
+    .footer strong {
+      color: var(--ink);
+    }
+
+    @keyframes rise {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *,
+      *::before,
+      *::after {
+        animation: none !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+      }
+    }
+
+    @media (max-width: 1060px) {
+      .hero,
+      .sections {
+        grid-template-columns: 1fr;
+      }
+
+      .chart-panel {
+        min-height: 580px;
+      }
+    }
+
+    @media (max-width: 720px) {
+      .topbar-inner,
+      .shell {
+        padding-left: 16px;
+        padding-right: 16px;
+      }
+
+      .summary-panel,
+      .chart-panel,
+      .list-panel {
+        padding: 20px;
+      }
+
+      .metric-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .chart-stage {
+        min-height: 480px;
+      }
+
+      .orbit.a {
+        width: min(76vw, 340px);
+      }
+
+      .orbit.b {
+        width: min(82vw, 360px);
+      }
+
+      .chart-core {
+        width: min(58vw, 220px);
+      }
+
+      .chart-badge.a {
+        left: 4%;
+      }
+
+      .chart-badge.b {
+        right: 4%;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar-inner">
+      <a class="brand" href="insight-lab.html?demo=decision-tree" aria-label="Back to Insight Lab">
+        <img src="assets/syntrae-logo.png" alt="Syntrae logo">
+        <span class="brand-copy">
+          <strong>Demo Fitness Test</strong>
+          <span>Overlay view for the demo production flow</span>
+        </span>
+      </a>
+      <div class="top-actions">
+        <a class="back-link" href="insight-lab.html?demo=decision-tree"><i class="fas fa-arrow-left"></i> Back to Insight Lab</a>
+        <span class="pill"><i class="fas fa-circle-nodes"></i> Demo visual</span>
+      </div>
+    </div>
+  </header>
+
+  <main class="shell">
+    <section class="hero">
+      <article class="panel summary-panel">
+        <span class="kicker"><i class="fas fa-chart-pie"></i> Fitness Test Results</span>
+        <h1>Compatibility review, reworked for demo aesthetics.</h1>
+        <p class="lede">This demo result overlays two persona shapes so the comparison feels presentable on camera. The report still carries compatibility, deviation, and misalignment data, but the visual language is more cinematic and less clinical.</p>
+
+        <div class="score-grid">
+          <div class="score" id="compatibilityPercent">78%</div>
+          <div class="score-copy">
+            <p id="compatibilityDescription">Loading demo report…</p>
+            <p id="chartLegend">A and B markers show each persona value per trait.</p>
+          </div>
+        </div>
+
+        <div class="metric-grid">
+          <div class="metric">
+            <span>Quantitative deviation</span>
+            <strong id="quantDeviation">22%</strong>
+          </div>
+          <div class="metric">
+            <span>Qualitative misalignment</span>
+            <strong id="qualMisalignment">18%</strong>
+          </div>
+          <div class="metric">
+            <span>Mutation rate</span>
+            <strong id="mutationRate">14%</strong>
+          </div>
+        </div>
+      </article>
+
+      <article class="panel chart-panel">
+        <div class="chart-head">
+          <div>
+            <h2>Overlay circle chart</h2>
+            <p>Two translucent persona circles are layered over the same center so their trait makeup can be read at a glance.</p>
+          </div>
+          <div class="legend">
+            <span class="legend-item"><span class="dot a"></span><span id="personaALabel">Persona A</span></span>
+            <span class="legend-item"><span class="dot b"></span><span id="personaBLabel">Persona B</span></span>
+          </div>
+        </div>
+
+        <div class="chart-stage" id="chartStage">
+          <div class="orbit-glow a"></div>
+          <div class="orbit-glow b"></div>
+          <div class="orbit a" id="orbitA"></div>
+          <div class="orbit b" id="orbitB"></div>
+          <div class="chart-badge a" id="badgeA"><i class="fas fa-circle"></i> Persona A</div>
+          <div class="chart-badge b" id="badgeB"><i class="fas fa-circle"></i> Persona B</div>
+          <div class="chart-core">
+            <div>
+              <span class="label">Shared fit</span>
+              <span class="percent" id="corePercent">78%</span>
+              <p id="coreCopy">The overlap is strong enough to support smoother communication and coordination.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="chart-foot">
+          <div class="legend" id="axisLegend"></div>
+        </div>
+      </article>
+    </section>
+
+    <section class="sections">
+      <article class="panel list-panel">
+        <h2>Areas of Match</h2>
+        <p class="lead">These are the shared signals that make the personas easier to place on the same page.</p>
+        <ul class="check-list" id="matchList"></ul>
+      </article>
+
+      <article class="panel list-panel">
+        <h2>Areas of Mismatch</h2>
+        <p class="lead">These are the pressure points the demo should surface so the result feels grounded.</p>
+        <ul class="check-list mismatch" id="mismatchList"></ul>
+      </article>
+    </section>
+
+    <section class="panel list-panel">
+      <h2>Axis overlay</h2>
+      <p class="lead">The circle chart is backed by the same report axes shown here as compact A/B bars.</p>
+      <div class="axis-grid" id="axisGrid"></div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <strong>Syntrae</strong> demo fitness test result page for recorded walkthroughs.
+  </footer>
+
+  <script>
+    const STORAGE_KEY = 'insight-lab:last-fitness-test';
+
+    const fallbackReport = {
+      report_id: 'demo-fitness-test-compatibility',
+      comparedAt: new Date().toISOString(),
+      personaA: { key: 'maya-chen-demo', label: 'Maya Chen (You)' },
+      personaB: { key: 'daniel-smith-demo', label: 'Daniel Smith' },
+      compatibilityPercent: 78,
+      quantitativeDeviationPercent: 22,
+      qualitativeMisalignmentPercent: 18,
+      mutationRatePercent: 14,
+      areas_match: [
+        'Both prefer considerate communication over pressure',
+        'Depth and honesty signals are strongly aligned',
+        'Timing sensitivity suggests a gentle opening is appropriate'
+      ],
+      areas_mismatch: [
+        'Maya seeks clarity sooner than Daniel may expect',
+        'Daniel may need more emotional room before defining next steps'
+      ],
+      top_matches_axes: [
+        { axis_name: 'Respect / Dignity Boundary', deviation: 0.06, persona_a_value: 0.82, persona_b_value: 0.76 },
+        { axis_name: 'Depth ↔ Breadth', deviation: 0.04, persona_a_value: 0.76, persona_b_value: 0.72 },
+        { axis_name: 'Immediate ↔ Deferred Reward', deviation: 0.01, persona_a_value: 0.62, persona_b_value: 0.63 }
+      ],
+      top_mismatches_axes: [
+        { axis_name: 'Conflict Response', deviation: 0.1, persona_a_value: 0.58, persona_b_value: 0.48 },
+        { axis_name: 'Loyalty / Commitment Boundary', deviation: 0.04, persona_a_value: 0.7, persona_b_value: 0.66 }
+      ],
+      llm_model: 'Demo predictive model'
+    };
+
+    const compatibilityPercentEl = document.getElementById('compatibilityPercent');
+    const compatibilityDescriptionEl = document.getElementById('compatibilityDescription');
+    const quantDeviationEl = document.getElementById('quantDeviation');
+    const qualMisalignmentEl = document.getElementById('qualMisalignment');
+    const mutationRateEl = document.getElementById('mutationRate');
+    const corePercentEl = document.getElementById('corePercent');
+    const coreCopyEl = document.getElementById('coreCopy');
+    const chartLegendEl = document.getElementById('chartLegend');
+    const personaALabelEl = document.getElementById('personaALabel');
+    const personaBLabelEl = document.getElementById('personaBLabel');
+    const badgeAEl = document.getElementById('badgeA');
+    const badgeBEl = document.getElementById('badgeB');
+    const orbitAEl = document.getElementById('orbitA');
+    const orbitBEl = document.getElementById('orbitB');
+    const matchListEl = document.getElementById('matchList');
+    const mismatchListEl = document.getElementById('mismatchList');
+    const axisGridEl = document.getElementById('axisGrid');
+
+    function clamp01(value, fallback = 0) {
+      const numeric = Number(value);
+      if (!Number.isFinite(numeric)) return fallback;
+      return Math.max(0, Math.min(1, numeric));
+    }
+
+    function clampPercent(value) {
+      const numeric = Number(value);
+      if (!Number.isFinite(numeric)) return 0;
+      return Math.max(0, Math.min(100, Math.round(numeric)));
+    }
+
+    function escapeHtml(value) {
+      return String(value ?? '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
+
+    function loadReport() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) return fallbackReport;
+        const parsed = JSON.parse(raw);
+        return parsed && typeof parsed === 'object' ? parsed : fallbackReport;
+      } catch (_) {
+        return fallbackReport;
+      }
+    }
+
+    function getDescription(percent) {
+      if (percent <= 30) {
+        return 'Low compatibility. Major differences are likely to create friction without deliberate strategy and pacing.';
+      }
+      if (percent <= 49) {
+        return 'Moderate compatibility. There are workable common points, but mismatch areas need careful framing.';
+      }
+      return 'High compatibility. Core traits are aligned enough to support smoother communication and coordination.';
+    }
+
+    function renderList(container, items, emptyText) {
+      container.innerHTML = '';
+      const list = Array.isArray(items) ? items.map((item) => String(item || '').trim()).filter(Boolean) : [];
+      if (!list.length) {
+        const li = document.createElement('li');
+        li.textContent = emptyText;
+        container.appendChild(li);
+        return;
+      }
+      list.forEach((item) => {
+        const li = document.createElement('li');
+        li.textContent = item;
+        container.appendChild(li);
+      });
+    }
+
+    function normalizeSeries(values) {
+      const safe = Array.isArray(values) ? values.map((value) => Math.max(0, Number(value) || 0)) : [];
+      const total = safe.reduce((sum, value) => sum + value, 0) || 1;
+      return safe.map((value) => value / total);
+    }
+
+    function buildConicGradient(values, colors) {
+      const normalized = normalizeSeries(values);
+      let cursor = 0;
+      const stops = normalized.map((share, index) => {
+        const start = cursor * 100;
+        cursor += share;
+        const end = cursor * 100;
+        return `${colors[index % colors.length]} ${start.toFixed(2)}% ${end.toFixed(2)}%`;
+      });
+      return `conic-gradient(from -90deg, ${stops.join(', ')})`;
+    }
+
+    function buildAxisCards(report) {
+      const matches = Array.isArray(report.top_matches_axes) ? report.top_matches_axes.slice(0, 3) : [];
+      const mismatches = Array.isArray(report.top_mismatches_axes) ? report.top_mismatches_axes.slice(0, 2) : [];
+      const rows = [...matches.map((axis) => ({ axis, mode: 'match' })), ...mismatches.map((axis) => ({ axis, mode: 'mismatch' }))];
+      axisGridEl.innerHTML = '';
+      if (!rows.length) {
+        const empty = document.createElement('div');
+        empty.className = 'axis-card';
+        empty.textContent = 'No axis data available.';
+        axisGridEl.appendChild(empty);
+        return;
+      }
+
+      rows.forEach(({ axis, mode }) => {
+        const aValue = clamp01(axis?.persona_a_value ?? 0.5);
+        const bValue = clamp01(axis?.persona_b_value ?? 0.5);
+        const metric = mode === 'match'
+          ? `Shared fit ${Math.round(Math.min(aValue, bValue) * 100)}%`
+          : `Mismatch ${Math.round(Math.abs(aValue - bValue) * 100)}%`;
+        const card = document.createElement('article');
+        card.className = 'axis-card';
+        card.innerHTML = `
+          <div class="axis-top">
+            <div class="axis-name">${escapeHtml(axis?.axis_name || 'Axis')}</div>
+            <div class="axis-score">${metric}</div>
+          </div>
+          <div class="axis-track" aria-hidden="true">
+            <span class="axis-fill a" style="width:${Math.round(aValue * 100)}%"></span>
+            <span class="axis-fill b" style="width:${Math.round(bValue * 100)}%"></span>
+          </div>
+          <div class="axis-values">
+            <span class="tag a">A ${Math.round(aValue * 100)}%</span>
+            <span class="tag b">B ${Math.round(bValue * 100)}%</span>
+          </div>
+        `;
+        axisGridEl.appendChild(card);
+      });
+    }
+
+    function renderChart(report) {
+      const compatibility = clampPercent(report.compatibilityPercent);
+      const quantitative = clampPercent(report.quantitativeDeviationPercent);
+      const qualitative = clampPercent(report.qualitativeMisalignmentPercent);
+      const mutation = clampPercent(report.mutationRatePercent);
+      const matchAxes = Array.isArray(report.top_matches_axes) ? report.top_matches_axes.slice(0, 3) : [];
+      const aSeries = matchAxes.length ? matchAxes.map((axis) => clamp01(axis?.persona_a_value ?? 0.5)) : [0.82, 0.76, 0.62];
+      const bSeries = matchAxes.length ? matchAxes.map((axis) => clamp01(axis?.persona_b_value ?? 0.5)) : [0.76, 0.72, 0.63];
+
+      compatibilityPercentEl.textContent = `${compatibility}%`;
+      corePercentEl.textContent = `${compatibility}%`;
+      compatibilityDescriptionEl.textContent = getDescription(compatibility);
+      coreCopyEl.textContent = getDescription(compatibility);
+      quantDeviationEl.textContent = `${quantitative}%`;
+      qualMisalignmentEl.textContent = `${qualitative}%`;
+      mutationRateEl.textContent = `${mutation}%`;
+
+      const labelA = String(report?.personaA?.label || 'Persona A').trim() || 'Persona A';
+      const labelB = String(report?.personaB?.label || 'Persona B').trim() || 'Persona B';
+      personaALabelEl.textContent = labelA;
+      personaBLabelEl.textContent = labelB;
+      badgeAEl.innerHTML = `<i class="fas fa-circle"></i> ${escapeHtml(labelA)}`;
+      badgeBEl.innerHTML = `<i class="fas fa-circle"></i> ${escapeHtml(labelB)}`;
+
+      const paletteA = ['rgba(17, 149, 143, 0.96)', 'rgba(44, 125, 104, 0.9)', 'rgba(59, 130, 246, 0.82)'];
+      const paletteB = ['rgba(239, 118, 92, 0.96)', 'rgba(241, 191, 83, 0.9)', 'rgba(244, 114, 182, 0.78)'];
+
+      orbitAEl.style.background = buildConicGradient(aSeries, paletteA);
+      orbitBEl.style.background = buildConicGradient(bSeries, paletteB);
+
+      const legend = matchAxes.slice(0, 3).map((axis) => {
+        const aValue = Math.round(clamp01(axis?.persona_a_value ?? 0.5) * 100);
+        const bValue = Math.round(clamp01(axis?.persona_b_value ?? 0.5) * 100);
+        return `<span class="legend-item"><span class="dot a"></span>${escapeHtml(axis?.axis_name || 'Axis')} · A ${aValue}% / B ${bValue}%</span>`;
+      }).join('');
+      chartLegendEl.textContent = `A = ${labelA}, B = ${labelB}.`;
+      document.getElementById('axisLegend').innerHTML = legend || '';
+    }
+
+    function initialize() {
+      const report = loadReport();
+      renderChart(report);
+      renderList(matchListEl, report.areas_match, 'No match signals available yet.');
+      renderList(mismatchListEl, report.areas_mismatch, 'No mismatch signals available yet.');
+      document.title = `Demo Fitness Test Results - ${String(report?.personaA?.label || 'Syntrae').replace(/\s+\(You\)$/, '')}`;
+    }
+
+    initialize();
+  </script>
+</body>
+</html>
