@@ -267,9 +267,33 @@
 
     .metric-grid {
       display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
+      grid-template-columns: repeat(2, minmax(0, 1fr));
       gap: 12px;
       margin-top: 26px;
+    }
+
+    .conclusion-box {
+      margin-top: 20px;
+      padding: 18px 18px 16px;
+      border-radius: 22px;
+      border: 1px solid rgba(31, 50, 54, 0.08);
+      background: linear-gradient(180deg, rgba(248, 252, 249, 0.96), rgba(237, 248, 242, 0.96));
+      display: grid;
+      gap: 10px;
+    }
+
+    .conclusion-box h3 {
+      font-family: "Fraunces", Georgia, serif;
+      font-size: 26px;
+      letter-spacing: -0.02em;
+    }
+
+    .conclusion-box p {
+      margin: 0;
+      color: var(--quiet);
+      font-size: 15px;
+      line-height: 1.75;
+      font-weight: 600;
     }
 
     .metric {
@@ -463,15 +487,6 @@
       font-size: 11px;
     }
 
-    .chart-foot {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 12px;
-      flex-wrap: wrap;
-      margin-top: 8px;
-    }
-
     .legend {
       display: flex;
       flex-wrap: wrap;
@@ -621,36 +636,6 @@
       background: linear-gradient(270deg, rgba(239, 118, 92, 0.9), rgba(241, 191, 83, 0.86));
     }
 
-    .axis-values {
-      display: flex;
-      gap: 8px;
-      flex-wrap: wrap;
-    }
-
-    .tag {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      min-height: 30px;
-      padding: 6px 10px;
-      border-radius: 999px;
-      font-size: 12px;
-      font-weight: 800;
-      border: 1px solid transparent;
-    }
-
-    .tag.a {
-      background: rgba(17, 149, 143, 0.12);
-      border-color: rgba(17, 149, 143, 0.28);
-      color: var(--teal);
-    }
-
-    .tag.b {
-      background: rgba(239, 118, 92, 0.12);
-      border-color: rgba(239, 118, 92, 0.28);
-      color: var(--coral);
-    }
-
     .footer {
       padding: 8px 24px 24px;
       color: var(--quiet);
@@ -760,7 +745,7 @@
       <article class="panel summary-panel">
         <span class="kicker"><i class="fas fa-chart-pie"></i> Fitness Test Results</span>
         <h1>Compatibility review, reworked for demo aesthetics.</h1>
-        <p class="lede">This demo result overlays two persona shapes so the comparison feels presentable on camera. The report still carries compatibility, deviation, and misalignment data, but the visual language is more cinematic and less clinical.</p>
+        <p class="lede" id="analyticSummary">This analysis suggests a positive compatibility pattern, with strong alignment in care, communication tone, and willingness to meet each other thoughtfully.</p>
 
         <div class="score-grid">
           <div class="score" id="compatibilityPercent">78%</div>
@@ -779,17 +764,18 @@
             <span>Qualitative misalignment</span>
             <strong id="qualMisalignment">18%</strong>
           </div>
-          <div class="metric">
-            <span>Mutation rate</span>
-            <strong id="mutationRate">14%</strong>
-          </div>
+        </div>
+
+        <div class="conclusion-box">
+          <h3>Conclusion</h3>
+          <p id="conclusionSummary">This comparison suggests a positive overall fit, with clear alignment in tone, care, and long-term communication style.</p>
         </div>
       </article>
 
       <article class="panel chart-panel">
         <div class="chart-head">
           <div>
-            <h2>Overlay circle chart</h2>
+            <h2>Visualized Compatibility.</h2>
             <p>Two translucent persona circles are layered over the same center so their trait makeup can be read at a glance.</p>
           </div>
           <div class="legend">
@@ -813,10 +799,6 @@
             </div>
           </div>
         </div>
-
-        <div class="chart-foot">
-          <div class="legend" id="axisLegend"></div>
-        </div>
       </article>
     </section>
 
@@ -834,11 +816,6 @@
       </article>
     </section>
 
-    <section class="panel list-panel">
-      <h2>Axis overlay</h2>
-      <p class="lead">The circle chart is backed by the same report axes shown here as compact A/B bars.</p>
-      <div class="axis-grid" id="axisGrid"></div>
-    </section>
   </main>
 
   <footer class="footer">
@@ -880,12 +857,13 @@
 
     const compatibilityPercentEl = document.getElementById('compatibilityPercent');
     const compatibilityDescriptionEl = document.getElementById('compatibilityDescription');
+    const analyticSummaryEl = document.getElementById('analyticSummary');
     const quantDeviationEl = document.getElementById('quantDeviation');
     const qualMisalignmentEl = document.getElementById('qualMisalignment');
-    const mutationRateEl = document.getElementById('mutationRate');
     const corePercentEl = document.getElementById('corePercent');
     const coreCopyEl = document.getElementById('coreCopy');
     const chartLegendEl = document.getElementById('chartLegend');
+    const conclusionSummaryEl = document.getElementById('conclusionSummary');
     const personaALabelEl = document.getElementById('personaALabel');
     const personaBLabelEl = document.getElementById('personaBLabel');
     const badgeAEl = document.getElementById('badgeA');
@@ -894,7 +872,6 @@
     const orbitBEl = document.getElementById('orbitB');
     const matchListEl = document.getElementById('matchList');
     const mismatchListEl = document.getElementById('mismatchList');
-    const axisGridEl = document.getElementById('axisGrid');
 
     function clamp01(value, fallback = 0) {
       const numeric = Number(value);
@@ -972,50 +949,38 @@
       return `conic-gradient(from -90deg, ${stops.join(', ')})`;
     }
 
-    function buildAxisCards(report) {
-      const matches = Array.isArray(report.top_matches_axes) ? report.top_matches_axes.slice(0, 3) : [];
-      const mismatches = Array.isArray(report.top_mismatches_axes) ? report.top_mismatches_axes.slice(0, 2) : [];
-      const rows = [...matches.map((axis) => ({ axis, mode: 'match' })), ...mismatches.map((axis) => ({ axis, mode: 'mismatch' }))];
-      axisGridEl.innerHTML = '';
-      if (!rows.length) {
-        const empty = document.createElement('div');
-        empty.className = 'axis-card';
-        empty.textContent = 'No axis data available.';
-        axisGridEl.appendChild(empty);
-        return;
-      }
+    function stripYouLabel(value) {
+      return String(value || '').replace(/\s+\(You\)$/i, '').trim();
+    }
 
-      rows.forEach(({ axis, mode }) => {
-        const aValue = clamp01(axis?.persona_a_value ?? 0.5);
-        const bValue = clamp01(axis?.persona_b_value ?? 0.5);
-        const metric = mode === 'match'
-          ? `Shared fit ${Math.round(Math.min(aValue, bValue) * 100)}%`
-          : `Mismatch ${Math.round(Math.abs(aValue - bValue) * 100)}%`;
-        const card = document.createElement('article');
-        card.className = 'axis-card';
-        card.innerHTML = `
-          <div class="axis-top">
-            <div class="axis-name">${escapeHtml(axis?.axis_name || 'Axis')}</div>
-            <div class="axis-score">${metric}</div>
-          </div>
-          <div class="axis-track" aria-hidden="true">
-            <span class="axis-fill a" style="width:${Math.round(aValue * 100)}%"></span>
-            <span class="axis-fill b" style="width:${Math.round(bValue * 100)}%"></span>
-          </div>
-          <div class="axis-values">
-            <span class="tag a">A ${Math.round(aValue * 100)}%</span>
-            <span class="tag b">B ${Math.round(bValue * 100)}%</span>
-          </div>
-        `;
-        axisGridEl.appendChild(card);
-      });
+    function buildConclusionSummary(labelA, labelB, compatibility) {
+      const safeA = stripYouLabel(labelA) || 'Persona A';
+      const safeB = stripYouLabel(labelB) || 'Persona B';
+      if (compatibility >= 75) {
+        return `${safeA} and ${safeB} show a notably positive compatibility pattern overall. Their strongest overlap appears in respectful communication, emotional steadiness, and willingness to meet each other with care, which suggests a strong foundation for thoughtful relationship decisions.`;
+      }
+      if (compatibility >= 60) {
+        return `${safeA} and ${safeB} show a healthy compatibility trend with more strengths than friction points. Their differences appear manageable and seem more related to pacing than core values, which supports a constructive next step together.`;
+      }
+      return `${safeA} and ${safeB} still show a workable degree of compatibility. While they may need more deliberate communication, there is enough shared intent here to build a considerate next move.`;
+    }
+
+    function buildAnalyticSummary(labelA, labelB, compatibility) {
+      const safeA = stripYouLabel(labelA) || 'Persona A';
+      const safeB = stripYouLabel(labelB) || 'Persona B';
+      if (compatibility >= 75) {
+        return `${safeA} and ${safeB} appear strongly compatible overall, with especially positive alignment in respect, emotional steadiness, and considerate communication.`;
+      }
+      if (compatibility >= 60) {
+        return `${safeA} and ${safeB} show encouraging compatibility, with enough shared tone and intent to support a thoughtful next step together.`;
+      }
+      return `${safeA} and ${safeB} still show a meaningful base of compatibility, especially where patience and clear communication are concerned.`;
     }
 
     function renderChart(report) {
       const compatibility = clampPercent(report.compatibilityPercent);
       const quantitative = clampPercent(report.quantitativeDeviationPercent);
       const qualitative = clampPercent(report.qualitativeMisalignmentPercent);
-      const mutation = clampPercent(report.mutationRatePercent);
       const matchAxes = Array.isArray(report.top_matches_axes) ? report.top_matches_axes.slice(0, 3) : [];
       const aSeries = matchAxes.length ? matchAxes.map((axis) => clamp01(axis?.persona_a_value ?? 0.5)) : [0.82, 0.76, 0.62];
       const bSeries = matchAxes.length ? matchAxes.map((axis) => clamp01(axis?.persona_b_value ?? 0.5)) : [0.76, 0.72, 0.63];
@@ -1026,7 +991,6 @@
       coreCopyEl.textContent = getDescription(compatibility);
       quantDeviationEl.textContent = `${quantitative}%`;
       qualMisalignmentEl.textContent = `${qualitative}%`;
-      mutationRateEl.textContent = `${mutation}%`;
 
       const labelA = String(report?.personaA?.label || 'Persona A').trim() || 'Persona A';
       const labelB = String(report?.personaB?.label || 'Persona B').trim() || 'Persona B';
@@ -1034,6 +998,8 @@
       personaBLabelEl.textContent = labelB;
       badgeAEl.innerHTML = `<i class="fas fa-circle"></i> ${escapeHtml(labelA)}`;
       badgeBEl.innerHTML = `<i class="fas fa-circle"></i> ${escapeHtml(labelB)}`;
+      analyticSummaryEl.textContent = buildAnalyticSummary(labelA, labelB, compatibility);
+      conclusionSummaryEl.textContent = buildConclusionSummary(labelA, labelB, compatibility);
 
       const paletteA = ['rgba(17, 149, 143, 0.96)', 'rgba(44, 125, 104, 0.9)', 'rgba(59, 130, 246, 0.82)'];
       const paletteB = ['rgba(239, 118, 92, 0.96)', 'rgba(241, 191, 83, 0.9)', 'rgba(244, 114, 182, 0.78)'];
@@ -1041,13 +1007,7 @@
       orbitAEl.style.background = buildConicGradient(aSeries, paletteA);
       orbitBEl.style.background = buildConicGradient(bSeries, paletteB);
 
-      const legend = matchAxes.slice(0, 3).map((axis) => {
-        const aValue = Math.round(clamp01(axis?.persona_a_value ?? 0.5) * 100);
-        const bValue = Math.round(clamp01(axis?.persona_b_value ?? 0.5) * 100);
-        return `<span class="legend-item"><span class="dot a"></span>${escapeHtml(axis?.axis_name || 'Axis')} · A ${aValue}% / B ${bValue}%</span>`;
-      }).join('');
-      chartLegendEl.textContent = `A = ${labelA}, B = ${labelB}.`;
-      document.getElementById('axisLegend').innerHTML = legend || '';
+      chartLegendEl.textContent = `Compared personas: ${stripYouLabel(labelA)} and ${stripYouLabel(labelB)}.`;
     }
 
     function initialize() {

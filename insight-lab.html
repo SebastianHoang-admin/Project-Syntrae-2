@@ -103,6 +103,13 @@
             background:rgba(34,211,238,0.12);
             transform:translateY(-1px);
         }
+        .inline-icon {
+            width:14px;
+            height:14px;
+            flex:0 0 auto;
+            display:inline-block;
+            vertical-align:middle;
+        }
         .container {
             width:min(1180px,100%);
             margin:0 auto;
@@ -126,6 +133,11 @@
             color:var(--muted);
             max-width:880px;
             line-height:1.5;
+        }
+        .state-x {
+            font-style:normal;
+            font-weight:900;
+            line-height:1;
         }
         .grid {
             display:grid;
@@ -331,6 +343,10 @@
             width:max-content;
             transition:all .2s ease;
             box-shadow:0 12px 24px rgba(34,211,238,0.28);
+        }
+        .run-btn .inline-icon {
+            width:15px;
+            height:15px;
         }
         .run-btn:disabled {
             opacity:.52;
@@ -652,16 +668,34 @@
             <span class="brand-page-label">Insight Lab</span>
         </a>
         <div class="top-actions">
-            <a class="link-btn" href="Chat.html"><i class="fas fa-comments"></i>Chat</a>
-            <a class="link-btn" href="analyze.html"><i class="fas fa-user-pen"></i>Edit Persona</a>
-            <a class="link-btn" href="profile.html"><i class="fas fa-id-card"></i>Your Persona</a>
+            <a class="link-btn" href="Chat.html">
+                <svg class="inline-icon" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M3 4.25h10a1 1 0 0 1 1 1v5.25a1 1 0 0 1-1 1H7l-3.5 2v-2H3a1 1 0 0 1-1-1V5.25a1 1 0 0 1 1-1Z"></path>
+                </svg>
+                Chat
+            </a>
+            <a class="link-btn" href="analyze.html">
+                <svg class="inline-icon" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M3 11.75 11.9 2.85a1.2 1.2 0 0 1 1.7 0l.55.55a1.2 1.2 0 0 1 0 1.7L5.25 14H3v-2.25Z"></path>
+                    <path d="m10.9 3.85 1.25 1.25"></path>
+                </svg>
+                Edit Persona
+            </a>
+            <a class="link-btn" href="profile.html">
+                <svg class="inline-icon" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="2.25" y="2.25" width="11.5" height="11.5" rx="2"></rect>
+                    <circle cx="8" cy="6.1" r="1.8"></circle>
+                    <path d="M4.75 11.1c.8-1.5 2-2.2 3.25-2.2s2.45.7 3.25 2.2"></path>
+                </svg>
+                Your Persona
+            </a>
         </div>
     </header>
 
     <main class="container">
         <section class="hero">
             <h1>Insight Lab</h1>
-            <p>Use private decision context to compare compatibility, timing, and possible next steps before real-world communication.</p>
+            <p>Insight Lab is a virtual experimental space to analyze and compare personas before real-world decisions are made.</p>
         </section>
 
         <div class="grid">
@@ -670,7 +704,7 @@
                     <h2>I. Compatibility Review</h2>
                     <span class="badge not-ready" id="fitnessReadyBadge">
                         <span class="state-dot" aria-hidden="true"></span>
-                        <i class="fas fa-xmark state-x" aria-hidden="true"></i>
+                        <span class="state-x" aria-hidden="true">×</span>
                         <span id="fitnessReadyLabel">Not ready</span>
                     </span>
                 </div>
@@ -693,7 +727,12 @@
                 </div>
 
                 <div id="fitnessStatus" class="status" data-type="info" hidden></div>
-                <button type="button" id="runFitnessBtn" class="run-btn"><i class="fas fa-play"></i>Run Compatibility Review</button>
+                <button type="button" id="runFitnessBtn" class="run-btn">
+                    <svg class="inline-icon" viewBox="0 0 16 16" aria-hidden="true" fill="currentColor">
+                        <path d="M4.25 3.35c0-.48.52-.78.94-.53l7.03 4.15c.41.24.41.83 0 1.07L5.19 12.18a.62.62 0 0 1-.94-.54V3.35Z"></path>
+                    </svg>
+                    Run Compatibility Review
+                </button>
             </section>
         </div>
     </main>
