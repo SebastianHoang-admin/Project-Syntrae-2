@@ -1361,6 +1361,7 @@
     </footer>
 
     <script src="js/supabase-config.js"></script>
+    <script src="js/page-tour.js"></script>
     <script type="module">
         import { supabase } from './js/supabase-client.js';
 
@@ -1403,6 +1404,11 @@
         function demoUrl(path, params = {}) {
             const url = new URL(path, window.location.href);
             url.searchParams.set('demo', DECISION_TREE_DEMO);
+            const currentParams = new URLSearchParams(window.location.search);
+            const guided = currentParams.get('tour');
+            if (guided) {
+                url.searchParams.set('tour', guided);
+            }
             Object.entries(params).forEach(([key, value]) => {
                 if (value !== undefined && value !== null && value !== '') {
                     url.searchParams.set(key, String(value));
@@ -2179,19 +2185,28 @@
             renderChatSessionList();
         }
 
+        function formatProbability(probability) {
+            const value = Number(probability || 0);
+            return Number.isFinite(value) ? value.toFixed(2) : '0.00';
+        }
+
         function buildOutcomeItems(items) {
-            return items.map((item) => `
+            return items.map((item) => {
+                const probability = Number(item.probability || 0);
+                const fillWidth = Math.max(0, Math.min(100, probability * 100));
+                return `
                 <li>
                     <div class="outcome-head">
-                        <span>${item.label}</span>
-                        <span class="probability">${item.range}</span>
+                        <span>${escapeHtml(item.label)}</span>
+                        <span class="probability">${formatProbability(probability)}</span>
                     </div>
                     <div class="probability-track" aria-hidden="true">
-                        <div class="probability-fill" style="width:${item.width}%;"></div>
+                        <div class="probability-fill" style="width:${fillWidth}%;"></div>
                     </div>
-                    <span>${item.note}</span>
+                    <span>${escapeHtml(item.note)}</span>
                 </li>
-            `).join('');
+            `;
+            }).join('');
         }
 
         function escapeHtml(value) {
@@ -2222,7 +2237,7 @@
         function setupDecisionTreeDemo() {
             document.body.classList.add('demo-mode');
             document.title = 'Syntrae - Best Way Demo';
-            accountIndicator.textContent = 'Maya Chen';
+            accountIndicator.textContent = 'Daniel Smith';
             accountIndicator.dataset.state = 'signed-in';
             document.querySelector('[data-destination="analyze"]').setAttribute('href', demoUrl('analyze.html', { persona: 'daniel-smith-demo' }));
             document.querySelector('[data-destination="profile"]').setAttribute('href', demoUrl('profile.html'));
@@ -2234,20 +2249,10 @@
                     initial: 'D',
                     role: 'Relationship persona',
                     avatar: 'assets/daniel-smith-avatar.png',
-                    facts: ['Graduate student', 'Male', '23 yrs old', 'Linked to Maya Chen'],
+                    facts: ['Graduate student', 'Male', '23 yrs old', 'Private context'],
                     headline: 'Warm, thoughtful, and responsive when serious topics are introduced with room to think.',
-                    summary: 'Daniel cares about sincerity and steady pacing. He tends to respond well when Maya names what matters without making the conversation feel like a demand.',
+                    summary: 'Daniel responds best when the topic is named clearly without making the conversation feel like a demand.',
                     logic: 'Best Way should favor messages that are clear enough to be understood, but gentle enough to preserve Daniel\'s sense of choice.'
-                },
-                maya: {
-                    name: 'Maya Chen',
-                    initial: 'M',
-                    role: 'User persona',
-                    avatar: 'assets/maya-chen-avatar.png',
-                    facts: ['Student', 'Female', '22 yrs old', 'Private context'],
-                    headline: 'Considerate, emotionally observant, and careful with words when a relationship moment matters.',
-                    summary: 'Maya wants honest direction with Daniel while staying kind and low pressure. She values clarity, but does not want the message to feel heavy.',
-                    logic: 'Best Way should help Maya choose a message that protects warmth, keeps responsibility with her, and reduces unnecessary ambiguity.'
                 }
             };
             const demoChats = {
@@ -2256,51 +2261,54 @@
                     meta: 'Current decision',
                     prompt: "I want to invite Daniel to talk about where we're going, but I don't want the message to feel heavy. What are the possible consequences of different ways to ask?",
                     introTitle: 'Best Way',
-                    introCopy: 'Compare message styles before Maya chooses the one action she will take in real life.',
+                    introCopy: 'Compare message styles before choosing the one action that goes out in real life.',
                     candidates: [
-                        { title: 'Warm and direct', detail: 'Clear, respectful, low pressure.' },
-                        { title: 'Light and open-ended', detail: 'Gentle invitation with room to respond.' },
-                        { title: 'Reflective and intentional', detail: 'More sincere and emotionally direct.' }
+                        { title: 'Warm and direct', detail: 'Clear, respectful, and honest without sounding forceful.' },
+                        { title: 'Light and open-ended', detail: 'Gentle invitation that gives him room to choose the pace.' },
+                        { title: 'Reflective and intentional', detail: 'Emotionally sincere, but heavier from the first line.' }
                     ],
                     outcomes: [
                         {
                             title: 'Option A',
                             action: 'Warm and direct',
-                            description: 'A clear invitation that signals the conversation matters.',
+                            probability: 0.37,
+                            description: 'A plainspoken invitation that fits his respect for honesty while still keeping the tone considerate.',
                             items: [
-                                { label: 'Daniel appreciates clarity', range: '46-54%', width: 54, note: 'The directness makes the purpose easy to understand.' },
-                                { label: 'Daniel feels pressure', range: '18-26%', width: 26, note: 'The topic may feel serious if timing is rushed.' },
-                                { label: 'Conversation happens but feels serious', range: '22-30%', width: 30, note: 'Useful when clarity matters more than lightness.' }
+                                { label: 'Daniel respects the honesty', probability: 0.17, note: 'He tends to respond well when the purpose is named clearly and calmly.' },
+                                { label: 'Daniel asks for a little time to think', probability: 0.12, note: 'If the topic feels important, he may pause before answering so he can respond carefully.' },
+                                { label: 'The conversation happens with a more serious tone', probability: 0.08, note: 'Clarity helps, but it can raise the emotional weight of the moment.' }
                             ]
                         },
                         {
                             title: 'Option B',
                             action: 'Light and open-ended',
-                            description: 'A softer opening that makes it easier for Daniel to say yes.',
+                            probability: 0.41,
+                            description: 'A low-pressure invitation that matches his preference for warmth, mutuality, and room to choose.',
                             items: [
-                                { label: 'Daniel feels invited, not cornered', range: '52-60%', width: 60, note: 'The tone keeps the moment approachable.' },
-                                { label: 'Topic stays too vague', range: '20-28%', width: 28, note: 'You may need a follow-up sentence for clarity.' },
-                                { label: 'Conversation opens naturally', range: '18-26%', width: 26, note: 'Works well if the relationship already feels warm.' }
+                                { label: 'Daniel feels comfortable saying yes', probability: 0.18, note: 'This fits his calm style and lowers the odds that he feels cornered.' },
+                                { label: 'He responds warmly but sets a slower pace', probability: 0.14, note: 'He is likely to engage when the invitation feels chosen rather than urgent.' },
+                                { label: 'The opening lands well, but needs one clearer follow-up', probability: 0.09, note: 'A softer message may still need one explicit sentence once he is in the conversation.' }
                             ]
                         },
                         {
                             title: 'Option C',
                             action: 'Reflective and intentional',
-                            description: 'A sincere message that shows emotional honesty upfront.',
+                            probability: 0.22,
+                            description: 'A heartfelt message that shows care, but may feel more emotionally loaded than he prefers at the start.',
                             items: [
-                                { label: 'Daniel recognizes sincerity', range: '42-50%', width: 50, note: 'The message communicates care and intention.' },
-                                { label: 'Tone feels emotionally heavy', range: '24-32%', width: 32, note: 'Could feel intense if Daniel is not expecting it.' },
-                                { label: 'Deeper conversation starts quickly', range: '22-30%', width: 30, note: 'Best when both people already value direct reflection.' }
+                                { label: 'Daniel recognizes the sincerity', probability: 0.10, note: 'He does value emotional honesty when it feels grounded and real.' },
+                                { label: 'The tone feels heavier than he wants right away', probability: 0.08, note: 'Too much emotional weight too early can make him more quiet.' },
+                                { label: 'He replies later after processing the stakes', probability: 0.04, note: 'A more layered message gives him more to sort through before answering.' }
                             ]
                         }
                     ],
                     recommendation: {
                         title: 'Suggested first move: Option B.',
-                        text: 'It preserves warmth while reducing pressure. Choose Option A if clarity matters more than lightness.'
+                        text: 'It best fits Daniel’s mix of sincerity and caution: warm enough to feel safe, clear enough to feel real, and open enough to preserve his sense of choice. Choose Option A if you want slightly more clarity up front.'
                     },
                     messages: [
                         { role: 'user', text: "I want to invite Daniel to talk about where we're going, but I don't want the message to feel heavy. What are the possible consequences of different ways to ask?" },
-                        { role: 'agent', text: 'I can compare warm, light, and reflective openings, then map likely consequence ranges before Maya chooses what to send.' }
+                        { role: 'agent', text: 'I can compare warm, light, and reflective openings, then map the most likely outcomes and exact probability totals before the message is sent.' }
                     ]
                 },
                 timing: {
@@ -2308,103 +2316,109 @@
                     meta: 'Relationship moment',
                     prompt: 'Would Saturday afternoon be a better time than a weeknight to ask Daniel for a deeper conversation?',
                     introTitle: 'Timing Pathways',
-                    introCopy: 'Compare timing options before Maya chooses when to bring up the conversation.',
+                    introCopy: 'Compare timing options before choosing when to bring up the conversation.',
                     candidates: [
-                        { title: 'Saturday afternoon', detail: 'More spacious and less compressed.' },
-                        { title: 'Weeknight text', detail: 'Convenient, but may feel rushed.' },
-                        { title: 'After a warm date', detail: 'Emotionally connected, but timing-sensitive.' }
+                        { title: 'Saturday afternoon', detail: 'Planned, low-pressure, and aligned with his steady pace.' },
+                        { title: 'Weeknight text', detail: 'Convenient, but more likely to compete with school stress.' },
+                        { title: 'After a warm date', detail: 'Naturally close, but easier to misread emotionally.' }
                     ],
                     outcomes: [
                         {
                             title: 'Path A',
                             action: 'Saturday afternoon',
-                            description: 'A calmer window with more room for an honest answer.',
+                            probability: 0.48,
+                            description: 'A planned window that fits his preference for calm pacing, one-on-one attention, and room to think.',
                             items: [
-                                { label: 'Daniel has room to respond', range: '58-66%', width: 66, note: 'Lower schedule pressure improves the odds of a thoughtful exchange.' },
-                                { label: 'Conversation becomes too formal', range: '14-20%', width: 20, note: 'A planned slot can feel bigger than intended if the wording is heavy.' },
-                                { label: 'Warm clarity increases', range: '20-28%', width: 28, note: 'Good fit when Maya keeps the opening simple.' }
+                                { label: 'Daniel has room to think and answer well', probability: 0.20, note: 'A lower-pressure time slot supports the thoughtful style he tends to prefer.' },
+                                { label: 'The tone feels mutual instead of urgent', probability: 0.16, note: 'Planned timing helps the conversation feel intentional without becoming a surprise test.' },
+                                { label: 'The moment still feels a little serious', probability: 0.12, note: 'Even good timing can carry weight when the topic is defining the relationship.' }
                             ]
                         },
                         {
                             title: 'Path B',
                             action: 'Weeknight text',
-                            description: 'An efficient option that risks competing with fatigue and schoolwork.',
+                            probability: 0.17,
+                            description: 'Efficient, but it competes directly with deadlines, part-time work, and the mental load he is already balancing.',
                             items: [
-                                { label: 'Daniel answers practically', range: '34-42%', width: 42, note: 'He may respond, but with less emotional bandwidth.' },
-                                { label: 'Message gets delayed', range: '28-36%', width: 36, note: 'Busy evenings raise the chance of a slower reply.' },
-                                { label: 'Topic feels compressed', range: '22-30%', width: 30, note: 'The conversation may feel squeezed into a narrow window.' }
+                                { label: 'Daniel gives a practical reply', probability: 0.07, note: 'He may respond, but from a more tired, task-focused headspace.' },
+                                { label: 'Response slows because of deadlines', probability: 0.06, note: 'Busy evenings increase the chance that he waits until he has more capacity.' },
+                                { label: 'The topic gets reduced to logistics', probability: 0.04, note: 'Convenient timing can flatten emotional nuance into scheduling.' }
                             ]
                         },
                         {
                             title: 'Path C',
                             action: 'After a warm date',
-                            description: 'Uses existing closeness, but depends heavily on the mood of the moment.',
+                            probability: 0.35,
+                            description: 'Builds on real closeness in a low-key setting, but only works if the warmth does not get mistaken for immediate readiness.',
                             items: [
-                                { label: 'Conversation opens naturally', range: '44-52%', width: 52, note: 'Works well if the date already feels connected.' },
-                                { label: 'Daniel feels surprised', range: '20-28%', width: 28, note: 'The shift may feel abrupt if the night was light.' },
-                                { label: 'Maya overreads the mood', range: '18-24%', width: 24, note: 'Emotional momentum can make the signal look stronger than it is.' }
+                                { label: 'Conversation opens naturally', probability: 0.15, note: 'This setting fits his preference for one-on-one warmth and easier emotional flow.' },
+                                { label: 'The timing feels emotionally sudden', probability: 0.11, note: 'Even a good date can make the transition feel abrupt if the mood was still playful.' },
+                                { label: 'Warmth helps, but clarity still needs a follow-up', probability: 0.09, note: 'A connected moment helps, but it still benefits from one grounded next step.' }
                             ]
                         }
                     ],
                     recommendation: {
                         title: 'Suggested first move: Saturday afternoon.',
-                        text: 'It gives Daniel more room to think and lowers the chance that the message feels urgent or compressed.'
+                        text: 'It best matches Daniel’s steady pacing and current workload. After a warm date is a strong second path, but only if the tone stays relaxed instead of feeling like a label decision on the spot.'
                     },
                     messages: [
                         { role: 'user', text: 'Would Saturday afternoon be a better time than a weeknight to ask Daniel for a deeper conversation?' },
-                        { role: 'agent', text: 'Saturday looks lower pressure because there is more room to respond. A weeknight may feel efficient, but it risks making the conversation feel compressed.' }
+                        { role: 'agent', text: 'Saturday looks strongest because it gives Daniel the calmest conditions to engage thoughtfully. After a warm date can also work, but only if the shift into the topic stays gentle.' }
                     ]
                 },
                 followup: {
                     title: 'Follow-up after a warm reply',
                     meta: 'Message draft',
-                    prompt: 'If Daniel says yes warmly, what should Maya say next without overexplaining?',
+                    prompt: 'If Daniel says yes warmly, what should the next reply say without overexplaining?',
                     introTitle: 'Follow-up Paths',
-                    introCopy: 'Compare follow-up responses after Daniel shows openness.',
+                    introCopy: 'Compare follow-up responses after openness is shown.',
                     candidates: [
-                        { title: 'Short and clear', detail: 'Name the topic once, then pause.' },
-                        { title: 'Affirming and soft', detail: 'Thank him and reduce pressure.' },
-                        { title: 'Detailed context', detail: 'Explain more, but risk overloading.' }
+                        { title: 'Short and clear', detail: 'Name the topic once, then leave space for his reply.' },
+                        { title: 'Affirming and grounded', detail: 'Thank him, lower pressure, and keep one clear thread.' },
+                        { title: 'Detailed context', detail: 'Show full care, but risk making the moment feel bigger.' }
                     ],
                     outcomes: [
                         {
                             title: 'Move A',
                             action: 'Short and clear',
-                            description: 'A concise follow-up that respects Daniel’s yes without flooding the moment.',
+                            probability: 0.28,
+                            description: 'A concise follow-up that keeps the tone stable and does not crowd his yes, but may lean a little cool.',
                             items: [
-                                { label: 'Daniel understands the topic', range: '55-63%', width: 63, note: 'Clear wording keeps the conversation grounded.' },
-                                { label: 'Maya avoids overexplaining', range: '22-30%', width: 30, note: 'A short message protects the tone.' },
-                                { label: 'Daniel asks for timing', range: '12-18%', width: 18, note: 'He may move to logistics before emotional detail.' }
+                                { label: 'Daniel understands the next step quickly', probability: 0.11, note: 'Concise wording helps the practical next step land fast.' },
+                                { label: 'The tone stays calm and contained', probability: 0.09, note: 'A short reply protects the emotional temperature of the exchange.' },
+                                { label: 'The reply shifts straight into logistics', probability: 0.08, note: 'He may move quickly into planning before warmth has been reinforced.' }
                             ]
                         },
                         {
                             title: 'Move B',
-                            action: 'Affirming and soft',
-                            description: 'A response that keeps warmth high and pressure low.',
+                            action: 'Affirming and grounded',
+                            probability: 0.49,
+                            description: 'A warm reply that reassures him, preserves choice, and still keeps the next step clear.',
                             items: [
-                                { label: 'Daniel feels appreciated', range: '48-56%', width: 56, note: 'Gratitude reinforces that his openness matters.' },
-                                { label: 'Topic remains slightly vague', range: '24-32%', width: 32, note: 'May need one clear sentence after the affirmation.' },
-                                { label: 'Conversation stays relaxed', range: '20-26%', width: 26, note: 'Good if warmth is the immediate priority.' }
+                                { label: 'Daniel feels respected and unpressured', probability: 0.20, note: 'This best matches his need for mutuality, sincerity, and emotional room.' },
+                                { label: 'Warmth stays high while the topic stays clear', probability: 0.17, note: 'A grounded tone helps honesty land without turning heavy.' },
+                                { label: 'One concrete follow-up question is still needed', probability: 0.12, note: 'You may still need one clean sentence about what you want to talk through.' }
                             ]
                         },
                         {
                             title: 'Move C',
                             action: 'Detailed context',
-                            description: 'A fuller explanation that can create clarity, but may add emotional weight.',
+                            probability: 0.23,
+                            description: 'A fuller explanation that shows care, but risks making the moment feel larger than necessary for his style.',
                             items: [
-                                { label: 'Daniel sees Maya’s intention', range: '36-44%', width: 44, note: 'Details can show care and seriousness.' },
-                                { label: 'Message feels too large', range: '30-38%', width: 38, note: 'Too much context may make the conversation feel heavier.' },
-                                { label: 'Daniel delays reply', range: '20-28%', width: 28, note: 'More to process can slow the response.' }
+                                { label: 'Daniel sees the care behind it', probability: 0.09, note: 'Extra context can communicate sincerity and thoughtful effort.' },
+                                { label: 'The message feels bigger than the moment', probability: 0.08, note: 'Too much explanation can make the exchange feel heavier than needed.' },
+                                { label: 'Daniel takes longer to reply thoughtfully', probability: 0.06, note: 'More emotional detail gives him more to process before answering.' }
                             ]
                         }
                     ],
                     recommendation: {
-                        title: 'Suggested first move: Short and clear.',
-                        text: 'Keep the follow-up simple: name the topic, preserve warmth, and let the conversation breathe.'
+                        title: 'Suggested first move: Move B.',
+                        text: 'It best matches Daniel’s calm, respectful style: appreciative, low-pressure, and clear enough to keep the conversation moving without making it feel like a test.'
                     },
                     messages: [
-                        { role: 'user', text: 'If Daniel says yes warmly, what should Maya say next without overexplaining?' },
-                        { role: 'agent', text: 'A short follow-up works best: name the topic once, keep the tone calm, and make it clear that his honest answer is welcome.' }
+                        { role: 'user', text: 'If Daniel says yes warmly, what should the next reply say without overexplaining?' },
+                        { role: 'agent', text: 'The best follow-up is warm and grounded: thank him, name the topic once, and keep enough space in the message for him to stay relaxed in the conversation.' }
                     ]
                 }
             };
@@ -2436,16 +2450,6 @@
                                 <button type="button" class="demo-mini-btn" data-demo-persona-delete="daniel" title="Delete persona">${demoIcon('trash')}</button>
                             </span>
                         </div>
-                        <div class="demo-persona-row" data-demo-persona-row="maya">
-                            <button type="button" class="demo-persona-select" data-demo-persona="maya">
-                                <strong data-demo-persona-name="maya">Maya Chen</strong>
-                                <span>Use Maya's private decision context</span>
-                            </button>
-                            <span class="demo-row-actions">
-                                <button type="button" class="demo-mini-btn" data-demo-persona-edit="maya" title="Edit persona name">${demoIcon('pen')}</button>
-                                <button type="button" class="demo-mini-btn" data-demo-persona-delete="maya" title="Delete persona">${demoIcon('trash')}</button>
-                            </span>
-                        </div>
                     </div>
                     <div class="demo-profile-detail">
                         <div class="demo-persona-facts" id="demoPersonaFacts">${personaFactChips(demoPersonas.daniel.facts)}</div>
@@ -2459,7 +2463,7 @@
                         <span class="demo-chip">Private context</span>
                     </div>
                     <div class="demo-side-note">
-                        Syntrae uses private context to map likely consequence paths before Maya chooses what to do in the real world.
+                        Syntrae uses private context to map likely consequence paths before a decision is made in the real world.
                     </div>
                 </div>
                 <div class="demo-persona-card">
@@ -2491,7 +2495,7 @@
                     </div>
                 </div>
 
-                <section class="demo-card demo-chat-shell" aria-label="Demo chat spaces">
+                <section class="demo-card demo-chat-shell" aria-label="Demo chat spaces" data-tour-step="chat-spaces">
                     <div>
                         <span class="demo-kicker">${demoIcon('comments')} Chat spaces</span>
                         <div class="demo-chat-list" id="demoChatList"></div>
@@ -2509,7 +2513,7 @@
                         <div class="demo-card" data-tour-step="best-way">
                             <span class="demo-kicker">${demoIcon('leaf')} One real choice, clearer paths</span>
                             <h3 id="demoSimulationTitle">Best Way</h3>
-                            <p id="demoSimulationCopy">Compare possible next moves before choosing the one action Maya will take in real life.</p>
+                            <p id="demoSimulationCopy">Compare possible next moves before choosing the one action that goes out in real life.</p>
                             <div class="demo-prompt-box" id="demoPromptBox"></div>
                             <div class="demo-candidate-grid" id="demoCandidateGrid" aria-label="Candidate actions"></div>
                         </div>
@@ -2538,7 +2542,7 @@
                                 <strong>Consequence Tree</strong>
                                 <div>Syntrae consequence map</div>
                             </div>
-                            <span>Probability ranges</span>
+                            <span>Probability totals</span>
                         </div>
                         <div class="tree-grid" id="demoTreeGrid"></div>
                         <div class="recommendation-card" id="demoRecommendationCard">
@@ -2549,7 +2553,7 @@
                             </div>
                         </div>
                         <div class="principle-strip">
-                            <span>Probability ranges are guidance.</span>
+                            <span>Probabilities sum to 1.</span>
                             <span>Your action determines the outcome.</span>
                         </div>
                     </section>
@@ -2771,6 +2775,63 @@
                 revealTree();
             }
 
+            window.SyntraePageTour?.init({
+                pageKey: 'chat-demo',
+                title: 'Decision Studio guide',
+                triggerText: 'Page guide',
+                autoStart: () => new URLSearchParams(window.location.search).get('tour') === '1',
+                onFinish: () => {
+                    dropdownMenu.classList.remove('active');
+                },
+                steps: [
+                    {
+                        selector: '.persona-column',
+                        title: 'Your Persona',
+                        description: 'This left column holds the persona you built about the other person. It keeps the relationship context, communication pattern, and decision logic visible while you work.',
+                        placement: 'right'
+                    },
+                    {
+                        selector: '[data-tour-step="chat-spaces"]',
+                        title: 'Chat Spaces',
+                        description: 'This top workspace contains the scenario tabs and transcript. Each chat space is a different relationship moment, so the user can compare several high-stakes situations without losing context.',
+                        placement: 'bottom'
+                    },
+                    {
+                        selector: '[data-tour-step="best-way"]',
+                        title: 'Best Way',
+                        description: 'This card compares three mutually exclusive ways to act. It frames the exact prompt, shows the option set side by side, and keeps the user focused on one real-world choice.',
+                        placement: 'right'
+                    },
+                    {
+                        selector: '[data-tour-step="settings"]',
+                        title: 'Syntrae Settings',
+                        description: 'This smaller column confirms which persona is active and runs the Syntrae consequence mapping flow for the current decision.',
+                        placement: 'left'
+                    },
+                    {
+                        selector: '[data-tour-step="tree"]',
+                        title: 'Consequence Tree',
+                        description: 'This section expands the chosen scenario into exact probability totals and three possible outcomes for each option, so the user can see what tradeoffs each path is buying.',
+                        placement: 'top',
+                        allowHidden: true,
+                        highlight: 'soft',
+                        beforeShow: () => {
+                            if (!treeEl.classList.contains('is-visible')) {
+                                revealTree();
+                            }
+                        }
+                    },
+                    {
+                        selector: '#moreBtn',
+                        title: 'More Pages',
+                        description: 'This menu is the jump point to the rest of the workflow: Analyze and Edit Your Persona, Your Persona, and Insight Lab.',
+                        placement: 'left',
+                        highlightSelector: 'header',
+                        highlight: 'soft'
+                    }
+                ]
+            });
+
         }
 
         async function loadSession() {
@@ -2955,6 +3016,34 @@
             });
 
             await loadSession();
+
+            window.SyntraePageTour?.init({
+                pageKey: 'chat',
+                title: 'Decision Studio guide',
+                triggerText: 'Page guide',
+                steps: [
+                    {
+                        selector: '.persona-column',
+                        title: 'Your Persona',
+                        description: 'This column stores the personas you build about other people. Select one here before starting any rehearsal or decision chat.',
+                        placement: 'right'
+                    },
+                    {
+                        selector: '.chat-column',
+                        title: 'Your Chat',
+                        description: 'This main column is the live Decision Studio. It holds chat sessions, message history, and the input box used to work through one situation at a time.',
+                        placement: 'left'
+                    },
+                    {
+                        selector: '#moreBtn',
+                        title: 'Navigation',
+                        description: 'Use this menu to move to the rest of Syntrae: persona analysis, the account-level persona page, and Insight Lab.',
+                        placement: 'left',
+                        highlightSelector: 'header',
+                        highlight: 'soft'
+                    }
+                ]
+            });
         }
     </script>
 </body>

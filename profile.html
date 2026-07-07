@@ -414,6 +414,48 @@
     </div>
 
     <script src="js/supabase-config.js"></script>
+    <script src="js/page-tour.js"></script>
     <script type="module" src="js/profile.js?v=20260701"></script>
+    <script>
+        window.SyntraePageTour?.init({
+            pageKey: 'profile',
+            title: 'Profile guide',
+            triggerText: 'Page guide',
+            autoStart: () => new URLSearchParams(window.location.search).get('tour') === '1',
+            steps: [
+                {
+                    selector: '.title-row',
+                    title: 'Your Persona',
+                    description: 'This page stores the account-level context about you. It is the base layer Syntrae can use when decision tools need your own goals, constraints, or communication style.',
+                    placement: 'bottom'
+                },
+                {
+                    selector: '#profile-form .section:nth-of-type(1)',
+                    title: 'Core Profile',
+                    description: 'This first section captures stable account information such as name, occupation, and location.',
+                    placement: 'top'
+                },
+                {
+                    selector: '#profile-form .section:nth-of-type(2)',
+                    title: 'User Persona Context',
+                    description: 'This is the richer self-context layer: your goals, strengths, constraints, and communication style. It helps Syntrae reason about what kind of decision support actually fits you.',
+                    placement: 'top'
+                },
+                {
+                    selector: '#profile-form .section:nth-of-type(3)',
+                    title: 'Persona Link',
+                    description: 'This section optionally links one stored persona to your account so comparison tools can include your own side of the relationship.',
+                    placement: 'top'
+                },
+                {
+                    selector: '.actions',
+                    title: 'Save actions',
+                    description: 'Use these actions to save the account-level profile or return to chat once the context is updated.',
+                    placement: 'top',
+                    highlight: 'soft'
+                }
+            ]
+        });
+    </script>
 </body>
 </html>

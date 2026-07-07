@@ -4,6 +4,33 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Compatibility Review Results - Syntrae</title>
+  <script>
+    (function redirectDemoFitnessResults() {
+      try {
+        const params = new URLSearchParams(window.location.search || '');
+        const raw = localStorage.getItem('insight-lab:last-fitness-test');
+        const report = raw ? JSON.parse(raw) : null;
+        const reportId = String(report?.report_id || '').trim().toLowerCase();
+        const llmModel = String(report?.llm_model || '').trim().toLowerCase();
+        const shouldUseDemoPage =
+          params.get('demo') === 'decision-tree' ||
+          reportId.startsWith('demo-') ||
+          llmModel.includes('demo predictive model');
+
+        if (!shouldUseDemoPage) return;
+
+        const target = new URL('demo-fitness-test-results.html', window.location.href);
+        target.searchParams.set('demo', 'decision-tree');
+        if (params.get('tour') === '1') {
+          target.searchParams.set('tour', '1');
+        }
+
+        window.location.replace(`${target.pathname.split('/').pop()}?${target.searchParams.toString()}`);
+      } catch (_) {
+        // Ignore redirect fallback errors and continue rendering the standard page.
+      }
+    })();
+  </script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700;800&display=swap" rel="stylesheet">

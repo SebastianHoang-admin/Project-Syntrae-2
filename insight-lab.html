@@ -715,6 +715,49 @@
     <footer class="footer">© 2026 Syntrae LLC. Predictive social science for considerate decisions.</footer>
 
     <script src="js/supabase-config.js"></script>
+    <script src="js/page-tour.js"></script>
     <script type="module" src="js/insight-lab.js?v=20260701"></script>
+    <script>
+        window.SyntraePageTour?.init({
+            pageKey: 'insight-lab',
+            title: 'Insight Lab guide',
+            triggerText: 'Page guide',
+            autoStart: () => new URLSearchParams(window.location.search).get('tour') === '1',
+            steps: [
+                {
+                    selector: '.hero',
+                    title: 'Insight Lab',
+                    description: 'This page is the structured tools layer of the product. It turns private persona context into side-by-side analysis before a real-world action happens.',
+                    placement: 'bottom'
+                },
+                {
+                    selector: '.row',
+                    title: 'Persona selectors',
+                    description: 'These selectors choose the two personas that will be compared inside the review workflow.',
+                    placement: 'bottom'
+                },
+                {
+                    selector: '.preview-row',
+                    title: 'Persona previews',
+                    description: 'These preview cards make the comparison concrete by showing the two selected personas before the analysis runs.',
+                    placement: 'top'
+                },
+                {
+                    selector: '.panel',
+                    title: 'Compatibility Review',
+                    description: 'This main panel defines the review tool itself. It combines the selected personas, the readiness state, and the result entry point in one compact workspace.',
+                    placement: 'top'
+                },
+                {
+                    selector: '#runFitnessBtn',
+                    title: 'Run review',
+                    description: 'This action starts the compatibility review and opens the results page once the comparison is complete.',
+                    placement: 'top',
+                    highlightSelector: '.panel',
+                    highlight: 'soft'
+                }
+            ]
+        });
+    </script>
 </body>
 </html>

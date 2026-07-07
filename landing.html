@@ -1082,7 +1082,7 @@
                     <p class="section-kicker">Demo access</p>
                     <h2>Open the demo.</h2>
                     <p>See how the vision is introduced and the demo decision flow comes alive.</p>
-                    <a class="button button-primary demo-launch-btn" href="Chat.html?demo=decision-tree&amp;state=start"><i class="fas fa-play"></i> Try it here</a>
+                    <a class="button button-primary demo-launch-btn" href="Chat.html?demo=decision-tree&amp;state=start&amp;tour=1"><i class="fas fa-play"></i> Try it here</a>
                     <span class="demo-launch-note">Opens the demo view without any extra steps.</span>
                 </div>
                 <div>
@@ -1250,6 +1250,7 @@
         </div>
     </footer>
 
+    <script src="js/page-tour.js"></script>
     <script>
         const paymentUrl = "";
         const foundingForm = document.getElementById("foundingForm");
@@ -1311,6 +1312,50 @@
                 formStatus.textContent = "Thanks. Your founding-member interest is recorded for this preview.";
             });
         }
+
+        window.SyntraePageTour?.init({
+            pageKey: "landing",
+            title: "Landing guide",
+            triggerText: "Page guide",
+            steps: [
+                {
+                    selector: ".hero-inner",
+                    title: "Hero",
+                    description: "This first panel sets the promise of Syntrae: clearer decisions for important relationship moments, with quick proof points under the main call to action.",
+                    placement: "right"
+                },
+                {
+                    selector: ".demo-launch-card",
+                    title: "Demo access",
+                    description: "This card launches the guided demo experience. The play button opens Decision Studio directly so people can feel the product instead of only reading about it.",
+                    placement: "right"
+                },
+                {
+                    selector: ".video-points",
+                    title: "Vision",
+                    description: "These three blocks explain the product logic in plain business language: start with the real moment, compare possible paths, and choose with care.",
+                    placement: "left"
+                },
+                {
+                    selector: ".works-grid",
+                    title: "How it works",
+                    description: "This section walks visitors through the product loop: build a persona of the other person, interact with that persona, and review insights before taking one real-world action.",
+                    placement: "top"
+                },
+                {
+                    selector: ".science-grid",
+                    title: "Predictive science",
+                    description: "These cards explain the product standards: private data, better decision quality, and clear ownership that the user's action still shapes the result.",
+                    placement: "top"
+                },
+                {
+                    selector: ".founding-layout",
+                    title: "Founding access",
+                    description: "This final section explains the early paid offer, the opinion-pool feedback loop, and the lifetime access promise for founding members.",
+                    placement: "top"
+                }
+            ]
+        });
     </script>
 </body>
 </html>

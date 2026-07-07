@@ -353,6 +353,7 @@
   </main>
 
   <script src="js/supabase-config.js"></script>
+  <script src="js/page-tour.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script>
     window.syntraeSupabaseClient = window.syntraeSupabaseClient || window.supabase.createClient(
@@ -360,6 +361,7 @@
       window.SUPABASE_ANON_KEY
     );
   </script>
+  <script src="js/daniel-demo-persona.js"></script>
   <script>
     const DATASET_PATH = '/data/Identitybuilder.json';
     const personalityRoot = document.getElementById('personality');
@@ -388,6 +390,7 @@
     let cloudSaveTimer = null;
     let lastCloudPayload = '';
     let personaKey = '';
+    let pageTourInitialized = false;
 
     if (isDecisionTreeDemo()) {
       document.body.classList.add('demo-mode');
@@ -396,11 +399,11 @@
       localStorage.setItem(ACTIVE_PERSONA_KEY_STORAGE, personaKey);
       localStorage.setItem('persona-name', 'Daniel Smith');
       backToAnalyze.href = demoUrl('analyze.html', { persona: personaKey });
-      statusEl.textContent = 'Demo mode: editing Daniel Smith relationship persona for Maya Chen.';
+      statusEl.textContent = 'Demo mode: editing the saved Daniel Smith persona.';
       statusEl.insertAdjacentHTML('afterend', `
         <section class="status" data-type="success" style="display:grid;gap:6px;margin-bottom:14px;">
           <strong>Daniel Smith demo persona</strong>
-          <span>This question flow represents the relationship persona Maya Chen uses before choosing a considerate next step.</span>
+          <span>This saved demo persona includes hardcoded answers across all 99 questions.</span>
         </section>
       `);
     }
@@ -420,12 +423,65 @@
     function demoUrl(path, params = {}) {
       const url = new URL(path, window.location.href);
       url.searchParams.set('demo', DECISION_TREE_DEMO);
+      const currentParams = new URLSearchParams(window.location.search || '');
+      const guided = currentParams.get('tour');
+      if (guided) {
+        url.searchParams.set('tour', guided);
+      }
       Object.entries(params).forEach(([key, value]) => {
         if (value !== undefined && value !== null && value !== '') {
           url.searchParams.set(key, String(value));
         }
       });
       return `${url.pathname.split('/').pop()}?${url.searchParams.toString()}`;
+    }
+
+    function ensurePageTour() {
+      if (pageTourInitialized) return;
+      pageTourInitialized = true;
+      window.SyntraePageTour?.init({
+        pageKey: 'edit-persona',
+        title: 'Edit persona guide',
+        triggerText: 'Page guide',
+        autoStart: () => new URLSearchParams(window.location.search).get('tour') === '1',
+        steps: [
+          {
+            selector: 'header',
+            title: 'Progress header',
+            description: 'This header keeps the questionnaire oriented: back navigation, the current step count, and the review action for the full answer set.',
+            placement: 'bottom'
+          },
+          {
+            selector: '.question-card',
+            title: 'Question card',
+            description: 'This is the active question container. Each screen focuses on one part of the persona so the user can build context deliberately instead of dumping everything at once.',
+            placement: 'top',
+            highlightSelector: '.question-card'
+          },
+          {
+            selector: '.question-box',
+            title: 'Prompt',
+            description: 'The prompt box shows the current question number, the actual question, and the category it belongs to so the user knows what kind of context they are adding.',
+            placement: 'bottom',
+            highlightSelector: '.question-card'
+          },
+          {
+            selector: '.options, .free-response',
+            title: 'Answer input',
+            description: 'This section is where the persona gets defined. Depending on the question, the user selects an option, sets confidence, or writes freeform context.',
+            placement: 'top',
+            highlightSelector: '.question-card'
+          },
+          {
+            selector: '.question-footer',
+            title: 'Save and navigation',
+            description: 'The footer controls movement through the builder. It saves the current answer, moves forward or backward, and makes the 99-question flow workable during a recording or demo.',
+            placement: 'top',
+            highlightSelector: '.question-card',
+            highlight: 'soft'
+          }
+        ]
+      });
     }
 
     function createPersonaKeyFromSeed(name, seed = '') {
@@ -1475,12 +1531,16 @@
     async function loadQuestions() {
       try {
         await ensureWorkingPersonaKey();
-        await migrateLegacyDefaultPersonaKeys();
-        await ensureWorkingPersonaKey();
+        if (!isDecisionTreeDemo()) {
+          await migrateLegacyDefaultPersonaKeys();
+          await ensureWorkingPersonaKey();
+        }
         backToAnalyze.href = buildPersonaUrl('analyze.html');
-        await hydrateFromAccount();
-        currentAnswers = loadStoredAnswers();
-        saveAxisAggregates();
+        if (!isDecisionTreeDemo()) {
+          await hydrateFromAccount();
+          currentAnswers = loadStoredAnswers();
+          saveAxisAggregates();
+        }
 
         statusEl.textContent = 'Loading questions…';
         const res = await fetch(DATASET_PATH, { cache: 'no-store' });
@@ -1579,6 +1639,16 @@
 
         allQuestions = questions;
         questionMap = new Map(allQuestions.map((q) => [q.id, q]));
+        if (isDecisionTreeDemo()) {
+          const demoState = window.buildDanielDemoPersonaState({
+            portraitDataUrl: 'assets/daniel-smith-avatar.png',
+            savedAt: new Date().toISOString()
+          });
+          applyPersonaState(demoState);
+          lastCloudPayload = JSON.stringify(demoState);
+          currentAnswers = loadStoredAnswers();
+          saveAxisAggregates();
+        }
         const session = loadSession();
         const allQuestionIds = questions.map(q => q.id);
         if (Array.isArray(session.visibleIds) && session.visibleIds.length) {
@@ -1591,6 +1661,7 @@
         currentIndex = Number.isInteger(session.currentIndex) ? Math.max(0, Math.min(session.currentIndex, visibleIds.length - 1)) : 0;
         saveSession({ visibleIds, currentIndex });
         renderCurrentQuestion();
+        ensurePageTour();
       } catch (err) {
         console.warn('Could not load databank:', err);
         const msg = err && err.message ? err.message : err;

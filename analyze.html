@@ -780,6 +780,8 @@ Authority figure</div>
     </main>
 
     <script src="js/supabase-config.js"></script>
+    <script src="js/daniel-demo-persona.js"></script>
+    <script src="js/page-tour.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>
         window.syntraeSupabaseClient = window.syntraeSupabaseClient || window.supabase.createClient(
@@ -821,6 +823,11 @@ Authority figure</div>
         function demoUrl(path, params = {}) {
             const url = new URL(path, window.location.href);
             url.searchParams.set('demo', DECISION_TREE_DEMO);
+            const currentParams = new URLSearchParams(window.location.search);
+            const guided = currentParams.get('tour');
+            if (guided) {
+                url.searchParams.set('tour', guided);
+            }
             Object.entries(params).forEach(([key, value]) => {
                 if (value !== undefined && value !== null && value !== '') {
                     url.searchParams.set(key, String(value));
@@ -2649,51 +2656,10 @@ Authority figure</div>
             params.set(PERSONA_QUERY_PARAM, personaKey);
             window.history.replaceState({}, '', `${window.location.pathname}?${params.toString()}`);
 
-            const demoState = {
-                version: 1,
-                savedAt: new Date().toISOString(),
-                personaName: 'Daniel Smith',
-                personaPortrait: buildDemoPortraitDataUrl(),
-                personaAvatarPresent: 'yes',
-                answers: {},
-                session: {},
-                usersInput: 'Daniel Smith is a 23-year-old graduate student in product design. He is warm, thoughtful, and open to sincere conversation when it is framed gently. He values emotional honesty, independence, and steady pacing, but can become quiet if a conversation feels rushed or too emotionally loaded at the wrong time.',
-                identityLayers: {
-                    L1: JSON.stringify({
-                        L1_A1: { value: 0.62, confidence: 0.78 },
-                        L1_A2: { value: 0.66, confidence: 0.74 },
-                        L1_A3: { value: 0.42, confidence: 0.7 },
-                        L1_A4: { value: 0.56, confidence: 0.72 },
-                        L1_A5: { value: 0.48, confidence: 0.76 },
-                        L1_A6: { value: 0.58, confidence: 0.7 }
-                    }),
-                    L2: JSON.stringify({
-                        L2_A1: { value: 0.54, confidence: 0.74 },
-                        L2_A2: { value: 0.46, confidence: 0.68 },
-                        L2_A3: { value: 0.63, confidence: 0.7 },
-                        L2_A4: { value: 0.35, confidence: 0.72 },
-                        L2_A5: { value: 0.58, confidence: 0.66 },
-                        L2_A6: { value: 0.72, confidence: 0.8 }
-                    }),
-                    L3: JSON.stringify({
-                        L3_A1: { value: 0.73, confidence: 0.8 },
-                        L3_A2: { value: 0.76, confidence: 0.82 },
-                        L3_A3: { value: 0.66, confidence: 0.68 },
-                        L3_A4: { value: 0.62, confidence: 0.72 },
-                        L3_A5: { value: 0.68, confidence: 0.74 },
-                        L3_A6: { value: 0.52, confidence: 0.66 }
-                    })
-                },
-                extras: {
-                    'basic-profile': 'Daniel Smith. Male. 23 yrs old. Graduate student in product design living in the Bay Area.',
-                    'relationship-role': 'Romantic interest and close relationship focus for Maya Chen.',
-                    'current-context': 'Maya and Daniel have been spending more intentional time together. The relationship feels promising, but neither person has clearly named where it is going yet.',
-                    'communication-pattern': 'Responds well to warmth, sincerity, and specific invitations. He can become reserved when the tone feels like an urgent decision must be made immediately.',
-                    'emotional-needs': 'Needs room to think, a sense that his answer is welcome either way, and a conversation that feels mutual rather than like a test.',
-                    stressors: 'Academic deadlines, part-time project work, and uncertainty about whether defining the relationship too quickly could change the easy trust he and Maya have built.',
-                    'decision-context': 'Best Way should weigh clarity against pressure and prefer messages that invite honest conversation without cornering either person.'
-                }
-            };
+            const demoState = window.buildDanielDemoPersonaState({
+                portraitDataUrl: buildDemoPortraitDataUrl(),
+                savedAt: new Date().toISOString()
+            });
             applyPersonaState(demoState);
 
             if (personaSelectorEl) {
@@ -2710,14 +2676,12 @@ Authority figure</div>
                     <section class="demo-context-strip" aria-label="Daniel Smith demo context">
                         <div>
                             <h2>Daniel Smith persona</h2>
-                            <p>This demo persona gives Syntrae private, structured context for Maya's relationship decision before she takes one real-world action.</p>
                         </div>
                         <div class="demo-chip-row">
                             <span class="demo-chip">Graduate student</span>
                             <span class="demo-chip">Male</span>
                             <span class="demo-chip">23 yrs old</span>
-                            <span class="demo-chip">Best Way ready</span>
-                            <span class="demo-chip">Probability ranges</span>
+                            <span class="demo-chip">Probability totals</span>
                         </div>
                     </section>
                 `);
@@ -2740,7 +2704,48 @@ Authority figure</div>
             await initRadar();
         }
 
-        startAnalyzePage();
+        startAnalyzePage().finally(() => {
+            window.SyntraePageTour?.init({
+                pageKey: 'analyze',
+                title: 'Analyze guide',
+                triggerText: 'Page guide',
+                autoStart: () => new URLSearchParams(window.location.search).get('tour') === '1',
+                steps: [
+                    {
+                        selector: '.demo-context-strip, .persona-header',
+                        title: 'Persona summary',
+                        description: 'This top area identifies which persona is active, exposes the selector, and keeps the edit action close by so the user can move between analysis and persona editing quickly.',
+                        placement: 'bottom'
+                    },
+                    {
+                        selector: '.portrait',
+                        title: 'Portrait column',
+                        description: 'This left column holds the persona image. It gives the analysis page a stable visual anchor while the user reviews the rest of the profile.',
+                        placement: 'right'
+                    },
+                    {
+                        selector: '.radar',
+                        title: 'Persona chart',
+                        description: 'This central analysis card summarizes the persona across the main behavioral axes so the user can see the overall shape before reading details.',
+                        placement: 'left'
+                    },
+                    {
+                        selector: '.backgrounds',
+                        title: 'Extra information',
+                        description: 'These background cards hold the contextual fields that matter to decision quality: time and life stage, current context, active stressors, and the broader social moment.',
+                        placement: 'top'
+                    },
+                    {
+                        selector: '.edit-btn',
+                        title: 'Edit flow',
+                        description: 'Use this button to open the questionnaire and refine the persona whenever the private context changes.',
+                        placement: 'left',
+                        highlightSelector: '.demo-context-strip, .persona-header',
+                        highlight: 'soft'
+                    }
+                ]
+            });
+        });
     </script>
 </body>
 </html>

@@ -248,7 +248,6 @@ function loadDemoProfile() {
   if (brand) brand.setAttribute('href', demoUrl('Chat.html', { state: 'start' }));
   const skipBtn = document.getElementById('skipBtn');
   if (skipBtn) skipBtn.textContent = 'Back to demo chat';
-  showStatus('Demo profile loaded for recording. These fields represent Maya Chen.', 'success');
 }
 
 form.addEventListener('submit', async (e) => {
