@@ -140,10 +140,19 @@
         .section-head h2 {
             font-size:16px;
             letter-spacing:0.2px;
+            display:inline-flex;
+            align-items:center;
+            gap:8px;
         }
         .section-head p {
             color:var(--muted);
             font-size:13px;
+        }
+        .section-title-icon {
+            width:16px;
+            height:16px;
+            flex:0 0 auto;
+            color:var(--accent);
         }
         .grid {
             display:grid;
@@ -190,6 +199,100 @@
             font-size:12px;
             color:var(--muted);
         }
+        .persona-pdf-space {
+            display:grid;
+            grid-template-columns:0.85fr 1.15fr;
+            gap:16px;
+            align-items:stretch;
+            padding:18px;
+            border-radius:18px;
+            border:1px solid rgba(32,50,54,0.13);
+            background:
+                radial-gradient(circle at 8% 8%, rgba(223,244,237,0.86), transparent 42%),
+                linear-gradient(135deg, rgba(255,255,255,0.93), rgba(251,255,248,0.82));
+            box-shadow:0 16px 40px rgba(32,50,54,0.08);
+        }
+        .persona-pdf-copy {
+            display:flex;
+            flex-direction:column;
+            gap:12px;
+        }
+        .persona-pdf-copy h2 {
+            display:flex;
+            align-items:center;
+            gap:8px;
+            font-size:22px;
+            color:var(--ink);
+        }
+        .persona-pdf-copy p {
+            color:var(--muted);
+            line-height:1.55;
+        }
+        .persona-pdf-actions {
+            display:flex;
+            gap:10px;
+            flex-wrap:wrap;
+            align-items:center;
+        }
+        .persona-pdf-input {
+            position:absolute;
+            width:1px;
+            height:1px;
+            opacity:0;
+            pointer-events:none;
+        }
+        .persona-pdf-file {
+            display:flex;
+            flex-direction:column;
+            gap:10px;
+            min-width:0;
+        }
+        .persona-file-card {
+            display:flex;
+            align-items:center;
+            justify-content:space-between;
+            gap:12px;
+            padding:14px 16px;
+            border-radius:14px;
+            border:1px solid rgba(18,150,141,0.18);
+            background:rgba(251,255,248,0.92);
+            color:var(--ink);
+            text-decoration:none;
+        }
+        .persona-file-name {
+            display:flex;
+            align-items:center;
+            gap:10px;
+            min-width:0;
+            font-weight:800;
+        }
+        .persona-file-name span:last-child {
+            overflow:hidden;
+            text-overflow:ellipsis;
+            white-space:nowrap;
+        }
+        .persona-file-status {
+            border-radius:999px;
+            padding:7px 9px;
+            background:rgba(18,150,141,0.1);
+            color:var(--accent);
+            font-size:11px;
+            font-weight:800;
+            white-space:nowrap;
+        }
+        .persona-pdf-reading {
+            width:100%;
+            min-height:230px;
+            resize:vertical;
+            padding:14px 16px;
+            border-radius:14px;
+            border:1px solid rgba(32,50,54,0.14);
+            background:rgba(255,255,255,0.82);
+            color:var(--ink);
+            font-size:14px;
+            line-height:1.62;
+            outline:none;
+        }
         .actions {
             display:flex;
             gap:12px;
@@ -209,6 +312,12 @@
             border:none;
             text-decoration:none;
             transition:all 0.2s ease;
+        }
+        .inline-icon {
+            width:15px;
+            height:15px;
+            flex:0 0 auto;
+            display:inline-block;
         }
         .btn-primary {
             background:linear-gradient(135deg,var(--accent),var(--accent-hot));
@@ -296,6 +405,9 @@
             .demo-video-strip {
                 grid-template-columns:1fr;
             }
+            .persona-pdf-space {
+                grid-template-columns:1fr;
+            }
             .demo-profile-intro {
                 align-items:flex-start;
             }
@@ -324,10 +436,58 @@
 
             <div id="status" class="status" hidden></div>
 
+            <section class="persona-pdf-space" aria-label="Persona PDF upload and reading">
+                <div class="persona-pdf-copy">
+                    <h2>
+                        <svg class="section-title-icon" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M7 3h7l4 4v14H7z"></path>
+                            <path d="M14 3v5h5"></path>
+                            <path d="M9.5 13h5"></path>
+                            <path d="M9.5 16h4"></path>
+                        </svg>
+                        Your Persona
+                    </h2>
+                    <p>Upload a PDF summary of your persona. Syntrae can use this as a readable private context layer before you compare paths in decision tools.</p>
+                    <div class="persona-pdf-actions">
+                        <label class="btn btn-primary" for="persona_pdf_upload">
+                            <svg class="inline-icon" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M8 11V3"></path>
+                                <path d="M4.8 6.2 8 3l3.2 3.2"></path>
+                                <path d="M3 12.5h10"></path>
+                            </svg>
+                            Upload PDF
+                        </label>
+                        <input class="persona-pdf-input" id="persona_pdf_upload" type="file" accept="application/pdf">
+                    </div>
+                </div>
+                <div class="persona-pdf-file">
+                    <a class="persona-file-card" id="personaPdfLink" href="#" target="_blank" rel="noopener" aria-label="Open uploaded persona PDF">
+                        <span class="persona-file-name">
+                            <svg class="section-title-icon" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M7 3h7l4 4v14H7z"></path>
+                                <path d="M14 3v5h5"></path>
+                            </svg>
+                            <span id="personaPdfName">No persona PDF uploaded yet</span>
+                        </span>
+                        <span class="persona-file-status" id="personaPdfStatus">Waiting</span>
+                    </a>
+                    <label class="hint" for="personaPdfReading">PDF reading for your information</label>
+                    <textarea class="persona-pdf-reading" id="personaPdfReading" readonly>Upload a persona PDF to preview its reading here.</textarea>
+                </div>
+            </section>
+
             <form id="profile-form">
                 <section class="section">
                     <div class="section-head">
-                        <h2><i class="fas fa-id-card"></i> Core Profile</h2>
+                        <h2>
+                            <svg class="section-title-icon" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+                                <rect x="3" y="5" width="18" height="14" rx="2"></rect>
+                                <path d="M7 10h4"></path>
+                                <path d="M7 13h7"></path>
+                                <circle cx="17" cy="11.5" r="1.8"></circle>
+                            </svg>
+                            Core Profile
+                        </h2>
                         <p>Basic account information</p>
                     </div>
                     <div class="grid">
@@ -356,7 +516,15 @@
 
                 <section class="section">
                     <div class="section-head">
-                        <h2><i class="fas fa-user-gear"></i> User Persona Context</h2>
+                        <h2>
+                            <svg class="section-title-icon" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="9" cy="8" r="3"></circle>
+                                <path d="M3.5 19c.8-3.2 2.7-5 5.5-5 1.8 0 3.2.7 4.2 2"></path>
+                                <path d="M17 14v6"></path>
+                                <path d="M14 17h6"></path>
+                            </svg>
+                            User Persona Context
+                        </h2>
                         <p>Personal context used by Syntrae decision tools</p>
                     </div>
                     <div class="grid">
@@ -389,7 +557,13 @@
 
                 <section class="section">
                     <div class="section-head">
-                        <h2><i class="fas fa-link"></i> Persona Link</h2>
+                        <h2>
+                            <svg class="section-title-icon" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M10 13a5 5 0 0 0 7.1 0l1.4-1.4a5 5 0 0 0-7.1-7.1L10.6 5.3"></path>
+                                <path d="M14 11a5 5 0 0 0-7.1 0l-1.4 1.4a5 5 0 0 0 7.1 7.1l.8-.8"></path>
+                            </svg>
+                            Persona Link
+                        </h2>
                         <p>Select which persona represents you in decision tools</p>
                     </div>
                     <div class="field">
@@ -402,7 +576,12 @@
                 </section>
 
                 <div class="actions">
-                    <button type="submit" class="btn btn-primary"><i class="fas fa-check"></i>Save user persona</button>
+                    <button type="submit" class="btn btn-primary">
+                        <svg class="inline-icon" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M3.25 8.35 6.5 11.6 12.9 4.4"></path>
+                        </svg>
+                        Save user persona
+                    </button>
                     <button type="button" id="skipBtn" class="btn btn-ghost">Back to chat</button>
                 </div>
             </form>
@@ -415,7 +594,7 @@
 
     <script src="js/supabase-config.js"></script>
     <script src="js/page-tour.js"></script>
-    <script type="module" src="js/profile.js?v=20260701"></script>
+    <script type="module" src="js/profile.js?v=20260707-persona-pdf"></script>
     <script>
         window.SyntraePageTour?.init({
             pageKey: 'profile',
@@ -424,9 +603,9 @@
             autoStart: () => new URLSearchParams(window.location.search).get('tour') === '1',
             steps: [
                 {
-                    selector: '.title-row',
+                    selector: '.persona-pdf-space',
                     title: 'Your Persona',
-                    description: 'This page stores the account-level context about you. It is the base layer Syntrae can use when decision tools need your own goals, constraints, or communication style.',
+                    description: 'This space lets the user upload a persona PDF and review the extracted reading before that context is used in Syntrae decision tools.',
                     placement: 'bottom'
                 },
                 {

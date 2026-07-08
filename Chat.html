@@ -2259,6 +2259,12 @@
                 main: {
                     title: 'Invite Daniel to talk',
                     meta: 'Current decision',
+                    personaContext: {
+                        facts: ['Graduate student', 'Male', '23 yrs old', 'Private context'],
+                        headline: 'Warm, thoughtful, and responsive when serious topics are introduced with room to think.',
+                        summary: 'Daniel responds best when the topic is named clearly without making the conversation feel like a demand.',
+                        logic: 'Best Way should favor messages that are clear enough to be understood, but gentle enough to preserve Daniel\'s sense of choice.'
+                    },
                     prompt: "I want to invite Daniel to talk about where we're going, but I don't want the message to feel heavy. What are the possible consequences of different ways to ask?",
                     introTitle: 'Best Way',
                     introCopy: 'Compare message styles before choosing the one action that goes out in real life.',
@@ -2314,6 +2320,12 @@
                 timing: {
                     title: 'Choose the right timing',
                     meta: 'Relationship moment',
+                    personaContext: {
+                        facts: ['Graduate student', 'Deadline aware', 'Timing sensitive', 'Private context'],
+                        headline: 'Steady and receptive when important conversations are scheduled instead of sprung on him.',
+                        summary: 'Daniel is more likely to engage thoughtfully when the timing gives him room to shift out of school and project pressure.',
+                        logic: 'Best Way should favor a calm planned window, because the same message can land better when Daniel has time and attention available.'
+                    },
                     prompt: 'Would Saturday afternoon be a better time than a weeknight to ask Daniel for a deeper conversation?',
                     introTitle: 'Timing Pathways',
                     introCopy: 'Compare timing options before choosing when to bring up the conversation.',
@@ -2369,6 +2381,12 @@
                 followup: {
                     title: 'Follow-up after a warm reply',
                     meta: 'Message draft',
+                    personaContext: {
+                        facts: ['Warm responder', 'Needs room', 'Sincerity driven', 'Private context'],
+                        headline: 'Responsive after openness is acknowledged, especially when the next reply stays grounded.',
+                        summary: 'Daniel is likely to stay engaged if Maya thanks him, names the topic once, and avoids turning a warm yes into a heavy explanation.',
+                        logic: 'Best Way should favor a short affirming follow-up that preserves warmth while keeping enough space for Daniel to answer naturally.'
+                    },
                     prompt: 'If Daniel says yes warmly, what should the next reply say without overexplaining?',
                     introTitle: 'Follow-up Paths',
                     introCopy: 'Compare follow-up responses after openness is shown.',
@@ -2553,7 +2571,6 @@
                             </div>
                         </div>
                         <div class="principle-strip">
-                            <span>Probabilities sum to 1.</span>
                             <span>Your action determines the outcome.</span>
                         </div>
                     </section>
@@ -2595,6 +2612,7 @@
 
             function setActiveDemoPersona(personaKey) {
                 const persona = demoPersonas[personaKey] || demoPersonas.daniel;
+                const chatContext = (demoChats[activeDemoChatKey] || demoChats.main)?.personaContext || {};
                 activeDemoPersonaKey = personaKey;
                 document.querySelectorAll('[data-demo-persona-row]').forEach((row) => {
                     row.classList.toggle('active', row.dataset.demoPersonaRow === personaKey);
@@ -2604,10 +2622,10 @@
                 }
                 if (personaName) personaName.textContent = persona.name;
                 if (personaRole) personaRole.textContent = persona.role;
-                if (personaFacts) personaFacts.innerHTML = personaFactChips(persona.facts);
-                if (personaHeadline) personaHeadline.textContent = persona.headline;
-                if (personaSummary) personaSummary.textContent = persona.summary;
-                if (personaLogic) personaLogic.textContent = persona.logic;
+                if (personaFacts) personaFacts.innerHTML = personaFactChips(chatContext.facts || persona.facts);
+                if (personaHeadline) personaHeadline.textContent = chatContext.headline || persona.headline;
+                if (personaSummary) personaSummary.textContent = chatContext.summary || persona.summary;
+                if (personaLogic) personaLogic.textContent = chatContext.logic || persona.logic;
                 if (personaSettingName) personaSettingName.textContent = persona.name;
                 if (demoActivePersonaLabel) demoActivePersonaLabel.textContent = persona.name;
             }
@@ -2716,6 +2734,7 @@
                     button.addEventListener('click', () => {
                         activeDemoChatKey = button.dataset.demoChat;
                         renderDemoChats();
+                        setActiveDemoPersona(activeDemoPersonaKey);
                         renderActiveDemoSimulation({ resetRun: true });
                     });
                 });
@@ -2730,6 +2749,7 @@
                         if (!cleaned) return;
                         chatItem.title = cleaned;
                         renderDemoChats();
+                        setActiveDemoPersona(activeDemoPersonaKey);
                         renderActiveDemoSimulation();
                     });
                 });
@@ -2749,12 +2769,14 @@
                             activeDemoChatKey = Object.keys(demoChats)[0] || 'main';
                         }
                         renderDemoChats();
+                        setActiveDemoPersona(activeDemoPersonaKey);
                         renderActiveDemoSimulation({ resetRun: true });
                     });
                 });
             }
 
             renderDemoChats();
+            setActiveDemoPersona(activeDemoPersonaKey);
             renderActiveDemoSimulation({ resetRun: getDemoState() !== 'end' });
 
             function revealTree() {

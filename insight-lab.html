@@ -660,6 +660,234 @@
         }
     </style>
     <link rel="stylesheet" href="css/syntrae-product-theme.css">
+    <style>
+        .demo-mode .hero {
+            position:relative;
+            overflow:hidden;
+            padding:28px !important;
+            border-radius:24px !important;
+            background:
+                radial-gradient(circle at 8% 16%, rgba(18,150,141,0.14), transparent 34%),
+                radial-gradient(circle at 86% 12%, rgba(239,116,95,0.16), transparent 32%),
+                linear-gradient(135deg, rgba(255,255,255,0.96), rgba(245,255,250,0.88)) !important;
+        }
+        .demo-mode .hero::before {
+            content:"";
+            position:absolute;
+            inset:auto -12% -42% 48%;
+            height:260px;
+            background:radial-gradient(circle, rgba(243,201,79,0.22), transparent 68%);
+            pointer-events:none;
+        }
+        .demo-mode .hero > h1,
+        .demo-mode .hero > p,
+        .demo-mode .demo-intro-grid {
+            position:relative;
+            z-index:1;
+        }
+        .demo-mode .hero > p {
+            max-width:760px;
+        }
+        .demo-mode .demo-intro-grid {
+            grid-template-columns:minmax(0, .9fr) minmax(340px, 1.1fr);
+            align-items:stretch;
+            gap:18px;
+            margin-top:22px;
+        }
+        .demo-mode .demo-intro-card,
+        .demo-mode .demo-visual-card {
+            border:1px solid rgba(32,50,54,0.12) !important;
+            border-radius:22px !important;
+            box-shadow:0 20px 48px rgba(32,50,54,0.11) !important;
+        }
+        .demo-mode .demo-story-card {
+            min-height:300px;
+            padding:24px !important;
+            display:grid;
+            align-content:center;
+            gap:14px;
+            background:
+                linear-gradient(145deg, rgba(255,255,255,0.94), rgba(236,250,244,0.9)) !important;
+        }
+        .demo-mode .demo-kicker {
+            width:max-content;
+            border-radius:999px;
+            padding:7px 10px;
+            background:rgba(223,244,237,0.9);
+            color:#1c6b55;
+            font-size:11px;
+            font-weight:900;
+            text-transform:uppercase;
+        }
+        .demo-mode .demo-story-card h3 {
+            font-family:"Fraunces", Georgia, serif !important;
+            font-size:26px;
+            line-height:1.1;
+            color:var(--ink);
+        }
+        .demo-mode .demo-story-card p {
+            font-size:15px;
+        }
+        .demo-mode .demo-chip {
+            background:#fffdf4 !important;
+            border-color:rgba(18,150,141,0.2) !important;
+            box-shadow:0 8px 18px rgba(32,50,54,0.06);
+        }
+        .demo-mode .demo-visual-card {
+            position:relative;
+            min-height:300px;
+            margin:0;
+            overflow:hidden;
+            background:#eaf7f1;
+        }
+        .demo-mode .demo-visual-card > img {
+            width:100%;
+            height:100%;
+            min-height:300px;
+            object-fit:cover;
+            object-position:center;
+            display:block;
+            filter:saturate(1.06) contrast(1.02);
+            transition:transform .55s ease;
+        }
+        .demo-mode .demo-visual-card:hover > img {
+            transform:scale(1.035);
+        }
+        .demo-mode .demo-visual-card::after {
+            content:"";
+            position:absolute;
+            inset:0;
+            background:
+                linear-gradient(180deg, rgba(9,31,34,0.03), rgba(9,31,34,0.44)),
+                linear-gradient(90deg, rgba(9,31,34,0.1), transparent 42%);
+            pointer-events:none;
+        }
+        .demo-mode .demo-visual-card figcaption {
+            position:absolute;
+            left:18px;
+            right:18px;
+            bottom:18px;
+            z-index:2;
+            padding:16px;
+            border:1px solid rgba(255,255,255,0.26);
+            border-radius:18px;
+            background:rgba(20,47,45,0.68);
+            color:#fff;
+            backdrop-filter:blur(10px);
+            display:grid;
+            gap:4px;
+        }
+        .demo-mode .demo-visual-card figcaption strong {
+            font-size:22px;
+            line-height:1.1;
+            color:#fff;
+        }
+        .demo-mode .demo-visual-card figcaption span {
+            color:rgba(255,255,255,0.84);
+            font-size:13px;
+            line-height:1.4;
+        }
+        .demo-mode .demo-portrait-stack {
+            position:absolute;
+            top:18px;
+            left:18px;
+            z-index:2;
+            display:flex;
+            gap:8px;
+            flex-wrap:wrap;
+        }
+        .demo-mode .demo-portrait-stack span {
+            display:inline-flex;
+            align-items:center;
+            gap:8px;
+            padding:6px 10px 6px 6px;
+            border-radius:999px;
+            background:rgba(255,255,255,0.9);
+            border:1px solid rgba(255,255,255,0.54);
+            color:var(--ink);
+            font-size:12px;
+            font-weight:900;
+            box-shadow:0 10px 22px rgba(32,50,54,0.12);
+        }
+        .demo-mode .demo-portrait-stack img {
+            width:30px;
+            height:30px;
+            min-height:0;
+            border-radius:999px;
+            object-fit:cover;
+            display:block;
+        }
+        .demo-mode .persona-preview {
+            position:relative;
+            overflow:hidden;
+            min-height:162px;
+            padding:18px !important;
+            border-radius:20px !important;
+            background:
+                radial-gradient(circle at 14% 16%, rgba(18,150,141,0.1), transparent 34%),
+                linear-gradient(145deg, rgba(255,255,255,0.95), rgba(250,255,248,0.9)) !important;
+        }
+        .demo-mode .persona-preview::after {
+            content:"";
+            position:absolute;
+            inset:auto -18% -38% 58%;
+            width:220px;
+            height:220px;
+            border-radius:999px;
+            background:rgba(239,116,95,0.08);
+            pointer-events:none;
+        }
+        .demo-mode .persona-head {
+            position:relative;
+            z-index:1;
+            align-items:center;
+            gap:14px;
+        }
+        .demo-mode .persona-avatar {
+            width:84px;
+            height:84px;
+            border-radius:22px !important;
+            border:3px solid rgba(255,255,255,0.82) !important;
+            box-shadow:0 15px 30px rgba(32,50,54,0.14);
+        }
+        .demo-mode .persona-avatar img {
+            object-fit:cover;
+        }
+        .demo-mode .persona-preview h3 {
+            font-size:18px;
+            line-height:1.2;
+        }
+        .demo-mode .persona-preview .kv {
+            position:relative;
+            z-index:1;
+        }
+        .demo-mode .run-btn {
+            font-size:15px;
+            padding:14px 18px;
+        }
+        @media (max-width: 900px) {
+            .demo-mode .demo-intro-grid {
+                grid-template-columns:1fr;
+            }
+            .demo-mode .demo-story-card,
+            .demo-mode .demo-visual-card,
+            .demo-mode .demo-visual-card > img {
+                min-height:260px;
+            }
+        }
+        @media (max-width: 560px) {
+            .demo-mode .hero {
+                padding:20px !important;
+            }
+            .demo-mode .persona-head {
+                align-items:flex-start;
+            }
+            .demo-mode .persona-avatar {
+                width:68px;
+                height:68px;
+            }
+        }
+    </style>
 </head>
 <body>
     <header class="header">
@@ -669,24 +897,12 @@
         </a>
         <div class="top-actions">
             <a class="link-btn" href="Chat.html">
-                <svg class="inline-icon" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M3 4.25h10a1 1 0 0 1 1 1v5.25a1 1 0 0 1-1 1H7l-3.5 2v-2H3a1 1 0 0 1-1-1V5.25a1 1 0 0 1 1-1Z"></path>
-                </svg>
                 Chat
             </a>
             <a class="link-btn" href="analyze.html">
-                <svg class="inline-icon" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M3 11.75 11.9 2.85a1.2 1.2 0 0 1 1.7 0l.55.55a1.2 1.2 0 0 1 0 1.7L5.25 14H3v-2.25Z"></path>
-                    <path d="m10.9 3.85 1.25 1.25"></path>
-                </svg>
                 Edit Persona
             </a>
             <a class="link-btn" href="profile.html">
-                <svg class="inline-icon" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
-                    <rect x="2.25" y="2.25" width="11.5" height="11.5" rx="2"></rect>
-                    <circle cx="8" cy="6.1" r="1.8"></circle>
-                    <path d="M4.75 11.1c.8-1.5 2-2.2 3.25-2.2s2.45.7 3.25 2.2"></path>
-                </svg>
                 Your Persona
             </a>
         </div>
@@ -755,7 +971,7 @@
 
     <script src="js/supabase-config.js"></script>
     <script src="js/page-tour.js"></script>
-    <script type="module" src="js/insight-lab.js?v=20260701"></script>
+    <script type="module" src="js/insight-lab.js?v=20260708-friendly-images"></script>
     <script>
         window.SyntraePageTour?.init({
             pageKey: 'insight-lab',
@@ -766,7 +982,7 @@
                 {
                     selector: '.hero',
                     title: 'Insight Lab',
-                    description: 'This page is the structured tools layer of the product. It turns private persona context into side-by-side analysis before a real-world action happens.',
+                    description: 'Insight Lab is a virtual experimental space where Syntrae analyzes and compares personas before a real-world decision is made.',
                     placement: 'bottom'
                 },
                 {
@@ -784,7 +1000,7 @@
                 {
                     selector: '.panel',
                     title: 'Compatibility Review',
-                    description: 'This main panel defines the review tool itself. It combines the selected personas, the readiness state, and the result entry point in one compact workspace.',
+                    description: 'This main panel is the comparison workspace. It brings selected personas, readiness state, and the review action together in one place.',
                     placement: 'top'
                 },
                 {

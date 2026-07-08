@@ -171,6 +171,51 @@
             font-weight: 800;
         }
 
+        .nav-links .vision-link {
+            position: relative;
+            min-height: 44px;
+            padding: 11px 16px;
+            border: 1px solid rgba(18, 150, 141, 0.28);
+            border-radius: 8px;
+            color: var(--ink);
+            background:
+                linear-gradient(135deg, rgba(255, 255, 255, 0.94), rgba(223, 244, 237, 0.92));
+            box-shadow: 0 10px 24px rgba(18, 150, 141, 0.13);
+            display: inline-flex;
+            align-items: center;
+            gap: 9px;
+            isolation: isolate;
+            overflow: hidden;
+            transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+        }
+
+        .nav-links .vision-link::before {
+            content: "";
+            position: absolute;
+            inset: -70% auto auto -30%;
+            width: 78px;
+            height: 78px;
+            border-radius: 999px;
+            background: rgba(243, 201, 79, 0.42);
+            z-index: -1;
+            transition: transform 0.24s ease;
+        }
+
+        .nav-links .vision-link i {
+            color: var(--leaf);
+            font-size: 13px;
+        }
+
+        .nav-links .vision-link:hover {
+            transform: translateY(-1px);
+            border-color: rgba(18, 150, 141, 0.48);
+            box-shadow: 0 14px 30px rgba(18, 150, 141, 0.2);
+        }
+
+        .nav-links .vision-link:hover::before {
+            transform: translate(16px, 10px) scale(1.18);
+        }
+
         .button {
             display: inline-flex;
             align-items: center;
@@ -879,6 +924,26 @@
             line-height: 1.5;
         }
 
+        .account-switch {
+            margin: 14px 0 0;
+            text-align: center;
+            color: var(--quiet);
+            font-size: 14px;
+            font-weight: 800;
+        }
+
+        .account-switch a {
+            color: var(--teal);
+            text-decoration: none;
+            border-bottom: 2px solid rgba(18, 150, 141, 0.18);
+            transition: color 0.18s ease, border-color 0.18s ease;
+        }
+
+        .account-switch a:hover {
+            color: var(--leaf);
+            border-color: rgba(47, 132, 104, 0.42);
+        }
+
         .disclaimer {
             color: var(--quiet);
             font-size: 12px;
@@ -1046,7 +1111,7 @@
             </span>
         </a>
         <div class="nav-links">
-            <a href="#vision">Feel the vision</a>
+            <a class="button vision-link" href="#vision"><i class="fas fa-play"></i> Feel the vision</a>
             <a href="#founding" class="button button-primary"><i class="fas fa-ticket-alt"></i> Founding member</a>
         </div>
     </nav>
@@ -1082,8 +1147,8 @@
                     <p class="section-kicker">Demo access</p>
                     <h2>Open the demo.</h2>
                     <p>See how the vision is introduced and the demo decision flow comes alive.</p>
-                    <a class="button button-primary demo-launch-btn" href="Chat.html?demo=decision-tree&amp;state=start&amp;tour=1"><i class="fas fa-play"></i> Try it here</a>
-                    <span class="demo-launch-note">Opens the demo view without any extra steps.</span>
+                    <a class="button button-primary demo-launch-btn" href="Chat.html?demo=decision-tree&amp;state=start&amp;tour=1" target="_blank" rel="noopener noreferrer"><i class="fas fa-play"></i> Try it here</a>
+                    <span class="demo-launch-note">Opens the demo in a new tab without any extra steps.</span>
                 </div>
                 <div>
                     <p class="section-kicker">The vision</p>
@@ -1188,23 +1253,21 @@
                     <div class="mission-callout">Join us in a mission of creating a better world.</div>
                 </div>
 
-                <form class="member-form" id="foundingForm">
+                <form class="member-form" id="foundingForm" action="founding-welcome.html" method="get">
                     <h3>Reserve founding access</h3>
-                    <p>Join the founding circle and tell us which kind of relationship moment you would want Syntrae to support first.</p>
+                    <p>Create your founding-member reservation. You will receive opinion-pool access to help shape development and lifetime Syntrae access after launch with no additional fees.</p>
                     <div class="field-grid">
+                        <label>
+                            Full name
+                            <input type="text" name="name" autocomplete="name" placeholder="Alex Morgan" required>
+                        </label>
                         <label>
                             Email
                             <input type="email" name="email" autocomplete="email" placeholder="you@example.com" required>
                         </label>
                         <label>
-                            First use case
-                            <select name="useCase" required>
-                                <option value="">Choose one</option>
-                                <option value="message">Preparing a message before sending it</option>
-                                <option value="invite">Planning an invite or follow-up</option>
-                                <option value="repair">Repairing an awkward moment</option>
-                                <option value="timing">Choosing the right timing</option>
-                            </select>
+                            Password
+                            <input type="password" name="password" autocomplete="new-password" placeholder="Create a password" required>
                         </label>
                         <label class="checkbox">
                             <input type="checkbox" name="foundingConsent" required>
@@ -1212,8 +1275,9 @@
                         </label>
                     </div>
                     <div class="form-footer">
-                        <button class="button button-primary" type="submit"><i class="fas fa-lock"></i> Reserve founding spot - $5</button>
+                        <button class="button button-primary" type="submit"><i class="fas fa-user-plus"></i> Sign-up</button>
                         <div class="form-status" id="formStatus" role="status" aria-live="polite"></div>
+                        <div class="account-switch">Have an account already? <a href="sign-in.html">Sign-in instead</a></div>
                         <div class="disclaimer">Founding members receive early access updates, access to opinion pools, and lifetime product access after launch at no additional fee.</div>
                     </div>
                 </form>
@@ -1252,7 +1316,7 @@
 
     <script src="js/page-tour.js"></script>
     <script>
-        const paymentUrl = "";
+        const welcomeUrl = "founding-welcome.html";
         const foundingForm = document.getElementById("foundingForm");
         const formStatus = document.getElementById("formStatus");
 
@@ -1297,19 +1361,18 @@
                 event.preventDefault();
                 const data = new FormData(foundingForm);
                 const payload = {
+                    name: String(data.get("name") || "").trim(),
                     email: String(data.get("email") || "").trim(),
-                    useCase: String(data.get("useCase") || "").trim(),
+                    reservedPlan: "founding-member",
                     createdAt: new Date().toISOString()
                 };
 
                 localStorage.setItem("syntrae:founding-member-interest", JSON.stringify(payload));
 
-                if (paymentUrl) {
-                    window.location.href = paymentUrl;
-                    return;
-                }
-
-                formStatus.textContent = "Thanks. Your founding-member interest is recorded for this preview.";
+                formStatus.textContent = "Creating your founding-member reservation...";
+                window.setTimeout(() => {
+                    window.location.href = welcomeUrl;
+                }, 480);
             });
         }
 

@@ -361,7 +361,7 @@
       window.SUPABASE_ANON_KEY
     );
   </script>
-  <script src="js/daniel-demo-persona.js"></script>
+  <script src="js/daniel-demo-persona.js?v=20260707-maya-demo"></script>
   <script>
     const DATASET_PATH = '/data/Identitybuilder.json';
     const personalityRoot = document.getElementById('personality');
@@ -394,16 +394,25 @@
 
     if (isDecisionTreeDemo()) {
       document.body.classList.add('demo-mode');
-      document.title = 'Edit Daniel Smith Persona - Syntrae Demo';
-      personaKey = 'daniel-smith-demo';
+      const requestedDemoKey = sanitizePersonaKey(new URLSearchParams(window.location.search || '').get(PERSONA_QUERY_PARAM));
+      const demoDefinition = window.getDemoPersonaDefinition
+        ? window.getDemoPersonaDefinition(requestedDemoKey)
+        : {
+            key: 'daniel-smith-demo',
+            name: 'Daniel Smith',
+            editTitle: 'Edit Daniel Smith Persona - Syntrae Demo',
+            portrait: 'assets/daniel-smith-avatar.png',
+            buildState: window.buildDanielDemoPersonaState
+          };
+      document.title = demoDefinition.editTitle;
+      personaKey = demoDefinition.key;
       localStorage.setItem(ACTIVE_PERSONA_KEY_STORAGE, personaKey);
-      localStorage.setItem('persona-name', 'Daniel Smith');
+      localStorage.setItem('persona-name', demoDefinition.name);
       backToAnalyze.href = demoUrl('analyze.html', { persona: personaKey });
-      statusEl.textContent = 'Demo mode: editing the saved Daniel Smith persona.';
+      statusEl.textContent = `Demo mode: editing the saved ${demoDefinition.name} persona.`;
       statusEl.insertAdjacentHTML('afterend', `
         <section class="status" data-type="success" style="display:grid;gap:6px;margin-bottom:14px;">
-          <strong>Daniel Smith demo persona</strong>
-          <span>This saved demo persona includes hardcoded answers across all 99 questions.</span>
+          <strong>${demoDefinition.name} demo persona</strong>
         </section>
       `);
     }
@@ -1640,8 +1649,14 @@
         allQuestions = questions;
         questionMap = new Map(allQuestions.map((q) => [q.id, q]));
         if (isDecisionTreeDemo()) {
-          const demoState = window.buildDanielDemoPersonaState({
-            portraitDataUrl: 'assets/daniel-smith-avatar.png',
+          const demoDefinition = window.getDemoPersonaDefinition
+            ? window.getDemoPersonaDefinition(personaKey)
+            : {
+                portrait: 'assets/daniel-smith-avatar.png',
+                buildState: window.buildDanielDemoPersonaState
+              };
+          const demoState = demoDefinition.buildState({
+            portraitDataUrl: demoDefinition.portrait,
             savedAt: new Date().toISOString()
           });
           applyPersonaState(demoState);

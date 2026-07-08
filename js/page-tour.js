@@ -45,15 +45,33 @@
         position: fixed;
         inset: 0;
         z-index: 1250;
-        background: rgba(8, 14, 23, 0.58);
+        background: transparent;
         opacity: 0;
         pointer-events: none;
         transition: opacity .28s ease;
-        backdrop-filter: blur(4px);
       }
       .syntrae-tour-backdrop.is-visible {
         opacity: 1;
         pointer-events: auto;
+      }
+      .syntrae-tour-dimmer {
+        position: fixed;
+        background: rgba(8, 14, 23, 0.62);
+        backdrop-filter: blur(4px);
+        transition: left .24s ease, top .24s ease, width .24s ease, height .24s ease;
+      }
+      .syntrae-tour-spotlight {
+        position: fixed;
+        pointer-events: none;
+        border: 2px solid rgba(177, 241, 232, 0.78);
+        background:
+          radial-gradient(circle at 18% 16%, rgba(255, 255, 255, 0.2), transparent 42%),
+          rgba(239, 255, 250, 0.08);
+        box-shadow:
+          0 0 0 4px rgba(255, 255, 255, 0.26),
+          0 0 0 11px rgba(35, 150, 142, 0.22),
+          0 24px 70px rgba(11, 52, 57, 0.34);
+        transition: left .24s ease, top .24s ease, width .24s ease, height .24s ease, border-radius .24s ease;
       }
       .syntrae-tour-card {
         position: fixed;
@@ -175,7 +193,9 @@
       }
       .syntrae-tour-target {
         position: relative !important;
-        z-index: 1275 !important;
+        z-index: 1278 !important;
+        filter: none !important;
+        opacity: 1 !important;
         box-shadow:
           0 0 0 3px rgba(255, 255, 255, 0.92),
           0 0 0 10px rgba(84, 214, 198, 0.18),
@@ -256,6 +276,14 @@
     `;
   }
 
+  function getLocalStorage() {
+    try {
+      return window.localStorage || null;
+    } catch (_) {
+      return null;
+    }
+  }
+
   class PageTour {
     constructor(config) {
       this.config = Object.assign({
@@ -264,6 +292,7 @@
         triggerText: 'Page guide',
         queryParam: TOUR_QUERY_PARAM,
         autoStart: false,
+        autoStartOnce: true,
         steps: []
       }, config || {});
       this.steps = Array.isArray(this.config.steps) ? this.config.steps : [];
@@ -271,6 +300,7 @@
       this.active = false;
       this.target = null;
       this.highlightTarget = null;
+      this.highlightTargetStyles = null;
 
       injectStyles();
       this.buildUi();
@@ -278,13 +308,22 @@
       this.attachEvents();
 
       if (this.shouldAutoStart()) {
-        window.setTimeout(() => this.start(), this.config.autoDelay || 260);
+        window.setTimeout(() => this.start({ automatic: true }), this.config.autoDelay || 260);
       }
     }
 
     buildUi() {
       this.backdrop = document.createElement('div');
       this.backdrop.className = 'syntrae-tour-backdrop';
+      this.dimmers = ['top', 'right', 'bottom', 'left'].map((side) => {
+        const dimmer = document.createElement('div');
+        dimmer.className = `syntrae-tour-dimmer syntrae-tour-dimmer--${side}`;
+        this.backdrop.appendChild(dimmer);
+        return dimmer;
+      });
+      this.spotlight = document.createElement('div');
+      this.spotlight.className = 'syntrae-tour-spotlight';
+      this.backdrop.appendChild(this.spotlight);
 
       this.card = document.createElement('aside');
       this.card.className = 'syntrae-tour-card';
@@ -357,18 +396,47 @@
     }
 
     shouldAutoStart() {
+      let requested = false;
       if (typeof this.config.autoStart === 'function') {
-        return !!this.config.autoStart();
+        requested = !!this.config.autoStart();
+      } else if (this.config.autoStart === true) {
+        requested = true;
+      } else {
+        const params = new URLSearchParams(window.location.search || '');
+        const value = params.get(this.config.queryParam || TOUR_QUERY_PARAM);
+        requested = value === '1' || value === this.config.pageKey;
       }
-      if (this.config.autoStart === true) return true;
-      const params = new URLSearchParams(window.location.search || '');
-      const value = params.get(this.config.queryParam || TOUR_QUERY_PARAM);
-      if (!value) return false;
-      return value === '1' || value === this.config.pageKey;
+
+      if (!requested) return false;
+      if (this.config.autoStartOnce === false) return true;
+      return !this.hasSeenAutoTour();
     }
 
-    start() {
+    autoTourStorageKey() {
+      return `syntrae.pageTour.seen.${this.config.pageKey || 'page'}`;
+    }
+
+    hasSeenAutoTour() {
+      const storage = getLocalStorage();
+      if (!storage) return false;
+      return storage.getItem(this.autoTourStorageKey()) === '1';
+    }
+
+    markAutoTourSeen() {
+      const storage = getLocalStorage();
+      if (!storage) return;
+      try {
+        storage.setItem(this.autoTourStorageKey(), '1');
+      } catch (_) {
+        // Non-critical: the tour can still run if storage is unavailable.
+      }
+    }
+
+    start(options = {}) {
       if (!this.steps.length) return;
+      if (options.automatic) {
+        this.markAutoTourSeen();
+      }
       this.active = true;
       this.card.hidden = false;
       this.backdrop.classList.add('is-visible');
@@ -394,9 +462,16 @@
     clearTarget() {
       if (this.highlightTarget) {
         this.highlightTarget.classList.remove('syntrae-tour-target', 'syntrae-tour-target--soft');
+        if (this.highlightTargetStyles) {
+          Object.entries(this.highlightTargetStyles).forEach(([property, value]) => {
+            this.highlightTarget.style[property] = value;
+          });
+        }
       }
       this.target = null;
       this.highlightTarget = null;
+      this.highlightTargetStyles = null;
+      this.hideSpotlight();
     }
 
     resolveHighlightTarget(step, element) {
@@ -411,6 +486,95 @@
 
       const globalMatch = document.querySelector(step.highlightSelector);
       return globalMatch || element;
+    }
+
+    rememberTargetStyles(element) {
+      if (!element) return;
+      this.highlightTargetStyles = {
+        position: element.style.position,
+        zIndex: element.style.zIndex,
+        isolation: element.style.isolation,
+        filter: element.style.filter,
+        opacity: element.style.opacity
+      };
+      const computed = window.getComputedStyle(element);
+      if (computed.position === 'static') {
+        element.style.position = 'relative';
+      }
+      element.style.zIndex = '1278';
+      element.style.isolation = 'isolate';
+      element.style.filter = 'none';
+      element.style.opacity = '1';
+    }
+
+    hideSpotlight() {
+      if (this.spotlight) {
+        Object.assign(this.spotlight.style, {
+          left: '0px',
+          top: '0px',
+          width: '0px',
+          height: '0px'
+        });
+      }
+      (this.dimmers || []).forEach((dimmer) => {
+        Object.assign(dimmer.style, {
+          left: '0px',
+          top: '0px',
+          width: '0px',
+          height: '0px'
+        });
+      });
+    }
+
+    updateSpotlight() {
+      if (!this.highlightTarget || !this.spotlight || !this.dimmers?.length) return;
+      const rect = this.highlightTarget.getBoundingClientRect();
+      if (!rect.width || !rect.height) return;
+
+      const padding = Number.isFinite(this.step?.spotlightPadding) ? this.step.spotlightPadding : 10;
+      const viewportWidth = window.innerWidth;
+      const viewportHeight = window.innerHeight;
+      const left = clamp(rect.left - padding, 0, viewportWidth);
+      const top = clamp(rect.top - padding, 0, viewportHeight);
+      const right = clamp(rect.right + padding, 0, viewportWidth);
+      const bottom = clamp(rect.bottom + padding, 0, viewportHeight);
+      const width = Math.max(0, right - left);
+      const height = Math.max(0, bottom - top);
+      const targetRadius = parseFloat(window.getComputedStyle(this.highlightTarget).borderRadius) || 18;
+      const radius = Math.max(18, targetRadius + padding);
+
+      const [topDimmer, rightDimmer, bottomDimmer, leftDimmer] = this.dimmers;
+      Object.assign(topDimmer.style, {
+        left: '0px',
+        top: '0px',
+        width: `${viewportWidth}px`,
+        height: `${top}px`
+      });
+      Object.assign(rightDimmer.style, {
+        left: `${right}px`,
+        top: `${top}px`,
+        width: `${Math.max(0, viewportWidth - right)}px`,
+        height: `${height}px`
+      });
+      Object.assign(bottomDimmer.style, {
+        left: '0px',
+        top: `${bottom}px`,
+        width: `${viewportWidth}px`,
+        height: `${Math.max(0, viewportHeight - bottom)}px`
+      });
+      Object.assign(leftDimmer.style, {
+        left: '0px',
+        top: `${top}px`,
+        width: `${left}px`,
+        height: `${height}px`
+      });
+      Object.assign(this.spotlight.style, {
+        left: `${left}px`,
+        top: `${top}px`,
+        width: `${width}px`,
+        height: `${height}px`,
+        borderRadius: `${radius}px`
+      });
     }
 
     resolveStep(startIndex, direction) {
@@ -447,6 +611,7 @@
       }
 
       this.highlightTarget = this.resolveHighlightTarget(step, element) || element;
+      this.rememberTargetStyles(this.highlightTarget);
       this.highlightTarget.classList.add('syntrae-tour-target');
       if (step.highlight === 'soft') {
         this.highlightTarget.classList.add('syntrae-tour-target--soft');
@@ -462,13 +627,20 @@
       this.target.scrollIntoView({ behavior: 'smooth', block, inline: 'nearest' });
 
       window.requestAnimationFrame(() => {
-        window.requestAnimationFrame(() => this.positionCard());
+        window.requestAnimationFrame(() => {
+          this.updateSpotlight();
+          this.positionCard();
+        });
       });
-      window.setTimeout(() => this.positionCard(), step.delay || 260);
+      window.setTimeout(() => {
+        this.updateSpotlight();
+        this.positionCard();
+      }, step.delay || 260);
     }
 
     positionCard() {
       if (!this.active || !this.target || !this.step) return;
+      this.updateSpotlight();
       const rect = this.target.getBoundingClientRect();
       if (!rect.width || !rect.height) return;
 

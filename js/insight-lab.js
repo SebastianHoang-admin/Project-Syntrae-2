@@ -1899,6 +1899,7 @@ function buildDemoOptions() {
       sourceLabel: 'Demo User Persona',
       type: 'user',
       data: {
+        avatar_url: 'assets/maya-chen-avatar.png',
         display_name: 'Maya Chen',
         personal_headline: '22-year-old student who wants clarity while staying kind and low pressure',
         goals: 'Invite Daniel to talk about where the relationship is going while keeping the message warm, respectful, and easy to answer honestly.',
@@ -1926,6 +1927,7 @@ function buildDemoOptions() {
       sourceLabel: 'Demo Relationship Persona',
       type: 'persona',
       data: {
+        avatar_url: 'assets/daniel-smith-avatar.png',
         name: 'Daniel Smith',
         profile: buildDemoProfile(
           'Daniel Smith',
@@ -2091,11 +2093,10 @@ function setupDemoInsightLab() {
   if (hero && !document.querySelector('.demo-intro-grid')) {
     hero.insertAdjacentHTML('beforeend', `
       <div class="demo-intro-grid" aria-label="Maya and Daniel demo context">
-        <article class="demo-intro-card">
+        <article class="demo-intro-card demo-story-card">
+          <span class="demo-kicker">Friendly experimental space</span>
           <h3>Maya Chen → Daniel Smith</h3>
-          <p>Use this lab scene to show how Syntrae moves from private persona context into a structured compatibility review.</p>
-        </article>
-        <article class="demo-intro-card">
+          <p>Use this lab scene to show how Syntrae compares two personas with warmth, context, and practical clarity before a real-world decision is made.</p>
           <div class="demo-chip-row">
             <span class="demo-chip">Maya: Student</span>
             <span class="demo-chip">Maya: Female</span>
@@ -2104,6 +2105,17 @@ function setupDemoInsightLab() {
             <span class="demo-chip">Probability ranges</span>
           </div>
         </article>
+        <figure class="demo-visual-card">
+          <img src="assets/syntrae-relationship-hero.png" alt="Two people smiling together outdoors">
+          <figcaption>
+            <strong>Compare with care.</strong>
+            <span>Friendly persona context helps the analysis feel human, not clinical.</span>
+          </figcaption>
+          <div class="demo-portrait-stack" aria-label="Selected demo personas">
+            <span><img src="assets/maya-chen-avatar.png" alt="Maya Chen smiling"> Maya</span>
+            <span><img src="assets/daniel-smith-avatar.png" alt="Daniel Smith smiling"> Daniel</span>
+          </div>
+        </figure>
       </div>
     `);
   }

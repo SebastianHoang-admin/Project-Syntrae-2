@@ -3,9 +3,26 @@ import { supabase } from './supabase-client.js';
 const form = document.getElementById('profile-form');
 const statusEl = document.getElementById('status');
 const primaryPersonaSelect = document.getElementById('primary_persona_key');
+const personaPdfInput = document.getElementById('persona_pdf_upload');
+const personaPdfLink = document.getElementById('personaPdfLink');
+const personaPdfName = document.getElementById('personaPdfName');
+const personaPdfStatus = document.getElementById('personaPdfStatus');
+const personaPdfReading = document.getElementById('personaPdfReading');
 const USER_PROFILE_TABLE = 'user_profiles';
 const PERSONA_TABLE = 'personas';
 const DECISION_TREE_DEMO = 'decision-tree';
+const MAYA_PERSONA_PDF_URL = 'assets/maya-chen-persona-summary.pdf';
+const MAYA_PERSONA_PDF_READING = `Maya Chen Persona Summary
+
+Maya Chen is a 22-year-old student at San Francisco State University in San Francisco. She is warm, reflective, and careful with tone when a relationship moment carries real emotional stakes. Her current goal is to invite Daniel into a clearer conversation about where the relationship is going while keeping the message respectful, calm, and easy to answer honestly.
+
+Communication pattern: Maya communicates best when she can be sincere without overloading the other person. She prefers plain language, a low-pressure invitation, and enough emotional clarity that the other person understands what matters. When uncertainty rises, she may be tempted to explain too much, so the strongest support style is concise, warm, and grounded.
+
+Decision context: The decision is high-stakes because Maya has one real-world message to send and incomplete information about Daniel's reaction. She wants to avoid making Daniel feel cornered, rushed, or responsible for her anxiety. Syntrae should help her compare possible paths before she acts, not promise an outcome or remove her responsibility for the final choice.
+
+Analytic summary: Maya's strongest signals are emotional awareness, patience, and willingness to name what she wants with care. Her main risk is adding too much explanation when the moment would benefit from a lighter opening. The best recommendation style should preserve warmth, give Daniel room to choose his pace, and make the next step clear enough that ambiguity does not keep building.
+
+Conclusion: Maya is most likely to act well when she can rehearse the difference between clarity and pressure. She benefits from messages that sound direct enough to be understood but gentle enough to preserve Daniel's sense of choice. For this decision, the strongest path is a warm invitation with one clear purpose and room for Daniel to respond naturally.`;
 
 let currentUserId = '';
 let personaRows = [];
@@ -123,10 +140,12 @@ function renderPrimaryPersonaOptions(selectedKey = '') {
   const normalizedSelected = sanitizePersonaKey(selectedKey);
   primaryPersonaSelect.innerHTML = '';
 
-  const baseOption = document.createElement('option');
-  baseOption.value = '';
-  baseOption.textContent = 'No linked persona';
-  primaryPersonaSelect.appendChild(baseOption);
+  if (!isDecisionTreeDemo()) {
+    const baseOption = document.createElement('option');
+    baseOption.value = '';
+    baseOption.textContent = 'No linked persona';
+    primaryPersonaSelect.appendChild(baseOption);
+  }
 
   personaRows.forEach((row) => {
     const key = sanitizePersonaKey(row?.persona_key || '');
@@ -145,6 +164,16 @@ function renderPrimaryPersonaOptions(selectedKey = '') {
   }
 
   primaryPersonaSelect.value = normalizedSelected || '';
+}
+
+function setPersonaPdfAttachment({ name, href, status, reading }) {
+  if (personaPdfName) personaPdfName.textContent = name || 'No persona PDF uploaded yet';
+  if (personaPdfStatus) personaPdfStatus.textContent = status || 'Waiting';
+  if (personaPdfReading) personaPdfReading.value = reading || 'Upload a persona PDF to preview its reading here.';
+  if (personaPdfLink) {
+    personaPdfLink.href = href || '#';
+    personaPdfLink.toggleAttribute('aria-disabled', !href);
+  }
 }
 
 async function loadPersonas(userId) {
@@ -168,6 +197,8 @@ async function loadExisting() {
     loadDemoProfile();
     return;
   }
+
+  if (primaryPersonaSelect) primaryPersonaSelect.disabled = false;
 
   const { data, error } = await supabase.auth.getUser();
   if (error || !data.user) {
@@ -209,7 +240,7 @@ async function loadExisting() {
 function loadDemoProfile() {
   document.body.classList.add('demo-mode');
   document.title = 'Maya Chen Persona - Syntrae Demo';
-  personaRows = [{ persona_key: 'daniel-smith-demo', name: 'Daniel Smith' }];
+  personaRows = [{ persona_key: 'maya-chen-demo', name: 'Maya Chen' }];
 
   setInputValue('first_name', 'Maya');
   setInputValue('last_name', 'Chen');
@@ -222,7 +253,17 @@ function loadDemoProfile() {
   setInputValue('strengths', 'Maya notices tone, timing, and emotional detail. She is patient, sincere, and willing to communicate clearly when the moment matters.');
   setInputValue('constraints', 'She has one real-world conversation to initiate and wants to avoid making Daniel feel cornered, rushed, or responsible for her anxiety.');
   setInputValue('communication_style', 'Warm, reflective, considerate, and direct when clarity is important. Maya prefers invitations, plain language, and room for the other person to respond.');
-  renderPrimaryPersonaOptions('daniel-smith-demo');
+  renderPrimaryPersonaOptions('maya-chen-demo');
+  if (primaryPersonaSelect) {
+    primaryPersonaSelect.value = 'maya-chen-demo';
+    primaryPersonaSelect.disabled = true;
+  }
+  setPersonaPdfAttachment({
+    name: 'Maya Chen Persona Summary.pdf',
+    href: MAYA_PERSONA_PDF_URL,
+    status: 'Uploaded',
+    reading: MAYA_PERSONA_PDF_READING
+  });
 
   const titleRow = document.querySelector('.title-row');
   if (titleRow && !document.querySelector('.demo-video-strip')) {
@@ -249,6 +290,31 @@ function loadDemoProfile() {
   const skipBtn = document.getElementById('skipBtn');
   if (skipBtn) skipBtn.textContent = 'Back to demo chat';
 }
+
+personaPdfInput?.addEventListener('change', () => {
+  const file = personaPdfInput.files?.[0];
+  if (!file) {
+    setPersonaPdfAttachment({});
+    return;
+  }
+  const isPdf = file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf');
+  if (!isPdf) {
+    setPersonaPdfAttachment({
+      name: file.name,
+      status: 'Unsupported file',
+      reading: 'Please upload a PDF file so Syntrae can use it as a readable persona summary.'
+    });
+    return;
+  }
+
+  const objectUrl = URL.createObjectURL(file);
+  setPersonaPdfAttachment({
+    name: file.name,
+    href: objectUrl,
+    status: 'Uploaded',
+    reading: `PDF selected: ${file.name}\n\nIn the full product, Syntrae would extract this document into a readable private context summary here. For the demo, Maya Chen's attached PDF shows how this upload area becomes a persona reading panel for the user's information.`
+  });
+});
 
 form.addEventListener('submit', async (e) => {
   e.preventDefault();

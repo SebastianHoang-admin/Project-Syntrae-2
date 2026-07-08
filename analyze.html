@@ -476,11 +476,11 @@
         .conclusion h4 {
             margin: 0 0 8px;
             font-size: 15px;
-            color: #dfe7f5;
+            color: #203236;
         }
         .conclusion p {
             margin: 0;
-            color: #e7edf8;
+            color: #405457;
             line-height: 1.7;
         }
         @keyframes popIn {
@@ -780,7 +780,7 @@ Authority figure</div>
     </main>
 
     <script src="js/supabase-config.js"></script>
-    <script src="js/daniel-demo-persona.js"></script>
+    <script src="js/daniel-demo-persona.js?v=20260707-maya-demo"></script>
     <script src="js/page-tour.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>
@@ -876,6 +876,9 @@ Authority figure</div>
 
         function buildPersonaUrl(path, key = personaKey) {
             const safeKey = sanitizePersonaKey(key);
+            if (isDecisionTreeDemo()) {
+                return demoUrl(path, safeKey ? { [PERSONA_QUERY_PARAM]: safeKey } : {});
+            }
             if (!safeKey) return path;
             return `${path}?${PERSONA_QUERY_PARAM}=${encodeURIComponent(safeKey)}`;
         }
@@ -1636,6 +1639,13 @@ Authority figure</div>
                 if (saved) valueEl.textContent = saved;
             });
         }
+
+        function loadConclusionFromStorage() {
+            const conclusionEl = document.querySelector('[data-field="conclusion"]');
+            if (!conclusionEl) return;
+            const saved = localStorage.getItem('extra-conclusion');
+            conclusionEl.textContent = saved || 'Conclusion will appear once the persona has enough context.';
+        }
         window.addEventListener('resize', adjustCardHeights);
 
         function renderPersonaBars() {
@@ -1744,6 +1754,10 @@ Authority figure</div>
                 if (!selectedKey) return;
                 if (selectedKey === personaKey) return;
                 localStorage.setItem(ACTIVE_PERSONA_KEY_STORAGE, selectedKey);
+                if (isDecisionTreeDemo()) {
+                    window.location.href = demoUrl('analyze.html', { [PERSONA_QUERY_PARAM]: selectedKey });
+                    return;
+                }
                 window.location.href = buildPersonaUrl('analyze.html', selectedKey);
             });
         }
@@ -1769,6 +1783,7 @@ Authority figure</div>
 
         function refreshPersonaUiFromStorage() {
             loadBackgroundsFromStorage();
+            loadConclusionFromStorage();
             adjustCardHeights();
             renderPersonaBars();
             loadPersonaName();
@@ -2642,28 +2657,46 @@ Authority figure</div>
             ensureRadarLoop();
         });
 
-        function buildDemoPortraitDataUrl() {
-            return 'assets/daniel-smith-avatar.png';
+        function getRequestedDemoPersonaKey() {
+            const params = new URLSearchParams(window.location.search || '');
+            const requested = sanitizePersonaKey(params.get(PERSONA_QUERY_PARAM));
+            const definitions = window.SYNTRAE_DEMO_PERSONAS || {};
+            return definitions[requested] ? requested : 'daniel-smith-demo';
         }
 
-        function setupDanielDemoPersona() {
+        function setupDemoPersona() {
             document.body.classList.add('demo-mode');
-            document.title = 'Daniel Smith Persona - Syntrae Demo';
-            personaKey = 'daniel-smith-demo';
+            personaKey = getRequestedDemoPersonaKey();
+            const definition = window.getDemoPersonaDefinition
+                ? window.getDemoPersonaDefinition(personaKey)
+                : null;
+            const demoDefinition = definition || {
+                key: 'daniel-smith-demo',
+                name: 'Daniel Smith',
+                title: 'Daniel Smith Persona - Syntrae Demo',
+                portrait: 'assets/daniel-smith-avatar.png',
+                chips: ['Graduate student', 'Male', '23 yrs old', 'Probability totals'],
+                buildState: window.buildDanielDemoPersonaState
+            };
+            document.title = demoDefinition.title;
+            personaKey = demoDefinition.key;
             localStorage.setItem(ACTIVE_PERSONA_KEY_STORAGE, personaKey);
             const params = new URLSearchParams(window.location.search);
             params.set('demo', DECISION_TREE_DEMO);
             params.set(PERSONA_QUERY_PARAM, personaKey);
             window.history.replaceState({}, '', `${window.location.pathname}?${params.toString()}`);
 
-            const demoState = window.buildDanielDemoPersonaState({
-                portraitDataUrl: buildDemoPortraitDataUrl(),
+            const demoState = demoDefinition.buildState({
+                portraitDataUrl: demoDefinition.portrait,
                 savedAt: new Date().toISOString()
             });
             applyPersonaState(demoState);
 
             if (personaSelectorEl) {
-                personaSelectorEl.innerHTML = '<option value="daniel-smith-demo">Daniel Smith</option>';
+                const definitions = Object.values(window.SYNTRAE_DEMO_PERSONAS || {});
+                personaSelectorEl.innerHTML = definitions.map((item) => (
+                    `<option value="${item.key}">${item.name}</option>`
+                )).join('');
                 personaSelectorEl.value = personaKey;
             }
             if (editPersonaLink) editPersonaLink.href = demoUrl('edit-persona.html', { persona: personaKey });
@@ -2671,26 +2704,32 @@ Authority figure</div>
             document.querySelector('.primary-btn')?.setAttribute('href', demoUrl('Chat.html', { state: 'start' }));
 
             const panel = document.querySelector('.panel');
-            if (panel && !document.querySelector('.demo-context-strip')) {
-                panel.insertAdjacentHTML('afterbegin', `
-                    <section class="demo-context-strip" aria-label="Daniel Smith demo context">
-                        <div>
-                            <h2>Daniel Smith persona</h2>
-                        </div>
-                        <div class="demo-chip-row">
-                            <span class="demo-chip">Graduate student</span>
-                            <span class="demo-chip">Male</span>
-                            <span class="demo-chip">23 yrs old</span>
-                            <span class="demo-chip">Probability totals</span>
-                        </div>
-                    </section>
-                `);
+            if (panel) {
+                const stripMarkup = `
+                    <div>
+                        <h2>${demoDefinition.name} persona</h2>
+                    </div>
+                    <div class="demo-chip-row">
+                        ${demoDefinition.chips.map((chip) => `<span class="demo-chip">${chip}</span>`).join('')}
+                    </div>
+                `;
+                const existingStrip = document.querySelector('.demo-context-strip');
+                if (existingStrip) {
+                    existingStrip.setAttribute('aria-label', `${demoDefinition.name} demo context`);
+                    existingStrip.innerHTML = stripMarkup;
+                } else {
+                    panel.insertAdjacentHTML('afterbegin', `
+                        <section class="demo-context-strip" aria-label="${demoDefinition.name} demo context">
+                            ${stripMarkup}
+                        </section>
+                    `);
+                }
             }
         }
 
         async function startAnalyzePage() {
             if (isDecisionTreeDemo()) {
-                setupDanielDemoPersona();
+                setupDemoPersona();
                 refreshPersonaUiFromStorage();
                 await initRadar();
                 return;
