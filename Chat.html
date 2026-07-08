@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Syntrae - Decision Studio</title>
+    <title>Syntrae - Dashboard</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -1422,7 +1422,7 @@
     <header class="header">
         <div class="logo">
             <img class="syntrae-logo-image" src="assets/syntrae-logo.png" alt="Syntrae logo">
-            <span class="brand-page-label">Decision Studio</span>
+            <span class="brand-page-label">Dashboard</span>
         </div>
 
         <div class="account-indicator" id="accountIndicator" title="Current account">Checking session…</div>
@@ -1461,7 +1461,7 @@
                 </div>
             </div>
 
-            <h2 class="column-title"><i class="fas fa-comments"></i>Your Chat</h2>
+            <h2 class="column-title"><i class="fas fa-comments"></i>Dashboard</h2>
             <div class="chat-session-toolbar">
                 <div class="chat-session-meta">
                     <span class="chat-session-label">Active persona</span>
@@ -2973,7 +2973,7 @@
 
             window.SyntraePageTour?.init({
                 pageKey: 'chat-demo',
-                title: 'Decision Studio guide',
+                title: 'Dashboard guide',
                 triggerText: 'Page guide',
                 autoStart: () => new URLSearchParams(window.location.search).get('tour') === '1',
                 onFinish: () => {
@@ -3215,7 +3215,7 @@
 
             window.SyntraePageTour?.init({
                 pageKey: 'chat',
-                title: 'Decision Studio guide',
+                title: 'Dashboard guide',
                 triggerText: 'Page guide',
                 steps: [
                     {
@@ -3226,8 +3226,8 @@
                     },
                     {
                         selector: '.chat-column',
-                        title: 'Your Chat',
-                        description: 'This main column is the live Decision Studio. It holds chat sessions, message history, and the input box used to work through one situation at a time.',
+                        title: 'Dashboard',
+                        description: 'This main column is the live Dashboard. It holds chat sessions, message history, and the input box used to work through one situation at a time.',
                         placement: 'left'
                     },
                     {

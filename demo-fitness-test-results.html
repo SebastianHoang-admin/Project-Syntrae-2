@@ -782,17 +782,6 @@
           </div>
         </div>
 
-        <div class="metric-grid">
-          <div class="metric">
-            <span>Quantitative deviation</span>
-            <strong id="quantDeviation">22%</strong>
-          </div>
-          <div class="metric">
-            <span>Qualitative misalignment</span>
-            <strong id="qualMisalignment">18%</strong>
-          </div>
-        </div>
-
         <div class="conclusion-box">
           <h3>Conclusion</h3>
           <p id="conclusionSummary">This comparison suggests a positive overall fit, with clear alignment in tone, care, and long-term communication style.</p>
@@ -885,8 +874,6 @@
     const compatibilityPercentEl = document.getElementById('compatibilityPercent');
     const compatibilityDescriptionEl = document.getElementById('compatibilityDescription');
     const analyticSummaryEl = document.getElementById('analyticSummary');
-    const quantDeviationEl = document.getElementById('quantDeviation');
-    const qualMisalignmentEl = document.getElementById('qualMisalignment');
     const corePercentEl = document.getElementById('corePercent');
     const coreCopyEl = document.getElementById('coreCopy');
     const chartLegendEl = document.getElementById('chartLegend');
@@ -1006,8 +993,6 @@
 
     function renderChart(report) {
       const compatibility = clampPercent(report.compatibilityPercent);
-      const quantitative = clampPercent(report.quantitativeDeviationPercent);
-      const qualitative = clampPercent(report.qualitativeMisalignmentPercent);
       const matchAxes = Array.isArray(report.top_matches_axes) ? report.top_matches_axes.slice(0, 3) : [];
       const aSeries = matchAxes.length ? matchAxes.map((axis) => clamp01(axis?.persona_a_value ?? 0.5)) : [0.82, 0.76, 0.62];
       const bSeries = matchAxes.length ? matchAxes.map((axis) => clamp01(axis?.persona_b_value ?? 0.5)) : [0.76, 0.72, 0.63];
@@ -1016,9 +1001,6 @@
       corePercentEl.textContent = `${compatibility}%`;
       compatibilityDescriptionEl.textContent = getDescription(compatibility);
       coreCopyEl.textContent = getDescription(compatibility);
-      quantDeviationEl.textContent = `${quantitative}%`;
-      qualMisalignmentEl.textContent = `${qualitative}%`;
-
       const labelA = String(report?.personaA?.label || 'Persona A').trim() || 'Persona A';
       const labelB = String(report?.personaB?.label || 'Persona B').trim() || 'Persona B';
       personaALabelEl.textContent = labelA;

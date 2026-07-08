@@ -288,7 +288,7 @@ function loadDemoProfile() {
   const brand = document.querySelector('.brand');
   if (brand) brand.setAttribute('href', demoUrl('Chat.html', { state: 'start' }));
   const skipBtn = document.getElementById('skipBtn');
-  if (skipBtn) skipBtn.textContent = 'Back to demo chat';
+  if (skipBtn) skipBtn.textContent = 'Back to demo dashboard';
 }
 
 personaPdfInput?.addEventListener('change', () => {
