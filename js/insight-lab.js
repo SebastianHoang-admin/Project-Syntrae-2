@@ -2092,29 +2092,24 @@ function setupDemoInsightLab() {
   const hero = document.querySelector('.hero');
   if (hero && !document.querySelector('.demo-intro-grid')) {
     hero.insertAdjacentHTML('beforeend', `
-      <div class="demo-intro-grid" aria-label="Maya and Daniel demo context">
+      <div class="demo-intro-grid" aria-label="Insight Lab function overview">
         <article class="demo-intro-card demo-story-card">
           <span class="demo-kicker">Friendly experimental space</span>
-          <h3>Maya Chen → Daniel Smith</h3>
-          <p>Use this lab scene to show how Syntrae compares two personas with warmth, context, and practical clarity before a real-world decision is made.</p>
-          <div class="demo-chip-row">
-            <span class="demo-chip">Maya: Student</span>
-            <span class="demo-chip">Maya: Female</span>
-            <span class="demo-chip">Maya: 22 yrs old</span>
-            <span class="demo-chip">Daniel persona ready</span>
-            <span class="demo-chip">Probability ranges</span>
-          </div>
+          <h3>Compare personas before the moment matters.</h3>
+          <p>Insight Lab is a virtual experimental space for placing two personas side by side, reading their likely points of fit and friction, and turning private context into calmer real-world decisions.</p>
         </article>
-        <figure class="demo-visual-card">
-          <img src="assets/syntrae-relationship-hero.png" alt="Two people smiling together outdoors">
-          <figcaption>
-            <strong>Compare with care.</strong>
-            <span>Friendly persona context helps the analysis feel human, not clinical.</span>
+        <figure class="demo-abstract-card" aria-label="Abstract friendly comparison artwork">
+          <span class="abstract-orb one"></span>
+          <span class="abstract-orb two"></span>
+          <span class="abstract-orb three"></span>
+          <span class="abstract-path"></span>
+          <span class="abstract-node a"></span>
+          <span class="abstract-node b"></span>
+          <span class="abstract-node c"></span>
+          <figcaption class="abstract-cardlet">
+            <strong>Patterns become easier to read.</strong>
+            <span>Warm signals, practical context, and comparison paths come together before a real decision is made.</span>
           </figcaption>
-          <div class="demo-portrait-stack" aria-label="Selected demo personas">
-            <span><img src="assets/maya-chen-avatar.png" alt="Maya Chen smiling"> Maya</span>
-            <span><img src="assets/daniel-smith-avatar.png" alt="Daniel Smith smiling"> Daniel</span>
-          </div>
         </figure>
       </div>
     `);

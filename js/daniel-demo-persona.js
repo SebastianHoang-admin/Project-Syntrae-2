@@ -261,8 +261,8 @@
       version: 1,
       savedAt: options.savedAt || '2026-07-06T00:00:00.000Z',
       personaName: 'Daniel Smith',
-      personaPortrait: options.portraitDataUrl || 'assets/daniel-smith-avatar.png',
-      personaAvatarPresent: 'yes',
+      personaPortrait: Object.prototype.hasOwnProperty.call(options, 'portraitDataUrl') ? options.portraitDataUrl : 'assets/daniel-smith-avatar.png',
+      personaAvatarPresent: Object.prototype.hasOwnProperty.call(options, 'portraitDataUrl') ? (options.portraitDataUrl ? 'yes' : '') : 'yes',
       answers,
       session: {
         visibleIds: Object.keys(answers),
@@ -282,8 +282,8 @@
       version: 1,
       savedAt: options.savedAt || '2026-07-06T00:00:00.000Z',
       personaName: 'Maya Chen',
-      personaPortrait: options.portraitDataUrl || 'assets/maya-chen-avatar.png',
-      personaAvatarPresent: 'yes',
+      personaPortrait: Object.prototype.hasOwnProperty.call(options, 'portraitDataUrl') ? options.portraitDataUrl : 'assets/maya-chen-avatar.png',
+      personaAvatarPresent: Object.prototype.hasOwnProperty.call(options, 'portraitDataUrl') ? (options.portraitDataUrl ? 'yes' : '') : 'yes',
       answers,
       session: {
         visibleIds: Object.keys(answers),
@@ -302,7 +302,7 @@
       title: 'Daniel Smith Persona - Syntrae Demo',
       editTitle: 'Edit Daniel Smith Persona - Syntrae Demo',
       portrait: 'assets/daniel-smith-avatar.png',
-      chips: ['Graduate student', 'Male', '23 yrs old', 'Probability totals'],
+      chips: ['Graduate student', 'Male', '23 yrs old'],
       buildState: buildDanielDemoPersonaState
     },
     'maya-chen-demo': {
@@ -311,7 +311,7 @@
       title: 'Maya Chen Persona - Syntrae Demo',
       editTitle: 'Edit Maya Chen Persona - Syntrae Demo',
       portrait: 'assets/maya-chen-avatar.png',
-      chips: ['Student', 'Female', '22 yrs old', 'Probability totals'],
+      chips: ['Student', 'Female', '22 yrs old'],
       buildState: buildMayaDemoPersonaState
     }
   };

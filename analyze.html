@@ -570,9 +570,9 @@
             gap: 14px;
             padding: 18px;
             border-radius: 16px;
-            border: 1px solid rgba(32,50,54,0.12);
-            background: linear-gradient(135deg, rgba(223,244,237,0.84), rgba(255,255,255,0.94));
-            box-shadow: 0 14px 36px rgba(32,50,54,0.08);
+            border: 1px solid rgba(32,50,54,0.1);
+            background: rgba(251,255,248,0.94);
+            box-shadow: 0 10px 26px rgba(32,50,54,0.06);
         }
         .demo-context-strip h2 {
             margin-bottom: 6px;
@@ -599,6 +599,9 @@
         }
         .demo-mode .portrait {
             min-height: 460px;
+        }
+        .demo-mode .portrait .placeholder {
+            display: none;
         }
         @keyframes spin {
             from { transform: rotate(0deg); }
@@ -780,7 +783,7 @@ Authority figure</div>
     </main>
 
     <script src="js/supabase-config.js"></script>
-    <script src="js/daniel-demo-persona.js?v=20260707-maya-demo"></script>
+    <script src="js/daniel-demo-persona.js?v=20260708-demo-avatars"></script>
     <script src="js/page-tour.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>
@@ -2675,7 +2678,7 @@ Authority figure</div>
                 name: 'Daniel Smith',
                 title: 'Daniel Smith Persona - Syntrae Demo',
                 portrait: 'assets/daniel-smith-avatar.png',
-                chips: ['Graduate student', 'Male', '23 yrs old', 'Probability totals'],
+                chips: ['Graduate student', 'Male', '23 yrs old'],
                 buildState: window.buildDanielDemoPersonaState
             };
             document.title = demoDefinition.title;
@@ -2690,6 +2693,7 @@ Authority figure</div>
                 portraitDataUrl: demoDefinition.portrait,
                 savedAt: new Date().toISOString()
             });
+            clearPersonaLocalState();
             applyPersonaState(demoState);
 
             if (personaSelectorEl) {

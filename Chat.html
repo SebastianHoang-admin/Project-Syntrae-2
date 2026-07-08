@@ -719,18 +719,14 @@
             border: 1px solid rgba(18, 150, 141, 0.2);
             border-radius: 12px;
             background: rgba(223, 244, 237, 0.5);
+            display: grid;
+            gap: 10px;
         }
 
         .candidate-card strong {
             display: block;
             color: var(--ink);
-            margin-bottom: 4px;
-        }
-
-        .candidate-card span {
-            color: var(--quiet);
-            font-size: 12px;
-            line-height: 1.4;
+            margin-bottom: 0;
         }
 
         .demo-persona-switcher {
@@ -921,26 +917,38 @@
             padding: 13px 15px;
             line-height: 1.55;
             font-size: 14px;
-            box-shadow: 0 12px 28px rgba(32, 50, 54, 0.08);
+            box-shadow: 0 10px 22px rgba(32, 50, 54, 0.07);
+            display: grid;
+            gap: 6px;
+        }
+
+        .bubble-speaker {
+            font-size: 11px;
+            line-height: 1;
+            font-weight: 900;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            opacity: 0.72;
         }
 
         .demo-chat-bubble.user {
             justify-self: end;
-            background: linear-gradient(135deg, rgba(18, 150, 141, 0.9), rgba(243, 201, 79, 0.86));
-            color: #10262a;
+            background: #dff4ed;
+            border: 1px solid rgba(18, 150, 141, 0.22);
+            color: var(--ink);
         }
 
         .demo-chat-bubble.agent {
             justify-self: start;
-            background: rgba(255, 255, 255, 0.92);
-            border: 1px solid rgba(32, 50, 54, 0.1);
+            background: #ffffff;
+            border: 1px solid rgba(32, 50, 54, 0.12);
             color: var(--ink);
         }
 
         .demo-profile-detail {
             display: grid;
-            gap: 10px;
-            padding: 14px;
+            gap: 14px;
+            padding: 18px;
             border-radius: 14px;
             background: linear-gradient(135deg, rgba(223, 244, 237, 0.74), rgba(255, 248, 235, 0.72));
             border: 1px solid rgba(18, 150, 141, 0.18);
@@ -948,9 +956,15 @@
 
         .demo-profile-detail p {
             color: var(--quiet);
-            font-size: 13px;
-            line-height: 1.5;
+            font-size: 16px;
+            line-height: 1.62;
             margin: 0;
+        }
+
+        .demo-profile-detail strong {
+            color: var(--ink);
+            font-size: 17px;
+            line-height: 1.45;
         }
 
         .demo-persona-facts {
@@ -1089,6 +1103,22 @@
             margin-bottom: 12px;
         }
 
+        .tree-card-meta {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            color: var(--quiet);
+            font-size: 13px;
+            font-weight: 800;
+            margin: 4px 0 8px;
+        }
+
+        .tree-card-meta .probability {
+            font-size: 16px;
+            font-weight: 900;
+        }
+
         .outcome-list {
             list-style: none;
             display: grid;
@@ -1096,14 +1126,33 @@
         }
 
         .outcome-list li {
-            display: grid;
-            gap: 6px;
-            padding: 10px;
+            padding: 0;
             border: 1px solid rgba(32, 50, 54, 0.08);
             border-radius: 12px;
             background: rgba(251, 255, 248, 0.82);
             font-size: 12px;
             line-height: 1.35;
+            overflow: hidden;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+        }
+
+        .outcome-list li:hover,
+        .outcome-list li.is-active {
+            border-color: rgba(18, 150, 141, 0.34);
+            box-shadow: 0 12px 26px rgba(32, 50, 54, 0.08);
+            transform: translateY(-1px);
+        }
+
+        .outcome-select {
+            width: 100%;
+            display: grid;
+            gap: 8px;
+            padding: 11px;
+            border: 0;
+            background: transparent;
+            color: inherit;
+            text-align: left;
+            cursor: pointer;
         }
 
         .outcome-head {
@@ -1130,7 +1179,79 @@
         .probability-fill {
             height: 100%;
             border-radius: inherit;
-            background: linear-gradient(90deg, var(--leaf), var(--teal), var(--coral));
+            background: var(--teal);
+        }
+
+        .outcome-detail-panel {
+            display: none;
+            grid-template-columns: minmax(180px, 0.34fr) minmax(0, 1fr);
+            gap: 18px;
+            padding: 20px;
+            border: 1px solid rgba(18, 150, 141, 0.22);
+            border-radius: 18px;
+            background:
+                radial-gradient(circle at 12% 16%, rgba(223, 244, 237, 0.88), transparent 34%),
+                linear-gradient(135deg, #ffffff, #fbfff8);
+            box-shadow: 0 18px 42px rgba(32, 50, 54, 0.1);
+        }
+
+        .outcome-detail-panel.is-visible {
+            display: grid;
+        }
+
+        .outcome-detail-label {
+            display: grid;
+            gap: 8px;
+            align-content: start;
+        }
+
+        .outcome-detail-label span {
+            color: var(--quiet);
+            font-size: 12px;
+            font-weight: 900;
+            text-transform: uppercase;
+        }
+
+        .outcome-detail-label strong {
+            color: var(--leaf);
+            font-size: 42px;
+            line-height: 1;
+        }
+
+        .outcome-detail-copy {
+            display: grid;
+            gap: 9px;
+            color: var(--ink);
+        }
+
+        .outcome-detail-copy h4 {
+            margin: 0;
+            color: var(--ink);
+            font-size: 23px;
+            line-height: 1.15;
+        }
+
+        .outcome-detail-copy p {
+            margin: 0;
+            color: var(--quiet);
+            font-size: 15px;
+            line-height: 1.62;
+        }
+
+        .outcome-detail-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .outcome-detail-meta span {
+            border: 1px solid rgba(32, 50, 54, 0.1);
+            border-radius: 999px;
+            padding: 7px 10px;
+            background: rgba(251, 255, 248, 0.9);
+            color: var(--ink);
+            font-size: 12px;
+            font-weight: 900;
         }
 
         .recommendation-card {
@@ -1263,6 +1384,9 @@
             }
             .demo-hero,
             .tree-grid {
+                grid-template-columns: 1fr;
+            }
+            .outcome-detail-panel {
                 grid-template-columns: 1fr;
             }
         }
@@ -2187,23 +2311,32 @@
 
         function formatProbability(probability) {
             const value = Number(probability || 0);
-            return Number.isFinite(value) ? value.toFixed(2) : '0.00';
+            if (!Number.isFinite(value)) return '0%';
+            const percent = value <= 1 ? value * 100 : value;
+            return `${Math.round(percent)}%`;
         }
 
-        function buildOutcomeItems(items) {
-            return items.map((item) => {
+        function probabilityFillWidth(probability) {
+            const value = Number(probability || 0);
+            if (!Number.isFinite(value)) return 0;
+            return Math.max(0, Math.min(100, value <= 1 ? value * 100 : value));
+        }
+
+        function buildOutcomeItems(items, branchIndex) {
+            return items.map((item, itemIndex) => {
                 const probability = Number(item.probability || 0);
-                const fillWidth = Math.max(0, Math.min(100, probability * 100));
+                const fillWidth = probabilityFillWidth(probability);
                 return `
                 <li>
-                    <div class="outcome-head">
-                        <span>${escapeHtml(item.label)}</span>
-                        <span class="probability">${formatProbability(probability)}</span>
-                    </div>
-                    <div class="probability-track" aria-hidden="true">
-                        <div class="probability-fill" style="width:${fillWidth}%;"></div>
-                    </div>
-                    <span>${escapeHtml(item.note)}</span>
+                    <button type="button" class="outcome-select" data-outcome-branch="${branchIndex}" data-outcome-index="${itemIndex}" aria-expanded="false">
+                        <div class="outcome-head">
+                            <span>${escapeHtml(item.label)}</span>
+                            <span class="probability">${formatProbability(probability)}</span>
+                        </div>
+                        <div class="probability-track" aria-hidden="true">
+                            <div class="probability-fill" style="width:${fillWidth}%;"></div>
+                        </div>
+                    </button>
                 </li>
             `;
             }).join('');
@@ -2269,42 +2402,39 @@
                     introTitle: 'Best Way',
                     introCopy: 'Compare message styles before choosing the one action that goes out in real life.',
                     candidates: [
-                        { title: 'Warm and direct', detail: 'Clear, respectful, and honest without sounding forceful.' },
-                        { title: 'Light and open-ended', detail: 'Gentle invitation that gives him room to choose the pace.' },
-                        { title: 'Reflective and intentional', detail: 'Emotionally sincere, but heavier from the first line.' }
+                        { title: 'Warm and direct' },
+                        { title: 'Light and open-ended' },
+                        { title: 'Reflective and intentional' }
                     ],
                     outcomes: [
                         {
                             title: 'Option A',
                             action: 'Warm and direct',
                             probability: 0.37,
-                            description: 'A plainspoken invitation that fits his respect for honesty while still keeping the tone considerate.',
                             items: [
-                                { label: 'Daniel respects the honesty', probability: 0.17, note: 'He tends to respond well when the purpose is named clearly and calmly.' },
-                                { label: 'Daniel asks for a little time to think', probability: 0.12, note: 'If the topic feels important, he may pause before answering so he can respond carefully.' },
-                                { label: 'The conversation happens with a more serious tone', probability: 0.08, note: 'Clarity helps, but it can raise the emotional weight of the moment.' }
+                                { label: 'Daniel respects the honesty', probability: 0.17 },
+                                { label: 'Daniel asks for a little time to think', probability: 0.12 },
+                                { label: 'The conversation happens with a more serious tone', probability: 0.08 }
                             ]
                         },
                         {
                             title: 'Option B',
                             action: 'Light and open-ended',
                             probability: 0.41,
-                            description: 'A low-pressure invitation that matches his preference for warmth, mutuality, and room to choose.',
                             items: [
-                                { label: 'Daniel feels comfortable saying yes', probability: 0.18, note: 'This fits his calm style and lowers the odds that he feels cornered.' },
-                                { label: 'He responds warmly but sets a slower pace', probability: 0.14, note: 'He is likely to engage when the invitation feels chosen rather than urgent.' },
-                                { label: 'The opening lands well, but needs one clearer follow-up', probability: 0.09, note: 'A softer message may still need one explicit sentence once he is in the conversation.' }
+                                { label: 'Daniel feels comfortable saying yes', probability: 0.18 },
+                                { label: 'He responds warmly but sets a slower pace', probability: 0.14 },
+                                { label: 'The opening lands well, but needs one clearer follow-up', probability: 0.09 }
                             ]
                         },
                         {
                             title: 'Option C',
                             action: 'Reflective and intentional',
                             probability: 0.22,
-                            description: 'A heartfelt message that shows care, but may feel more emotionally loaded than he prefers at the start.',
                             items: [
-                                { label: 'Daniel recognizes the sincerity', probability: 0.10, note: 'He does value emotional honesty when it feels grounded and real.' },
-                                { label: 'The tone feels heavier than he wants right away', probability: 0.08, note: 'Too much emotional weight too early can make him more quiet.' },
-                                { label: 'He replies later after processing the stakes', probability: 0.04, note: 'A more layered message gives him more to sort through before answering.' }
+                                { label: 'Daniel recognizes the sincerity', probability: 0.10 },
+                                { label: 'The tone feels heavier than he wants right away', probability: 0.08 },
+                                { label: 'He replies later after processing the stakes', probability: 0.04 }
                             ]
                         }
                     ],
@@ -2330,42 +2460,39 @@
                     introTitle: 'Timing Pathways',
                     introCopy: 'Compare timing options before choosing when to bring up the conversation.',
                     candidates: [
-                        { title: 'Saturday afternoon', detail: 'Planned, low-pressure, and aligned with his steady pace.' },
-                        { title: 'Weeknight text', detail: 'Convenient, but more likely to compete with school stress.' },
-                        { title: 'After a warm date', detail: 'Naturally close, but easier to misread emotionally.' }
+                        { title: 'Saturday afternoon' },
+                        { title: 'Weeknight text' },
+                        { title: 'After a warm date' }
                     ],
                     outcomes: [
                         {
                             title: 'Path A',
                             action: 'Saturday afternoon',
                             probability: 0.48,
-                            description: 'A planned window that fits his preference for calm pacing, one-on-one attention, and room to think.',
                             items: [
-                                { label: 'Daniel has room to think and answer well', probability: 0.20, note: 'A lower-pressure time slot supports the thoughtful style he tends to prefer.' },
-                                { label: 'The tone feels mutual instead of urgent', probability: 0.16, note: 'Planned timing helps the conversation feel intentional without becoming a surprise test.' },
-                                { label: 'The moment still feels a little serious', probability: 0.12, note: 'Even good timing can carry weight when the topic is defining the relationship.' }
+                                { label: 'Daniel has room to think and answer well', probability: 0.20 },
+                                { label: 'The tone feels mutual instead of urgent', probability: 0.16 },
+                                { label: 'The moment still feels a little serious', probability: 0.12 }
                             ]
                         },
                         {
                             title: 'Path B',
                             action: 'Weeknight text',
                             probability: 0.17,
-                            description: 'Efficient, but it competes directly with deadlines, part-time work, and the mental load he is already balancing.',
                             items: [
-                                { label: 'Daniel gives a practical reply', probability: 0.07, note: 'He may respond, but from a more tired, task-focused headspace.' },
-                                { label: 'Response slows because of deadlines', probability: 0.06, note: 'Busy evenings increase the chance that he waits until he has more capacity.' },
-                                { label: 'The topic gets reduced to logistics', probability: 0.04, note: 'Convenient timing can flatten emotional nuance into scheduling.' }
+                                { label: 'Daniel gives a practical reply', probability: 0.07 },
+                                { label: 'Response slows because of deadlines', probability: 0.06 },
+                                { label: 'The topic gets reduced to logistics', probability: 0.04 }
                             ]
                         },
                         {
                             title: 'Path C',
                             action: 'After a warm date',
                             probability: 0.35,
-                            description: 'Builds on real closeness in a low-key setting, but only works if the warmth does not get mistaken for immediate readiness.',
                             items: [
-                                { label: 'Conversation opens naturally', probability: 0.15, note: 'This setting fits his preference for one-on-one warmth and easier emotional flow.' },
-                                { label: 'The timing feels emotionally sudden', probability: 0.11, note: 'Even a good date can make the transition feel abrupt if the mood was still playful.' },
-                                { label: 'Warmth helps, but clarity still needs a follow-up', probability: 0.09, note: 'A connected moment helps, but it still benefits from one grounded next step.' }
+                                { label: 'Conversation opens naturally', probability: 0.15 },
+                                { label: 'The timing feels emotionally sudden', probability: 0.11 },
+                                { label: 'Warmth helps, but clarity still needs a follow-up', probability: 0.09 }
                             ]
                         }
                     ],
@@ -2391,42 +2518,39 @@
                     introTitle: 'Follow-up Paths',
                     introCopy: 'Compare follow-up responses after openness is shown.',
                     candidates: [
-                        { title: 'Short and clear', detail: 'Name the topic once, then leave space for his reply.' },
-                        { title: 'Affirming and grounded', detail: 'Thank him, lower pressure, and keep one clear thread.' },
-                        { title: 'Detailed context', detail: 'Show full care, but risk making the moment feel bigger.' }
+                        { title: 'Short and clear' },
+                        { title: 'Affirming and grounded' },
+                        { title: 'Detailed context' }
                     ],
                     outcomes: [
                         {
                             title: 'Move A',
                             action: 'Short and clear',
                             probability: 0.28,
-                            description: 'A concise follow-up that keeps the tone stable and does not crowd his yes, but may lean a little cool.',
                             items: [
-                                { label: 'Daniel understands the next step quickly', probability: 0.11, note: 'Concise wording helps the practical next step land fast.' },
-                                { label: 'The tone stays calm and contained', probability: 0.09, note: 'A short reply protects the emotional temperature of the exchange.' },
-                                { label: 'The reply shifts straight into logistics', probability: 0.08, note: 'He may move quickly into planning before warmth has been reinforced.' }
+                                { label: 'Daniel understands the next step quickly', probability: 0.11 },
+                                { label: 'The tone stays calm and contained', probability: 0.09 },
+                                { label: 'The reply shifts straight into logistics', probability: 0.08 }
                             ]
                         },
                         {
                             title: 'Move B',
                             action: 'Affirming and grounded',
                             probability: 0.49,
-                            description: 'A warm reply that reassures him, preserves choice, and still keeps the next step clear.',
                             items: [
-                                { label: 'Daniel feels respected and unpressured', probability: 0.20, note: 'This best matches his need for mutuality, sincerity, and emotional room.' },
-                                { label: 'Warmth stays high while the topic stays clear', probability: 0.17, note: 'A grounded tone helps honesty land without turning heavy.' },
-                                { label: 'One concrete follow-up question is still needed', probability: 0.12, note: 'You may still need one clean sentence about what you want to talk through.' }
+                                { label: 'Daniel feels respected and unpressured', probability: 0.20 },
+                                { label: 'Warmth stays high while the topic stays clear', probability: 0.17 },
+                                { label: 'One concrete follow-up question is still needed', probability: 0.12 }
                             ]
                         },
                         {
                             title: 'Move C',
                             action: 'Detailed context',
                             probability: 0.23,
-                            description: 'A fuller explanation that shows care, but risks making the moment feel larger than necessary for his style.',
                             items: [
-                                { label: 'Daniel sees the care behind it', probability: 0.09, note: 'Extra context can communicate sincerity and thoughtful effort.' },
-                                { label: 'The message feels bigger than the moment', probability: 0.08, note: 'Too much explanation can make the exchange feel heavier than needed.' },
-                                { label: 'Daniel takes longer to reply thoughtfully', probability: 0.06, note: 'More emotional detail gives him more to process before answering.' }
+                                { label: 'Daniel sees the care behind it', probability: 0.09 },
+                                { label: 'The message feels bigger than the moment', probability: 0.08 },
+                                { label: 'Daniel takes longer to reply thoughtfully', probability: 0.06 }
                             ]
                         }
                     ],
@@ -2482,15 +2606,6 @@
                     </div>
                     <div class="demo-side-note">
                         Syntrae uses private context to map likely consequence paths before a decision is made in the real world.
-                    </div>
-                </div>
-                <div class="demo-persona-card">
-                    <span class="demo-kicker">${demoIcon('route')} Decision loop</span>
-                    <div class="demo-chip-row">
-                        <span class="demo-chip">Build persona</span>
-                        <span class="demo-chip">Syntrae</span>
-                        <span class="demo-chip">Review consequences</span>
-                        <span class="demo-chip">Choose next move</span>
                     </div>
                 </div>
             `;
@@ -2563,6 +2678,7 @@
                             <span>Probability totals</span>
                         </div>
                         <div class="tree-grid" id="demoTreeGrid"></div>
+                        <aside class="outcome-detail-panel" id="demoOutcomeDetail" aria-live="polite"></aside>
                         <div class="recommendation-card" id="demoRecommendationCard">
                             ${demoIcon('bulb')}
                             <div>
@@ -2599,6 +2715,7 @@
             const demoPromptBox = document.getElementById('demoPromptBox');
             const demoCandidateGrid = document.getElementById('demoCandidateGrid');
             const demoTreeGrid = document.getElementById('demoTreeGrid');
+            const demoOutcomeDetail = document.getElementById('demoOutcomeDetail');
             const demoRecommendationTitle = document.getElementById('demoRecommendationTitle');
             const demoRecommendationText = document.getElementById('demoRecommendationText');
             let demoRevealTimer = null;
@@ -2644,19 +2761,21 @@
                     demoCandidateGrid.innerHTML = (chat.candidates || []).map((candidate) => `
                         <div class="candidate-card">
                             <strong>${escapeHtml(candidate.title)}</strong>
-                            <span>${escapeHtml(candidate.detail)}</span>
                         </div>
                     `).join('');
                 }
                 if (demoTreeGrid) {
-                    demoTreeGrid.innerHTML = (chat.outcomes || []).map((branch) => `
+                    demoTreeGrid.innerHTML = (chat.outcomes || []).map((branch, branchIndex) => `
                         <article class="tree-card">
-                            <p>${escapeHtml(branch.title)}</p>
+                            <div class="tree-card-meta">
+                                <span>${escapeHtml(branch.title)}</span>
+                                <span class="probability">${formatProbability(branch.probability)}</span>
+                            </div>
                             <h4>${escapeHtml(branch.action)}</h4>
-                            <p>${escapeHtml(branch.description)}</p>
-                            <ul class="outcome-list">${buildOutcomeItems(branch.items || [])}</ul>
+                            <ul class="outcome-list">${buildOutcomeItems(branch.items || [], branchIndex)}</ul>
                         </article>
                     `).join('');
+                    attachOutcomeDetailHandlers(chat);
                 }
                 if (demoRecommendationTitle) demoRecommendationTitle.textContent = chat.recommendation?.title || 'Suggested next move';
                 if (demoRecommendationText) demoRecommendationText.textContent = chat.recommendation?.text || 'Use the option that keeps the decision considerate and clear.';
@@ -2668,9 +2787,61 @@
                     }
                     loadingEl.classList.remove('is-visible');
                     treeEl.classList.remove('is-visible');
+                    hideOutcomeDetail();
                     runButton.disabled = false;
                     runButton.innerHTML = `${demoIcon('play')} Syntrae`;
                 }
+            }
+
+            function hideOutcomeDetail() {
+                if (!demoOutcomeDetail) return;
+                demoOutcomeDetail.classList.remove('is-visible');
+                demoOutcomeDetail.innerHTML = '';
+                demoTreeGrid?.querySelectorAll('.outcome-list li').forEach((item) => item.classList.remove('is-active'));
+                demoTreeGrid?.querySelectorAll('.outcome-select').forEach((button) => button.setAttribute('aria-expanded', 'false'));
+            }
+
+            function showOutcomeDetail(chat, branchIndex, itemIndex) {
+                if (!demoOutcomeDetail) return;
+                const branch = (chat.outcomes || [])[branchIndex];
+                const item = branch?.items?.[itemIndex];
+                if (!branch || !item) return;
+                demoTreeGrid?.querySelectorAll('.outcome-list li').forEach((node) => node.classList.remove('is-active'));
+                demoTreeGrid?.querySelectorAll('.outcome-select').forEach((button) => button.setAttribute('aria-expanded', 'false'));
+                const activeButton = demoTreeGrid?.querySelector(`[data-outcome-branch="${branchIndex}"][data-outcome-index="${itemIndex}"]`);
+                activeButton?.setAttribute('aria-expanded', 'true');
+                activeButton?.closest('li')?.classList.add('is-active');
+                demoOutcomeDetail.innerHTML = `
+                    <div class="outcome-detail-label">
+                        <span>Outcome likelihood</span>
+                        <strong>${formatProbability(item.probability)}</strong>
+                    </div>
+                    <div class="outcome-detail-copy">
+                        <div class="outcome-detail-meta">
+                            <span>${escapeHtml(branch.title)}</span>
+                            <span>${escapeHtml(branch.action)}</span>
+                        </div>
+                        <h4>${escapeHtml(item.label)}</h4>
+                        <p>This outcome is part of the ${escapeHtml(branch.action)} path and shows how much this consequence contributes to that option.</p>
+                        <p>Use this detail to compare tone, pacing, and clarity before choosing the real message to send.</p>
+                    </div>
+                `;
+                demoOutcomeDetail.classList.add('is-visible');
+                demoOutcomeDetail.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }
+
+            function attachOutcomeDetailHandlers(chat) {
+                hideOutcomeDetail();
+                if (!demoTreeGrid) return;
+                demoTreeGrid.querySelectorAll('.outcome-select').forEach((button) => {
+                    button.addEventListener('click', () => {
+                        showOutcomeDetail(
+                            chat,
+                            Number(button.dataset.outcomeBranch || 0),
+                            Number(button.dataset.outcomeIndex || 0)
+                        );
+                    });
+                });
             }
 
             document.querySelectorAll('[data-demo-persona-edit]').forEach((button) => {
@@ -2727,7 +2898,10 @@
                 const chat = demoChats[activeDemoChatKey] || demoChats.main;
                 demoChatHeading.textContent = chat.title;
                 demoChatTranscript.innerHTML = chat.messages.map((message) => `
-                    <div class="demo-chat-bubble ${message.role === 'user' ? 'user' : 'agent'}">${escapeHtml(message.text)}</div>
+                    <div class="demo-chat-bubble ${message.role === 'user' ? 'user' : 'agent'}">
+                        <span class="bubble-speaker">${message.role === 'user' ? 'Maya Chen' : 'Syntrae'}</span>
+                        <span>${escapeHtml(message.text)}</span>
+                    </div>
                 `).join('');
 
                 demoChatList.querySelectorAll('[data-demo-chat]').forEach((button) => {

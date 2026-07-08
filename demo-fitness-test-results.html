@@ -528,6 +528,22 @@
       padding: 22px;
     }
 
+    .list-panel.match-panel {
+      border-color: rgba(44, 125, 104, 0.16);
+      background:
+        radial-gradient(circle at 16% 12%, rgba(17, 149, 143, 0.14), transparent 32%),
+        linear-gradient(145deg, rgba(236, 250, 244, 0.96), rgba(248, 255, 251, 0.9));
+      box-shadow: 0 22px 52px rgba(44, 125, 104, 0.12);
+    }
+
+    .list-panel.mismatch-panel {
+      border-color: rgba(241, 191, 83, 0.32);
+      background:
+        radial-gradient(circle at 18% 16%, rgba(241, 191, 83, 0.24), transparent 34%),
+        linear-gradient(145deg, rgba(255, 248, 226, 0.98), rgba(255, 253, 244, 0.92));
+      box-shadow: 0 22px 52px rgba(177, 127, 27, 0.12);
+    }
+
     .list-panel h2 {
       font-family: "Fraunces", Georgia, serif;
       font-size: 30px;
@@ -554,11 +570,12 @@
       padding: 14px 15px 14px 40px;
       border-radius: 18px;
       border: 1px solid rgba(31, 50, 54, 0.08);
-      background: linear-gradient(180deg, rgba(248, 252, 249, 0.95), rgba(239, 247, 243, 0.95));
+      background: rgba(255, 255, 255, 0.72);
       position: relative;
       line-height: 1.5;
       font-weight: 600;
       color: var(--ink);
+      box-shadow: 0 10px 22px rgba(31, 50, 54, 0.04);
     }
 
     .check-list li::before {
@@ -571,9 +588,19 @@
       color: var(--leaf);
     }
 
+    .match-panel .check-list li {
+      border-color: rgba(44, 125, 104, 0.14);
+      background: rgba(248, 255, 251, 0.78);
+    }
+
+    .mismatch-panel .check-list li {
+      border-color: rgba(241, 191, 83, 0.28);
+      background: rgba(255, 252, 241, 0.82);
+    }
+
     .check-list.mismatch li::before {
       content: '\f071';
-      color: var(--coral);
+      color: #c98510;
     }
 
     .axis-grid {
@@ -803,13 +830,13 @@
     </section>
 
     <section class="sections">
-      <article class="panel list-panel">
+      <article class="panel list-panel match-panel">
         <h2>Areas of Match</h2>
         <p class="lead">These are the shared signals that make the personas easier to place on the same page.</p>
         <ul class="check-list" id="matchList"></ul>
       </article>
 
-      <article class="panel list-panel">
+      <article class="panel list-panel mismatch-panel">
         <h2>Areas of Mismatch</h2>
         <p class="lead">These are the pressure points the demo should surface so the result feels grounded.</p>
         <ul class="check-list mismatch" id="mismatchList"></ul>

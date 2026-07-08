@@ -105,6 +105,12 @@
       color: var(--muted);
       font-weight: 600;
     }
+    .demo-summary-line {
+      border-color: rgba(32,50,54,0.1);
+      background: rgba(251,255,248,0.94);
+      color: #1f3236;
+      box-shadow: 0 10px 26px rgba(32,50,54,0.06);
+    }
     .questions { display: grid; gap: 16px; }
     .question-card {
       background: var(--panel);
@@ -361,7 +367,7 @@
       window.SUPABASE_ANON_KEY
     );
   </script>
-  <script src="js/daniel-demo-persona.js?v=20260707-maya-demo"></script>
+  <script src="js/daniel-demo-persona.js?v=20260708-demo-avatars"></script>
   <script>
     const DATASET_PATH = '/data/Identitybuilder.json';
     const personalityRoot = document.getElementById('personality');
@@ -411,7 +417,7 @@
       backToAnalyze.href = demoUrl('analyze.html', { persona: personaKey });
       statusEl.textContent = `Demo mode: editing the saved ${demoDefinition.name} persona.`;
       statusEl.insertAdjacentHTML('afterend', `
-        <section class="status" data-type="success" style="display:grid;gap:6px;margin-bottom:14px;">
+        <section class="status demo-summary-line" data-type="success" style="display:grid;gap:6px;margin-bottom:14px;">
           <strong>${demoDefinition.name} demo persona</strong>
         </section>
       `);

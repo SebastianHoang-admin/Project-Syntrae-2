@@ -733,6 +733,25 @@
             border-color:rgba(18,150,141,0.2) !important;
             box-shadow:0 8px 18px rgba(32,50,54,0.06);
         }
+        .demo-mode .top-actions .link-btn {
+            border:1px solid rgba(18,150,141,0.34) !important;
+            border-radius:14px !important;
+            background:
+                linear-gradient(135deg, rgba(255,255,255,0.98), rgba(223,244,237,0.94)) !important;
+            color:#143431 !important;
+            box-shadow:0 14px 32px rgba(32,50,54,0.12) !important;
+            padding:12px 17px !important;
+            min-height:46px;
+            font-size:14px !important;
+            font-weight:900 !important;
+        }
+        .demo-mode .top-actions .link-btn:hover {
+            border-color:rgba(18,150,141,0.58) !important;
+            background:
+                linear-gradient(135deg, rgba(245,255,250,1), rgba(199,237,226,0.98)) !important;
+            box-shadow:0 18px 38px rgba(18,150,141,0.2) !important;
+            transform:translateY(-2px);
+        }
         .demo-mode .demo-visual-card {
             position:relative;
             min-height:300px;
@@ -787,35 +806,108 @@
             font-size:13px;
             line-height:1.4;
         }
-        .demo-mode .demo-portrait-stack {
+        .demo-mode .demo-abstract-card {
+            position:relative;
+            min-height:300px;
+            margin:0;
+            overflow:hidden;
+            border:1px solid rgba(32,50,54,0.12) !important;
+            border-radius:22px !important;
+            background:
+                radial-gradient(circle at 14% 18%, rgba(18,150,141,0.22), transparent 28%),
+                radial-gradient(circle at 76% 20%, rgba(243,201,79,0.34), transparent 26%),
+                radial-gradient(circle at 72% 78%, rgba(239,116,95,0.22), transparent 30%),
+                linear-gradient(145deg, #f8fffb 0%, #e7f8f0 54%, #fff7e8 100%);
+            box-shadow:0 20px 48px rgba(32,50,54,0.11) !important;
+        }
+        .demo-mode .demo-abstract-card::before {
+            content:"";
             position:absolute;
-            top:18px;
-            left:18px;
-            z-index:2;
-            display:flex;
-            gap:8px;
-            flex-wrap:wrap;
+            inset:24px;
+            border:1px solid rgba(18,150,141,0.16);
+            border-radius:28px;
+            background:
+                linear-gradient(135deg, rgba(255,255,255,0.62), rgba(255,255,255,0.08));
+            box-shadow:inset 0 1px 0 rgba(255,255,255,0.82);
         }
-        .demo-mode .demo-portrait-stack span {
-            display:inline-flex;
-            align-items:center;
-            gap:8px;
-            padding:6px 10px 6px 6px;
-            border-radius:999px;
-            background:rgba(255,255,255,0.9);
-            border:1px solid rgba(255,255,255,0.54);
-            color:var(--ink);
-            font-size:12px;
-            font-weight:900;
-            box-shadow:0 10px 22px rgba(32,50,54,0.12);
+        .demo-mode .abstract-orb,
+        .demo-mode .abstract-path,
+        .demo-mode .abstract-node,
+        .demo-mode .abstract-cardlet {
+            position:absolute;
+            z-index:1;
         }
-        .demo-mode .demo-portrait-stack img {
-            width:30px;
-            height:30px;
-            min-height:0;
+        .demo-mode .abstract-orb {
             border-radius:999px;
-            object-fit:cover;
-            display:block;
+            filter:blur(0.1px);
+            opacity:0.92;
+        }
+        .demo-mode .abstract-orb.one {
+            width:128px;
+            height:128px;
+            left:38px;
+            top:42px;
+            background:linear-gradient(135deg, rgba(18,150,141,0.84), rgba(102,209,181,0.58));
+        }
+        .demo-mode .abstract-orb.two {
+            width:160px;
+            height:160px;
+            right:54px;
+            top:54px;
+            background:linear-gradient(135deg, rgba(243,201,79,0.88), rgba(255,232,155,0.68));
+        }
+        .demo-mode .abstract-orb.three {
+            width:118px;
+            height:118px;
+            right:160px;
+            bottom:36px;
+            background:linear-gradient(135deg, rgba(239,116,95,0.78), rgba(252,177,156,0.48));
+        }
+        .demo-mode .abstract-path {
+            left:82px;
+            right:82px;
+            top:128px;
+            height:84px;
+            border-top:8px solid rgba(18,150,141,0.68);
+            border-right:8px solid rgba(243,201,79,0.7);
+            border-radius:999px 999px 0 0;
+            transform:rotate(-5deg);
+            opacity:0.82;
+        }
+        .demo-mode .abstract-node {
+            width:18px;
+            height:18px;
+            border-radius:999px;
+            background:#ffffff;
+            border:5px solid #12968d;
+            box-shadow:0 10px 24px rgba(18,150,141,0.24);
+        }
+        .demo-mode .abstract-node.a { left:76px; top:124px; }
+        .demo-mode .abstract-node.b { right:94px; top:110px; border-color:#f3c94f; }
+        .demo-mode .abstract-node.c { right:184px; bottom:92px; border-color:#ef745f; }
+        .demo-mode .abstract-cardlet {
+            left:34px;
+            right:34px;
+            bottom:24px;
+            padding:16px 18px;
+            border:1px solid rgba(255,255,255,0.7);
+            border-radius:20px;
+            background:rgba(255,255,255,0.78);
+            color:#143431;
+            box-shadow:0 18px 38px rgba(32,50,54,0.12);
+            backdrop-filter:blur(14px);
+            display:grid;
+            gap:4px;
+        }
+        .demo-mode .abstract-cardlet strong {
+            font-size:21px;
+            line-height:1.1;
+            color:#143431;
+        }
+        .demo-mode .abstract-cardlet span {
+            color:#65787a;
+            font-size:13px;
+            line-height:1.4;
         }
         .demo-mode .persona-preview {
             position:relative;
@@ -971,7 +1063,7 @@
 
     <script src="js/supabase-config.js"></script>
     <script src="js/page-tour.js"></script>
-    <script type="module" src="js/insight-lab.js?v=20260708-friendly-images"></script>
+    <script type="module" src="js/insight-lab.js?v=20260708-abstract-lab"></script>
     <script>
         window.SyntraePageTour?.init({
             pageKey: 'insight-lab',
