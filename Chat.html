@@ -178,6 +178,82 @@
             color: #fca5a5;
         }
 
+        #dropdownMenu {
+            isolation: isolate;
+        }
+
+        #dropdownMenu.active {
+            overflow: visible;
+            border-color: rgba(18, 150, 141, 0.22) !important;
+            background: rgba(255, 255, 255, 0.98) !important;
+            box-shadow:
+                0 0 0 1px rgba(255, 255, 255, 0.92),
+                0 16px 34px rgba(32, 50, 54, 0.14),
+                0 0 26px rgba(255, 255, 255, 0.86),
+                0 0 62px rgba(223, 244, 237, 0.72),
+                0 0 104px rgba(18, 150, 141, 0.22) !important;
+        }
+
+        #dropdownMenu::before,
+        #dropdownMenu::after {
+            content: '';
+            position: absolute;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.26s ease, transform 0.45s ease;
+        }
+
+        #dropdownMenu::before {
+            inset: -26px;
+            z-index: -1;
+            border-radius: 18px;
+            background:
+                radial-gradient(circle at 52% 4%, rgba(255, 255, 255, 0.96), rgba(223, 244, 237, 0.74) 32%, rgba(18, 150, 141, 0.18) 58%, transparent 74%);
+            filter: blur(10px);
+            transform: scale(0.94);
+        }
+
+        #dropdownMenu::after {
+            inset: 0;
+            z-index: 0;
+            border-radius: inherit;
+            background:
+                radial-gradient(circle at 84% 10%, rgba(255, 255, 255, 0.86), rgba(223, 244, 237, 0.34) 28%, transparent 54%),
+                radial-gradient(circle at 10% 92%, rgba(243, 201, 79, 0.18), transparent 48%);
+            transform: translate3d(-8px, 8px, 0) scale(0.96);
+        }
+
+        #dropdownMenu.active::before,
+        #dropdownMenu.active::after {
+            opacity: 0.46;
+            transform: translate3d(0, 0, 0) scale(1);
+        }
+
+        #dropdownMenu.active:hover::before,
+        #dropdownMenu.active:hover::after {
+            opacity: 1;
+        }
+
+        #dropdownMenu.active:hover::before {
+            animation: dashboard-menu-glow 2.2s ease-in-out infinite alternate;
+        }
+
+        #dropdownMenu .dropdown-item {
+            position: relative;
+            z-index: 1;
+        }
+
+        @keyframes dashboard-menu-glow {
+            from {
+                filter: blur(10px);
+                transform: scale(1);
+            }
+            to {
+                filter: blur(14px);
+                transform: scale(1.025);
+            }
+        }
+
         .fas::before {
             display: inline-block;
             font-style: normal;
@@ -2379,6 +2455,7 @@
             const demoPersonas = {
                 daniel: {
                     name: 'Daniel Smith',
+                    demoKey: 'daniel-smith-demo',
                     initial: 'D',
                     role: 'Relationship persona',
                     avatar: 'assets/daniel-smith-avatar.png',
@@ -2386,12 +2463,24 @@
                     headline: 'Warm, thoughtful, and responsive when serious topics are introduced with room to think.',
                     summary: 'Daniel responds best when the topic is named clearly without making the conversation feel like a demand.',
                     logic: 'Best Way should favor messages that are clear enough to be understood, but gentle enough to preserve Daniel\'s sense of choice.'
+                },
+                aaron: {
+                    name: 'Aaron Chen',
+                    demoKey: 'aaron-chen-demo',
+                    initial: 'A',
+                    role: 'Family persona',
+                    avatar: 'assets/aaron-chen-avatar.svg',
+                    facts: ['Maya\'s dad', 'Male', '55 yrs old', 'Family context'],
+                    headline: 'Protective, steady, and deeply caring when family news is shared with honesty and a clear plan.',
+                    summary: 'Aaron responds best when Maya leads with respect, gives him time to absorb the moment, and shows that she has thought through the practical next step.',
+                    logic: 'Best Way should favor loving, direct language that keeps him included as a father while reducing shock, defensiveness, or unnecessary worry.'
                 }
             };
             const demoChats = {
                 main: {
                     title: 'Invite Daniel to talk',
                     meta: 'Current decision',
+                    personaKey: 'daniel',
                     personaContext: {
                         facts: ['Graduate student', 'Male', '23 yrs old', 'Private context'],
                         headline: 'Warm, thoughtful, and responsive when serious topics are introduced with room to think.',
@@ -2450,6 +2539,7 @@
                 timing: {
                     title: 'Choose the right timing',
                     meta: 'Relationship moment',
+                    personaKey: 'daniel',
                     personaContext: {
                         facts: ['Graduate student', 'Deadline aware', 'Timing sensitive', 'Private context'],
                         headline: 'Steady and receptive when important conversations are scheduled instead of sprung on him.',
@@ -2457,7 +2547,7 @@
                         logic: 'Best Way should favor a calm planned window, because the same message can land better when Daniel has time and attention available.'
                     },
                     prompt: 'Would Saturday afternoon be a better time than a weeknight to ask Daniel for a deeper conversation?',
-                    introTitle: 'Timing Pathways',
+                    introTitle: 'Best Way',
                     introCopy: 'Compare timing options before choosing when to bring up the conversation.',
                     candidates: [
                         { title: 'Saturday afternoon' },
@@ -2508,6 +2598,7 @@
                 followup: {
                     title: 'Follow-up after a warm reply',
                     meta: 'Message draft',
+                    personaKey: 'daniel',
                     personaContext: {
                         facts: ['Warm responder', 'Needs room', 'Sincerity driven', 'Private context'],
                         headline: 'Responsive after openness is acknowledged, especially when the next reply stays grounded.',
@@ -2515,7 +2606,7 @@
                         logic: 'Best Way should favor a short affirming follow-up that preserves warmth while keeping enough space for Daniel to answer naturally.'
                     },
                     prompt: 'If Daniel says yes warmly, what should the next reply say without overexplaining?',
-                    introTitle: 'Follow-up Paths',
+                    introTitle: 'Best Way',
                     introCopy: 'Compare follow-up responses after openness is shown.',
                     candidates: [
                         { title: 'Short and clear' },
@@ -2562,15 +2653,204 @@
                         { role: 'user', text: 'If Daniel says yes warmly, what should the next reply say without overexplaining?' },
                         { role: 'agent', text: 'The best follow-up is warm and grounded: thank him, name the topic once, and keep enough space in the message for him to stay relaxed in the conversation.' }
                     ]
+                },
+                dadBirthday: {
+                    title: 'Plan Dad\'s birthday surprise',
+                    meta: 'Family celebration',
+                    personaKey: 'aaron',
+                    personaContext: {
+                        facts: ['Maya\'s dad', 'Family centered', 'Practical', 'Private context'],
+                        headline: 'Warmest when appreciation is personal, modest, and clearly comes from the heart.',
+                        summary: 'Aaron is likely to feel loved by a thoughtful surprise, but he may become uncomfortable if it feels too expensive or performative.',
+                        logic: 'Best Way should favor a grounded birthday plan that makes him feel seen without putting him at the center of too much attention.'
+                    },
+                    prompt: 'I want to surprise Dad for his birthday, but I do not want the gift to feel too expensive or overwhelming. What are the possible ways to make him feel loved?',
+                    introTitle: 'Best Way',
+                    introCopy: 'Compare caring family gestures before choosing the one celebration Maya will actually arrange.',
+                    candidates: [
+                        { title: 'Handwritten memory gift' },
+                        { title: 'Small family dinner' },
+                        { title: 'Big surprise party' }
+                    ],
+                    outcomes: [
+                        {
+                            title: 'Option A',
+                            action: 'Handwritten memory gift',
+                            probability: 0.40,
+                            items: [
+                                { label: 'Aaron feels deeply appreciated', probability: 0.18, reason: 'His persona values sincerity over display, so a personal note with specific memories is likely to feel meaningful and grounded.' },
+                                { label: 'He keeps the emotion private', probability: 0.13, reason: 'Aaron may be touched but modest, so he is likely to respond warmly without making the moment dramatic.' },
+                                { label: 'Maya may still want a small shared moment', probability: 0.09, reason: 'The gift is emotionally strong, but it may benefit from one simple dinner or walk to make the day feel complete.' }
+                            ]
+                        },
+                        {
+                            title: 'Option B',
+                            action: 'Small family dinner',
+                            probability: 0.44,
+                            items: [
+                                { label: 'Aaron relaxes into the celebration', probability: 0.19, reason: 'A low-key dinner matches his practical, family-centered style and lets him enjoy attention without feeling exposed.' },
+                                { label: 'He feels included without pressure', probability: 0.15, reason: 'The smaller setting signals love while still giving him room to be himself instead of performing gratitude.' },
+                                { label: 'A personal note makes it stronger', probability: 0.10, reason: 'Dinner creates warmth, but Aaron is most likely to remember the specific words Maya shares with him.' }
+                            ]
+                        },
+                        {
+                            title: 'Option C',
+                            action: 'Big surprise party',
+                            probability: 0.16,
+                            items: [
+                                { label: 'He appreciates the effort', probability: 0.07, reason: 'Aaron would recognize the love behind a larger gesture even if the format is not his natural preference.' },
+                                { label: 'The attention feels uncomfortable', probability: 0.06, reason: 'His protective and modest traits make sudden public attention more likely to feel overwhelming than joyful.' },
+                                { label: 'He worries about the cost', probability: 0.03, reason: 'Because Aaron thinks practically, an elaborate plan may make him focus on expense instead of the affection behind it.' }
+                            ]
+                        }
+                    ],
+                    recommendation: {
+                        title: 'Suggested first move: Option B.',
+                        text: 'A small family dinner gives Aaron warmth, dignity, and room to enjoy the day. Add one handwritten note if Maya wants the surprise to feel especially personal.'
+                    },
+                    messages: [
+                        { role: 'user', text: 'I want to surprise Dad for his birthday, but I do not want the gift to feel too expensive or overwhelming. What are the possible ways to make him feel loved?' },
+                        { role: 'agent', text: 'I can compare simple family gestures, then map which ones are most likely to make Aaron feel appreciated without putting too much pressure on him.' }
+                    ]
+                },
+                dadHardNews: {
+                    title: 'Share difficult school news',
+                    meta: 'High-stakes family talk',
+                    personaKey: 'aaron',
+                    personaContext: {
+                        facts: ['Protective father', 'Plan oriented', 'Worry sensitive', 'Private context'],
+                        headline: 'Most receptive when hard news is paired with accountability, timing, and a realistic next step.',
+                        summary: 'Aaron may react strongly at first because he cares, but he becomes more constructive when Maya shows she has considered consequences and support.',
+                        logic: 'Best Way should lower shock by leading with honesty, then quickly giving him a plan he can respond to as a caring parent.'
+                    },
+                    prompt: 'I need to tell Dad I am considering taking a semester away from school because I feel overwhelmed. How can I share this without making him panic?',
+                    introTitle: 'Best Way',
+                    introCopy: 'Compare ways to deliver difficult family news while keeping care, respect, and practical next steps in view.',
+                    candidates: [
+                        { title: 'Prepared plan first' },
+                        { title: 'Emotional confession' },
+                        { title: 'Casual mention' }
+                    ],
+                    outcomes: [
+                        {
+                            title: 'Option A',
+                            action: 'Prepared plan first',
+                            probability: 0.50,
+                            items: [
+                                { label: 'Aaron listens past the first worry', probability: 0.21, reason: 'A clear plan gives his protective instinct something practical to hold onto, making him less likely to stay in alarm.' },
+                                { label: 'He asks serious but useful questions', probability: 0.17, reason: 'Aaron is likely to test whether Maya has thought through money, timing, and school consequences before offering support.' },
+                                { label: 'The conversation becomes a planning talk', probability: 0.12, reason: 'Once he sees preparation, his concern can shift into problem-solving rather than reacting only to the headline.' }
+                            ]
+                        },
+                        {
+                            title: 'Option B',
+                            action: 'Emotional confession',
+                            probability: 0.29,
+                            items: [
+                                { label: 'Aaron softens when he sees the stress', probability: 0.12, reason: 'His care for Maya makes him responsive to honest distress, especially if she is not blaming him or herself.' },
+                                { label: 'His worry rises before he understands the plan', probability: 0.10, reason: 'If the emotion arrives before the details, Aaron may imagine worst-case outcomes before he knows what Maya is asking for.' },
+                                { label: 'He may need a second conversation', probability: 0.07, reason: 'A highly emotional first talk can open the door, but he may need time before discussing practical next steps clearly.' }
+                            ]
+                        },
+                        {
+                            title: 'Option C',
+                            action: 'Casual mention',
+                            probability: 0.21,
+                            items: [
+                                { label: 'He stays calm at first', probability: 0.08, reason: 'A casual tone may prevent immediate escalation, but it also hides how serious the decision feels to Maya.' },
+                                { label: 'He feels the seriousness was minimized', probability: 0.08, reason: 'Aaron values responsibility, so a casual delivery can make him wonder whether Maya understands the stakes.' },
+                                { label: 'Trust improves only after more detail', probability: 0.05, reason: 'He is likely to need a fuller explanation later before he can feel confident in Maya’s decision process.' }
+                            ]
+                        }
+                    ],
+                    recommendation: {
+                        title: 'Suggested first move: Option A.',
+                        text: 'Lead with calm honesty and a prepared plan. That gives Aaron space to be a caring father without feeling forced into immediate panic.'
+                    },
+                    messages: [
+                        { role: 'user', text: 'I need to tell Dad I am considering taking a semester away from school because I feel overwhelmed. How can I share this without making him panic?' },
+                        { role: 'agent', text: 'Start with care and preparation. Aaron is most likely to respond constructively when Maya names the stress honestly and brings a practical next-step plan.' }
+                    ]
+                },
+                dadGoodNews: {
+                    title: 'Tell Dad big good news',
+                    meta: 'Family milestone',
+                    personaKey: 'aaron',
+                    personaContext: {
+                        facts: ['Family protector', 'Emotionally steady', 'Needs context', 'Private context'],
+                        headline: 'Deeply loving when major news is shared with warmth, privacy, and reassurance that Maya is safe.',
+                        summary: 'Aaron may feel joy and concern at the same time; he responds best when Maya lets him be included without surprising him in a public setting.',
+                        logic: 'Best Way should make the moment feel safe and loving while giving him enough context to understand what support Maya wants from him.'
+                    },
+                    prompt: 'I have big good news about a pregnancy in the family and want Dad to feel included instead of shocked. What is the best way to tell him?',
+                    introTitle: 'Best Way',
+                    introCopy: 'Compare ways to share a major family milestone so the moment feels loving, private, and steady.',
+                    candidates: [
+                        { title: 'Private calm conversation' },
+                        { title: 'Family gathering reveal' },
+                        { title: 'Text first, call after' }
+                    ],
+                    outcomes: [
+                        {
+                            title: 'Option A',
+                            action: 'Private calm conversation',
+                            probability: 0.47,
+                            items: [
+                                { label: 'Aaron feels trusted and included', probability: 0.19, reason: 'A private setting tells Aaron that Maya values his role and wants him to hear the news with dignity.' },
+                                { label: 'Joy arrives with manageable concern', probability: 0.16, reason: 'He can be happy while still asking practical questions, because the tone gives him room for both feelings.' },
+                                { label: 'He asks how he can support', probability: 0.12, reason: 'When he is not caught off guard publicly, Aaron’s protective instinct is more likely to become useful support.' }
+                            ]
+                        },
+                        {
+                            title: 'Option B',
+                            action: 'Family gathering reveal',
+                            probability: 0.26,
+                            items: [
+                                { label: 'The room feels joyful quickly', probability: 0.10, reason: 'A shared reveal can create warmth and celebration when everyone is prepared for happy news.' },
+                                { label: 'Aaron hides his questions in public', probability: 0.09, reason: 'Because he may want context, a group setting can make him hold back important questions until later.' },
+                                { label: 'A private follow-up becomes necessary', probability: 0.07, reason: 'The public moment may be sweet, but Aaron will likely need a calmer one-on-one conversation afterward.' }
+                            ]
+                        },
+                        {
+                            title: 'Option C',
+                            action: 'Text first, call after',
+                            probability: 0.27,
+                            items: [
+                                { label: 'He has time to absorb the news', probability: 0.11, reason: 'Text gives Aaron a pause before speaking, which can help if the news is emotionally big.' },
+                                { label: 'The message feels too distant', probability: 0.09, reason: 'For a major family milestone, he may feel that a text does not match the closeness of the relationship.' },
+                                { label: 'The follow-up call restores warmth', probability: 0.07, reason: 'A prompt call can repair distance by letting Maya reassure him and invite his support directly.' }
+                            ]
+                        }
+                    ],
+                    recommendation: {
+                        title: 'Suggested first move: Option A.',
+                        text: 'A private calm conversation gives Aaron the best balance of joy, respect, and room to ask loving questions without feeling put on the spot.'
+                    },
+                    messages: [
+                        { role: 'user', text: 'I have big good news about a pregnancy in the family and want Dad to feel included instead of shocked. What is the best way to tell him?' },
+                        { role: 'agent', text: 'The warmest path is private and steady. It lets Aaron feel trusted as Maya’s dad while giving him room to be happy, protective, and supportive.' }
+                    ]
                 }
             };
             let activeDemoPersonaKey = 'daniel';
             let activeDemoChatKey = 'main';
 
-            const personaFactChips = (facts) => facts.map((fact) => `<span class="demo-chip">${fact}</span>`).join('');
+            const personaFactChips = (facts) => facts.map((fact) => `<span class="demo-chip">${escapeHtml(fact)}</span>`).join('');
             const personaAvatarMarkup = (persona) => persona?.avatar
                 ? `<img src="${escapeHtml(persona.avatar)}" alt="${escapeHtml(persona.name)} avatar">`
                 : escapeHtml(persona?.initial || '');
+            const demoPersonaRows = () => Object.entries(demoPersonas).map(([key, persona]) => `
+                <div class="demo-persona-row${key === activeDemoPersonaKey ? ' active' : ''}" data-demo-persona-row="${escapeHtml(key)}">
+                    <button type="button" class="demo-persona-select" data-demo-persona="${escapeHtml(key)}">
+                        <strong data-demo-persona-name="${escapeHtml(key)}">${escapeHtml(persona.name)}</strong>
+                        <span>${escapeHtml(key === 'aaron' ? 'Use family context with Maya\'s dad' : 'Use Daniel\'s relationship context')}</span>
+                    </button>
+                    <span class="demo-row-actions">
+                        <button type="button" class="demo-mini-btn" data-demo-persona-edit="${escapeHtml(key)}" title="Edit persona name">${demoIcon('pen')}</button>
+                        <button type="button" class="demo-mini-btn" data-demo-persona-delete="${escapeHtml(key)}" title="Delete persona">${demoIcon('trash')}</button>
+                    </span>
+                </div>
+            `).join('');
 
             personaListEl.innerHTML = `
                 <div class="demo-persona-card">
@@ -2582,27 +2862,13 @@
                         </div>
                     </div>
                     <div class="demo-persona-list" aria-label="Manage personas">
-                        <div class="demo-persona-row active" data-demo-persona-row="daniel">
-                            <button type="button" class="demo-persona-select" data-demo-persona="daniel">
-                                <strong data-demo-persona-name="daniel">Daniel Smith</strong>
-                                <span>Use Daniel's relationship context</span>
-                            </button>
-                            <span class="demo-row-actions">
-                                <button type="button" class="demo-mini-btn" data-demo-persona-edit="daniel" title="Edit persona name">${demoIcon('pen')}</button>
-                                <button type="button" class="demo-mini-btn" data-demo-persona-delete="daniel" title="Delete persona">${demoIcon('trash')}</button>
-                            </span>
-                        </div>
+                        ${demoPersonaRows()}
                     </div>
                     <div class="demo-profile-detail">
                         <div class="demo-persona-facts" id="demoPersonaFacts">${personaFactChips(demoPersonas.daniel.facts)}</div>
                         <p><strong id="demoPersonaHeadline">${demoPersonas.daniel.headline}</strong></p>
                         <p id="demoPersonaSummary">${demoPersonas.daniel.summary}</p>
                         <p><strong>Decision logic:</strong> <span id="demoPersonaLogic">${demoPersonas.daniel.logic}</span></p>
-                    </div>
-                    <div class="demo-chip-row">
-                        <span class="demo-chip">${demoIcon('check')} Context ready</span>
-                        <span class="demo-chip">Relationship focus</span>
-                        <span class="demo-chip">Private context</span>
                     </div>
                     <div class="demo-side-note">
                         Syntrae uses private context to map likely consequence paths before a decision is made in the real world.
@@ -2728,11 +2994,13 @@
             }
 
             function setActiveDemoPersona(personaKey) {
-                const persona = demoPersonas[personaKey] || demoPersonas.daniel;
-                const chatContext = (demoChats[activeDemoChatKey] || demoChats.main)?.personaContext || {};
-                activeDemoPersonaKey = personaKey;
+                const resolvedPersonaKey = demoPersonas[personaKey] ? personaKey : 'daniel';
+                const persona = demoPersonas[resolvedPersonaKey] || demoPersonas.daniel;
+                const activeChat = demoChats[activeDemoChatKey] || demoChats.main;
+                const chatContext = activeChat?.personaKey === resolvedPersonaKey ? (activeChat.personaContext || {}) : {};
+                activeDemoPersonaKey = resolvedPersonaKey;
                 document.querySelectorAll('[data-demo-persona-row]').forEach((row) => {
-                    row.classList.toggle('active', row.dataset.demoPersonaRow === personaKey);
+                    row.classList.toggle('active', row.dataset.demoPersonaRow === resolvedPersonaKey);
                 });
                 if (personaAvatar) {
                     personaAvatar.innerHTML = personaAvatarMarkup(persona);
@@ -2745,10 +3013,22 @@
                 if (personaLogic) personaLogic.textContent = chatContext.logic || persona.logic;
                 if (personaSettingName) personaSettingName.textContent = persona.name;
                 if (demoActivePersonaLabel) demoActivePersonaLabel.textContent = persona.name;
+                if (accountIndicator) accountIndicator.textContent = persona.name;
+                const analyzeDestination = document.querySelector('[data-destination="analyze"]');
+                if (analyzeDestination) {
+                    analyzeDestination.setAttribute('href', demoUrl('analyze.html', { persona: persona.demoKey || 'daniel-smith-demo' }));
+                }
             }
 
             personaButtons.forEach((button) => {
-                button.addEventListener('click', () => setActiveDemoPersona(button.dataset.demoPersona));
+                button.addEventListener('click', () => {
+                    const nextPersonaKey = button.dataset.demoPersona;
+                    const firstChatForPersona = Object.entries(demoChats).find(([, chat]) => chat.personaKey === nextPersonaKey);
+                    if (firstChatForPersona) activeDemoChatKey = firstChatForPersona[0];
+                    setActiveDemoPersona(nextPersonaKey);
+                    renderDemoChats();
+                    renderActiveDemoSimulation({ resetRun: true });
+                });
             });
 
             function renderActiveDemoSimulation({ resetRun = false } = {}) {
@@ -2806,6 +3086,7 @@
                 const branch = (chat.outcomes || [])[branchIndex];
                 const item = branch?.items?.[itemIndex];
                 if (!branch || !item) return;
+                const persona = demoPersonas[chat.personaKey] || demoPersonas[activeDemoPersonaKey] || demoPersonas.daniel;
                 demoTreeGrid?.querySelectorAll('.outcome-list li').forEach((node) => node.classList.remove('is-active'));
                 demoTreeGrid?.querySelectorAll('.outcome-select').forEach((button) => button.setAttribute('aria-expanded', 'false'));
                 const activeButton = demoTreeGrid?.querySelector(`[data-outcome-branch="${branchIndex}"][data-outcome-index="${itemIndex}"]`);
@@ -2823,7 +3104,7 @@
                         </div>
                         <h4>${escapeHtml(item.label)}</h4>
                         <p><strong>Why this chance:</strong> ${escapeHtml(item.reason || 'Syntrae weighs this outcome against the active persona context, the timing of the message, and the emotional pressure created by this option.')}</p>
-                        <p>This estimate is based on Daniel’s saved communication pattern, the current relationship moment, and how much pressure or room the option gives him.</p>
+                        <p>This estimate is based on ${escapeHtml(persona.name)}'s saved communication pattern, the current moment, and how much pressure or room the option creates.</p>
                     </div>
                 `;
                 demoOutcomeDetail.classList.add('is-visible');
@@ -2875,14 +3156,26 @@
                     row.classList.add('is-hidden');
                     if (activeDemoPersonaKey === key) {
                         const nextRow = visibleRows.find((item) => item.dataset.demoPersonaRow !== key);
-                        setActiveDemoPersona(nextRow?.dataset.demoPersonaRow || 'daniel');
+                        const nextPersonaKey = nextRow?.dataset.demoPersonaRow || 'daniel';
+                        const firstChatForPersona = Object.entries(demoChats).find(([, chat]) => chat.personaKey === nextPersonaKey);
+                        if (firstChatForPersona) activeDemoChatKey = firstChatForPersona[0];
+                        setActiveDemoPersona(nextPersonaKey);
+                        renderDemoChats();
+                        renderActiveDemoSimulation({ resetRun: true });
                     }
                 });
             });
 
             function renderDemoChats() {
                 if (!demoChatList || !demoChatTranscript || !demoChatHeading) return;
-                demoChatList.innerHTML = Object.entries(demoChats).map(([key, chat]) => `
+                const visibleChatEntries = Object.entries(demoChats)
+                    .filter(([, chat]) => (chat.personaKey || activeDemoPersonaKey) === activeDemoPersonaKey);
+                if (!visibleChatEntries.length) return;
+                if (!visibleChatEntries.some(([key]) => key === activeDemoChatKey)) {
+                    activeDemoChatKey = visibleChatEntries[0][0];
+                }
+
+                demoChatList.innerHTML = visibleChatEntries.map(([key, chat]) => `
                     <div class="demo-chat-item${key === activeDemoChatKey ? ' active' : ''}" data-demo-chat-row="${key}">
                         <button type="button" class="demo-persona-select" data-demo-chat="${key}">
                             <strong class="demo-chat-title" data-demo-chat-title="${key}">${escapeHtml(chat.title)}</strong>
@@ -2895,7 +3188,7 @@
                     </div>
                 `).join('');
 
-                const chat = demoChats[activeDemoChatKey] || demoChats.main;
+                const chat = demoChats[activeDemoChatKey] || demoChats[visibleChatEntries[0][0]];
                 demoChatHeading.textContent = chat.title;
                 demoChatTranscript.innerHTML = chat.messages.map((message) => `
                     <div class="demo-chat-bubble ${message.role === 'user' ? 'user' : 'agent'}">
@@ -2940,7 +3233,8 @@
                         row.classList.add('is-hidden');
                         delete demoChats[key];
                         if (activeDemoChatKey === key) {
-                            activeDemoChatKey = Object.keys(demoChats)[0] || 'main';
+                            const nextVisible = Object.entries(demoChats).find(([, item]) => item.personaKey === activeDemoPersonaKey);
+                            activeDemoChatKey = nextVisible?.[0] || Object.keys(demoChats)[0] || 'main';
                         }
                         renderDemoChats();
                         setActiveDemoPersona(activeDemoPersonaKey);
@@ -2962,9 +3256,9 @@
             }
 
             runButton.addEventListener('click', () => {
-                loadingEl.classList.add('is-visible');
                 if (demoRevealTimer) window.clearTimeout(demoRevealTimer);
-                demoRevealTimer = window.setTimeout(revealTree, 10000);
+                demoRevealTimer = null;
+                revealTree();
             });
 
             if (getDemoState() === 'end') {
@@ -3193,7 +3487,7 @@
         }
 
         if (isDecisionTreeDemo()) {
-            setupDecisionTreeDemo();
+            window.location.replace(demoUrl('DashboardDemo.html', { state: getDemoState() }));
         } else {
             sendBtn.addEventListener('click', () => {
                 void sendMessage();

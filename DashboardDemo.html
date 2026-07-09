@@ -1,0 +1,1923 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Syntrae - Dashboard Demo</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@650;750&family=Manrope:wght@500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            --ink: #1c3232;
+            --muted: #687d7a;
+            --soft: #f7fbf6;
+            --paper: #ffffff;
+            --mint: #e4f6ef;
+            --mint-strong: #c8efe5;
+            --teal: #14958b;
+            --teal-dark: #2d846f;
+            --gold: #f2cc5d;
+            --peach: #f07061;
+            --line: #d8e7df;
+            --shadow: 0 20px 60px rgba(44, 74, 68, 0.12);
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            background: linear-gradient(90deg, rgba(224, 247, 239, 0.62), rgba(255, 251, 242, 0.78));
+            color: var(--ink);
+            font-family: "Manrope", "Helvetica Neue", Arial, sans-serif;
+            font-size: 14px;
+        }
+
+        button,
+        input {
+            font: inherit;
+        }
+
+        button {
+            cursor: pointer;
+        }
+
+        .app-header {
+            position: sticky;
+            top: 0;
+            z-index: 20;
+            min-height: 132px;
+            display: grid;
+            grid-template-columns: 220px 1fr 220px;
+            align-items: center;
+            gap: 24px;
+            padding: 18px 34px;
+            background: rgba(250, 255, 249, 0.92);
+            border-bottom: 1px solid rgba(216, 231, 223, 0.85);
+            backdrop-filter: blur(18px);
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 18px;
+            text-decoration: none;
+            color: inherit;
+        }
+
+        .brand img {
+            width: 110px;
+            height: 86px;
+            object-fit: contain;
+            border-radius: 16px;
+            background: #fff;
+            box-shadow: 0 12px 38px rgba(24, 87, 76, 0.12);
+        }
+
+        .brand span {
+            font-size: 13px;
+            font-weight: 900;
+            color: var(--muted);
+        }
+
+        .account-indicator {
+            justify-self: center;
+            min-width: 120px;
+            text-align: center;
+            font-weight: 900;
+            color: var(--ink);
+        }
+
+        .more-menu {
+            justify-self: end;
+            position: relative;
+        }
+
+        .more-btn {
+            width: 52px;
+            height: 52px;
+            display: grid;
+            place-items: center;
+            border: 1px solid var(--line);
+            border-radius: 12px;
+            background: #fff;
+            color: var(--teal-dark);
+            box-shadow: 0 10px 28px rgba(28, 50, 50, 0.08);
+            transition: transform 0.22s ease, box-shadow 0.22s ease;
+        }
+
+        .more-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 16px 38px rgba(20, 149, 139, 0.16);
+        }
+
+        .more-btn span {
+            display: block;
+            width: 24px;
+            height: 2px;
+            margin: 3px 0;
+            border-radius: 999px;
+            background: var(--teal-dark);
+        }
+
+        .dropdown-menu {
+            position: absolute;
+            top: calc(100% + 12px);
+            right: 0;
+            width: 300px;
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.98);
+            border: 1px solid var(--line);
+            box-shadow: 0 20px 48px rgba(22, 51, 47, 0.14);
+            overflow: hidden;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(-8px);
+            transition: opacity 0.2s ease, transform 0.2s ease, visibility 0.2s ease;
+        }
+
+        .dropdown-menu.active {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+            box-shadow:
+                0 18px 36px rgba(22, 51, 47, 0.16),
+                0 0 26px rgba(255, 255, 255, 0.85),
+                0 0 70px rgba(223, 244, 237, 0.8);
+        }
+
+        .dropdown-item {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            min-height: 62px;
+            padding: 16px 20px;
+            border-bottom: 1px solid rgba(216, 231, 223, 0.9);
+            color: var(--ink);
+            text-decoration: none;
+            font-size: 18px;
+            font-weight: 700;
+            background: rgba(255, 255, 255, 0.92);
+            transition: background 0.2s ease, padding 0.2s ease;
+        }
+
+        .dropdown-item:hover {
+            padding-left: 26px;
+            background: rgba(228, 246, 239, 0.92);
+        }
+
+        .dropdown-item:last-child {
+            border-bottom: 0;
+        }
+
+        .dropdown-item.sign-out {
+            color: #d36b6b;
+        }
+
+        .dashboard-shell {
+            width: min(1160px, calc(100vw - 42px));
+            margin: 26px auto 42px;
+            display: grid;
+            grid-template-columns: 320px minmax(0, 1fr);
+            gap: 24px;
+        }
+
+        .panel {
+            border: 1px solid var(--line);
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.94);
+            box-shadow: var(--shadow);
+        }
+
+        .persona-column {
+            padding: 24px;
+            align-self: start;
+            position: sticky;
+            top: 154px;
+            max-height: calc(100vh - 178px);
+            overflow: auto;
+        }
+
+        .section-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin: 0 0 22px;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            font-weight: 900;
+            font-size: 18px;
+        }
+
+        .section-title::before {
+            content: "";
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--teal);
+        }
+
+        .active-persona-card {
+            border: 1px solid var(--line);
+            border-radius: 12px;
+            padding: 18px;
+            background: #fff;
+        }
+
+        .active-persona-head {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            margin-bottom: 18px;
+        }
+
+        .avatar {
+            width: 64px;
+            height: 64px;
+            border-radius: 16px;
+            overflow: hidden;
+            flex: 0 0 auto;
+            background: var(--mint);
+            border: 1px solid var(--line);
+        }
+
+        .avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+        .active-persona-head h2 {
+            margin: 0;
+            font-size: 21px;
+            letter-spacing: -0.03em;
+        }
+
+        .active-persona-head p {
+            margin: 2px 0 0;
+            color: var(--muted);
+            font-size: 15px;
+            font-weight: 700;
+        }
+
+        .persona-list {
+            display: grid;
+            gap: 10px;
+            margin-bottom: 18px;
+        }
+
+        .persona-row {
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 10px;
+            align-items: center;
+            padding: 11px;
+            border: 1px solid var(--line);
+            border-radius: 12px;
+            background: #fff;
+            transition: transform 0.2s ease, border-color 0.2s ease, background 0.2s ease;
+        }
+
+        .persona-row.active {
+            border-color: #9bded2;
+            background: #f0fbf7;
+        }
+
+        .persona-row:hover {
+            transform: translateY(-1px);
+            border-color: #b9e7dd;
+        }
+
+        .persona-select {
+            min-width: 0;
+            padding: 0;
+            border: 0;
+            background: transparent;
+            color: inherit;
+            text-align: left;
+        }
+
+        .persona-select strong,
+        .chat-space-btn strong {
+            display: block;
+            font-size: 14px;
+            font-weight: 900;
+        }
+
+        .persona-select span,
+        .chat-space-btn span {
+            display: block;
+            color: var(--muted);
+            font-size: 12px;
+            font-weight: 800;
+            margin-top: 2px;
+        }
+
+        .mini-actions {
+            display: flex;
+            gap: 6px;
+        }
+
+        .mini-btn {
+            width: 32px;
+            height: 32px;
+            display: grid;
+            place-items: center;
+            border: 1px solid var(--line);
+            border-radius: 10px;
+            background: #fff;
+            color: var(--ink);
+            transition: background 0.2s ease, transform 0.2s ease;
+        }
+
+        .mini-btn:hover {
+            transform: translateY(-1px);
+            background: var(--mint);
+        }
+
+        .persona-summary {
+            border: 1px solid #cae8dc;
+            border-radius: 14px;
+            background: #f6fbf5;
+            padding: 18px;
+            margin-top: 16px;
+        }
+
+        .chip-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 16px;
+        }
+
+        .chip {
+            display: inline-flex;
+            align-items: center;
+            border: 1px solid var(--line);
+            border-radius: 999px;
+            padding: 9px 13px;
+            background: #fff;
+            font-size: 12px;
+            font-weight: 900;
+        }
+
+        .persona-summary strong {
+            display: block;
+            font-size: 19px;
+            line-height: 1.35;
+            margin-bottom: 14px;
+        }
+
+        .persona-summary p {
+            margin: 0 0 14px;
+            color: var(--muted);
+            line-height: 1.65;
+            font-size: 15px;
+            font-weight: 700;
+        }
+
+        .persona-note {
+            margin-top: 16px;
+            padding: 16px;
+            border-left: 4px solid var(--gold);
+            border-radius: 12px;
+            background: #fff9e8;
+            color: #456360;
+            font-size: 15px;
+            line-height: 1.55;
+            font-weight: 700;
+        }
+
+        .workspace {
+            padding: 28px;
+            display: grid;
+            gap: 22px;
+        }
+
+        .guide-head {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .guide-mark {
+            width: 54px;
+            height: 54px;
+            display: grid;
+            place-items: center;
+            border-radius: 12px;
+            background: linear-gradient(135deg, #08998e, #f06d5a);
+            color: #fff;
+            font-size: 24px;
+            font-weight: 900;
+            box-shadow: 0 16px 34px rgba(20, 149, 139, 0.22);
+        }
+
+        .guide-head h1 {
+            margin: 0;
+            font-size: 22px;
+            letter-spacing: -0.04em;
+        }
+
+        .guide-head p {
+            margin: 2px 0 0;
+            color: var(--muted);
+            font-weight: 800;
+        }
+
+        .status-dot {
+            display: inline-block;
+            width: 9px;
+            height: 9px;
+            border-radius: 50%;
+            background: #4be0a9;
+            box-shadow: 0 0 0 4px rgba(75, 224, 169, 0.18);
+        }
+
+        .active-label {
+            color: var(--muted);
+            font-size: 13px;
+            font-weight: 800;
+        }
+
+        .active-label strong {
+            display: block;
+            margin-top: 2px;
+            color: var(--ink);
+            font-size: 15px;
+        }
+
+        .chatspace-card {
+            display: grid;
+            grid-template-columns: 270px minmax(0, 1fr);
+            gap: 18px;
+            padding: 16px;
+            border: 1px solid var(--line);
+            border-radius: 14px;
+            background: rgba(255, 255, 255, 0.96);
+        }
+
+        .kicker {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            width: fit-content;
+            margin-bottom: 12px;
+            padding: 8px 14px;
+            border-radius: 999px;
+            background: var(--mint);
+            border: 1px solid var(--mint-strong);
+            color: var(--teal-dark);
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            font-size: 12px;
+            font-weight: 900;
+        }
+
+        .chat-space-list {
+            display: grid;
+            gap: 10px;
+        }
+
+        .chat-space-row {
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 8px;
+            align-items: center;
+            padding: 11px;
+            border: 1px solid var(--line);
+            border-radius: 12px;
+            background: #fff;
+            transition: background 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+        }
+
+        .chat-space-row.active {
+            border-color: #9bded2;
+            background: #effbf8;
+        }
+
+        .chat-space-row:hover {
+            transform: translateY(-1px);
+        }
+
+        .chat-space-btn {
+            min-width: 0;
+            border: 0;
+            background: transparent;
+            color: inherit;
+            padding: 0;
+            text-align: left;
+        }
+
+        .embedded-chat {
+            min-height: 330px;
+            display: grid;
+            grid-template-rows: auto 1fr auto;
+            overflow: hidden;
+            border: 1px solid #bdece2;
+            border-radius: 14px;
+            background: #f9fdf9;
+        }
+
+        .embedded-chat-head {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 14px;
+            padding: 14px 16px;
+            border-bottom: 1px solid var(--line);
+            background: #f5fbf6;
+            font-weight: 900;
+        }
+
+        .chat-transcript {
+            min-height: 210px;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            padding: 18px;
+            background:
+                linear-gradient(90deg, rgba(232, 249, 242, 0.92), rgba(255, 251, 241, 0.82));
+        }
+
+        .chat-bubble {
+            max-width: min(440px, 82%);
+            padding: 14px 16px;
+            border-radius: 16px;
+            box-shadow: 0 10px 28px rgba(35, 63, 58, 0.08);
+            line-height: 1.55;
+            font-size: 14px;
+            font-weight: 700;
+            white-space: pre-wrap;
+            opacity: 0;
+            transform: translateY(8px);
+            animation: bubbleIn 0.28s ease forwards;
+        }
+
+        .chat-bubble.user {
+            align-self: flex-end;
+            background: #dff7ef;
+            border: 1px solid #aee8dc;
+        }
+
+        .chat-bubble.agent {
+            align-self: flex-start;
+            background: #fff;
+            border: 1px solid #edf1ed;
+        }
+
+        .bubble-speaker {
+            display: block;
+            margin-bottom: 5px;
+            color: var(--teal-dark);
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            font-size: 10px;
+            font-weight: 900;
+        }
+
+        .typing-caret::after {
+            content: "";
+            display: inline-block;
+            width: 7px;
+            height: 1em;
+            margin-left: 3px;
+            vertical-align: -2px;
+            background: var(--teal);
+            animation: caretBlink 0.8s steps(1) infinite;
+        }
+
+        .typing-indicator {
+            align-self: flex-start;
+            display: none;
+            align-items: center;
+            gap: 8px;
+            padding: 11px 14px;
+            border: 1px solid var(--line);
+            border-radius: 999px;
+            background: #fff;
+            color: var(--muted);
+            font-size: 12px;
+            font-weight: 900;
+        }
+
+        .typing-indicator.visible {
+            display: inline-flex;
+        }
+
+        .typing-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--teal);
+            animation: dotPulse 0.9s ease-in-out infinite;
+        }
+
+        .chat-input-bar {
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 10px;
+            padding: 14px;
+            border-top: 1px solid var(--line);
+            background: #fff;
+        }
+
+        .chat-input-bar input {
+            min-width: 0;
+            height: 46px;
+            border: 1px solid var(--line);
+            border-radius: 10px;
+            padding: 0 14px;
+            color: var(--ink);
+            background: var(--soft);
+            outline: none;
+        }
+
+        .chat-input-bar input:focus {
+            border-color: #9bded2;
+            box-shadow: 0 0 0 4px rgba(155, 222, 210, 0.22);
+        }
+
+        .primary-btn {
+            min-height: 46px;
+            border: 0;
+            border-radius: 10px;
+            padding: 0 22px;
+            background: var(--teal-dark);
+            color: #fff;
+            font-weight: 900;
+            box-shadow: 0 14px 32px rgba(45, 132, 111, 0.18);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .primary-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 18px 40px rgba(45, 132, 111, 0.24);
+        }
+
+        .stage-grid {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) 300px;
+            gap: 22px;
+        }
+
+        .best-way-card,
+        .settings-card,
+        .tree-card,
+        .detail-panel,
+        .recommendation {
+            border: 1px solid var(--line);
+            border-radius: 14px;
+            background: rgba(255, 255, 255, 0.96);
+        }
+
+        .best-way-card,
+        .settings-card {
+            padding: 20px;
+        }
+
+        .best-way-card h2,
+        .settings-card h2 {
+            margin: 0 0 8px;
+            font-size: 23px;
+            letter-spacing: -0.04em;
+        }
+
+        .best-way-card p {
+            margin: 0 0 18px;
+            color: var(--muted);
+            line-height: 1.55;
+            font-weight: 700;
+        }
+
+        .prompt-box {
+            padding: 18px;
+            border: 1px solid var(--line);
+            border-radius: 12px;
+            background: var(--soft);
+            font-size: 17px;
+            line-height: 1.55;
+            margin-bottom: 14px;
+        }
+
+        .candidate-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+        }
+
+        .candidate {
+            min-height: 76px;
+            padding: 14px;
+            border-radius: 12px;
+            border: 1px solid #bee9df;
+            background: #edf9f6;
+            font-size: 15px;
+            font-weight: 900;
+        }
+
+        .setting-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 16px;
+            min-height: 76px;
+            margin: 16px 0;
+            padding: 18px;
+            border: 1px solid var(--line);
+            border-radius: 12px;
+            background: var(--soft);
+            font-weight: 900;
+        }
+
+        .setting-row span {
+            color: var(--muted);
+            font-size: 12px;
+            text-transform: none;
+        }
+
+        .settings-card .primary-btn {
+            width: 100%;
+            min-height: 78px;
+        }
+
+        .settings-note {
+            margin-top: 12px;
+            color: var(--muted);
+            font-weight: 700;
+        }
+
+        .tree-section {
+            display: none;
+            grid-column: 1 / -1;
+            border-radius: 14px;
+            animation: slideUp 0.36s ease both;
+        }
+
+        .tree-section.visible {
+            display: block;
+        }
+
+        .tree-root {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            margin-bottom: 18px;
+            padding: 24px;
+            border-radius: 16px;
+            background: linear-gradient(135deg, #21826b, #0caaa0);
+            color: #fff;
+        }
+
+        .tree-root strong {
+            display: block;
+            font-size: 28px;
+            letter-spacing: -0.04em;
+        }
+
+        .tree-root span {
+            font-size: 18px;
+            font-weight: 900;
+        }
+
+        .tree-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+        }
+
+        .tree-card {
+            position: relative;
+            overflow: hidden;
+            padding: 18px;
+        }
+
+        .tree-card::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 5px;
+            background: linear-gradient(90deg, var(--teal-dark), #e77768);
+        }
+
+        .tree-card-meta {
+            display: flex;
+            justify-content: space-between;
+            gap: 12px;
+            color: var(--muted);
+            font-weight: 800;
+            margin-bottom: 10px;
+        }
+
+        .tree-card-meta .probability {
+            color: var(--teal-dark);
+            font-size: 16px;
+            font-weight: 900;
+        }
+
+        .tree-card h3 {
+            margin: 0 0 14px;
+            font-size: 22px;
+            letter-spacing: -0.04em;
+        }
+
+        .outcome-list {
+            list-style: none;
+            display: grid;
+            gap: 12px;
+            margin: 0;
+            padding: 0;
+        }
+
+        .outcome-btn {
+            display: block;
+            width: 100%;
+            padding: 14px;
+            border: 1px solid var(--line);
+            border-radius: 12px;
+            background: #fbfff9;
+            color: inherit;
+            text-align: left;
+            transition: border-color 0.2s ease, transform 0.2s ease, background 0.2s ease;
+        }
+
+        .outcome-btn:hover,
+        .outcome-btn[aria-expanded="true"] {
+            transform: translateY(-1px);
+            border-color: #9bded2;
+            background: #effbf8;
+        }
+
+        .outcome-head {
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+            font-size: 14px;
+            font-weight: 900;
+        }
+
+        .outcome-head .probability {
+            color: var(--teal-dark);
+        }
+
+        .probability-track {
+            height: 8px;
+            margin-top: 10px;
+            border-radius: 999px;
+            background: #edf1ed;
+            overflow: hidden;
+        }
+
+        .probability-fill {
+            height: 100%;
+            border-radius: inherit;
+            background: linear-gradient(90deg, var(--teal), var(--peach));
+        }
+
+        .detail-panel {
+            display: none;
+            grid-template-columns: 200px 1fr;
+            gap: 22px;
+            align-items: center;
+            margin-top: 18px;
+            padding: 22px;
+            background: #f5fffb;
+            border-color: #b8e7dc;
+        }
+
+        .detail-panel.visible {
+            display: grid;
+            animation: slideUp 0.25s ease both;
+        }
+
+        .detail-number span {
+            display: block;
+            color: var(--muted);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            font-size: 12px;
+            font-weight: 900;
+        }
+
+        .detail-number strong {
+            display: block;
+            margin-top: 6px;
+            color: var(--teal-dark);
+            font-size: 42px;
+            line-height: 1;
+        }
+
+        .detail-copy h3 {
+            margin: 8px 0 8px;
+            font-size: 24px;
+            letter-spacing: -0.04em;
+        }
+
+        .detail-copy p {
+            margin: 0 0 8px;
+            color: var(--muted);
+            line-height: 1.6;
+            font-weight: 700;
+        }
+
+        .detail-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .detail-meta span {
+            border-radius: 999px;
+            padding: 8px 12px;
+            border: 1px solid var(--line);
+            background: #fff;
+            font-size: 12px;
+            font-weight: 900;
+        }
+
+        .recommendation {
+            display: flex;
+            gap: 14px;
+            margin-top: 16px;
+            padding: 18px;
+            border-color: #f2d990;
+            background: #fff8e6;
+        }
+
+        .recommendation strong {
+            display: block;
+            margin-bottom: 5px;
+            font-size: 18px;
+        }
+
+        .recommendation p {
+            margin: 0;
+            color: var(--muted);
+            line-height: 1.55;
+            font-weight: 700;
+        }
+
+        .principle-strip {
+            display: flex;
+            justify-content: flex-end;
+            margin-top: 16px;
+            padding: 12px 16px;
+            border-radius: 999px;
+            background: #f2f4f2;
+            color: var(--muted);
+            font-size: 12px;
+            font-weight: 900;
+        }
+
+        .page-footer {
+            padding: 20px;
+            text-align: center;
+            color: var(--muted);
+            font-size: 13px;
+            font-weight: 800;
+        }
+
+        @keyframes bubbleIn {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes caretBlink {
+            50% {
+                opacity: 0;
+            }
+        }
+
+        @keyframes dotPulse {
+            0%,
+            100% {
+                transform: translateY(0);
+                opacity: 0.35;
+            }
+            50% {
+                transform: translateY(-2px);
+                opacity: 1;
+            }
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(14px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @media (max-width: 980px) {
+            .app-header {
+                grid-template-columns: 1fr auto;
+            }
+
+            .account-indicator {
+                display: none;
+            }
+
+            .dashboard-shell,
+            .chatspace-card,
+            .stage-grid,
+            .tree-grid,
+            .detail-panel {
+                grid-template-columns: 1fr;
+            }
+
+            .persona-column {
+                position: static;
+                max-height: none;
+            }
+        }
+
+        @media (max-width: 640px) {
+            .app-header {
+                padding: 14px 18px;
+            }
+
+            .brand span {
+                display: none;
+            }
+
+            .dashboard-shell {
+                width: calc(100vw - 24px);
+                margin-top: 16px;
+            }
+
+            .candidate-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .chat-input-bar {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="app-header">
+        <a class="brand" href="DashboardDemo.html?demo=decision-tree&amp;state=start" aria-label="Syntrae dashboard demo">
+            <img src="assets/syntrae-logo.png" alt="Syntrae logo">
+            <span>Dashboard</span>
+        </a>
+        <div class="account-indicator" id="accountIndicator">Daniel Smith</div>
+        <div class="more-menu">
+            <button class="more-btn" id="moreBtn" type="button" aria-label="Open navigation menu" aria-expanded="false">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+            <nav class="dropdown-menu" id="dropdownMenu" aria-label="Dashboard navigation">
+                <a class="dropdown-item" id="analyzeLink" href="analyze.html?demo=decision-tree&amp;persona=daniel-smith-demo"><i class="fas fa-pencil-alt"></i> Analyze and Edit Your Persona</a>
+                <a class="dropdown-item" href="profile.html?demo=decision-tree"><i class="fas fa-id-card"></i> Your Persona</a>
+                <a class="dropdown-item" href="insight-lab.html?demo=decision-tree"><i class="fas fa-table"></i> Insight Lab</a>
+                <a class="dropdown-item" href="subscription.html"><i class="fas fa-crown"></i> Manage Subscription</a>
+                <a class="dropdown-item sign-out" href="sign-out.html"><i class="fas fa-sign-out-alt"></i> Sign Out</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="dashboard-shell">
+        <aside class="persona-column panel" data-tour-step="persona">
+            <h2 class="section-title">Your Persona</h2>
+            <div class="active-persona-card">
+                <div class="active-persona-head">
+                    <div class="avatar" id="activePersonaAvatar"></div>
+                    <div>
+                        <h2 id="activePersonaName">Daniel Smith</h2>
+                        <p id="activePersonaRole">Relationship persona</p>
+                    </div>
+                </div>
+                <div class="persona-list" id="personaList"></div>
+                <div class="persona-summary">
+                    <div class="chip-grid" id="personaFacts"></div>
+                    <strong id="personaHeadline"></strong>
+                    <p id="personaSummary"></p>
+                    <p><strong style="display:inline;font-size:15px;">Decision logic:</strong> <span id="personaLogic"></span></p>
+                </div>
+                <div class="persona-note">Syntrae uses private context to map likely consequence paths before a decision is made in the real world.</div>
+            </div>
+        </aside>
+
+        <section class="workspace panel">
+            <div class="guide-head">
+                <div class="guide-mark">S</div>
+                <div>
+                    <h1>Syntrae Guide <span class="status-dot" aria-hidden="true"></span></h1>
+                    <p>Private decision context for clearer relationship choices</p>
+                </div>
+            </div>
+
+            <div class="active-label">Active persona <strong id="activePersonaLabel">Daniel Smith</strong></div>
+
+            <section class="chatspace-card" data-tour-step="chatspaces" aria-label="Chat spaces">
+                <div>
+                    <span class="kicker"><i class="fas fa-comment-dots"></i> Chat spaces</span>
+                    <div class="chat-space-list" id="chatSpaceList"></div>
+                </div>
+                <div class="embedded-chat" data-tour-step="embedded-chat">
+                    <div class="embedded-chat-head">
+                        <span id="chatHeading">Invite Daniel to talk</span>
+                        <span class="status-dot" aria-hidden="true"></span>
+                    </div>
+                    <div class="chat-transcript" id="chatTranscript" aria-live="polite"></div>
+                    <form class="chat-input-bar" id="visualChatForm">
+                        <input id="visualChatInput" type="text" placeholder="Type your message here..." autocomplete="off">
+                        <button class="primary-btn" type="submit"><i class="fas fa-paper-plane"></i> Send</button>
+                    </form>
+                </div>
+            </section>
+
+            <section class="stage-grid" aria-label="Best Way simulation">
+                <article class="best-way-card" data-tour-step="bestway">
+                    <span class="kicker"><i class="fas fa-route"></i> One real choice, clearer paths</span>
+                    <h2 id="simulationTitle">Best Way</h2>
+                    <p id="simulationCopy">Compare message styles before choosing the one action that goes out in real life.</p>
+                    <div class="prompt-box" id="promptBox"></div>
+                    <div class="candidate-grid" id="candidateGrid"></div>
+                </article>
+
+                <aside class="settings-card" data-tour-step="settings">
+                    <span class="kicker"><i class="fas fa-sliders-h"></i> Syntrae Settings</span>
+                    <div class="setting-row">
+                        <span>Active persona</span>
+                        <strong id="settingsPersona">Daniel Smith</strong>
+                    </div>
+                    <button class="primary-btn" id="syntraeButton" type="button"><i class="fas fa-play"></i> Syntrae</button>
+                    <div class="settings-note">Choose with more context.</div>
+                </aside>
+
+                <section class="tree-section" id="treeSection" data-tour-step="tree" aria-label="Consequence tree">
+                    <div class="tree-root">
+                        <div>
+                            <strong>Consequence Tree</strong>
+                            <div>Syntrae consequence map</div>
+                        </div>
+                        <span>Probability totals</span>
+                    </div>
+                    <div class="tree-grid" id="treeGrid"></div>
+                    <aside class="detail-panel" id="outcomeDetail" aria-live="polite"></aside>
+                    <div class="recommendation">
+                        <i class="fas fa-lightbulb" aria-hidden="true"></i>
+                        <div>
+                            <strong id="recommendationTitle"></strong>
+                            <p id="recommendationText"></p>
+                        </div>
+                    </div>
+                    <div class="principle-strip">Your action determines the outcome.</div>
+                </section>
+            </section>
+        </section>
+    </main>
+
+    <footer class="page-footer">&copy; 2026 Syntrae LLC. Predictive social science for considerate decisions.</footer>
+
+    <script src="js/page-tour.js"></script>
+    <script>
+        const personas = {
+            daniel: {
+                name: 'Daniel Smith',
+                demoKey: 'daniel-smith-demo',
+                role: 'Relationship persona',
+                avatar: 'assets/daniel-smith-avatar.png',
+                facts: ['Graduate student', 'Male', '23 yrs old', 'Private context'],
+                headline: 'Warm, thoughtful, and responsive when serious topics are introduced with room to think.',
+                summary: 'Daniel responds best when the topic is named clearly without making the conversation feel like a demand.',
+                logic: 'Best Way should favor messages that are clear enough to be understood, but gentle enough to preserve Daniel\'s sense of choice.'
+            },
+            aaron: {
+                name: 'Aaron Chen',
+                demoKey: 'aaron-chen-demo',
+                role: 'Family persona',
+                avatar: 'assets/aaron-chen-avatar.svg',
+                facts: ['Maya\'s dad', 'Male', '55 yrs old', 'Family context'],
+                headline: 'Protective, steady, and deeply caring when family news is shared with honesty and a clear plan.',
+                summary: 'Aaron responds best when Maya leads with respect, gives him time to absorb the moment, and shows that she has thought through the practical next step.',
+                logic: 'Best Way should favor loving, direct language that keeps him included as a father while reducing shock, defensiveness, or unnecessary worry.'
+            }
+        };
+
+        const chats = {
+            main: {
+                personaKey: 'daniel',
+                title: 'Invite Daniel to talk',
+                meta: 'Current decision',
+                personaContext: personas.daniel,
+                prompt: "I want to invite Daniel to talk about where we're going, but I don't want the message to feel heavy. What are the possible consequences of different ways to ask?",
+                introTitle: 'Best Way',
+                introCopy: 'Compare message styles before choosing the one action that goes out in real life.',
+                candidates: ['Warm and direct', 'Light and open-ended', 'Reflective and intentional'],
+                messages: [
+                    { role: 'user', speaker: 'Maya Chen', text: "I want to invite Daniel to talk about where we're going, but I don't want the message to feel heavy. What are the possible consequences of different ways to ask?" },
+                    { role: 'agent', speaker: 'Syntrae', text: 'I can compare warm, light, and reflective openings, then map the most likely outcomes and exact probability totals before the message is sent.' }
+                ],
+                outcomes: [
+                    {
+                        title: 'Option A',
+                        action: 'Warm and direct',
+                        probability: 0.37,
+                        items: [
+                            { label: 'Daniel respects the honesty', probability: 0.17, reason: 'Daniel scores high on sincerity and thoughtful communication, so a clear invitation is likely to read as respectful rather than confrontational.' },
+                            { label: 'Daniel asks for a little time to think', probability: 0.12, reason: 'Because he processes important topics carefully, direct language can prompt him to pause before answering.' },
+                            { label: 'The conversation happens with a more serious tone', probability: 0.08, reason: 'The direct framing increases clarity, but it can also make the moment feel more defining than casual.' }
+                        ]
+                    },
+                    {
+                        title: 'Option B',
+                        action: 'Light and open-ended',
+                        probability: 0.41,
+                        items: [
+                            { label: 'Daniel feels comfortable saying yes', probability: 0.18, reason: 'This matches Daniel\'s preference for warmth and autonomy, lowering the chance that the invitation feels like pressure.' },
+                            { label: 'He responds warmly but sets a slower pace', probability: 0.14, reason: 'The wording gives him room to engage, but his cautious style may still lead him to choose a gradual conversation.' },
+                            { label: 'The opening lands well, but needs one clearer follow-up', probability: 0.09, reason: 'A lighter tone preserves comfort, but it may leave the purpose slightly underdefined until Maya adds one concrete follow-up.' }
+                        ]
+                    },
+                    {
+                        title: 'Option C',
+                        action: 'Reflective and intentional',
+                        probability: 0.22,
+                        items: [
+                            { label: 'Daniel recognizes the sincerity', probability: 0.10, reason: 'Daniel values emotional honesty, so a reflective message can register as genuine when the wording stays grounded.' },
+                            { label: 'The tone feels heavier than he wants right away', probability: 0.08, reason: 'His profile indicates sensitivity to emotional intensity, making this opening more likely to feel weighty at the start.' },
+                            { label: 'He replies later after processing the stakes', probability: 0.04, reason: 'When a message carries multiple emotional layers, Daniel is more likely to wait until he can respond carefully.' }
+                        ]
+                    }
+                ],
+                recommendation: {
+                    title: 'Suggested first move: Option B.',
+                    text: 'It best fits Daniel\'s mix of sincerity and caution: warm enough to feel safe, clear enough to feel real, and open enough to preserve his sense of choice.'
+                }
+            },
+            timing: {
+                personaKey: 'daniel',
+                title: 'Choose the right timing',
+                meta: 'Relationship moment',
+                personaContext: {
+                    facts: ['Graduate student', 'Deadline aware', 'Timing sensitive', 'Private context'],
+                    headline: 'Steady and receptive when important conversations are scheduled instead of sprung on him.',
+                    summary: 'Daniel is more likely to engage thoughtfully when timing gives him room to shift out of school pressure.',
+                    logic: 'Best Way should favor a calm planned window, because the same message can land better when Daniel has time and attention available.'
+                },
+                prompt: 'Would Saturday afternoon be a better time than a weeknight to ask Daniel for a deeper conversation?',
+                introTitle: 'Best Way',
+                introCopy: 'Compare timing options before choosing when to bring up the conversation.',
+                candidates: ['Saturday afternoon', 'Weeknight text', 'After a warm date'],
+                messages: [
+                    { role: 'user', speaker: 'Maya Chen', text: 'Would Saturday afternoon be a better time than a weeknight to ask Daniel for a deeper conversation?' },
+                    { role: 'agent', speaker: 'Syntrae', text: 'Saturday looks strongest because it gives Daniel calm conditions to engage thoughtfully. After a warm date can also work if the shift into the topic stays gentle.' }
+                ],
+                outcomes: [
+                    {
+                        title: 'Path A',
+                        action: 'Saturday afternoon',
+                        probability: 0.48,
+                        items: [
+                            { label: 'Daniel has room to think and answer well', probability: 0.20, reason: 'Saturday gives Daniel more mental space than a school night, which fits his pattern of responding better when serious topics are not rushed.' },
+                            { label: 'The tone feels mutual instead of urgent', probability: 0.16, reason: 'A planned weekend window signals care and patience, so the request is less likely to feel like an immediate demand.' },
+                            { label: 'The moment still feels a little serious', probability: 0.12, reason: 'Even with good timing, the relationship topic itself carries weight, so some seriousness remains.' }
+                        ]
+                    },
+                    {
+                        title: 'Path B',
+                        action: 'Weeknight text',
+                        probability: 0.17,
+                        items: [
+                            { label: 'Daniel gives a practical reply', probability: 0.07, reason: 'On a weeknight, Daniel is more likely to be task-focused, so he may answer logistics without fully engaging the emotional meaning.' },
+                            { label: 'Response slows because of deadlines', probability: 0.06, reason: 'His current workload makes evening replies less reliable when the message asks for careful emotional attention.' },
+                            { label: 'The topic gets reduced to logistics', probability: 0.04, reason: 'When timing competes with school pressure, the conversation can shift toward scheduling rather than relationship clarity.' }
+                        ]
+                    },
+                    {
+                        title: 'Path C',
+                        action: 'After a warm date',
+                        probability: 0.35,
+                        items: [
+                            { label: 'Conversation opens naturally', probability: 0.15, reason: 'A warm date creates relational safety, which increases the chance Daniel can enter the topic with openness.' },
+                            { label: 'The timing feels emotionally sudden', probability: 0.11, reason: 'If the mood was light, moving quickly into a defining conversation may feel abrupt despite the positive connection.' },
+                            { label: 'Warmth helps, but clarity still needs a follow-up', probability: 0.09, reason: 'The emotional context is favorable, but Maya may still need to state the actual question clearly.' }
+                        ]
+                    }
+                ],
+                recommendation: {
+                    title: 'Suggested first move: Saturday afternoon.',
+                    text: 'It best matches Daniel\'s steady pacing and current workload. After a warm date is a strong second path if the tone stays relaxed.'
+                }
+            },
+            followup: {
+                personaKey: 'daniel',
+                title: 'Follow-up after a warm reply',
+                meta: 'Message draft',
+                personaContext: {
+                    facts: ['Warm responder', 'Needs room', 'Sincerity driven', 'Private context'],
+                    headline: 'Responsive after openness is acknowledged, especially when the next reply stays grounded.',
+                    summary: 'Daniel is likely to stay engaged if Maya thanks him, names the topic once, and avoids turning a warm yes into a heavy explanation.',
+                    logic: 'Best Way should favor a short affirming follow-up that preserves warmth while keeping space for Daniel to answer naturally.'
+                },
+                prompt: 'If Daniel says yes warmly, what should the next reply say without overexplaining?',
+                introTitle: 'Best Way',
+                introCopy: 'Compare follow-up responses after openness is shown.',
+                candidates: ['Short and clear', 'Affirming and grounded', 'Detailed context'],
+                messages: [
+                    { role: 'user', speaker: 'Maya Chen', text: 'If Daniel says yes warmly, what should the next reply say without overexplaining?' },
+                    { role: 'agent', speaker: 'Syntrae', text: 'The best follow-up is warm and grounded: thank him, name the topic once, and keep enough space for him to stay relaxed in the conversation.' }
+                ],
+                outcomes: [
+                    {
+                        title: 'Move A',
+                        action: 'Short and clear',
+                        probability: 0.28,
+                        items: [
+                            { label: 'Daniel understands the next step quickly', probability: 0.11, reason: 'Daniel responds well to clear structure, so a concise follow-up makes the immediate next step easy to understand.' },
+                            { label: 'The tone stays calm and contained', probability: 0.09, reason: 'Keeping the reply brief lowers emotional pressure and preserves the steady tone Daniel tends to prefer.' },
+                            { label: 'The reply shifts straight into logistics', probability: 0.08, reason: 'A very short response can be efficient, but it may not reinforce enough warmth before moving into planning.' }
+                        ]
+                    },
+                    {
+                        title: 'Move B',
+                        action: 'Affirming and grounded',
+                        probability: 0.49,
+                        items: [
+                            { label: 'Daniel feels respected and unpressured', probability: 0.20, reason: 'This combines appreciation with room to choose, matching Daniel\'s strongest signals around sincerity, autonomy, and steady pacing.' },
+                            { label: 'Warmth stays high while the topic stays clear', probability: 0.17, reason: 'Affirming him first keeps the relational tone safe while a grounded sentence prevents the topic from becoming vague.' },
+                            { label: 'One concrete follow-up question is still needed', probability: 0.12, reason: 'The tone is strong, but Daniel may still need one simple question to know exactly what Maya wants to discuss.' }
+                        ]
+                    },
+                    {
+                        title: 'Move C',
+                        action: 'Detailed context',
+                        probability: 0.23,
+                        items: [
+                            { label: 'Daniel sees the care behind it', probability: 0.09, reason: 'Detailed context can demonstrate sincerity, which Daniel values when it is connected to a clear and considerate purpose.' },
+                            { label: 'The message feels bigger than the moment', probability: 0.08, reason: 'Too much explanation can raise the emotional stakes before he has had time to settle into the topic.' },
+                            { label: 'Daniel takes longer to reply thoughtfully', probability: 0.06, reason: 'A fuller message gives him more to interpret, so he is more likely to slow down and craft a careful response.' }
+                        ]
+                    }
+                ],
+                recommendation: {
+                    title: 'Suggested first move: Move B.',
+                    text: 'It best matches Daniel\'s calm, respectful style: appreciative, low-pressure, and clear enough to keep the conversation moving.'
+                }
+            },
+            dadBirthday: {
+                personaKey: 'aaron',
+                title: 'Plan Dad\'s birthday surprise',
+                meta: 'Family celebration',
+                personaContext: {
+                    facts: ['Maya\'s dad', 'Family centered', 'Practical', 'Private context'],
+                    headline: 'Warmest when appreciation is personal, modest, and clearly comes from the heart.',
+                    summary: 'Aaron is likely to feel loved by a thoughtful surprise, but he may become uncomfortable if it feels too expensive or performative.',
+                    logic: 'Best Way should favor a grounded birthday plan that makes him feel seen without putting him at the center of too much attention.'
+                },
+                prompt: 'I want to surprise Dad for his birthday, but I do not want the gift to feel too expensive or overwhelming. What are the possible ways to make him feel loved?',
+                introTitle: 'Best Way',
+                introCopy: 'Compare caring family gestures before choosing the one celebration Maya will actually arrange.',
+                candidates: ['Handwritten memory gift', 'Small family dinner', 'Big surprise party'],
+                messages: [
+                    { role: 'user', speaker: 'Maya Chen', text: 'I want to surprise Dad for his birthday, but I do not want the gift to feel too expensive or overwhelming. What are the possible ways to make him feel loved?' },
+                    { role: 'agent', speaker: 'Syntrae', text: 'I can compare simple family gestures, then map which ones are most likely to make Aaron feel appreciated without putting too much pressure on him.' }
+                ],
+                outcomes: [
+                    {
+                        title: 'Option A',
+                        action: 'Handwritten memory gift',
+                        probability: 0.40,
+                        items: [
+                            { label: 'Aaron feels deeply appreciated', probability: 0.18, reason: 'His persona values sincerity over display, so a personal note with specific memories is likely to feel meaningful and grounded.' },
+                            { label: 'He keeps the emotion private', probability: 0.13, reason: 'Aaron may be touched but modest, so he is likely to respond warmly without making the moment dramatic.' },
+                            { label: 'Maya may still want a small shared moment', probability: 0.09, reason: 'The gift is emotionally strong, but it may benefit from one simple dinner or walk to make the day feel complete.' }
+                        ]
+                    },
+                    {
+                        title: 'Option B',
+                        action: 'Small family dinner',
+                        probability: 0.44,
+                        items: [
+                            { label: 'Aaron relaxes into the celebration', probability: 0.19, reason: 'A low-key dinner matches his practical, family-centered style and lets him enjoy attention without feeling exposed.' },
+                            { label: 'He feels included without pressure', probability: 0.15, reason: 'The smaller setting signals love while still giving him room to be himself instead of performing gratitude.' },
+                            { label: 'A personal note makes it stronger', probability: 0.10, reason: 'Dinner creates warmth, but Aaron is most likely to remember the specific words Maya shares with him.' }
+                        ]
+                    },
+                    {
+                        title: 'Option C',
+                        action: 'Big surprise party',
+                        probability: 0.16,
+                        items: [
+                            { label: 'He appreciates the effort', probability: 0.07, reason: 'Aaron would recognize the love behind a larger gesture even if the format is not his natural preference.' },
+                            { label: 'The attention feels uncomfortable', probability: 0.06, reason: 'His protective and modest traits make sudden public attention more likely to feel overwhelming than joyful.' },
+                            { label: 'He worries about the cost', probability: 0.03, reason: 'Because Aaron thinks practically, an elaborate plan may make him focus on expense instead of affection.' }
+                        ]
+                    }
+                ],
+                recommendation: {
+                    title: 'Suggested first move: Option B.',
+                    text: 'A small family dinner gives Aaron warmth, dignity, and room to enjoy the day. Add one handwritten note if Maya wants the surprise to feel especially personal.'
+                }
+            },
+            dadHardNews: {
+                personaKey: 'aaron',
+                title: 'Share difficult school news',
+                meta: 'High-stakes family talk',
+                personaContext: {
+                    facts: ['Protective father', 'Plan oriented', 'Worry sensitive', 'Private context'],
+                    headline: 'Most receptive when hard news is paired with accountability, timing, and a realistic next step.',
+                    summary: 'Aaron may react strongly at first because he cares, but he becomes more constructive when Maya shows she has considered consequences and support.',
+                    logic: 'Best Way should lower shock by leading with honesty, then quickly giving him a plan he can respond to as a caring parent.'
+                },
+                prompt: 'I need to tell Dad I am considering taking a semester away from school because I feel overwhelmed. How can I share this without making him panic?',
+                introTitle: 'Best Way',
+                introCopy: 'Compare ways to deliver difficult family news while keeping care, respect, and practical next steps in view.',
+                candidates: ['Prepared plan first', 'Emotional confession', 'Casual mention'],
+                messages: [
+                    { role: 'user', speaker: 'Maya Chen', text: 'I need to tell Dad I am considering taking a semester away from school because I feel overwhelmed. How can I share this without making him panic?' },
+                    { role: 'agent', speaker: 'Syntrae', text: 'Start with care and preparation. Aaron is most likely to respond constructively when Maya names the stress honestly and brings a practical next-step plan.' }
+                ],
+                outcomes: [
+                    {
+                        title: 'Option A',
+                        action: 'Prepared plan first',
+                        probability: 0.50,
+                        items: [
+                            { label: 'Aaron listens past the first worry', probability: 0.21, reason: 'A clear plan gives his protective instinct something practical to hold onto, making him less likely to stay in alarm.' },
+                            { label: 'He asks serious but useful questions', probability: 0.17, reason: 'Aaron is likely to test whether Maya has thought through money, timing, and school consequences before offering support.' },
+                            { label: 'The conversation becomes a planning talk', probability: 0.12, reason: 'Once he sees preparation, his concern can shift into problem-solving rather than reacting only to the headline.' }
+                        ]
+                    },
+                    {
+                        title: 'Option B',
+                        action: 'Emotional confession',
+                        probability: 0.29,
+                        items: [
+                            { label: 'Aaron softens when he sees the stress', probability: 0.12, reason: 'His care for Maya makes him responsive to honest distress, especially if she is not blaming him or herself.' },
+                            { label: 'His worry rises before he understands the plan', probability: 0.10, reason: 'If the emotion arrives before the details, Aaron may imagine worst-case outcomes before he knows what Maya is asking for.' },
+                            { label: 'He may need a second conversation', probability: 0.07, reason: 'A highly emotional first talk can open the door, but he may need time before discussing practical next steps clearly.' }
+                        ]
+                    },
+                    {
+                        title: 'Option C',
+                        action: 'Casual mention',
+                        probability: 0.21,
+                        items: [
+                            { label: 'He stays calm at first', probability: 0.08, reason: 'A casual tone may prevent immediate escalation, but it also hides how serious the decision feels to Maya.' },
+                            { label: 'He feels the seriousness was minimized', probability: 0.08, reason: 'Aaron values responsibility, so a casual delivery can make him wonder whether Maya understands the stakes.' },
+                            { label: 'Trust improves only after more detail', probability: 0.05, reason: 'He is likely to need a fuller explanation later before he can feel confident in Maya\'s decision process.' }
+                        ]
+                    }
+                ],
+                recommendation: {
+                    title: 'Suggested first move: Option A.',
+                    text: 'Lead with calm honesty and a prepared plan. That gives Aaron space to be a caring father without feeling forced into immediate panic.'
+                }
+            },
+            dadGoodNews: {
+                personaKey: 'aaron',
+                title: 'Tell Dad big good news',
+                meta: 'Family milestone',
+                personaContext: {
+                    facts: ['Family protector', 'Emotionally steady', 'Needs context', 'Private context'],
+                    headline: 'Deeply loving when major news is shared with warmth, privacy, and reassurance that Maya is safe.',
+                    summary: 'Aaron may feel joy and concern at the same time; he responds best when Maya lets him be included without surprising him in a public setting.',
+                    logic: 'Best Way should make the moment feel safe and loving while giving him enough context to understand what support Maya wants from him.'
+                },
+                prompt: 'I have big good news about a pregnancy in the family and want Dad to feel included instead of shocked. What is the best way to tell him?',
+                introTitle: 'Best Way',
+                introCopy: 'Compare ways to share a major family milestone so the moment feels loving, private, and steady.',
+                candidates: ['Private calm conversation', 'Family gathering reveal', 'Text first, call after'],
+                messages: [
+                    { role: 'user', speaker: 'Maya Chen', text: 'I have big good news about a pregnancy in the family and want Dad to feel included instead of shocked. What is the best way to tell him?' },
+                    { role: 'agent', speaker: 'Syntrae', text: 'The warmest path is private and steady. It lets Aaron feel trusted as Maya\'s dad while giving him room to be happy, protective, and supportive.' }
+                ],
+                outcomes: [
+                    {
+                        title: 'Option A',
+                        action: 'Private calm conversation',
+                        probability: 0.47,
+                        items: [
+                            { label: 'Aaron feels trusted and included', probability: 0.19, reason: 'A private setting tells Aaron that Maya values his role and wants him to hear the news with dignity.' },
+                            { label: 'Joy arrives with manageable concern', probability: 0.16, reason: 'He can be happy while still asking practical questions, because the tone gives him room for both feelings.' },
+                            { label: 'He asks how he can support', probability: 0.12, reason: 'When he is not caught off guard publicly, Aaron\'s protective instinct is more likely to become useful support.' }
+                        ]
+                    },
+                    {
+                        title: 'Option B',
+                        action: 'Family gathering reveal',
+                        probability: 0.26,
+                        items: [
+                            { label: 'The room feels joyful quickly', probability: 0.10, reason: 'A shared reveal can create warmth and celebration when everyone is prepared for happy news.' },
+                            { label: 'Aaron hides his questions in public', probability: 0.09, reason: 'Because he may want context, a group setting can make him hold back important questions until later.' },
+                            { label: 'A private follow-up becomes necessary', probability: 0.07, reason: 'The public moment may be sweet, but Aaron will likely need a calmer one-on-one conversation afterward.' }
+                        ]
+                    },
+                    {
+                        title: 'Option C',
+                        action: 'Text first, call after',
+                        probability: 0.27,
+                        items: [
+                            { label: 'He has time to absorb the news', probability: 0.11, reason: 'Text gives Aaron a pause before speaking, which can help if the news is emotionally big.' },
+                            { label: 'The message feels too distant', probability: 0.09, reason: 'For a major family milestone, he may feel that a text does not match the closeness of the relationship.' },
+                            { label: 'The follow-up call restores warmth', probability: 0.07, reason: 'A prompt call can repair distance by letting Maya reassure him and invite his support directly.' }
+                        ]
+                    }
+                ],
+                recommendation: {
+                    title: 'Suggested first move: Option A.',
+                    text: 'A private calm conversation gives Aaron the best balance of joy, respect, and room to ask loving questions without feeling put on the spot.'
+                }
+            }
+        };
+
+        const els = {
+            moreBtn: document.getElementById('moreBtn'),
+            dropdown: document.getElementById('dropdownMenu'),
+            account: document.getElementById('accountIndicator'),
+            analyzeLink: document.getElementById('analyzeLink'),
+            personaList: document.getElementById('personaList'),
+            avatar: document.getElementById('activePersonaAvatar'),
+            name: document.getElementById('activePersonaName'),
+            role: document.getElementById('activePersonaRole'),
+            facts: document.getElementById('personaFacts'),
+            headline: document.getElementById('personaHeadline'),
+            summary: document.getElementById('personaSummary'),
+            logic: document.getElementById('personaLogic'),
+            activePersonaLabel: document.getElementById('activePersonaLabel'),
+            chatSpaceList: document.getElementById('chatSpaceList'),
+            chatHeading: document.getElementById('chatHeading'),
+            chatTranscript: document.getElementById('chatTranscript'),
+            simulationTitle: document.getElementById('simulationTitle'),
+            simulationCopy: document.getElementById('simulationCopy'),
+            promptBox: document.getElementById('promptBox'),
+            candidateGrid: document.getElementById('candidateGrid'),
+            settingsPersona: document.getElementById('settingsPersona'),
+            syntraeButton: document.getElementById('syntraeButton'),
+            treeSection: document.getElementById('treeSection'),
+            treeGrid: document.getElementById('treeGrid'),
+            outcomeDetail: document.getElementById('outcomeDetail'),
+            recommendationTitle: document.getElementById('recommendationTitle'),
+            recommendationText: document.getElementById('recommendationText'),
+            visualChatForm: document.getElementById('visualChatForm'),
+            visualChatInput: document.getElementById('visualChatInput')
+        };
+
+        let activePersonaKey = 'daniel';
+        let activeChatKey = 'main';
+        let typingRun = 0;
+
+        function escapeHtml(value) {
+            return String(value ?? '')
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+        }
+
+        function formatProbability(value) {
+            const number = Number(value || 0);
+            if (!Number.isFinite(number)) return '0%';
+            return `${Math.round((number <= 1 ? number * 100 : number) * 100) / 100}%`;
+        }
+
+        function probabilityWidth(value) {
+            const number = Number(value || 0);
+            if (!Number.isFinite(number)) return 0;
+            return Math.max(0, Math.min(100, number <= 1 ? number * 100 : number));
+        }
+
+        function demoUrl(path, params = {}) {
+            const url = new URL(path, window.location.href);
+            url.searchParams.set('demo', 'decision-tree');
+            Object.entries(params).forEach(([key, value]) => {
+                if (value !== undefined && value !== null && value !== '') url.searchParams.set(key, value);
+            });
+            return `${url.pathname.split('/').pop()}?${url.searchParams.toString()}`;
+        }
+
+        function getActiveChat() {
+            return chats[activeChatKey] || chats.main;
+        }
+
+        function renderPersonas() {
+            els.personaList.innerHTML = Object.entries(personas).map(([key, persona]) => `
+                <div class="persona-row${key === activePersonaKey ? ' active' : ''}" data-persona-row="${key}">
+                    <button class="persona-select" type="button" data-persona="${key}">
+                        <strong>${escapeHtml(persona.name)}</strong>
+                        <span>${escapeHtml(key === 'aaron' ? 'Use family context with Maya\'s dad' : 'Use Daniel\'s relationship context')}</span>
+                    </button>
+                    <div class="mini-actions">
+                        <button class="mini-btn" type="button" aria-label="Edit ${escapeHtml(persona.name)}"><i class="fas fa-pen"></i></button>
+                        <button class="mini-btn" type="button" aria-label="Delete ${escapeHtml(persona.name)}"><i class="fas fa-trash-alt"></i></button>
+                    </div>
+                </div>
+            `).join('');
+
+            els.personaList.querySelectorAll('[data-persona]').forEach((button) => {
+                button.addEventListener('click', () => {
+                    const nextPersona = button.dataset.persona;
+                    const firstChat = Object.entries(chats).find(([, chat]) => chat.personaKey === nextPersona);
+                    activePersonaKey = nextPersona;
+                    activeChatKey = firstChat?.[0] || activeChatKey;
+                    renderAll({ resetTree: true, animateChat: true });
+                });
+            });
+        }
+
+        function renderPersonaDetail() {
+            const persona = personas[activePersonaKey] || personas.daniel;
+            const chat = getActiveChat();
+            const context = chat.personaContext || persona;
+            els.avatar.innerHTML = `<img src="${escapeHtml(persona.avatar)}" alt="${escapeHtml(persona.name)} avatar">`;
+            els.name.textContent = persona.name;
+            els.role.textContent = persona.role;
+            els.account.textContent = persona.name;
+            els.activePersonaLabel.textContent = persona.name;
+            els.settingsPersona.textContent = persona.name;
+            els.analyzeLink.href = demoUrl('analyze.html', { persona: persona.demoKey });
+            els.facts.innerHTML = (context.facts || persona.facts).map((fact) => `<span class="chip">${escapeHtml(fact)}</span>`).join('');
+            els.headline.textContent = context.headline || persona.headline;
+            els.summary.textContent = context.summary || persona.summary;
+            els.logic.textContent = context.logic || persona.logic;
+        }
+
+        function renderChatSpaces() {
+            const visible = Object.entries(chats).filter(([, chat]) => chat.personaKey === activePersonaKey);
+            if (!visible.some(([key]) => key === activeChatKey)) activeChatKey = visible[0]?.[0] || activeChatKey;
+
+            els.chatSpaceList.innerHTML = visible.map(([key, chat]) => `
+                <div class="chat-space-row${key === activeChatKey ? ' active' : ''}">
+                    <button class="chat-space-btn" type="button" data-chat="${key}">
+                        <strong>${escapeHtml(chat.title)}</strong>
+                        <span>${escapeHtml(chat.meta)}</span>
+                    </button>
+                    <div class="mini-actions">
+                        <button class="mini-btn" type="button" aria-label="Rename chat space"><i class="fas fa-pen"></i></button>
+                        <button class="mini-btn" type="button" aria-label="Delete chat space"><i class="fas fa-trash-alt"></i></button>
+                    </div>
+                </div>
+            `).join('');
+
+            els.chatSpaceList.querySelectorAll('[data-chat]').forEach((button) => {
+                button.addEventListener('click', () => {
+                    activeChatKey = button.dataset.chat;
+                    renderAll({ resetTree: true, animateChat: true });
+                });
+            });
+        }
+
+        function wait(ms) {
+            return new Promise((resolve) => window.setTimeout(resolve, ms));
+        }
+
+        async function typeText(target, text, token) {
+            target.classList.add('typing-caret');
+            for (let i = 1; i <= text.length; i += 1) {
+                if (token !== typingRun) return;
+                target.textContent = text.slice(0, i);
+                await wait(text.length > 160 ? 9 : 13);
+            }
+            target.classList.remove('typing-caret');
+        }
+
+        async function renderAnimatedTranscript(chat) {
+            typingRun += 1;
+            const token = typingRun;
+            els.chatTranscript.innerHTML = '';
+
+            for (const message of chat.messages) {
+                if (token !== typingRun) return;
+                if (message.role === 'agent') {
+                    const indicator = document.createElement('div');
+                    indicator.className = 'typing-indicator visible';
+                    indicator.innerHTML = '<span class="typing-dot"></span><span>Syntrae is typing...</span>';
+                    els.chatTranscript.appendChild(indicator);
+                    await wait(420);
+                    indicator.remove();
+                }
+
+                const bubble = document.createElement('div');
+                bubble.className = `chat-bubble ${message.role === 'user' ? 'user' : 'agent'}`;
+                const speaker = document.createElement('span');
+                speaker.className = 'bubble-speaker';
+                speaker.textContent = message.speaker;
+                const copy = document.createElement('span');
+                bubble.appendChild(speaker);
+                bubble.appendChild(copy);
+                els.chatTranscript.appendChild(bubble);
+                await typeText(copy, message.text, token);
+                await wait(260);
+            }
+        }
+
+        function renderStaticTranscript(chat) {
+            typingRun += 1;
+            els.chatTranscript.innerHTML = chat.messages.map((message) => `
+                <div class="chat-bubble ${message.role === 'user' ? 'user' : 'agent'}" style="opacity:1;transform:none;">
+                    <span class="bubble-speaker">${escapeHtml(message.speaker)}</span>
+                    <span>${escapeHtml(message.text)}</span>
+                </div>
+            `).join('');
+        }
+
+        function renderSimulation({ resetTree = false } = {}) {
+            const chat = getActiveChat();
+            els.chatHeading.textContent = chat.title;
+            els.simulationTitle.textContent = chat.introTitle;
+            els.simulationCopy.textContent = chat.introCopy;
+            els.promptBox.textContent = chat.prompt;
+            els.candidateGrid.innerHTML = chat.candidates.map((candidate) => `<div class="candidate">${escapeHtml(candidate)}</div>`).join('');
+            els.treeGrid.innerHTML = chat.outcomes.map((branch, branchIndex) => `
+                <article class="tree-card">
+                    <div class="tree-card-meta">
+                        <span>${escapeHtml(branch.title)}</span>
+                        <span class="probability">${formatProbability(branch.probability)}</span>
+                    </div>
+                    <h3>${escapeHtml(branch.action)}</h3>
+                    <ul class="outcome-list">
+                        ${branch.items.map((item, itemIndex) => `
+                            <li>
+                                <button class="outcome-btn" type="button" data-branch="${branchIndex}" data-item="${itemIndex}" aria-expanded="false">
+                                    <div class="outcome-head">
+                                        <span>${escapeHtml(item.label)}</span>
+                                        <span class="probability">${formatProbability(item.probability)}</span>
+                                    </div>
+                                    <div class="probability-track"><div class="probability-fill" style="width:${probabilityWidth(item.probability)}%;"></div></div>
+                                </button>
+                            </li>
+                        `).join('')}
+                    </ul>
+                </article>
+            `).join('');
+            els.recommendationTitle.textContent = chat.recommendation.title;
+            els.recommendationText.textContent = chat.recommendation.text;
+            els.treeGrid.querySelectorAll('.outcome-btn').forEach((button) => {
+                button.addEventListener('click', () => showOutcomeDetail(Number(button.dataset.branch), Number(button.dataset.item)));
+            });
+            if (resetTree) {
+                els.treeSection.classList.remove('visible');
+                els.outcomeDetail.classList.remove('visible');
+                els.outcomeDetail.innerHTML = '';
+                els.syntraeButton.innerHTML = '<i class="fas fa-play"></i> Syntrae';
+                els.syntraeButton.disabled = false;
+            }
+        }
+
+        function showOutcomeDetail(branchIndex, itemIndex) {
+            const chat = getActiveChat();
+            const persona = personas[chat.personaKey] || personas[activePersonaKey];
+            const branch = chat.outcomes[branchIndex];
+            const item = branch?.items[itemIndex];
+            if (!branch || !item) return;
+
+            els.treeGrid.querySelectorAll('.outcome-btn').forEach((button) => button.setAttribute('aria-expanded', 'false'));
+            const activeButton = els.treeGrid.querySelector(`[data-branch="${branchIndex}"][data-item="${itemIndex}"]`);
+            activeButton?.setAttribute('aria-expanded', 'true');
+            els.outcomeDetail.innerHTML = `
+                <div class="detail-number">
+                    <span>Outcome likelihood</span>
+                    <strong>${formatProbability(item.probability)}</strong>
+                </div>
+                <div class="detail-copy">
+                    <div class="detail-meta"><span>${escapeHtml(branch.title)}</span><span>${escapeHtml(branch.action)}</span></div>
+                    <h3>${escapeHtml(item.label)}</h3>
+                    <p><strong>Why this chance:</strong> ${escapeHtml(item.reason)}</p>
+                    <p>This estimate is shaped by ${escapeHtml(persona.name)}'s saved communication pattern, the emotional pressure of this path, and the timing implied by the current scenario.</p>
+                </div>
+            `;
+            els.outcomeDetail.classList.add('visible');
+            els.outcomeDetail.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+
+        function renderAll({ resetTree = false, animateChat = false } = {}) {
+            renderPersonas();
+            renderPersonaDetail();
+            renderChatSpaces();
+            renderSimulation({ resetTree });
+            const chat = getActiveChat();
+            if (animateChat) {
+                void renderAnimatedTranscript(chat);
+            } else {
+                renderStaticTranscript(chat);
+            }
+        }
+
+        els.moreBtn.addEventListener('click', (event) => {
+            event.stopPropagation();
+            const open = !els.dropdown.classList.contains('active');
+            els.dropdown.classList.toggle('active', open);
+            els.moreBtn.setAttribute('aria-expanded', String(open));
+        });
+
+        document.addEventListener('click', () => {
+            els.dropdown.classList.remove('active');
+            els.moreBtn.setAttribute('aria-expanded', 'false');
+        });
+
+        els.dropdown.addEventListener('click', (event) => event.stopPropagation());
+
+        els.syntraeButton.addEventListener('click', () => {
+            els.treeSection.classList.add('visible');
+            els.syntraeButton.innerHTML = '<i class="fas fa-check"></i> Syntrae complete';
+            els.syntraeButton.disabled = true;
+            els.treeSection.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        });
+
+        els.visualChatForm.addEventListener('submit', (event) => {
+            event.preventDefault();
+            const text = els.visualChatInput.value.trim();
+            if (!text) return;
+            typingRun += 1;
+            const bubble = document.createElement('div');
+            bubble.className = 'chat-bubble user';
+            bubble.innerHTML = `<span class="bubble-speaker">Maya Chen</span><span>${escapeHtml(text)}</span>`;
+            els.chatTranscript.appendChild(bubble);
+            els.visualChatInput.value = '';
+            bubble.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        });
+
+        window.SyntraePageTour?.init({
+            pageKey: 'dashboard-demo',
+            title: 'Dashboard guide',
+            triggerText: 'Page guide',
+            autoStart: () => {
+                const requested = new URLSearchParams(window.location.search).get('tour') === '1';
+                if (!requested) return false;
+                try {
+                    return !localStorage.getItem('syntrae-tour-seen-dashboard-demo');
+                } catch (_) {
+                    return true;
+                }
+            },
+            onFinish: () => {
+                try {
+                    localStorage.setItem('syntrae-tour-seen-dashboard-demo', '1');
+                } catch (_) {
+                    // The tour should still finish when browser storage is unavailable.
+                }
+            },
+            steps: [
+                {
+                    selector: '[data-tour-step="persona"]',
+                    title: 'Your Persona',
+                    description: 'This column keeps the active persona visible so every path is grounded in the person Maya is thinking about.',
+                    placement: 'right'
+                },
+                {
+                    selector: '[data-tour-step="chatspaces"]',
+                    title: 'Chat Spaces',
+                    description: 'Each chat space is a different high-stakes moment for the selected persona. Choosing Aaron only shows Aaron family scenarios; choosing Daniel only shows Daniel scenarios.',
+                    placement: 'bottom'
+                },
+                {
+                    selector: '[data-tour-step="embedded-chat"]',
+                    title: 'Decision Studio Chat',
+                    description: 'This visual chat area shows Maya and Syntrae taking turns. It is embedded here for the demo and does not require backend setup.',
+                    placement: 'left'
+                },
+                {
+                    selector: '[data-tour-step="bestway"]',
+                    title: 'Best Way',
+                    description: 'This section holds the current question and the three mutually exclusive options Syntrae will compare.',
+                    placement: 'right'
+                },
+                {
+                    selector: '[data-tour-step="settings"]',
+                    title: 'Syntrae Settings',
+                    description: 'This confirms the active persona and runs the visual consequence map immediately for the current scenario.',
+                    placement: 'left'
+                },
+                {
+                    selector: '[data-tour-step="tree"]',
+                    title: 'Consequence Tree',
+                    description: 'After Syntrae runs, this section shows the option totals, outcome totals, and reasoning behind each probability.',
+                    placement: 'top',
+                    allowHidden: true,
+                    beforeShow: () => els.treeSection.classList.add('visible')
+                }
+            ]
+        });
+
+        renderAll({ resetTree: true, animateChat: true });
+        if (new URLSearchParams(window.location.search).get('state') === 'end') {
+            els.treeSection.classList.add('visible');
+            els.syntraeButton.innerHTML = '<i class="fas fa-check"></i> Syntrae complete';
+            els.syntraeButton.disabled = true;
+        }
+    </script>
+</body>
+</html>

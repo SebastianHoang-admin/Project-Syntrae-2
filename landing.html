@@ -166,9 +166,26 @@
         }
 
         .nav-links a:not(.button) {
-            color: var(--quiet);
+            display: inline-flex;
+            align-items: center;
+            min-height: 38px;
+            padding: 9px 13px;
+            border: 1px solid rgba(18, 150, 141, 0.18);
+            border-radius: 999px;
+            color: var(--ink);
+            background: rgba(255, 255, 255, 0.86);
             font-size: 14px;
             font-weight: 800;
+            box-shadow: 0 10px 22px rgba(32, 50, 54, 0.07);
+            transition: transform 0.18s ease, box-shadow 0.18s ease, color 0.18s ease, border-color 0.18s ease, background 0.18s ease;
+        }
+
+        .nav-links a:not(.button):hover {
+            transform: translateY(-1px);
+            color: var(--leaf);
+            border-color: rgba(18, 150, 141, 0.34);
+            background: #fff;
+            box-shadow: 0 14px 30px rgba(18, 150, 141, 0.12);
         }
 
         .nav-links .vision-link {
@@ -414,6 +431,63 @@
 
         .video-band {
             background: linear-gradient(180deg, var(--paper) 0%, #eef9f4 100%);
+        }
+
+        .belief-band {
+            background: linear-gradient(180deg, #fff 0%, #f2faf6 100%);
+        }
+
+        .belief-grid {
+            margin-top: 38px;
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 18px;
+        }
+
+        .belief-card {
+            position: relative;
+            overflow: hidden;
+            min-height: 390px;
+            border: 1px solid var(--line);
+            border-radius: 24px;
+            background: #fff;
+            box-shadow: 0 18px 42px rgba(32, 50, 54, 0.1);
+            transition: transform 0.24s ease, box-shadow 0.24s ease, border-color 0.24s ease;
+        }
+
+        .belief-card:hover {
+            transform: translateY(-6px);
+            border-color: rgba(18, 150, 141, 0.28);
+            box-shadow: 0 26px 58px rgba(32, 50, 54, 0.14);
+        }
+
+        .belief-card img {
+            width: 100%;
+            display: block;
+            aspect-ratio: 16 / 10;
+            object-fit: cover;
+            background: #eef9f4;
+            transition: transform 0.5s ease;
+        }
+
+        .belief-card:hover img {
+            transform: scale(1.035);
+        }
+
+        .belief-copy {
+            padding: 22px;
+        }
+
+        .belief-copy h3 {
+            margin: 0 0 9px;
+            font-size: 22px;
+        }
+
+        .belief-copy p {
+            margin: 0;
+            color: var(--quiet);
+            line-height: 1.68;
+            font-weight: 650;
         }
 
         .quote-band {
@@ -1039,7 +1113,8 @@
 
             .science-grid,
             .works-grid,
-            .faq-grid {
+            .faq-grid,
+            .belief-grid {
                 grid-template-columns: 1fr;
             }
 
@@ -1111,8 +1186,12 @@
             </span>
         </a>
         <div class="nav-links">
+            <a href="who-we-are.html" target="_blank" rel="noopener noreferrer">Who are we</a>
+            <a href="our-mission.html" target="_blank" rel="noopener noreferrer">Mission</a>
+            <a href="community.html" target="_blank" rel="noopener noreferrer">Community</a>
+            <a href="founder-stories.html" target="_blank" rel="noopener noreferrer">Stories</a>
             <a class="button vision-link" href="#vision"><i class="fas fa-play"></i> Feel the vision</a>
-            <a href="#founding" class="button button-primary"><i class="fas fa-ticket-alt"></i> Founding member</a>
+            <a href="#founding" class="button button-primary"><i class="fas fa-star"></i> Join for free</a>
         </div>
     </nav>
 
@@ -1123,7 +1202,7 @@
                 <h1>Syntrae</h1>
                 <p>Decision clarity for messages, invites, and relationship moments. Syntrae is being designed as a statistics-based way to compare possible next moves before you choose one.</p>
                 <div class="hero-actions">
-                    <a class="button button-primary" href="#founding"><i class="fas fa-star"></i> Join for $5</a>
+                    <a class="button button-primary" href="#founding"><i class="fas fa-star"></i> Join for free</a>
                     <a class="button button-secondary" href="#vision"><i class="fas fa-play"></i> Feel the vision.</a>
                 </div>
                 <div class="hero-proof" aria-label="Positioning notes">
@@ -1141,13 +1220,44 @@
             </div>
         </section>
 
+        <section class="section belief-band" id="beliefs">
+            <div class="section-inner">
+                <p class="section-kicker">Why people join</p>
+                <h2>A friendlier future for important decisions.</h2>
+                <p class="lede">Syntrae is for people who believe better relationships are built through privacy, preparation, and care. Founding members help shape the product around those beliefs before launch.</p>
+                <div class="belief-grid" aria-label="Syntrae belief stories">
+                    <article class="belief-card">
+                        <img src="assets/syntrae-solidarity.svg" alt="People joining hands in solidarity">
+                        <div class="belief-copy">
+                            <h3>Solidarity over pressure</h3>
+                            <p>We are building a product that helps people slow down, understand each other better, and choose the next step with more kindness.</p>
+                        </div>
+                    </article>
+                    <article class="belief-card">
+                        <img src="assets/syntrae-family-care.svg" alt="Family holding hands in a caring conversation">
+                        <div class="belief-copy">
+                            <h3>Family and trust</h3>
+                            <p>High-stakes conversations often happen with people we love. Syntrae should make those moments more thoughtful, not more mechanical.</p>
+                        </div>
+                    </article>
+                    <article class="belief-card">
+                        <img src="assets/syntrae-mission-abstract.svg" alt="Abstract caring decision paths">
+                        <div class="belief-copy">
+                            <h3>Belief becomes signal</h3>
+                            <p>Founding members join for free, share what matters to them, and help us prioritize the product around real human needs.</p>
+                        </div>
+                    </article>
+                </div>
+            </div>
+        </section>
+
         <section class="section video-band" id="vision">
             <div class="section-inner video-layout">
                 <div class="demo-launch-card" aria-label="Syntrae demo chat launch">
                     <p class="section-kicker">Demo access</p>
                     <h2>Open the demo.</h2>
                     <p>See how the vision is introduced and the demo decision flow comes alive.</p>
-                    <a class="button button-primary demo-launch-btn" href="Chat.html?demo=decision-tree&amp;state=start&amp;tour=1" target="_blank" rel="noopener noreferrer"><i class="fas fa-play"></i> Try it here</a>
+                    <a class="button button-primary demo-launch-btn" href="DashboardDemo.html?demo=decision-tree&amp;state=start&amp;tour=1" target="_blank" rel="noopener noreferrer"><i class="fas fa-play"></i> Try it here</a>
                     <span class="demo-launch-note">Opens the demo in a new tab without any extra steps.</span>
                 </div>
                 <div>
@@ -1245,9 +1355,9 @@
                 <div>
                     <p class="section-kicker">Founding members</p>
                     <h2>Help shape the first version.</h2>
-                    <p class="lede">A $5 founding membership reserves early access and provides access to opinion pools that help shape product development. When Syntrae launches, founding members will retain lifetime access without any additional fees.</p>
+                    <p class="lede">Founding membership is free. It reserves early access and provides access to opinion pools that help shape product development. When Syntrae launches, founding members will retain lifetime access without any additional fees.</p>
                     <div class="price-lockup">
-                        <div class="price">$5</div>
+                        <div class="price">Free</div>
                         <p class="price-note">Founding-member access includes participation in opinion pools and lifetime product access after launch, with no further subscription fees.</p>
                     </div>
                     <div class="mission-callout">Join us in a mission of creating a better world.</div>
@@ -1255,7 +1365,7 @@
 
                 <form class="member-form" id="foundingForm" action="founding-welcome.html" method="get">
                     <h3>Reserve founding access</h3>
-                    <p>Create your founding-member reservation. You will receive opinion-pool access to help shape development and lifetime Syntrae access after launch with no additional fees.</p>
+                    <p>Create your free founding-member reservation. You will receive opinion-pool access to help shape development and lifetime Syntrae access after launch with no additional fees.</p>
                     <div class="field-grid">
                         <label>
                             Full name
@@ -1271,7 +1381,7 @@
                         </label>
                         <label class="checkbox">
                             <input type="checkbox" name="foundingConsent" required>
-                            <span>I understand the $5 founding-member offer includes early access, participation in opinion pools, and lifetime access to Syntrae after launch with no additional fees.</span>
+                            <span>I understand the free founding-member offer includes early access, participation in opinion pools, and lifetime access to Syntrae after launch with no additional fees.</span>
                         </label>
                     </div>
                     <div class="form-footer">
@@ -1300,7 +1410,7 @@
                     </article>
                     <article class="faq-item">
                         <h3>What does founding member mean?</h3>
-                        <p>Founding members receive early access, participate in opinion pools that shape development, and retain lifetime access to Syntrae after launch without additional fees.</p>
+                        <p>Founding members join for free, receive early access, participate in opinion pools that shape development, and retain lifetime access to Syntrae after launch without additional fees.</p>
                     </article>
                 </div>
             </div>
@@ -1309,8 +1419,15 @@
 
     <footer class="footer">
         <div class="footer-inner">
-            <span>© 2026 Syntrae LLC</span>
+            <span>&copy; 2026 Syntrae LLC</span>
             <span>Predictive social science for considerate decisions.</span>
+            <span>
+                <a href="who-we-are.html" target="_blank" rel="noopener noreferrer">Who are we</a> &middot;
+                <a href="our-mission.html" target="_blank" rel="noopener noreferrer">Our mission</a> &middot;
+                <a href="community.html" target="_blank" rel="noopener noreferrer">Community</a> &middot;
+                <a href="privacy-principles.html" target="_blank" rel="noopener noreferrer">Privacy</a> &middot;
+                <a href="founder-stories.html" target="_blank" rel="noopener noreferrer">Founder stories</a>
+            </span>
         </div>
     </footer>
 
@@ -1414,7 +1531,7 @@
                 {
                     selector: ".founding-layout",
                     title: "Founding access",
-                    description: "This final section explains the early paid offer, the opinion-pool feedback loop, and the lifetime access promise for founding members.",
+                    description: "This final section explains the free founding-member offer, the opinion-pool feedback loop, and the lifetime access promise for founding members.",
                     placement: "top"
                 }
             ]

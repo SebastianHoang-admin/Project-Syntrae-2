@@ -2080,7 +2080,7 @@ function setupDemoInsightLab() {
   document.body.classList.add('demo-mode');
   document.title = 'Insight Lab - Maya and Daniel Smith Demo';
   document.querySelectorAll('a[href="Chat.html"]').forEach((link) => {
-    link.setAttribute('href', demoUrl('Chat.html', { state: 'start' }));
+    link.setAttribute('href', demoUrl('DashboardDemo.html', { state: 'start' }));
   });
   document.querySelectorAll('a[href="analyze.html"]').forEach((link) => {
     link.setAttribute('href', demoUrl('analyze.html', { persona: 'daniel-smith-demo' }));

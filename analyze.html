@@ -783,7 +783,7 @@ Authority figure</div>
     </main>
 
     <script src="js/supabase-config.js"></script>
-    <script src="js/daniel-demo-persona.js?v=20260708-demo-avatars"></script>
+    <script src="js/daniel-demo-persona.js?v=20260709-aaron"></script>
     <script src="js/page-tour.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>
@@ -2704,8 +2704,8 @@ Authority figure</div>
                 personaSelectorEl.value = personaKey;
             }
             if (editPersonaLink) editPersonaLink.href = demoUrl('edit-persona.html', { persona: personaKey });
-            document.querySelector('.brand')?.setAttribute('href', demoUrl('Chat.html', { state: 'start' }));
-            document.querySelector('.primary-btn')?.setAttribute('href', demoUrl('Chat.html', { state: 'start' }));
+            document.querySelector('.brand')?.setAttribute('href', demoUrl('DashboardDemo.html', { state: 'start' }));
+            document.querySelector('.primary-btn')?.setAttribute('href', demoUrl('DashboardDemo.html', { state: 'start' }));
 
             const panel = document.querySelector('.panel');
             if (panel) {

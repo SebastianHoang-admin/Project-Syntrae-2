@@ -286,7 +286,7 @@ function loadDemoProfile() {
   }
 
   const brand = document.querySelector('.brand');
-  if (brand) brand.setAttribute('href', demoUrl('Chat.html', { state: 'start' }));
+  if (brand) brand.setAttribute('href', demoUrl('DashboardDemo.html', { state: 'start' }));
   const skipBtn = document.getElementById('skipBtn');
   if (skipBtn) skipBtn.textContent = 'Back to demo dashboard';
 }
@@ -322,7 +322,7 @@ form.addEventListener('submit', async (e) => {
 
   if (isDecisionTreeDemo()) {
     showStatus('Demo profile ready. Returning to the Best Way scene...', 'success');
-    setTimeout(() => window.location.href = demoUrl('Chat.html', { state: 'start' }), 550);
+    setTimeout(() => window.location.href = demoUrl('DashboardDemo.html', { state: 'start' }), 550);
     return;
   }
 
@@ -391,7 +391,7 @@ form.addEventListener('submit', async (e) => {
 document.getElementById('skipBtn').addEventListener('click', async () => {
   clearStatus();
   if (isDecisionTreeDemo()) {
-    window.location.href = demoUrl('Chat.html', { state: 'start' });
+    window.location.href = demoUrl('DashboardDemo.html', { state: 'start' });
     return;
   }
   try {

@@ -125,8 +125,21 @@
     "decision-context": "Best Way should help Maya balance directness with care, making the next message easy to understand and safe for Daniel to receive."
   };
 
+  const AARON_DEMO_EXTRAS = {
+    "basic-profile": "Aaron Chen. Male. 55 yrs old. Maya Chen's father, based in the Bay Area.",
+    "relationship-role": "Family persona and father figure Maya wants to approach with care during important life updates.",
+    "time-life": "55-year-old operations manager and family anchor who balances work, household responsibilities, and deep concern for Maya's future.",
+    "current-context": "Aaron wants Maya to feel supported, but he reacts best when big news is shared privately, calmly, and with enough context to understand the next step.",
+    "communication-pattern": "Responds well to respectful honesty, practical planning, and warm reassurance. He can become worried or directive when news arrives suddenly or without a plan.",
+    "emotional-needs": "Needs to know Maya is safe, thinking clearly, and not carrying a difficult decision alone. He wants to be included as a loving father, not managed from a distance.",
+    "stressors": "Family financial stability, Maya's school path, health and safety concerns, and fear that she may hide difficult feelings until they become urgent.",
+    "cultural-moment": "Carries a family-first mindset shaped by immigrant-parent responsibility, practical sacrifice, and quiet affection more than dramatic emotional display.",
+    "decision-context": "Best Way should help Maya share family news with warmth, respect, and a concrete next step so Aaron can respond with care instead of panic."
+  };
+
   DANIEL_DEMO_EXTRAS.conclusion = 'Daniel is a warm, steady, design-oriented graduate student who responds best to sincerity that gives him room to think. His strongest signals are respect, honesty, and depth; rushed emotional certainty can make him withdraw even when he cares. Best Way should favor clear invitations with low pressure, practical timing, and space for Daniel to answer without feeling cornered.';
   MAYA_DEMO_EXTRAS.conclusion = 'Maya is a thoughtful 22-year-old student who notices tone, timing, and emotional detail before making a move. She wants clarity and sincerity, but her best decisions happen when she slows down enough to separate care from urgency. Best Way should help Maya communicate directly while keeping the message warm, respectful, and easy for the other person to answer honestly.';
+  AARON_DEMO_EXTRAS.conclusion = 'Aaron is a protective, practical, and deeply caring father who responds best when Maya gives him honest context and a clear next step. His strongest signals are family loyalty, responsibility, steadiness, and quiet warmth; surprise without explanation can make him worry before he understands the full picture. Best Way should help Maya speak with love and preparation so Aaron can feel included, respected, and ready to support her.';
 
   function clone(value) {
     return JSON.parse(JSON.stringify(value));
@@ -222,6 +235,92 @@
     return answers;
   }
 
+  function buildAaronDemoAnswers() {
+    const answers = clone(DANIEL_DEMO_ANSWERS);
+    const axisBlueprint = {
+      L1_A1: [0.75, 0.75, 1],
+      L1_A2: [1, 0.75, 0.75],
+      L1_A3: [0.25, 0.25, 0.5],
+      L1_A4: [0.25, 0.25, 0.25],
+      L1_A5: [0.25, 0.5, 0.25],
+      L1_A6: [0.5, 0.75, 0.75],
+      L2_A1: [0.75, 0.75, 0.5],
+      L2_A2: [0.75, 1, 0.75],
+      L2_A3: [1, 0.75, 0.75],
+      L2_A4: [0.25, 0.5, 0.25],
+      L2_A5: [0.75, 0.75, 0.5],
+      L2_A6: [0.75, 1, 0.75],
+      L3_A1: [1, 0.75, 0.75],
+      L3_A2: [1, 1, 0.75],
+      L3_A3: [0.75, 0.75, 0.75],
+      L3_A4: [0.5, 0.5, 0.5],
+      L3_A5: [0.75, 0.75, 1],
+      L3_A6: [0.5, 0.75, 0.5]
+    };
+
+    Object.entries(answers).forEach(([questionId, answer]) => {
+      if (!answer || typeof answer !== 'object' || typeof answer.value !== 'number' || !answer.axisId) return;
+      const blueprint = axisBlueprint[answer.axisId];
+      if (!blueprint) return;
+      const qIndex = Math.max(0, Math.min(2, Number((questionId.match(/_Q(\d+)$/) || [])[1] || 1) - 1));
+      const value = blueprint[qIndex];
+      answer.type = 'choice';
+      answer.value = value;
+      answer.option = valueToOption(value);
+      answer.confidence = answer.layerId === 'L3' ? 5 : 4;
+    });
+
+    Object.assign(answers, {
+      "L4_A1_Q1": { "type": "multi", "selected": ["Warm", "Protective", "Practical"], "axisId": "L4_A1", "layerId": "L4" },
+      "L4_A1_Q2": { "type": "multi", "selected": ["Calm", "Concerned", "Family-centered"], "axisId": "L4_A1", "layerId": "L4" },
+      "L4_A1_Q3": { "type": "multi", "selected": ["Measured", "Loving", "Reserved"], "axisId": "L4_A1", "layerId": "L4" },
+      "L4_A2_Q1": { "type": "multi", "selected": ["Caring", "Steady", "Responsible"], "axisId": "L4_A2", "layerId": "L4" },
+      "L4_A2_Q2": { "type": "multi", "selected": ["Supportive", "Direct", "Patient"], "axisId": "L4_A2", "layerId": "L4" },
+      "L4_A2_Q3": { "type": "multi", "selected": ["Warm", "Grounded", "Protective"], "axisId": "L4_A2", "layerId": "L4" },
+      "L4_A3_Q1": { "type": "multi", "selected": ["Honest", "Plainspoken", "Careful"], "axisId": "L4_A3", "layerId": "L4" },
+      "L4_A3_Q2": { "type": "multi", "selected": ["Clear", "Practical", "Respectful"], "axisId": "L4_A3", "layerId": "L4" },
+      "L4_A3_Q3": { "type": "multi", "selected": ["Direct", "Gentle", "Responsible"], "axisId": "L4_A3", "layerId": "L4" },
+      "L4_A4_Q1": { "type": "multi", "selected": ["Composed", "Quiet", "Watchful"], "axisId": "L4_A4", "layerId": "L4" },
+      "L4_A4_Q2": { "type": "multi", "selected": ["Attentive", "Engaged", "Steady"], "axisId": "L4_A4", "layerId": "L4" },
+      "L4_A4_Q3": { "type": "multi", "selected": ["Calm", "Protective", "Focused"], "axisId": "L4_A4", "layerId": "L4" },
+      "L4_A5_Q1": { "type": "multi", "selected": ["Composed", "Concerned", "Loyal"], "axisId": "L4_A5", "layerId": "L4" },
+      "L4_A5_Q2": { "type": "multi", "selected": ["Reserved", "Reflective", "Practical"], "axisId": "L4_A5", "layerId": "L4" },
+      "L4_A5_Q3": { "type": "multi", "selected": ["Guarded", "Tender", "Protective"], "axisId": "L4_A5", "layerId": "L4" },
+      "L4_A6_Q1": { "type": "multi", "selected": ["Simple", "Family-oriented", "Low-key"], "axisId": "L4_A6", "layerId": "L4" },
+      "L4_A6_Q2": { "type": "multi", "selected": ["Polite", "Warm", "Observant"], "axisId": "L4_A6", "layerId": "L4" },
+      "L4_A6_Q3": { "type": "multi", "selected": ["Mature", "Direct", "Dependable"], "axisId": "L4_A6", "layerId": "L4" },
+      "L5_S1_F1": { "type": "free", "text": "Chinese-Vietnamese American.", "sectionId": "L5_S1", "layerId": "L5", "fieldName": "race" },
+      "L5_S1_F2": { "type": "free", "text": "English and Vietnamese, with some Cantonese family phrases.", "sectionId": "L5_S1", "layerId": "L5", "fieldName": "languages" },
+      "L5_S1_F3": { "type": "free", "text": "Respectful of family traditions, ancestral remembrance, and practical moral responsibility.", "sectionId": "L5_S1", "layerId": "L5", "fieldName": "religion" },
+      "L5_S2_F1": { "type": "free", "text": "Operations manager at a regional logistics company.", "sectionId": "L5_S2", "layerId": "L5", "fieldName": "current_status" },
+      "L5_S2_F2": { "type": "free", "text": "Community college background with years of practical work experience.", "sectionId": "L5_S2", "layerId": "L5", "fieldName": "school_university" },
+      "L5_S2_F3": { "type": "free", "text": "He wants Maya to be safe, steady, educated, and confident enough to build a good life without feeling alone.", "sectionId": "L5_S2", "layerId": "L5", "fieldName": "aspirations" },
+      "L5_S3_F1": { "type": "free", "text": "Family network, work colleagues, neighborhood friends, and relatives who gather around meals and practical support.", "sectionId": "L5_S3", "layerId": "L5", "fieldName": "communities" },
+      "L5_S3_F2": { "type": "free", "text": "Prefers home dinners, quiet conversations, family errands, and settings where people can talk without performing.", "sectionId": "L5_S3", "layerId": "L5", "fieldName": "environment_style" },
+      "L5_S4_F1": { "type": "free", "text": "Cooking, gardening, home repairs, classic films, fishing trips, and early morning walks.", "sectionId": "L5_S4", "layerId": "L5", "fieldName": "hobbies" },
+      "L5_S4_F2": { "type": "free", "text": "Very invested when the activity supports family, steadiness, or a practical sense of care.", "sectionId": "L5_S4", "layerId": "L5", "fieldName": "engagement_level" },
+      "L5_S5_F1": { "type": "free", "text": "Old love songs, Vietnamese ballads, classic rock, and quiet instrumental music while cooking.", "sectionId": "L5_S5", "layerId": "L5", "fieldName": "music" },
+      "L5_S5_F2": { "type": "free", "text": "Family dramas, history documentaries, classic action films, and calm weekend cooking shows.", "sectionId": "L5_S5", "layerId": "L5", "fieldName": "shows_movies" },
+      "L5_S5_F3": { "type": "free", "text": "Card games with family, chess on quiet evenings, and simple mobile puzzle games.", "sectionId": "L5_S5", "layerId": "L5", "fieldName": "games" },
+      "L5_S5_F4": { "type": "free", "text": "Practical, tidy, warm wood tones, family photos, comfortable clothes, and well-kept tools.", "sectionId": "L5_S5", "layerId": "L5", "fieldName": "aesthetic_style" },
+      "L6_S1_F1": { "type": "free", "text": "Mild knee stiffness after long workdays, but generally active and independent.", "sectionId": "L6_S1", "layerId": "L6", "fieldName": "physical_incapability" },
+      "L6_S1_F2": { "type": "free", "text": "Chaotic parties, public confrontation, careless spending, and last-minute risky decisions.", "sectionId": "L6_S1", "layerId": "L6", "fieldName": "hard_no_activities" },
+      "L6_S1_F3": { "type": "free", "text": "He does not respond well to being kept in the dark, being publicly embarrassed, or hearing major news without enough context.", "sectionId": "L6_S1", "layerId": "L6", "fieldName": "absolute_boundaries" },
+      "L6_S2_F1": { "type": "free", "text": "Pho, grilled fish, roasted chicken, fresh fruit, strong coffee, and simple birthday cake with family.", "sectionId": "L6_S2", "layerId": "L6", "fieldName": "favorite_dishes" },
+      "L6_S2_F2": { "type": "free", "text": "Deep green, navy, warm brown, cream, and charcoal.", "sectionId": "L6_S2", "layerId": "L6", "fieldName": "favorite_colors" },
+      "L6_S2_F3": { "type": "free", "text": "Family dinners, home projects, quiet drives, market trips, and one-on-one talks while doing practical tasks.", "sectionId": "L6_S2", "layerId": "L6", "fieldName": "preferred_activities" },
+      "L6_S3_F1": { "type": "free", "text": "Careless choices, vague explanations, public family conflict, wastefulness, and avoiding hard conversations until they become urgent.", "sectionId": "L6_S3", "layerId": "L6", "fieldName": "extreme_dislikes" },
+      "L6_S3_F2": { "type": "free", "text": "Responsibility, honesty, family meals, steady planning, practical care, and being trusted enough to hear the truth.", "sectionId": "L6_S3", "layerId": "L6", "fieldName": "strong_likes" },
+      "extra_time_life": { "type": "free", "text": AARON_DEMO_EXTRAS["time-life"], "layerId": "EXTRA", "fieldName": "extra_time_life" },
+      "extra_current_context": { "type": "free", "text": AARON_DEMO_EXTRAS["current-context"], "layerId": "EXTRA", "fieldName": "extra_current_context" },
+      "extra_stressors": { "type": "free", "text": AARON_DEMO_EXTRAS.stressors, "layerId": "EXTRA", "fieldName": "extra_stressors" },
+      "extra_cultural_moment": { "type": "free", "text": AARON_DEMO_EXTRAS["cultural-moment"], "layerId": "EXTRA", "fieldName": "extra_cultural_moment" },
+      "extra_relationship_role": { "type": "free", "text": AARON_DEMO_EXTRAS["relationship-role"], "layerId": "EXTRA", "fieldName": "extra_relationship_role" }
+    });
+
+    return answers;
+  }
+
   function buildIdentityLayersFromAnswers(answers) {
     const buckets = { L1: {}, L2: {}, L3: {} };
     Object.values(answers).forEach((answer) => {
@@ -275,6 +374,7 @@
   }
 
   const MAYA_DEMO_ANSWERS = buildMayaDemoAnswers();
+  const AARON_DEMO_ANSWERS = buildAaronDemoAnswers();
 
   function buildMayaDemoPersonaState(options = {}) {
     const answers = clone(MAYA_DEMO_ANSWERS);
@@ -292,6 +392,25 @@
       usersInput: 'Maya Chen is a 22-year-old student in San Francisco. She is thoughtful, observant, warm, and careful with emotionally important conversations. She wants clarity in her relationship with Daniel Smith, but she wants her message to feel sincere and low-pressure rather than anxious or demanding.',
       identityLayers: buildIdentityLayersFromAnswers(answers),
       extras: clone(MAYA_DEMO_EXTRAS)
+    };
+  }
+
+  function buildAaronDemoPersonaState(options = {}) {
+    const answers = clone(AARON_DEMO_ANSWERS);
+    return {
+      version: 1,
+      savedAt: options.savedAt || '2026-07-06T00:00:00.000Z',
+      personaName: 'Aaron Chen',
+      personaPortrait: Object.prototype.hasOwnProperty.call(options, 'portraitDataUrl') ? options.portraitDataUrl : 'assets/aaron-chen-avatar.svg',
+      personaAvatarPresent: Object.prototype.hasOwnProperty.call(options, 'portraitDataUrl') ? (options.portraitDataUrl ? 'yes' : '') : 'yes',
+      answers,
+      session: {
+        visibleIds: Object.keys(answers),
+        currentIndex: 0
+      },
+      usersInput: 'Aaron Chen is Maya Chen\'s father. He is protective, practical, warm in a quiet way, and most receptive when serious family news is shared with respect, context, and a realistic plan. He may worry quickly when information arrives suddenly, but he becomes supportive when Maya helps him understand how he can be present for her.',
+      identityLayers: buildIdentityLayersFromAnswers(answers),
+      extras: clone(AARON_DEMO_EXTRAS)
     };
   }
 
@@ -313,6 +432,15 @@
       portrait: 'assets/maya-chen-avatar.png',
       chips: ['Student', 'Female', '22 yrs old'],
       buildState: buildMayaDemoPersonaState
+    },
+    'aaron-chen-demo': {
+      key: 'aaron-chen-demo',
+      name: 'Aaron Chen',
+      title: 'Aaron Chen Persona - Syntrae Demo',
+      editTitle: 'Edit Aaron Chen Persona - Syntrae Demo',
+      portrait: 'assets/aaron-chen-avatar.svg',
+      chips: ['Maya\'s dad', 'Male', '55 yrs old'],
+      buildState: buildAaronDemoPersonaState
     }
   };
 
@@ -322,8 +450,10 @@
 
   window.DANIEL_DEMO_ANSWERS = DANIEL_DEMO_ANSWERS;
   window.MAYA_DEMO_ANSWERS = MAYA_DEMO_ANSWERS;
+  window.AARON_DEMO_ANSWERS = AARON_DEMO_ANSWERS;
   window.buildDanielDemoPersonaState = buildDanielDemoPersonaState;
   window.buildMayaDemoPersonaState = buildMayaDemoPersonaState;
+  window.buildAaronDemoPersonaState = buildAaronDemoPersonaState;
   window.SYNTRAE_DEMO_PERSONAS = DEMO_PERSONA_DEFINITIONS;
   window.getDemoPersonaDefinition = getDemoPersonaDefinition;
 })();
