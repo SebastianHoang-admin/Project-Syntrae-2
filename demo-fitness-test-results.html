@@ -112,7 +112,6 @@
       flex-wrap: wrap;
     }
 
-    .pill,
     .back-link {
       display: inline-flex;
       align-items: center;
@@ -127,12 +126,6 @@
       transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
     }
 
-    .pill {
-      color: var(--leaf);
-      background: var(--mint);
-    }
-
-    .pill:hover,
     .back-link:hover {
       transform: translateY(-1px);
       border-color: rgba(17, 149, 143, 0.28);
@@ -663,18 +656,6 @@
       background: linear-gradient(270deg, rgba(239, 118, 92, 0.9), rgba(241, 191, 83, 0.86));
     }
 
-    .footer {
-      padding: 8px 24px 24px;
-      color: var(--quiet);
-      font-size: 13px;
-      font-weight: 700;
-      text-align: center;
-    }
-
-    .footer strong {
-      color: var(--ink);
-    }
-
     @keyframes rise {
       from {
         opacity: 0;
@@ -762,7 +743,6 @@
       </a>
       <div class="top-actions">
         <a class="back-link" href="insight-lab.html?demo=decision-tree"><i class="fas fa-arrow-left"></i> Back to Insight Lab</a>
-        <span class="pill"><i class="fas fa-chart-pie"></i> Demo visual</span>
       </div>
     </div>
   </header>
@@ -833,10 +813,6 @@
     </section>
 
   </main>
-
-  <footer class="footer">
-    <strong>Syntrae</strong> demo fitness test result page for recorded walkthroughs.
-  </footer>
 
   <script>
     const STORAGE_KEY = 'insight-lab:last-fitness-test';
