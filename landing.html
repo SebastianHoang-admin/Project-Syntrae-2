@@ -99,6 +99,30 @@
             }
         }
 
+        @keyframes joinFloat {
+            0%, 100% {
+                transform: translateY(0) rotate(-2deg);
+            }
+            50% {
+                transform: translateY(-7px) rotate(2deg);
+            }
+        }
+
+        @keyframes joinRing {
+            0% {
+                opacity: 0.5;
+                transform: translate(-50%, -50%) scale(0.84);
+            }
+            72% {
+                opacity: 0;
+                transform: translate(-50%, -50%) scale(1.34);
+            }
+            100% {
+                opacity: 0;
+                transform: translate(-50%, -50%) scale(1.34);
+            }
+        }
+
         .reveal {
             opacity: 0;
             transform: translateY(24px);
@@ -861,28 +885,65 @@
             align-items: start;
         }
 
-        .price-lockup {
+        .join-lockup {
             margin-top: 30px;
             display: grid;
             grid-template-columns: auto 1fr;
-            gap: 16px;
+            gap: 20px;
             align-items: center;
         }
 
-        .price {
-            display: grid;
+        .join-orb {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
             place-items: center;
             width: 104px;
             height: 104px;
             border-radius: 50%;
-            color: var(--ink);
-            background: var(--sun);
-            font-size: 32px;
+            color: #fff;
+            background:
+                radial-gradient(circle at 32% 28%, rgba(255, 255, 255, 0.26), transparent 34%),
+                linear-gradient(135deg, var(--leaf), var(--teal));
+            font-size: 28px;
             font-weight: 900;
-            box-shadow: 0 14px 30px rgba(243, 201, 79, 0.28);
+            line-height: 1;
+            box-shadow: 0 18px 42px rgba(18, 150, 141, 0.28);
+            isolation: isolate;
+            animation: joinFloat 3.6s ease-in-out infinite;
         }
 
-        .price-note {
+        .join-orb::before,
+        .join-orb::after {
+            content: "";
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 118px;
+            height: 118px;
+            border: 1px solid rgba(18, 150, 141, 0.34);
+            border-radius: 50%;
+            z-index: -1;
+            animation: joinRing 2.6s ease-out infinite;
+        }
+
+        .join-orb::after {
+            animation-delay: 1.25s;
+            border-color: rgba(239, 116, 95, 0.24);
+        }
+
+        .join-orb i {
+            font-size: 16px;
+        }
+
+        .join-orb span {
+            display: block;
+        }
+
+        .join-note {
             color: var(--quiet);
             line-height: 1.65;
             font-weight: 700;
@@ -984,6 +1045,25 @@
             display: grid;
             gap: 12px;
             margin-top: 18px;
+        }
+
+        .privacy-note {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            padding: 12px 13px;
+            border: 1px solid rgba(18, 150, 141, 0.18);
+            border-radius: 10px;
+            color: var(--quiet);
+            background: rgba(223, 244, 237, 0.45);
+            font-size: 13px;
+            line-height: 1.55;
+            font-weight: 750;
+        }
+
+        .privacy-note i {
+            margin-top: 3px;
+            color: var(--leaf);
         }
 
         .form-footer .button {
@@ -1167,7 +1247,7 @@
                 grid-template-columns: 1fr;
             }
 
-            .price-lockup {
+            .join-lockup {
                 grid-template-columns: 1fr;
             }
 
@@ -1180,7 +1260,7 @@
 <body>
     <nav class="nav" aria-label="Primary">
         <a class="brand" href="landing.html" aria-label="Syntrae home">
-            <img class="nav-logo-image" src="assets/syntrae-logo.png" alt="Syntrae logo">
+            <img class="nav-logo-image" src="assets/syntrae-logo.svg" alt="Syntrae logo">
             <span class="brand-copy">
                 <span>Predictive social science</span>
             </span>
@@ -1258,7 +1338,6 @@
                     <h2>Open the demo.</h2>
                     <p>See how the vision is introduced and the demo decision flow comes alive.</p>
                     <a class="button button-primary demo-launch-btn" href="DashboardDemo.html?demo=decision-tree&amp;state=start&amp;tour=1" target="_blank" rel="noopener noreferrer"><i class="fas fa-play"></i> Try it here</a>
-                    <span class="demo-launch-note">Opens the demo in a new tab without any extra steps.</span>
                 </div>
                 <div>
                     <p class="section-kicker">The vision</p>
@@ -1355,17 +1434,20 @@
                 <div>
                     <p class="section-kicker">Founding members</p>
                     <h2>Help shape the first version.</h2>
-                    <p class="lede">Founding membership is free. It reserves early access and provides access to opinion pools that help shape product development. When Syntrae launches, founding members will retain lifetime access without any additional fees.</p>
-                    <div class="price-lockup">
-                        <div class="price">Free</div>
-                        <p class="price-note">Founding-member access includes participation in opinion pools and lifetime product access after launch, with no further subscription fees.</p>
+                    <p class="lede">Joining is free. It reserves early access and invites you into short opinion pools that help shape Syntrae before launch. No paid commitment is required.</p>
+                    <div class="join-lockup">
+                        <div class="join-orb" aria-hidden="true">
+                            <i class="fas fa-star"></i>
+                            <span>Join</span>
+                        </div>
+                        <p class="join-note">Join the founding circle to share what matters, preview the product direction, and help us build a calmer decision tool around real human needs.</p>
                     </div>
                     <div class="mission-callout">Join us in a mission of creating a better world.</div>
                 </div>
 
                 <form class="member-form" id="foundingForm" action="founding-welcome.html" method="get">
                     <h3>Reserve founding access</h3>
-                    <p>Create your free founding-member reservation. You will receive opinion-pool access to help shape development and lifetime Syntrae access after launch with no additional fees.</p>
+                    <p>Create your free founding-member reservation. You will receive early updates and opinion-pool invitations that help shape Syntrae before launch.</p>
                     <div class="field-grid">
                         <label>
                             Full name
@@ -1381,14 +1463,15 @@
                         </label>
                         <label class="checkbox">
                             <input type="checkbox" name="foundingConsent" required>
-                            <span>I understand the free founding-member offer includes early access, participation in opinion pools, and lifetime access to Syntrae after launch with no additional fees.</span>
+                            <span>I understand joining is free and includes early updates plus optional opinion-pool invitations during development.</span>
                         </label>
                     </div>
                     <div class="form-footer">
+                        <div class="privacy-note"><i class="fas fa-shield-alt"></i><span>No spam. We will only send meaningful Syntrae launch updates, founding-member invitations, and product feedback opportunities.</span></div>
                         <button class="button button-primary" type="submit"><i class="fas fa-user-plus"></i> Sign-up</button>
                         <div class="form-status" id="formStatus" role="status" aria-live="polite"></div>
                         <div class="account-switch">Have an account already? <a href="sign-in.html">Sign-in instead</a></div>
-                        <div class="disclaimer">Founding members receive early access updates, access to opinion pools, and lifetime product access after launch at no additional fee.</div>
+                        <div class="disclaimer">Founding members receive early access updates and optional opinion-pool invitations. Joining does not require a paid commitment.</div>
                     </div>
                 </form>
             </div>
@@ -1410,7 +1493,7 @@
                     </article>
                     <article class="faq-item">
                         <h3>What does founding member mean?</h3>
-                        <p>Founding members join for free, receive early access, participate in opinion pools that shape development, and retain lifetime access to Syntrae after launch without additional fees.</p>
+                        <p>Founding members join for free, receive early access updates, and may participate in opinion pools that shape Syntrae before launch.</p>
                     </article>
                 </div>
             </div>
@@ -1531,7 +1614,7 @@
                 {
                     selector: ".founding-layout",
                     title: "Founding access",
-                    description: "This final section explains the free founding-member offer, the opinion-pool feedback loop, and the lifetime access promise for founding members.",
+                    description: "This final section explains the free founding-member invitation and the opinion-pool feedback loop that helps shape Syntrae before launch.",
                     placement: "top"
                 }
             ]
