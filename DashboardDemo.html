@@ -56,7 +56,7 @@
             z-index: 20;
             min-height: 132px;
             display: grid;
-            grid-template-columns: 220px 1fr 220px;
+            grid-template-columns: minmax(0, 1fr) auto auto;
             align-items: center;
             gap: 24px;
             padding: 18px 34px;
@@ -65,12 +65,25 @@
             backdrop-filter: blur(18px);
         }
 
+        .brand-cluster {
+            display: flex;
+            align-items: center;
+            gap: 28px;
+            min-width: 0;
+        }
+
         .brand {
+            flex: 0 0 auto;
             display: flex;
             align-items: center;
             gap: 18px;
             text-decoration: none;
             color: inherit;
+            transition: transform 0.2s ease;
+        }
+
+        .brand:hover {
+            transform: translateY(-1px);
         }
 
         .brand img {
@@ -86,6 +99,44 @@
             font-size: 13px;
             font-weight: 900;
             color: var(--muted);
+        }
+
+        .dashboard-nav {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            min-width: 0;
+        }
+
+        .dashboard-nav a {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            min-height: 40px;
+            padding: 10px 13px;
+            border: 1px solid rgba(216, 231, 223, 0.96);
+            border-radius: 999px;
+            color: var(--ink);
+            background: rgba(255, 255, 255, 0.82);
+            text-decoration: none;
+            font-size: 13px;
+            font-weight: 900;
+            box-shadow: 0 10px 24px rgba(28, 50, 50, 0.06);
+            transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease, background 0.2s ease;
+            white-space: nowrap;
+        }
+
+        .dashboard-nav a:hover,
+        .dashboard-nav a:focus-visible {
+            transform: translateY(-1px);
+            border-color: rgba(20, 149, 139, 0.35);
+            background: #fff;
+            box-shadow: 0 14px 30px rgba(20, 149, 139, 0.13);
+            outline: none;
+        }
+
+        .dashboard-nav i {
+            color: var(--teal-dark);
         }
 
         .account-indicator {
@@ -104,8 +155,11 @@
         .more-btn {
             width: 52px;
             height: 52px;
-            display: grid;
-            place-items: center;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            gap: 6px;
             border: 1px solid var(--line);
             border-radius: 12px;
             background: #fff;
@@ -119,11 +173,10 @@
             box-shadow: 0 16px 38px rgba(20, 149, 139, 0.16);
         }
 
-        .more-btn span {
+        .more-btn .line {
             display: block;
             width: 24px;
             height: 2px;
-            margin: 3px 0;
             border-radius: 999px;
             background: var(--teal-dark);
         }
@@ -647,6 +700,190 @@
             box-shadow: 0 0 0 4px rgba(155, 222, 210, 0.22);
         }
 
+        .launch-soon-modal {
+            position: fixed;
+            inset: 0;
+            z-index: 1500;
+            display: grid;
+            place-items: center;
+            padding: 24px;
+            background: rgba(20, 37, 38, 0.38);
+            backdrop-filter: blur(8px);
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.22s ease, visibility 0.22s ease;
+        }
+
+        .launch-soon-modal.visible {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .launch-soon-card {
+            position: relative;
+            width: min(520px, 100%);
+            overflow: hidden;
+            border: 1px solid rgba(151, 217, 205, 0.72);
+            border-radius: 24px;
+            padding: 30px;
+            background: #fbfff8;
+            box-shadow: 0 30px 90px rgba(20, 37, 38, 0.24);
+            transform: translateY(18px) scale(0.96);
+            transition: transform 0.24s ease;
+        }
+
+        .launch-soon-modal.visible .launch-soon-card {
+            transform: translateY(0) scale(1);
+        }
+
+        .launch-soon-card::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background:
+                radial-gradient(circle at 14% 12%, rgba(18, 149, 139, 0.12), transparent 32%),
+                radial-gradient(circle at 88% 18%, rgba(242, 204, 93, 0.2), transparent 28%);
+            pointer-events: none;
+        }
+
+        .launch-soon-content {
+            position: relative;
+            z-index: 1;
+            display: grid;
+            gap: 16px;
+        }
+
+        .launch-smile {
+            position: relative;
+            width: 92px;
+            height: 92px;
+            display: grid;
+            place-items: center;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(255, 246, 195, 0.76) 0%, rgba(228, 246, 239, 0.62) 62%, rgba(228, 246, 239, 0) 72%);
+            box-shadow: 0 18px 42px rgba(45, 132, 111, 0.16);
+            isolation: isolate;
+        }
+
+        .launch-smile::before,
+        .launch-smile::after {
+            content: "";
+            position: absolute;
+            inset: 8px;
+            border-radius: 50%;
+            border: 1px solid rgba(29, 132, 121, 0.24);
+            animation: smileHalo 2.8s ease-in-out infinite;
+            z-index: 0;
+        }
+
+        .launch-smile::after {
+            inset: -3px;
+            border-color: rgba(242, 199, 73, 0.3);
+            animation-delay: 0.55s;
+        }
+
+        .launch-smile img {
+            position: relative;
+            z-index: 1;
+            width: 78px;
+            height: 78px;
+            display: block;
+            animation: smileFloat 2.6s ease-in-out infinite;
+            filter: drop-shadow(0 14px 18px rgba(39, 103, 92, 0.18));
+        }
+
+        .launch-soon-card h2 {
+            margin: 0;
+            font-family: "Fraunces", Georgia, serif;
+            font-size: clamp(30px, 4vw, 42px);
+            line-height: 1.04;
+            letter-spacing: -0.04em;
+        }
+
+        .launch-soon-card p {
+            margin: 0;
+            color: var(--muted);
+            line-height: 1.65;
+            font-weight: 700;
+        }
+
+        .launch-soon-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0 8px;
+        }
+
+        .launch-soon-table th,
+        .launch-soon-table td {
+            padding: 13px 14px;
+            text-align: left;
+            background: #fff;
+            border-top: 1px solid var(--line);
+            border-bottom: 1px solid var(--line);
+            font-size: 13px;
+        }
+
+        .launch-soon-table th {
+            width: 35%;
+            border-left: 1px solid var(--line);
+            border-radius: 12px 0 0 12px;
+            color: var(--teal-dark);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            font-weight: 900;
+        }
+
+        .launch-soon-table td {
+            border-right: 1px solid var(--line);
+            border-radius: 0 12px 12px 0;
+            color: var(--ink);
+            font-weight: 800;
+        }
+
+        .launch-close {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            z-index: 2;
+            width: 38px;
+            height: 38px;
+            border: 1px solid var(--line);
+            border-radius: 50%;
+            background: #fff;
+            color: var(--ink);
+            font-weight: 900;
+        }
+
+        .launch-soon-actions {
+            display: flex;
+            justify-content: flex-end;
+        }
+
+        @keyframes smileFloat {
+            0%,
+            100% {
+                transform: translateY(0) rotate(-2deg) scale(1);
+            }
+            48% {
+                transform: translateY(-8px) rotate(3deg) scale(1.045);
+            }
+        }
+
+        @keyframes smileHalo {
+            0% {
+                opacity: 0.82;
+                transform: scale(0.82);
+            }
+            70% {
+                opacity: 0;
+                transform: scale(1.28);
+            }
+            100% {
+                opacity: 0;
+                transform: scale(1.28);
+            }
+        }
+
         .primary-btn {
             min-height: 46px;
             border: 0;
@@ -1030,6 +1267,10 @@
                 grid-template-columns: 1fr auto;
             }
 
+            .dashboard-nav {
+                display: none;
+            }
+
             .account-indicator {
                 display: none;
             }
@@ -1074,21 +1315,29 @@
 </head>
 <body>
     <header class="app-header">
-        <a class="brand" href="DashboardDemo.html?demo=decision-tree&amp;state=start" aria-label="Syntrae dashboard demo">
-            <img src="assets/syntrae-logo.svg" alt="Syntrae logo">
-            <span>Dashboard</span>
-        </a>
+        <div class="brand-cluster">
+            <a class="brand" href="DashboardDemo.html?demo=decision-tree&amp;state=start" aria-label="Back to Syntrae dashboard">
+                <img src="assets/syntrae-logo.svg" alt="Syntrae logo">
+                <span>Dashboard</span>
+            </a>
+            <nav class="dashboard-nav" aria-label="Primary dashboard navigation">
+                <a id="topAnalyzeLink" href="analyze.html?demo=decision-tree&amp;persona=daniel-smith-demo"><i class="fas fa-pencil-alt"></i> Analyze</a>
+                <a href="profile.html?demo=decision-tree"><i class="fas fa-id-card"></i> Your Persona</a>
+                <a href="insight-lab.html?demo=decision-tree"><i class="fas fa-desktop"></i> Insight Lab</a>
+                <a href="subscription.html"><i class="fas fa-crown"></i> Subscription</a>
+            </nav>
+        </div>
         <div class="account-indicator" id="accountIndicator">Daniel Smith</div>
         <div class="more-menu">
             <button class="more-btn" id="moreBtn" type="button" aria-label="Open navigation menu" aria-expanded="false">
-                <span></span>
-                <span></span>
-                <span></span>
+                <span class="line"></span>
+                <span class="line"></span>
+                <span class="line"></span>
             </button>
             <nav class="dropdown-menu" id="dropdownMenu" aria-label="Dashboard navigation">
                 <a class="dropdown-item" id="analyzeLink" href="analyze.html?demo=decision-tree&amp;persona=daniel-smith-demo"><i class="fas fa-pencil-alt"></i> Analyze and Edit Your Persona</a>
                 <a class="dropdown-item" href="profile.html?demo=decision-tree"><i class="fas fa-id-card"></i> Your Persona</a>
-                <a class="dropdown-item" href="insight-lab.html?demo=decision-tree"><i class="fas fa-table"></i> Insight Lab</a>
+                <a class="dropdown-item" href="insight-lab.html?demo=decision-tree"><i class="fas fa-desktop"></i> Insight Lab</a>
                 <a class="dropdown-item" href="subscription.html"><i class="fas fa-crown"></i> Manage Subscription</a>
                 <a class="dropdown-item sign-out" href="sign-out.html"><i class="fas fa-sign-out-alt"></i> Sign Out</a>
             </nav>
@@ -1190,6 +1439,39 @@
 
     <footer class="page-footer">&copy; 2026 Syntrae LLC. Predictive social science for considerate decisions.</footer>
 
+    <div class="launch-soon-modal" id="launchSoonModal" aria-hidden="true">
+        <div class="launch-soon-card" role="dialog" aria-modal="true" aria-labelledby="launchSoonTitle" aria-describedby="launchSoonCopy">
+            <button class="launch-close" type="button" id="launchSoonClose" aria-label="Close launch notice">×</button>
+            <div class="launch-soon-content">
+                <div class="launch-smile" aria-hidden="true">
+                    <img src="assets/happy-3d-smile.svg" alt="">
+                </div>
+                <span class="kicker">Thank you for trying Syntrae</span>
+                <h2 id="launchSoonTitle">Syntrae is launching soon, please come back later.</h2>
+                <p id="launchSoonCopy">This dashboard is a visual preview for the demo. We appreciate your interest and are preparing the full private chat experience with care.</p>
+                <table class="launch-soon-table" aria-label="Syntrae launch status">
+                    <tbody>
+                        <tr>
+                            <th scope="row">Status</th>
+                            <td>Preview open, live messaging coming soon.</td>
+                        </tr>
+                        <tr>
+                            <th scope="row">Thanks</th>
+                            <td>Your curiosity helps shape a more thoughtful product.</td>
+                        </tr>
+                        <tr>
+                            <th scope="row">Next</th>
+                            <td>Come back for launch updates and full Syntrae access.</td>
+                        </tr>
+                    </tbody>
+                </table>
+                <div class="launch-soon-actions">
+                    <button class="primary-btn" type="button" id="launchSoonOk"><i class="fas fa-heart"></i> Back to demo</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script src="js/page-tour.js"></script>
     <script>
         const personas = {
@@ -1198,6 +1480,7 @@
                 demoKey: 'daniel-smith-demo',
                 role: 'Relationship persona',
                 avatar: 'assets/daniel-smith-avatar.png',
+                listLabel: 'Use Daniel\'s relationship context',
                 facts: ['Graduate student', 'Male', '23 yrs old', 'Private context'],
                 headline: 'Warm, thoughtful, and responsive when serious topics are introduced with room to think.',
                 summary: 'Daniel responds best when the topic is named clearly without making the conversation feel like a demand.',
@@ -1208,10 +1491,22 @@
                 demoKey: 'aaron-chen-demo',
                 role: 'Family persona',
                 avatar: 'assets/aaron-chen-avatar.svg',
+                listLabel: 'Use family context with Maya\'s dad',
                 facts: ['Maya\'s dad', 'Male', '55 yrs old', 'Family context'],
                 headline: 'Protective, steady, and deeply caring when family news is shared with honesty and a clear plan.',
                 summary: 'Aaron responds best when Maya leads with respect, gives him time to absorb the moment, and shows that she has thought through the practical next step.',
                 logic: 'Best Way should favor loving, direct language that keeps him included as a father while reducing shock, defensiveness, or unnecessary worry.'
+            },
+            naomi: {
+                name: 'Naomi Brooks',
+                demoKey: 'naomi-brooks-demo',
+                role: 'Workplace persona',
+                avatar: 'assets/naomi-brooks-avatar.svg',
+                listLabel: 'Use workplace context with Maya\'s boss',
+                facts: ['Maya\'s boss', 'Team lead', 'Deadline aware', 'Work context'],
+                headline: 'Fair, direct, and supportive when requests are specific, accountable, and tied to team impact.',
+                summary: 'Naomi responds best when Maya is concise, prepared, and respectful of business pressure while still naming what she needs.',
+                logic: 'Best Way should favor professional clarity: own the context, show the tradeoff, and make the request easy for Naomi to evaluate.'
             }
         };
 
@@ -1540,6 +1835,171 @@
                     title: 'Suggested first move: Option A.',
                     text: 'A private calm conversation gives Aaron the best balance of joy, respect, and room to ask loving questions without feeling put on the spot.'
                 }
+            },
+            bossSalary: {
+                personaKey: 'naomi',
+                title: 'Ask for salary increase',
+                meta: 'Compensation conversation',
+                personaContext: {
+                    facts: ['Maya\'s boss', 'Evidence driven', 'Budget aware', 'Work context'],
+                    headline: 'Most receptive when compensation requests are calm, specific, and connected to measurable contribution.',
+                    summary: 'Naomi is fair and open to growth conversations, but she expects Maya to separate confidence from entitlement and bring clear evidence.',
+                    logic: 'Best Way should help Maya make a respectful business case, acknowledge timing constraints, and invite a concrete next step.'
+                },
+                prompt: 'I want to ask Naomi about a salary increase, but I do not want the conversation to sound entitled. What are the possible ways to frame the ask?',
+                introTitle: 'Best Way',
+                introCopy: 'Compare professional approaches before choosing the one conversation Maya will actually start.',
+                candidates: ['Evidence-based ask', 'Growth-path discussion', 'Direct raise request'],
+                messages: [
+                    { role: 'user', speaker: 'Maya Chen', text: 'I want to ask Naomi about a salary increase, but I do not want the conversation to sound entitled. What are the possible ways to frame the ask?' },
+                    { role: 'agent', speaker: 'Syntrae', text: 'I can compare evidence, growth-path, and direct compensation frames, then map likely outcomes before Maya chooses how to open the conversation.' }
+                ],
+                outcomes: [
+                    {
+                        title: 'Option A',
+                        action: 'Evidence-based ask',
+                        probability: 0.42,
+                        items: [
+                            { label: 'Naomi takes the request seriously', probability: 0.18, reason: 'Naomi values preparation and business impact, so clear examples of contribution make the ask easier to evaluate.' },
+                            { label: 'She asks for performance evidence', probability: 0.14, reason: 'Because compensation decisions are usually documented, Naomi is likely to ask for measurable outcomes or recent wins.' },
+                            { label: 'A follow-up review is scheduled', probability: 0.10, reason: 'If the case is credible but timing or budget is unclear, Naomi may move the conversation into a structured review step.' }
+                        ]
+                    },
+                    {
+                        title: 'Option B',
+                        action: 'Growth-path discussion',
+                        probability: 0.35,
+                        items: [
+                            { label: 'Naomi responds supportively', probability: 0.15, reason: 'This frame matches Naomi\'s coaching style by connecting compensation to role growth instead of making it only about money.' },
+                            { label: 'The raise becomes a future milestone', probability: 0.12, reason: 'A development-oriented ask may lead Naomi to define criteria and timing rather than approving an immediate increase.' },
+                            { label: 'Maya gets clearer expectations', probability: 0.08, reason: 'Naomi is likely to translate the conversation into goals, responsibilities, or promotion-readiness markers.' }
+                        ]
+                    },
+                    {
+                        title: 'Option C',
+                        action: 'Direct raise request',
+                        probability: 0.23,
+                        items: [
+                            { label: 'Naomi appreciates the clarity', probability: 0.09, reason: 'Naomi does not mind directness when it is respectful, so a concise ask can be seen as mature.' },
+                            { label: 'The timing feels abrupt', probability: 0.08, reason: 'Without context, a direct ask can feel disconnected from budget cycles or recent performance review timing.' },
+                            { label: 'She asks Maya to prepare a case', probability: 0.06, reason: 'Naomi may not reject the idea, but she is likely to redirect Maya toward evidence before continuing.' }
+                        ]
+                    }
+                ],
+                recommendation: {
+                    title: 'Suggested first move: Option A.',
+                    text: 'Start with evidence and a respectful request for a compensation conversation. That gives Naomi a serious, fair path to evaluate the ask without making the tone feel demanding.'
+                }
+            },
+            bossReportMistake: {
+                personaKey: 'naomi',
+                title: 'Apologize for report mistake',
+                meta: 'Accountability moment',
+                personaContext: {
+                    facts: ['Maya\'s boss', 'Accountability focused', 'Correction oriented', 'Work context'],
+                    headline: 'Most constructive when mistakes are acknowledged quickly with ownership and a concrete repair plan.',
+                    summary: 'Naomi can be firm about quality, but she respects people who name mistakes early, protect the client or team, and prevent repeat issues.',
+                    logic: 'Best Way should help Maya apologize without overexplaining: own the mistake, state the fix, and show how she will reduce future risk.'
+                },
+                prompt: 'I found a mistake in a report I submitted last week. How should I apologize to Naomi while showing I am already fixing it?',
+                introTitle: 'Best Way',
+                introCopy: 'Compare accountability approaches before choosing how Maya should tell Naomi about the report error.',
+                candidates: ['Own it with fix', 'Explain context first', 'Quietly correct first'],
+                messages: [
+                    { role: 'user', speaker: 'Maya Chen', text: 'I found a mistake in a report I submitted last week. How should I apologize to Naomi while showing I am already fixing it?' },
+                    { role: 'agent', speaker: 'Syntrae', text: 'The strongest path is accountability plus repair: name the mistake clearly, show the correction plan, and make it easy for Naomi to trust the next step.' }
+                ],
+                outcomes: [
+                    {
+                        title: 'Option A',
+                        action: 'Own it with fix',
+                        probability: 0.50,
+                        items: [
+                            { label: 'Naomi trusts the accountability', probability: 0.22, reason: 'Naomi values early ownership, so a clear apology paired with a correction plan signals maturity and reliability.' },
+                            { label: 'She focuses on preventing recurrence', probability: 0.16, reason: 'Once the issue is acknowledged, Naomi is likely to ask what checklist or review step will prevent the same mistake.' },
+                            { label: 'The issue stays contained', probability: 0.12, reason: 'Fast disclosure and a fix reduce the chance that the mistake becomes a larger credibility problem.' }
+                        ]
+                    },
+                    {
+                        title: 'Option B',
+                        action: 'Explain context first',
+                        probability: 0.30,
+                        items: [
+                            { label: 'Naomi understands the pressure', probability: 0.12, reason: 'Context can help if workload or timeline contributed, especially when Maya avoids sounding defensive.' },
+                            { label: 'The apology sounds less direct', probability: 0.10, reason: 'Starting with context can make Naomi wonder whether Maya is fully owning the mistake.' },
+                            { label: 'She redirects to the correction plan', probability: 0.08, reason: 'Naomi will likely move quickly from explanation to what must be repaired and communicated.' }
+                        ]
+                    },
+                    {
+                        title: 'Option C',
+                        action: 'Quietly correct first',
+                        probability: 0.20,
+                        items: [
+                            { label: 'The fix is ready when Naomi hears it', probability: 0.08, reason: 'Having a completed correction can show initiative if the delay is short and the risk is low.' },
+                            { label: 'Naomi dislikes the delayed disclosure', probability: 0.07, reason: 'If the report affected decisions, Naomi may care more that she was not informed immediately.' },
+                            { label: 'Trust depends on the error severity', probability: 0.05, reason: 'A minor issue may be forgiven quickly, but a material mistake makes transparency more important than speed alone.' }
+                        ]
+                    }
+                ],
+                recommendation: {
+                    title: 'Suggested first move: Option A.',
+                    text: 'Tell Naomi promptly, own the mistake plainly, and bring the correction plan. This fits her preference for accountability without making the apology feel dramatic.'
+                }
+            },
+            bossDayOff: {
+                personaKey: 'naomi',
+                title: 'Ask for day off',
+                meta: 'Busy business day',
+                personaContext: {
+                    facts: ['Maya\'s boss', 'Coverage sensitive', 'Practical planner', 'Work context'],
+                    headline: 'Most flexible when time-off requests include coverage, priority awareness, and enough notice for the team.',
+                    summary: 'Naomi wants to support people, but she evaluates time off through client commitments, staffing, and whether Maya has reduced disruption.',
+                    logic: 'Best Way should help Maya make the request respectfully while naming coverage, deadlines, and a backup plan.'
+                },
+                prompt: 'I need to ask Naomi for a day off on a busy business day. How can I ask without sounding careless about the team?',
+                introTitle: 'Best Way',
+                introCopy: 'Compare time-off request styles before choosing the one message Maya should send.',
+                candidates: ['Coverage-first ask', 'Personal need first', 'Flexible tradeoff offer'],
+                messages: [
+                    { role: 'user', speaker: 'Maya Chen', text: 'I need to ask Naomi for a day off on a busy business day. How can I ask without sounding careless about the team?' },
+                    { role: 'agent', speaker: 'Syntrae', text: 'Naomi is most likely to respond well when Maya shows she understands the business day, proposes coverage, and leaves room for Naomi to adjust the plan.' }
+                ],
+                outcomes: [
+                    {
+                        title: 'Option A',
+                        action: 'Coverage-first ask',
+                        probability: 0.45,
+                        items: [
+                            { label: 'Naomi sees Maya as responsible', probability: 0.18, reason: 'Leading with coverage directly answers Naomi\'s main concern: whether the work and team will be protected.' },
+                            { label: 'She approves with conditions', probability: 0.15, reason: 'Naomi may say yes if deliverables, handoffs, and response expectations are clearly handled.' },
+                            { label: 'The request becomes a planning conversation', probability: 0.12, reason: 'A thoughtful plan makes it easier for Naomi to collaborate on coverage rather than simply accept or reject.' }
+                        ]
+                    },
+                    {
+                        title: 'Option B',
+                        action: 'Personal need first',
+                        probability: 0.32,
+                        items: [
+                            { label: 'Naomi shows empathy', probability: 0.14, reason: 'Naomi is people-aware and may respond warmly when Maya states the need honestly and respectfully.' },
+                            { label: 'She asks about business coverage', probability: 0.10, reason: 'Even if she is sympathetic, Naomi will still need to understand how the busy day will be handled.' },
+                            { label: 'Approval depends on urgency', probability: 0.08, reason: 'A personal reason can be compelling, but without coverage the decision may hinge on how unavoidable the day off is.' }
+                        ]
+                    },
+                    {
+                        title: 'Option C',
+                        action: 'Flexible tradeoff offer',
+                        probability: 0.23,
+                        items: [
+                            { label: 'Naomi appreciates the flexibility', probability: 0.09, reason: 'Offering to shift hours or prepare work early shows respect for team needs and business pressure.' },
+                            { label: 'The ask feels less clear', probability: 0.08, reason: 'Too many alternatives can make it harder for Naomi to know what Maya actually needs.' },
+                            { label: 'A partial compromise is proposed', probability: 0.06, reason: 'Naomi may use the flexible framing to suggest a half-day, remote check-in, or rescheduled time off.' }
+                        ]
+                    }
+                ],
+                recommendation: {
+                    title: 'Suggested first move: Option A.',
+                    text: 'Lead with a coverage plan, then make the request. This gives Naomi the strongest reason to say yes while preserving trust on a busy business day.'
+                }
             }
         };
 
@@ -1548,6 +2008,7 @@
             dropdown: document.getElementById('dropdownMenu'),
             account: document.getElementById('accountIndicator'),
             analyzeLink: document.getElementById('analyzeLink'),
+            topAnalyzeLink: document.getElementById('topAnalyzeLink'),
             personaList: document.getElementById('personaList'),
             avatar: document.getElementById('activePersonaAvatar'),
             name: document.getElementById('activePersonaName'),
@@ -1572,7 +2033,10 @@
             recommendationTitle: document.getElementById('recommendationTitle'),
             recommendationText: document.getElementById('recommendationText'),
             visualChatForm: document.getElementById('visualChatForm'),
-            visualChatInput: document.getElementById('visualChatInput')
+            visualChatInput: document.getElementById('visualChatInput'),
+            launchSoonModal: document.getElementById('launchSoonModal'),
+            launchSoonClose: document.getElementById('launchSoonClose'),
+            launchSoonOk: document.getElementById('launchSoonOk')
         };
 
         let activePersonaKey = 'daniel';
@@ -1618,7 +2082,7 @@
                 <div class="persona-row${key === activePersonaKey ? ' active' : ''}" data-persona-row="${key}">
                     <button class="persona-select" type="button" data-persona="${key}">
                         <strong>${escapeHtml(persona.name)}</strong>
-                        <span>${escapeHtml(key === 'aaron' ? 'Use family context with Maya\'s dad' : 'Use Daniel\'s relationship context')}</span>
+                        <span>${escapeHtml(persona.listLabel || `Use ${persona.name}'s private context`)}</span>
                     </button>
                     <div class="mini-actions">
                         <button class="mini-btn" type="button" aria-label="Edit ${escapeHtml(persona.name)}"><i class="fas fa-pen"></i></button>
@@ -1648,7 +2112,9 @@
             els.account.textContent = persona.name;
             els.activePersonaLabel.textContent = persona.name;
             els.settingsPersona.textContent = persona.name;
-            els.analyzeLink.href = demoUrl('analyze.html', { persona: persona.demoKey });
+            const analyzeHref = demoUrl('analyze.html', { persona: persona.demoKey });
+            els.analyzeLink.href = analyzeHref;
+            els.topAnalyzeLink.href = analyzeHref;
             els.facts.innerHTML = (context.facts || persona.facts).map((fact) => `<span class="chip">${escapeHtml(fact)}</span>`).join('');
             els.headline.textContent = context.headline || persona.headline;
             els.summary.textContent = context.summary || persona.summary;
@@ -1816,6 +2282,19 @@
             }
         }
 
+        function openLaunchSoonNotice() {
+            if (!els.launchSoonModal) return;
+            els.launchSoonModal.classList.add('visible');
+            els.launchSoonModal.setAttribute('aria-hidden', 'false');
+            els.visualChatInput.blur();
+        }
+
+        function closeLaunchSoonNotice() {
+            if (!els.launchSoonModal) return;
+            els.launchSoonModal.classList.remove('visible');
+            els.launchSoonModal.setAttribute('aria-hidden', 'true');
+        }
+
         els.moreBtn.addEventListener('click', (event) => {
             event.stopPropagation();
             const open = !els.dropdown.classList.contains('active');
@@ -1839,15 +2318,19 @@
 
         els.visualChatForm.addEventListener('submit', (event) => {
             event.preventDefault();
-            const text = els.visualChatInput.value.trim();
-            if (!text) return;
-            typingRun += 1;
-            const bubble = document.createElement('div');
-            bubble.className = 'chat-bubble user';
-            bubble.innerHTML = `<span class="bubble-speaker">Maya Chen</span><span>${escapeHtml(text)}</span>`;
-            els.chatTranscript.appendChild(bubble);
             els.visualChatInput.value = '';
-            bubble.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            openLaunchSoonNotice();
+        });
+
+        els.visualChatInput.addEventListener('focus', openLaunchSoonNotice);
+        els.visualChatInput.addEventListener('input', openLaunchSoonNotice);
+        els.launchSoonClose?.addEventListener('click', closeLaunchSoonNotice);
+        els.launchSoonOk?.addEventListener('click', closeLaunchSoonNotice);
+        els.launchSoonModal?.addEventListener('click', (event) => {
+            if (event.target === els.launchSoonModal) closeLaunchSoonNotice();
+        });
+        document.addEventListener('keydown', (event) => {
+            if (event.key === 'Escape') closeLaunchSoonNotice();
         });
 
         window.SyntraePageTour?.init({

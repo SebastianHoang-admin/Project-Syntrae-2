@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 760" role="img" aria-labelledby="title desc">
+  <title id="title">Mission pathways abstract</title>
+  <desc id="desc">Abstract decision pathways flowing from context into calmer choices.</desc>
+  <defs>
+    <linearGradient id="missionBg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#f6fff9"/>
+      <stop offset="0.52" stop-color="#fffdf5"/>
+      <stop offset="1" stop-color="#fff3e2"/>
+    </linearGradient>
+    <linearGradient id="missionLine" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#2d7d67"/>
+      <stop offset="0.5" stop-color="#12968d"/>
+      <stop offset="1" stop-color="#ef745f"/>
+    </linearGradient>
+    <filter id="missionShadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="20" stdDeviation="18" flood-color="#203236" flood-opacity="0.13"/>
+    </filter>
+  </defs>
+  <rect width="1200" height="760" rx="44" fill="url(#missionBg)"/>
+  <circle cx="203" cy="588" r="178" fill="#dff4ed" opacity="0.72"/>
+  <circle cx="1004" cy="147" r="138" fill="#f3c94f" opacity="0.24"/>
+  <path d="M160 492c114-164 225-230 332-198 89 27 124 138 220 161 86 21 174-25 283-128" fill="none" stroke="url(#missionLine)" stroke-width="20" stroke-linecap="round" opacity="0.24"/>
+  <path d="M170 568c136-73 269-85 398-35 95 37 180 64 276 37 76-21 139-66 190-130" fill="none" stroke="#2d7d67" stroke-width="6" stroke-linecap="round" opacity="0.16"/>
+  <g filter="url(#missionShadow)">
+    <rect x="190" y="156" width="258" height="154" rx="34" fill="#fffef9"/>
+    <rect x="472" y="300" width="258" height="154" rx="34" fill="#fffef9"/>
+    <rect x="752" y="156" width="258" height="154" rx="34" fill="#fffef9"/>
+    <circle cx="318" cy="232" r="34" fill="#2d7d67"/>
+    <circle cx="600" cy="376" r="34" fill="#ef745f"/>
+    <circle cx="880" cy="232" r="34" fill="#f3c94f"/>
+    <path d="M280 270c19-29 44-44 76-44s57 15 76 44" fill="none" stroke="#2d7d67" stroke-width="14" stroke-linecap="round" opacity="0.3"/>
+    <path d="M562 414c19-29 44-44 76-44s57 15 76 44" fill="none" stroke="#ef745f" stroke-width="14" stroke-linecap="round" opacity="0.28"/>
+    <path d="M842 270c19-29 44-44 76-44s57 15 76 44" fill="none" stroke="#f3c94f" stroke-width="14" stroke-linecap="round" opacity="0.4"/>
+  </g>
+  <g filter="url(#missionShadow)">
+    <circle cx="600" cy="582" r="82" fill="#fffef9"/>
+    <path d="M600 520l19 41 45 6-33 32 8 45-39-21-39 21 8-45-33-32 45-6z" fill="#2d7d67"/>
+  </g>
+</svg>

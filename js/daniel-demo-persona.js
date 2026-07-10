@@ -137,9 +137,22 @@
     "decision-context": "Best Way should help Maya share family news with warmth, respect, and a concrete next step so Aaron can respond with care instead of panic."
   };
 
+  const NAOMI_DEMO_EXTRAS = {
+    "basic-profile": "Naomi Brooks. Female. 39 yrs old. Maya Chen's manager and team lead.",
+    "relationship-role": "Workplace persona and professional decision maker Maya wants to approach with clarity and respect.",
+    "time-life": "Experienced strategy lead balancing team delivery, client expectations, budget limits, and employee development.",
+    "current-context": "Naomi manages a busy team where Maya wants to handle compensation, accountability, and time-off requests in a responsible way.",
+    "communication-pattern": "Responds well to concise preparation, direct ownership, measurable examples, and requests that acknowledge team impact.",
+    "emotional-needs": "Needs to know Maya understands business constraints, owns her responsibilities, and is asking for a concrete next step rather than vague reassurance.",
+    "stressors": "Client timelines, staffing coverage, budget cycles, report quality, and maintaining trust across a fast-moving team.",
+    "cultural-moment": "Works in a professional culture that values psychological safety, but also expects accountability, evidence, and practical follow-through.",
+    "decision-context": "Best Way should help Maya communicate with professionalism: specific ask, clear context, team-aware tradeoffs, and a respectful tone."
+  };
+
   DANIEL_DEMO_EXTRAS.conclusion = 'Daniel is a warm, steady, design-oriented graduate student who responds best to sincerity that gives him room to think. His strongest signals are respect, honesty, and depth; rushed emotional certainty can make him withdraw even when he cares. Best Way should favor clear invitations with low pressure, practical timing, and space for Daniel to answer without feeling cornered.';
   MAYA_DEMO_EXTRAS.conclusion = 'Maya is a thoughtful 22-year-old student who notices tone, timing, and emotional detail before making a move. She wants clarity and sincerity, but her best decisions happen when she slows down enough to separate care from urgency. Best Way should help Maya communicate directly while keeping the message warm, respectful, and easy for the other person to answer honestly.';
   AARON_DEMO_EXTRAS.conclusion = 'Aaron is a protective, practical, and deeply caring father who responds best when Maya gives him honest context and a clear next step. His strongest signals are family loyalty, responsibility, steadiness, and quiet warmth; surprise without explanation can make him worry before he understands the full picture. Best Way should help Maya speak with love and preparation so Aaron can feel included, respected, and ready to support her.';
+  NAOMI_DEMO_EXTRAS.conclusion = 'Naomi is a fair, direct, and deadline-aware team lead who responds best when Maya brings clarity, evidence, and a practical plan. Her strongest signals are accountability, preparation, and team impact; vague requests or delayed disclosure can make her focus on risk before support. Best Way should help Maya make workplace conversations specific, respectful, and easy for Naomi to evaluate.';
 
   function clone(value) {
     return JSON.parse(JSON.stringify(value));
@@ -321,6 +334,70 @@
     return answers;
   }
 
+  function buildNaomiDemoAnswers() {
+    const answers = clone(DANIEL_DEMO_ANSWERS);
+    const axisBlueprint = {
+      L1_A1: [0.75, 1, 0.75],
+      L1_A2: [0.75, 0.75, 1],
+      L1_A3: [0.5, 0.5, 0.75],
+      L1_A4: [0.25, 0.5, 0.5],
+      L1_A5: [0.5, 0.75, 0.75],
+      L1_A6: [0.75, 0.75, 1],
+      L2_A1: [0.75, 1, 0.75],
+      L2_A2: [1, 0.75, 0.75],
+      L2_A3: [0.75, 0.75, 1],
+      L2_A4: [0.5, 0.5, 0.75],
+      L2_A5: [0.75, 0.75, 0.5],
+      L2_A6: [1, 0.75, 1],
+      L3_A1: [0.75, 1, 1],
+      L3_A2: [1, 0.75, 1],
+      L3_A3: [0.75, 1, 0.75],
+      L3_A4: [0.75, 0.75, 0.5],
+      L3_A5: [0.75, 1, 1],
+      L3_A6: [0.5, 0.75, 0.75]
+    };
+
+    Object.entries(answers).forEach(([questionId, answer]) => {
+      if (!answer || typeof answer !== 'object' || typeof answer.value !== 'number' || !answer.axisId) return;
+      const blueprint = axisBlueprint[answer.axisId];
+      if (!blueprint) return;
+      const qIndex = Math.max(0, Math.min(2, Number((questionId.match(/_Q(\d+)$/) || [])[1] || 1) - 1));
+      const value = blueprint[qIndex];
+      answer.type = 'choice';
+      answer.value = value;
+      answer.option = valueToOption(value);
+      answer.confidence = answer.layerId === 'L3' ? 5 : 4;
+    });
+
+    Object.assign(answers, {
+      "L4_A1_Q1": { "type": "multi", "selected": ["Professional", "Direct", "Calm"], "axisId": "L4_A1", "layerId": "L4" },
+      "L4_A1_Q2": { "type": "multi", "selected": ["Focused", "Prepared", "Practical"], "axisId": "L4_A1", "layerId": "L4" },
+      "L4_A1_Q3": { "type": "multi", "selected": ["Composed", "Fair", "Efficient"], "axisId": "L4_A1", "layerId": "L4" },
+      "L4_A2_Q1": { "type": "multi", "selected": ["Supportive", "Clear", "Measured"], "axisId": "L4_A2", "layerId": "L4" },
+      "L4_A2_Q2": { "type": "multi", "selected": ["Respectful", "Accountable", "Constructive"], "axisId": "L4_A2", "layerId": "L4" },
+      "L4_A2_Q3": { "type": "multi", "selected": ["Firm", "Helpful", "Growth-minded"], "axisId": "L4_A2", "layerId": "L4" },
+      "L4_A3_Q1": { "type": "multi", "selected": ["Evidence-based", "Concise", "Diplomatic"], "axisId": "L4_A3", "layerId": "L4" },
+      "L4_A3_Q2": { "type": "multi", "selected": ["Specific", "Plainspoken", "Action-oriented"], "axisId": "L4_A3", "layerId": "L4" },
+      "L4_A3_Q3": { "type": "multi", "selected": ["Direct", "Polite", "Solution-focused"], "axisId": "L4_A3", "layerId": "L4" },
+      "L5_S1_F1": { "type": "free", "text": "Black American professional woman in a Bay Area strategy team.", "sectionId": "L5_S1", "layerId": "L5", "fieldName": "race" },
+      "L5_S1_F2": { "type": "free", "text": "English primarily, with a polished and concise workplace communication style.", "sectionId": "L5_S1", "layerId": "L5", "fieldName": "languages" },
+      "L5_S1_F3": { "type": "free", "text": "Values fairness, responsibility, and practical kindness more than performative agreement.", "sectionId": "L5_S1", "layerId": "L5", "fieldName": "religion" },
+      "L5_S2_F1": { "type": "free", "text": "Strategy lead and Maya Chen's direct manager.", "sectionId": "L5_S2", "layerId": "L5", "fieldName": "current_status" },
+      "L5_S2_F2": { "type": "free", "text": "Business and communications background with years of team leadership experience.", "sectionId": "L5_S2", "layerId": "L5", "fieldName": "school_university" },
+      "L5_S2_F3": { "type": "free", "text": "Wants her team to do high-quality work, communicate early, and grow without avoidable drama.", "sectionId": "L5_S2", "layerId": "L5", "fieldName": "aspirations" },
+      "L6_S1_F3": { "type": "free", "text": "She does not respond well to vague requests, hidden mistakes, or last-minute asks that ignore team impact.", "sectionId": "L6_S1", "layerId": "L6", "fieldName": "absolute_boundaries" },
+      "L6_S3_F1": { "type": "free", "text": "Excuses without ownership, unclear priorities, missed deadlines, and requests that skip practical context.", "sectionId": "L6_S3", "layerId": "L6", "fieldName": "extreme_dislikes" },
+      "L6_S3_F2": { "type": "free", "text": "Preparation, accountability, concise updates, thoughtful tradeoffs, and people who solve problems early.", "sectionId": "L6_S3", "layerId": "L6", "fieldName": "strong_likes" },
+      "extra_time_life": { "type": "free", "text": NAOMI_DEMO_EXTRAS["time-life"], "layerId": "EXTRA", "fieldName": "extra_time_life" },
+      "extra_current_context": { "type": "free", "text": NAOMI_DEMO_EXTRAS["current-context"], "layerId": "EXTRA", "fieldName": "extra_current_context" },
+      "extra_stressors": { "type": "free", "text": NAOMI_DEMO_EXTRAS.stressors, "layerId": "EXTRA", "fieldName": "extra_stressors" },
+      "extra_cultural_moment": { "type": "free", "text": NAOMI_DEMO_EXTRAS["cultural-moment"], "layerId": "EXTRA", "fieldName": "extra_cultural_moment" },
+      "extra_relationship_role": { "type": "free", "text": NAOMI_DEMO_EXTRAS["relationship-role"], "layerId": "EXTRA", "fieldName": "extra_relationship_role" }
+    });
+
+    return answers;
+  }
+
   function buildIdentityLayersFromAnswers(answers) {
     const buckets = { L1: {}, L2: {}, L3: {} };
     Object.values(answers).forEach((answer) => {
@@ -375,6 +452,7 @@
 
   const MAYA_DEMO_ANSWERS = buildMayaDemoAnswers();
   const AARON_DEMO_ANSWERS = buildAaronDemoAnswers();
+  const NAOMI_DEMO_ANSWERS = buildNaomiDemoAnswers();
 
   function buildMayaDemoPersonaState(options = {}) {
     const answers = clone(MAYA_DEMO_ANSWERS);
@@ -414,6 +492,25 @@
     };
   }
 
+  function buildNaomiDemoPersonaState(options = {}) {
+    const answers = clone(NAOMI_DEMO_ANSWERS);
+    return {
+      version: 1,
+      savedAt: options.savedAt || '2026-07-06T00:00:00.000Z',
+      personaName: 'Naomi Brooks',
+      personaPortrait: Object.prototype.hasOwnProperty.call(options, 'portraitDataUrl') ? options.portraitDataUrl : 'assets/naomi-brooks-avatar.svg',
+      personaAvatarPresent: Object.prototype.hasOwnProperty.call(options, 'portraitDataUrl') ? (options.portraitDataUrl ? 'yes' : '') : 'yes',
+      answers,
+      session: {
+        visibleIds: Object.keys(answers),
+        currentIndex: 0
+      },
+      usersInput: 'Naomi Brooks is Maya Chen\'s direct manager. She is fair, direct, deadline-aware, and supportive when requests are prepared with context and accountability. She responds best to concise evidence, practical tradeoffs, and clear next steps that protect both the person and the team.',
+      identityLayers: buildIdentityLayersFromAnswers(answers),
+      extras: clone(NAOMI_DEMO_EXTRAS)
+    };
+  }
+
   const DEMO_PERSONA_DEFINITIONS = {
     'daniel-smith-demo': {
       key: 'daniel-smith-demo',
@@ -441,6 +538,15 @@
       portrait: 'assets/aaron-chen-avatar.svg',
       chips: ['Maya\'s dad', 'Male', '55 yrs old'],
       buildState: buildAaronDemoPersonaState
+    },
+    'naomi-brooks-demo': {
+      key: 'naomi-brooks-demo',
+      name: 'Naomi Brooks',
+      title: 'Naomi Brooks Persona - Syntrae Demo',
+      editTitle: 'Edit Naomi Brooks Persona - Syntrae Demo',
+      portrait: 'assets/naomi-brooks-avatar.svg',
+      chips: ['Maya\'s boss', 'Team lead', '39 yrs old'],
+      buildState: buildNaomiDemoPersonaState
     }
   };
 
@@ -451,9 +557,11 @@
   window.DANIEL_DEMO_ANSWERS = DANIEL_DEMO_ANSWERS;
   window.MAYA_DEMO_ANSWERS = MAYA_DEMO_ANSWERS;
   window.AARON_DEMO_ANSWERS = AARON_DEMO_ANSWERS;
+  window.NAOMI_DEMO_ANSWERS = NAOMI_DEMO_ANSWERS;
   window.buildDanielDemoPersonaState = buildDanielDemoPersonaState;
   window.buildMayaDemoPersonaState = buildMayaDemoPersonaState;
   window.buildAaronDemoPersonaState = buildAaronDemoPersonaState;
+  window.buildNaomiDemoPersonaState = buildNaomiDemoPersonaState;
   window.SYNTRAE_DEMO_PERSONAS = DEMO_PERSONA_DEFINITIONS;
   window.getDemoPersonaDefinition = getDemoPersonaDefinition;
 })();

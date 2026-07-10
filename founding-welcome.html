@@ -189,6 +189,53 @@
             line-height: 1.55;
         }
 
+        .survey-prompt {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            align-items: center;
+            margin-top: 4px;
+        }
+
+        .survey-prompt span {
+            flex: 1 1 220px;
+        }
+
+        .survey-link {
+            position: relative;
+            isolation: isolate;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 9px;
+            min-height: 46px;
+            padding: 12px 17px;
+            overflow: hidden;
+            border: 1px solid rgba(243, 201, 79, 0.52);
+            border-radius: 999px;
+            color: var(--ink);
+            background: var(--sun);
+            box-shadow: 0 16px 34px rgba(243, 201, 79, 0.28);
+            font-size: 14px;
+            font-weight: 900;
+            transition: transform 0.18s ease, box-shadow 0.18s ease;
+        }
+
+        .survey-link::before {
+            content: "";
+            position: absolute;
+            inset: -40% -90%;
+            z-index: -1;
+            background: linear-gradient(110deg, transparent 42%, rgba(255, 255, 255, 0.72) 50%, transparent 58%);
+            transform: translateX(-40%);
+            animation: surveyShine 2.8s ease-in-out infinite;
+        }
+
+        .survey-link:hover {
+            transform: translateY(-2px) scale(1.02);
+            box-shadow: 0 20px 42px rgba(243, 201, 79, 0.34);
+        }
+
         .actions {
             display: flex;
             flex-wrap: wrap;
@@ -366,6 +413,15 @@
             }
         }
 
+        @keyframes surveyShine {
+            0%, 28% {
+                transform: translateX(-42%);
+            }
+            62%, 100% {
+                transform: translateX(42%);
+            }
+        }
+
         @media (max-width: 820px) {
             .welcome-inner {
                 grid-template-columns: 1fr;
@@ -406,7 +462,10 @@
                     <p class="lede" id="welcomeMessage">Your founding access request is in. Please wait for Syntrae launch while we prepare the first experience for early members.</p>
                     <div class="launch-note">
                         <strong>What happens next?</strong>
-                        <span>Founding members will receive early updates and optional opinion-pool invitations that help shape Syntrae before launch.</span>
+                        <div class="survey-prompt">
+                            <span>Founding members will receive early updates and optional opinion-pool invitations that help shape Syntrae before launch. In the meantime, you can share your first signal by doing the survey.</span>
+                            <a class="survey-link" href="founding-survey.html"><i class="fas fa-arrow-right"></i> Here</a>
+                        </div>
                     </div>
                     <div class="actions">
                         <a class="button button-primary" href="landing.html#vision"><i class="fas fa-play"></i> Revisit the vision</a>

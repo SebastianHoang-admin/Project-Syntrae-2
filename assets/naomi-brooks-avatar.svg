@@ -1,0 +1,71 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title desc">
+  <title id="title">Naomi Brooks avatar</title>
+  <desc id="desc">A friendly professional portrait avatar of Naomi Brooks, a Black woman manager with a warm smile, natural curls, and a teal blazer.</desc>
+  <defs>
+    <radialGradient id="backdrop" cx="34%" cy="22%" r="86%">
+      <stop offset="0%" stop-color="#fff6d8"/>
+      <stop offset="45%" stop-color="#dff6ee"/>
+      <stop offset="100%" stop-color="#b8e2d8"/>
+    </radialGradient>
+    <linearGradient id="skin" x1="188" y1="156" x2="324" y2="330" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#9f6244"/>
+      <stop offset="55%" stop-color="#8a4f36"/>
+      <stop offset="100%" stop-color="#6f3d2b"/>
+    </linearGradient>
+    <radialGradient id="skinLight" cx="40%" cy="22%" r="70%">
+      <stop offset="0%" stop-color="#c98b67" stop-opacity="0.58"/>
+      <stop offset="80%" stop-color="#c98b67" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="blazer" x1="116" y1="332" x2="396" y2="512" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#2aa190"/>
+      <stop offset="100%" stop-color="#17665d"/>
+    </linearGradient>
+    <linearGradient id="shirt" x1="211" y1="343" x2="301" y2="505" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#fff8ef"/>
+      <stop offset="100%" stop-color="#f2e4d4"/>
+    </linearGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="150%">
+      <feDropShadow dx="0" dy="20" stdDeviation="20" flood-color="#1d4d47" flood-opacity="0.2"/>
+    </filter>
+    <filter id="soft" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="2.4"/>
+    </filter>
+  </defs>
+
+  <rect width="512" height="512" rx="112" fill="url(#backdrop)"/>
+  <circle cx="422" cy="86" r="44" fill="#f6cf54" opacity="0.42"/>
+  <circle cx="78" cy="138" r="24" fill="#21a18f" opacity="0.18"/>
+  <path d="M46 404c72-41 149-58 231-50 74 7 134 32 187 73v85H46v-108Z" fill="#f8e3bd" opacity="0.38"/>
+
+  <g filter="url(#shadow)">
+    <path d="M99 512c13-102 71-154 157-154s144 52 157 154H99Z" fill="url(#blazer)"/>
+    <path d="M198 366c18 34 38 52 58 52s40-18 58-52l20 146H178l20-146Z" fill="url(#shirt)"/>
+    <path d="M215 356c16 18 27 26 41 26s25-8 41-26v45c-10 18-24 27-41 27s-31-9-41-27v-45Z" fill="#7b432f"/>
+
+    <path d="M130 212c-3-79 48-140 126-140s129 61 126 140c24 16 37 43 34 80-4 44-32 78-74 98-23 31-52 47-86 47s-63-16-86-47c-42-20-70-54-74-98-3-37 10-64 34-80Z" fill="#1d2524"/>
+    <path d="M139 222c-7-75 37-129 117-129s124 54 117 129c-4 45-18 83-42 112-22 27-47 40-75 40s-53-13-75-40c-24-29-38-67-42-112Z" fill="url(#skin)"/>
+    <path d="M139 222c-7-75 37-129 117-129s124 54 117 129c-4 45-18 83-42 112-22 27-47 40-75 40s-53-13-75-40c-24-29-38-67-42-112Z" fill="url(#skinLight)"/>
+
+    <path d="M126 223c12-84 62-133 137-130 75 3 120 54 123 137-44-4-86-22-126-54-25 30-70 49-134 47Z" fill="#202928"/>
+    <path d="M112 236c-7-39 2-74 27-105 29-37 72-58 123-59 59-1 102 22 130 69 18 29 24 63 18 101-20-51-54-86-103-104-29 26-65 43-108 51-35 7-64 23-87 47Z" fill="#18211f" opacity="0.96"/>
+
+    <circle cx="203" cy="240" r="8" fill="#1b2927"/>
+    <circle cx="309" cy="240" r="8" fill="#1b2927"/>
+    <path d="M184 216c20-12 42-13 61-1" fill="none" stroke="#18211f" stroke-width="9" stroke-linecap="round" opacity="0.86"/>
+    <path d="M267 215c20-12 43-11 62 2" fill="none" stroke="#18211f" stroke-width="9" stroke-linecap="round" opacity="0.86"/>
+
+    <path d="M250 246c-8 26-13 45-17 58 10 6 21 8 33 4" fill="none" stroke="#6f3a29" stroke-width="7" stroke-linecap="round" stroke-linejoin="round" opacity="0.58"/>
+    <ellipse cx="182" cy="279" rx="29" ry="18" fill="#d98b77" opacity="0.34" filter="url(#soft)"/>
+    <ellipse cx="330" cy="279" rx="29" ry="18" fill="#d98b77" opacity="0.34" filter="url(#soft)"/>
+    <path d="M204 318c27 26 77 26 104 0" fill="none" stroke="#3d241d" stroke-width="12" stroke-linecap="round"/>
+    <path d="M220 327c25 13 49 13 72 0" fill="none" stroke="#fff0df" stroke-width="6" stroke-linecap="round" opacity="0.8"/>
+
+    <path d="M122 512c9-65 47-107 114-126l20 50 20-50c67 19 105 61 114 126H122Z" fill="#f8ffff" opacity="0.12"/>
+    <path d="M167 512c9-60 39-94 89-102 50 8 80 42 89 102H167Z" fill="#fff9ef" opacity="0.08"/>
+    <path d="M120 512c5-63 38-104 99-123" fill="none" stroke="#9fe4d6" stroke-width="12" opacity="0.5" stroke-linecap="round"/>
+    <path d="M392 512c-5-63-38-104-99-123" fill="none" stroke="#0f5f56" stroke-width="12" opacity="0.5" stroke-linecap="round"/>
+  </g>
+
+  <path d="M120 446c21-27 48-46 82-58" fill="none" stroke="#fff8e8" stroke-width="10" stroke-linecap="round" opacity="0.34"/>
+  <path d="M367 88c20 14 34 34 41 60" fill="none" stroke="#fff9d6" stroke-width="14" stroke-linecap="round" opacity="0.7"/>
+</svg>

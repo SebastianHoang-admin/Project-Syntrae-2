@@ -123,6 +123,156 @@
             }
         }
 
+        @keyframes pageGlassCollapse {
+            0% {
+                opacity: 1;
+                filter: blur(0) saturate(1) brightness(1);
+                transform: perspective(1400px) translateZ(0) scale(1) rotateX(0) rotateY(0);
+            }
+            12% {
+                opacity: 1;
+                filter: blur(0) saturate(1.25) brightness(1.18);
+                transform: perspective(1400px) translateZ(18px) scale(1.012) rotateX(0) rotateY(0);
+            }
+            27% {
+                opacity: 0.82;
+                filter: blur(0.8px) saturate(1.42) brightness(1.34);
+                transform: perspective(1400px) translateZ(-90px) scale(0.86) rotateX(5deg) rotateY(-3deg);
+            }
+            56% {
+                opacity: 0.22;
+                filter: blur(5px) saturate(1.7) brightness(1.62);
+                transform: perspective(1400px) translateZ(-360px) scale(0.46) rotateX(12deg) rotateY(5deg);
+            }
+            100% {
+                opacity: 0;
+                filter: blur(18px) saturate(1.9) brightness(2.15);
+                transform: perspective(1400px) translateZ(-980px) scale(0.06) rotateX(24deg) rotateY(10deg);
+            }
+        }
+
+        @keyframes glassShardBreak {
+            0% {
+                opacity: 0;
+                transform: translate3d(0, 0, 0) rotate(0deg) skew(0deg, 0deg) scale(1);
+            }
+            10% {
+                opacity: 1;
+            }
+            34% {
+                opacity: 0.96;
+                transform: translate3d(var(--tx-mid), var(--ty-mid), var(--tz-mid)) rotate(var(--rot-mid)) skew(var(--skew-mid), 0deg) scale(0.98);
+            }
+            100% {
+                opacity: 0;
+                transform: translate3d(var(--tx), var(--ty), var(--tz)) rotate(var(--rot)) skew(var(--skew), 0deg) scale(var(--scale));
+            }
+        }
+
+        @keyframes glassImpactFlash {
+            0% {
+                opacity: 0;
+                transform: translate(-50%, -50%) scale(0.18);
+            }
+            12% {
+                opacity: 0.92;
+            }
+            100% {
+                opacity: 0;
+                transform: translate(-50%, -50%) scale(3.8);
+            }
+        }
+
+        @keyframes fractureLineBreak {
+            0% {
+                opacity: 0;
+                transform: translate(-50%, -50%) rotate(var(--angle)) scaleX(0);
+            }
+            15% {
+                opacity: 0.92;
+            }
+            62% {
+                opacity: 0.72;
+                transform: translate(-50%, -50%) rotate(var(--angle)) scaleX(1);
+            }
+            100% {
+                opacity: 0;
+                transform: translate(calc(-50% + var(--drift-x)), calc(-50% + var(--drift-y))) rotate(var(--angle)) scaleX(1.12);
+            }
+        }
+
+        @keyframes tunnelOverlayWake {
+            0% {
+                opacity: 0;
+                background-color: rgba(251, 255, 248, 0);
+            }
+            22% {
+                opacity: 1;
+                background-color: rgba(251, 255, 248, 0.06);
+            }
+            100% {
+                opacity: 1;
+                background-color: rgba(8, 34, 58, 0.34);
+            }
+        }
+
+        @keyframes tunnelRush {
+            0% {
+                opacity: 0;
+                transform: scale(0.38) rotate(0deg);
+                filter: blur(22px) saturate(1.1) brightness(1);
+            }
+            14% {
+                opacity: 1;
+            }
+            48% {
+                filter: blur(7px) saturate(1.45) brightness(1.42);
+                transform: scale(1.08) rotate(8deg);
+            }
+            100% {
+                opacity: 1;
+                transform: scale(3.8) rotate(22deg);
+                filter: blur(0) saturate(1.85) brightness(2.1);
+            }
+        }
+
+        @keyframes tunnelBeamSpin {
+            0% {
+                transform: rotate(0deg) scale(0.8);
+            }
+            100% {
+                transform: rotate(44deg) scale(1.28);
+            }
+        }
+
+        @keyframes tunnelWhiteout {
+            0% {
+                opacity: 0;
+                transform: translate(-50%, -50%) scale(0.12);
+            }
+            46% {
+                opacity: 0.2;
+            }
+            100% {
+                opacity: 1;
+                transform: translate(-50%, -50%) scale(5.2);
+            }
+        }
+
+        @keyframes tunnelRingTravel {
+            0% {
+                opacity: 0;
+                transform: translate(-50%, -50%) scale(0.08) rotate(0deg);
+            }
+            18% {
+                opacity: 0.78;
+            }
+            100% {
+                opacity: 0;
+                transform: translate(-50%, -50%) scale(5.2) rotate(34deg);
+            }
+        }
+
         .reveal {
             opacity: 0;
             transform: translateY(24px);
@@ -595,6 +745,203 @@
             font-weight: 700;
         }
 
+        body.demo-transitioning {
+            overflow: hidden;
+        }
+
+        body.demo-transitioning .nav,
+        body.demo-transitioning main,
+        body.demo-transitioning .footer {
+            transform-origin: 50% 48%;
+            animation: pageGlassCollapse 2.2s cubic-bezier(0.72, 0.02, 0.16, 1) forwards;
+            will-change: transform, opacity, filter;
+        }
+
+        .dimension-transition {
+            position: fixed;
+            inset: 0;
+            z-index: 2000;
+            display: grid;
+            place-items: center;
+            overflow: hidden;
+            pointer-events: none;
+            opacity: 0;
+            visibility: hidden;
+            background-color: rgba(251, 255, 248, 0);
+            transition: opacity 0.18s ease, visibility 0.18s ease;
+        }
+
+        .dimension-transition.is-active {
+            opacity: 1;
+            visibility: visible;
+            animation: tunnelOverlayWake 2.15s ease forwards;
+        }
+
+        .glass-shards {
+            position: absolute;
+            inset: 0;
+            perspective: 1400px;
+            transform-style: preserve-3d;
+            z-index: 3;
+        }
+
+        .fracture-lines {
+            position: absolute;
+            inset: 0;
+            z-index: 4;
+            pointer-events: none;
+            transform-style: preserve-3d;
+        }
+
+        .fracture-line {
+            position: absolute;
+            top: var(--top);
+            left: var(--left);
+            width: var(--length);
+            height: 2px;
+            border-radius: 999px;
+            opacity: 0;
+            transform-origin: left center;
+            background: linear-gradient(90deg, rgba(255, 255, 255, 0), rgba(255, 255, 255, 0.98), rgba(77, 238, 255, 0.55), rgba(255, 255, 255, 0));
+            box-shadow: 0 0 16px rgba(255, 255, 255, 0.74), 0 0 30px rgba(91, 239, 255, 0.42);
+            animation: fractureLineBreak 0.98s cubic-bezier(0.18, 0.82, 0.25, 1) forwards;
+            animation-delay: var(--delay);
+        }
+
+        .glass-shard {
+            position: absolute;
+            left: var(--left);
+            top: var(--top);
+            width: var(--width);
+            height: var(--height);
+            clip-path: var(--clip);
+            background:
+                linear-gradient(135deg, rgba(255, 255, 255, 0.92), rgba(166, 243, 255, 0.26) 52%, rgba(255, 255, 255, 0.12)),
+                linear-gradient(45deg, rgba(255, 255, 255, 0.54), rgba(0, 190, 255, 0.18));
+            border: 1px solid rgba(255, 255, 255, 0.82);
+            box-shadow: 0 0 30px rgba(255, 255, 255, 0.58), inset 0 0 34px rgba(255, 255, 255, 0.26);
+            backdrop-filter: blur(3px) saturate(1.75);
+            opacity: 0;
+            transform-origin: center;
+            mix-blend-mode: screen;
+        }
+
+        .dimension-transition.is-shattering .glass-shard {
+            animation: glassShardBreak 1.18s cubic-bezier(0.18, 0.82, 0.25, 1) forwards;
+            animation-delay: var(--delay);
+        }
+
+        .glass-impact {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            z-index: 2;
+            width: 34vmin;
+            height: 34vmin;
+            border-radius: 999px;
+            opacity: 0;
+            background:
+                radial-gradient(circle, rgba(255, 255, 255, 0.96) 0 10%, rgba(99, 244, 255, 0.54) 18%, rgba(255, 255, 255, 0.18) 31%, transparent 58%);
+            box-shadow: 0 0 70px rgba(255, 255, 255, 0.86), 0 0 120px rgba(67, 234, 255, 0.44);
+            pointer-events: none;
+        }
+
+        .dimension-transition.is-shattering .glass-impact {
+            animation: glassImpactFlash 0.92s ease-out forwards;
+        }
+
+        .light-tunnel {
+            position: absolute;
+            inset: -24%;
+            z-index: 5;
+            opacity: 0;
+            transform: scale(0.38);
+            background:
+                radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 1) 0 5%, rgba(205, 252, 255, 0.98) 6% 10%, rgba(68, 237, 255, 0.86) 11% 16%, rgba(0, 91, 255, 0.52) 22%, transparent 58%),
+                repeating-conic-gradient(from -12deg at 50% 50%, rgba(255, 255, 255, 0.98) 0deg 3deg, rgba(85, 243, 255, 0.95) 4deg 8deg, rgba(0, 125, 255, 0.78) 9deg 13deg, rgba(255, 255, 255, 0.36) 14deg 18deg, transparent 19deg 27deg),
+                radial-gradient(circle at 50% 50%, rgba(203, 255, 253, 0.96) 0 18%, rgba(47, 225, 255, 0.64) 32%, rgba(0, 79, 192, 0.62) 68%, rgba(6, 30, 68, 0.7) 100%);
+            filter: blur(22px) saturate(1.1) brightness(1);
+        }
+
+        .dimension-transition.is-tunneling .light-tunnel {
+            animation: tunnelRush 1.75s cubic-bezier(0.1, 0.78, 0.12, 1) forwards;
+        }
+
+        .light-tunnel::before,
+        .light-tunnel::after {
+            content: "";
+            position: absolute;
+            inset: -18%;
+            background:
+                repeating-conic-gradient(from 18deg at 50% 50%, rgba(255, 255, 255, 0.82) 0deg 2deg, transparent 3deg 8deg, rgba(0, 205, 255, 0.5) 9deg 13deg, transparent 14deg 22deg);
+            opacity: 0.78;
+            mix-blend-mode: screen;
+            animation: tunnelBeamSpin 1.45s ease-out forwards;
+        }
+
+        .light-tunnel::after {
+            opacity: 0.44;
+            filter: blur(18px);
+            animation-direction: reverse;
+        }
+
+        .tunnel-whiteout {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            z-index: 7;
+            width: 22vmin;
+            height: 22vmin;
+            border-radius: 999px;
+            opacity: 0;
+            background: radial-gradient(circle, #fff 0 28%, rgba(255, 255, 255, 0.88) 38%, rgba(126, 245, 255, 0.28) 54%, transparent 72%);
+            box-shadow: 0 0 80px rgba(255, 255, 255, 0.92), 0 0 160px rgba(74, 229, 255, 0.58);
+            pointer-events: none;
+        }
+
+        .dimension-transition.is-tunneling .tunnel-whiteout {
+            animation: tunnelWhiteout 1.38s cubic-bezier(0.1, 0.78, 0.12, 1) 0.58s forwards;
+        }
+
+        .tunnel-rings {
+            position: absolute;
+            inset: 0;
+            z-index: 6;
+            opacity: 0;
+            transition: opacity 0.22s ease;
+        }
+
+        .dimension-transition.is-tunneling .tunnel-rings {
+            opacity: 1;
+        }
+
+        .tunnel-rings span {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 28vmin;
+            height: 28vmin;
+            border: 1px solid rgba(255, 255, 255, 0.72);
+            border-radius: 34% 66% 52% 48% / 52% 38% 62% 48%;
+            box-shadow: 0 0 42px rgba(255, 255, 255, 0.84), inset 0 0 30px rgba(99, 244, 255, 0.38);
+            animation: tunnelRingTravel 0.74s ease-out infinite;
+        }
+
+        .tunnel-rings span:nth-child(2) {
+            animation-delay: 0.15s;
+            border-color: rgba(223, 244, 237, 0.74);
+        }
+
+        .tunnel-rings span:nth-child(3) {
+            animation-delay: 0.3s;
+            border-color: rgba(243, 201, 79, 0.42);
+        }
+
+        .tunnel-rings span:nth-child(4) {
+            animation-delay: 0.45s;
+            border-color: rgba(239, 116, 95, 0.36);
+        }
+
         .video-points {
             display: grid;
             gap: 14px;
@@ -904,14 +1251,14 @@
             width: 104px;
             height: 104px;
             border-radius: 50%;
-            color: #fff;
+            color: var(--ink);
             background:
-                radial-gradient(circle at 32% 28%, rgba(255, 255, 255, 0.26), transparent 34%),
-                linear-gradient(135deg, var(--leaf), var(--teal));
+                radial-gradient(circle at 30% 24%, rgba(255, 255, 255, 0.62), transparent 32%),
+                linear-gradient(135deg, #ffe27b 0%, var(--sun) 58%, #f3b63e 100%);
             font-size: 28px;
             font-weight: 900;
             line-height: 1;
-            box-shadow: 0 18px 42px rgba(18, 150, 141, 0.28);
+            box-shadow: 0 18px 42px rgba(243, 201, 79, 0.34);
             isolation: isolate;
             animation: joinFloat 3.6s ease-in-out infinite;
         }
@@ -924,7 +1271,7 @@
             left: 50%;
             width: 118px;
             height: 118px;
-            border: 1px solid rgba(18, 150, 141, 0.34);
+            border: 1px solid rgba(243, 201, 79, 0.48);
             border-radius: 50%;
             z-index: -1;
             animation: joinRing 2.6s ease-out infinite;
@@ -932,7 +1279,7 @@
 
         .join-orb::after {
             animation-delay: 1.25s;
-            border-color: rgba(239, 116, 95, 0.24);
+            border-color: rgba(239, 116, 95, 0.3);
         }
 
         .join-orb i {
@@ -1321,10 +1668,10 @@
                         </div>
                     </article>
                     <article class="belief-card">
-                        <img src="assets/syntrae-mission-abstract.svg" alt="Abstract caring decision paths">
+                        <img src="assets/syntrae-mission-abstract.svg" alt="Abstract workplace decision paths">
                         <div class="belief-copy">
-                            <h3>Belief becomes signal</h3>
-                            <p>Founding members join for free, share what matters to them, and help us prioritize the product around real human needs.</p>
+                            <h3>Career moments need clarity</h3>
+                            <p>Prepare for hard conversations with managers and bosses, from asking for a raise to owning a mistake or requesting time away during a busy week.</p>
                         </div>
                     </article>
                 </div>
@@ -1337,7 +1684,7 @@
                     <p class="section-kicker">Demo access</p>
                     <h2>Open the demo.</h2>
                     <p>See how the vision is introduced and the demo decision flow comes alive.</p>
-                    <a class="button button-primary demo-launch-btn" href="DashboardDemo.html?demo=decision-tree&amp;state=start&amp;tour=1" target="_blank" rel="noopener noreferrer"><i class="fas fa-play"></i> Try it here</a>
+                    <a class="button button-primary demo-launch-btn" href="DashboardDemo.html?demo=decision-tree&amp;state=start&amp;tour=1" data-demo-transition-link><i class="fas fa-play"></i> Try it here</a>
                 </div>
                 <div>
                     <p class="section-kicker">The vision</p>
@@ -1514,11 +1861,29 @@
         </div>
     </footer>
 
+    <div class="dimension-transition" data-dimension-transition aria-hidden="true">
+        <div class="glass-impact" aria-hidden="true"></div>
+        <div class="fracture-lines" data-fracture-lines aria-hidden="true"></div>
+        <div class="glass-shards" data-glass-shards aria-hidden="true"></div>
+        <div class="light-tunnel" aria-hidden="true"></div>
+        <div class="tunnel-rings" aria-hidden="true">
+            <span></span>
+            <span></span>
+            <span></span>
+            <span></span>
+        </div>
+        <div class="tunnel-whiteout" aria-hidden="true"></div>
+    </div>
+
     <script src="js/page-tour.js"></script>
     <script>
         const welcomeUrl = "founding-welcome.html";
         const foundingForm = document.getElementById("foundingForm");
         const formStatus = document.getElementById("formStatus");
+        const demoTransitionLink = document.querySelector("[data-demo-transition-link]");
+        const dimensionTransition = document.querySelector("[data-dimension-transition]");
+        const glassShardLayer = document.querySelector("[data-glass-shards]");
+        const fractureLineLayer = document.querySelector("[data-fracture-lines]");
 
         const revealTargets = [
             ...document.querySelectorAll(".quote-panel, .demo-launch-card, .video-points .point, .science-card, .principle, .founding-layout > div, .member-form, .faq-item")
@@ -1573,6 +1938,120 @@
                 window.setTimeout(() => {
                     window.location.href = welcomeUrl;
                 }, 480);
+            });
+        }
+
+        const createGlassShards = () => {
+            if (!glassShardLayer) return;
+
+            glassShardLayer.replaceChildren();
+            fractureLineLayer?.replaceChildren();
+
+            const columns = 10;
+            const rows = 6;
+            const viewportWidth = window.innerWidth || document.documentElement.clientWidth || 1200;
+            const viewportHeight = window.innerHeight || document.documentElement.clientHeight || 800;
+            const clipPaths = [
+                "polygon(0 0, 100% 12%, 84% 100%, 8% 86%)",
+                "polygon(12% 0, 100% 0, 88% 88%, 0 100%)",
+                "polygon(0 16%, 76% 0, 100% 100%, 18% 82%)",
+                "polygon(16% 0, 100% 28%, 72% 100%, 0 78%)",
+                "polygon(0 0, 82% 8%, 100% 72%, 34% 100%, 7% 44%)",
+                "polygon(22% 0, 100% 10%, 70% 100%, 0 74%, 8% 22%)"
+            ];
+
+            for (let row = 0; row < rows; row += 1) {
+                for (let column = 0; column < columns; column += 1) {
+                    const shard = document.createElement("span");
+                    shard.className = "glass-shard";
+
+                    const width = viewportWidth / columns;
+                    const height = viewportHeight / rows;
+                    const left = column * width - 12;
+                    const top = row * height - 12;
+                    const xDirection = column < columns / 2 ? -1 : 1;
+                    const yDirection = row < rows / 2 ? -1 : 1;
+                    const spreadX = xDirection * (120 + Math.abs(column - columns / 2) * 52 + Math.random() * 180);
+                    const spreadY = yDirection * (100 + Math.abs(row - rows / 2) * 70 + Math.random() * 170);
+                    const depthValue = -240 - Math.random() * 720;
+                    const rotationValue = xDirection * (28 + Math.random() * 92);
+                    const skewValue = xDirection * (4 + Math.random() * 10);
+                    const scale = 0.46 + Math.random() * 0.32;
+
+                    shard.style.setProperty("--left", `${left}px`);
+                    shard.style.setProperty("--top", `${top}px`);
+                    shard.style.setProperty("--width", `${width + 28}px`);
+                    shard.style.setProperty("--height", `${height + 28}px`);
+                    shard.style.setProperty("--tx", `${spreadX}px`);
+                    shard.style.setProperty("--ty", `${spreadY}px`);
+                    shard.style.setProperty("--tz", `${depthValue}px`);
+                    shard.style.setProperty("--tx-mid", `${spreadX * 0.22}px`);
+                    shard.style.setProperty("--ty-mid", `${spreadY * 0.18}px`);
+                    shard.style.setProperty("--tz-mid", `${depthValue * 0.25}px`);
+                    shard.style.setProperty("--rot", `${rotationValue}deg`);
+                    shard.style.setProperty("--rot-mid", `${rotationValue * 0.25}deg`);
+                    shard.style.setProperty("--skew", `${skewValue}deg`);
+                    shard.style.setProperty("--skew-mid", `${skewValue * 0.28}deg`);
+                    shard.style.setProperty("--scale", scale.toFixed(2));
+                    shard.style.setProperty("--delay", `${Math.random() * 0.12}s`);
+                    shard.style.setProperty("--clip", clipPaths[(row + column) % clipPaths.length]);
+                    glassShardLayer.appendChild(shard);
+                }
+            }
+
+            if (fractureLineLayer) {
+                const centerX = viewportWidth / 2;
+                const centerY = viewportHeight / 2;
+                const lineCount = 20;
+                for (let index = 0; index < lineCount; index += 1) {
+                    const line = document.createElement("span");
+                    const angle = index * (360 / lineCount) + (Math.random() * 14 - 7);
+                    const length = Math.max(viewportWidth, viewportHeight) * (0.35 + Math.random() * 0.42);
+                    const drift = 36 + Math.random() * 130;
+                    const radians = angle * Math.PI / 180;
+
+                    line.className = "fracture-line";
+                    line.style.setProperty("--left", `${centerX}px`);
+                    line.style.setProperty("--top", `${centerY}px`);
+                    line.style.setProperty("--length", `${length}px`);
+                    line.style.setProperty("--angle", `${angle}deg`);
+                    line.style.setProperty("--delay", `${Math.random() * 0.11}s`);
+                    line.style.setProperty("--drift-x", `${Math.cos(radians) * drift}px`);
+                    line.style.setProperty("--drift-y", `${Math.sin(radians) * drift}px`);
+                    fractureLineLayer.appendChild(line);
+                }
+            }
+        };
+
+        if (demoTransitionLink && dimensionTransition) {
+            demoTransitionLink.addEventListener("click", (event) => {
+                const wantsNewTab = event.metaKey || event.ctrlKey || event.shiftKey || event.altKey || event.button !== 0;
+                if (event.defaultPrevented || wantsNewTab) return;
+
+                event.preventDefault();
+
+                const destination = demoTransitionLink.href;
+                const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+                if (prefersReducedMotion) {
+                    window.location.href = destination;
+                    return;
+                }
+
+                if (document.body.classList.contains("demo-transitioning")) return;
+
+                createGlassShards();
+                demoTransitionLink.setAttribute("aria-busy", "true");
+                dimensionTransition.setAttribute("aria-hidden", "false");
+                document.body.classList.add("demo-transitioning");
+                dimensionTransition.classList.add("is-active", "is-shattering");
+
+                window.setTimeout(() => {
+                    dimensionTransition.classList.add("is-tunneling");
+                }, 680);
+
+                window.setTimeout(() => {
+                    window.location.href = destination;
+                }, 2850);
             });
         }
 
