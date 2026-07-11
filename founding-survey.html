@@ -14,6 +14,10 @@
             padding-bottom: 38px;
         }
 
+        .survey-hero .image-frame {
+            margin: 0;
+        }
+
         .survey-shell {
             display: grid;
             grid-template-columns: minmax(280px, 0.72fr) minmax(0, 1fr);
@@ -278,12 +282,77 @@
         }
 
         @media (max-width: 620px) {
+            html,
+            body {
+                max-width: 100%;
+                overflow-x: hidden;
+            }
+
+            .site-nav {
+                gap: 12px;
+                width: 100vw;
+                max-width: 100vw;
+                justify-content: flex-start;
+            }
+
+            .site-nav .nav-links {
+                flex: 0 0 auto;
+                margin-left: auto;
+                max-width: calc(100vw - 190px);
+                overflow: hidden;
+            }
+
+            .site-nav .button {
+                width: auto;
+                max-width: 100%;
+                min-height: 40px;
+                padding-inline: 12px;
+                white-space: nowrap;
+            }
+
+            .survey-hero .page-grid {
+                grid-template-columns: minmax(0, 1fr);
+                gap: 30px;
+            }
+
+            .survey-hero .page-grid > *,
+            .survey-hero .lede,
+            .survey-hero .hero-actions,
+            .survey-hero .image-frame {
+                width: 100%;
+                max-width: calc(100vw - 36px);
+                min-width: 0;
+            }
+
+            .survey-hero h1 {
+                max-width: 11ch;
+                font-size: 39px;
+                line-height: 1.04;
+            }
+
+            .survey-hero .lede {
+                font-size: 16px;
+                line-height: 1.65;
+            }
+
             .choice-grid {
                 grid-template-columns: 1fr;
             }
 
             .survey-actions .button {
                 width: 100%;
+            }
+
+            .survey-form {
+                padding: 22px 18px;
+            }
+
+            .question-block h3 {
+                font-size: 20px;
+            }
+
+            .field textarea {
+                min-height: 128px;
             }
         }
     </style>
@@ -307,17 +376,14 @@
             <div class="page-grid">
                 <div>
                     <p class="kicker"><i class="fas fa-poll"></i> Founding member survey</p>
-                    <h1>Tell us what Syntrae should help with first.</h1>
-                    <p class="lede">This short survey helps us understand which high-stakes conversations, privacy expectations, and decision-support features matter most to early members.</p>
-                    <div class="hero-actions">
-                        <a class="button button-primary" href="#surveyForm"><i class="fas fa-pen"></i> Start survey</a>
-                    </div>
+                    <h1>Tell us where romantic uncertainty gets difficult.</h1>
+                    <p class="lede">This short survey helps us understand real moments when people feel unsure what to say or do with someone they are romantically interested in.</p>
                 </div>
                 <figure class="image-frame">
                     <img src="assets/founding-survey-signal.svg" alt="Abstract survey feedback signal">
                     <figcaption class="image-caption">
-                        <strong>Your belief becomes signal.</strong>
-                        <span>Focused feedback helps Syntrae stay useful, private, and human.</span>
+                        <strong>Your experience becomes signal.</strong>
+                        <span>General examples help Syntrae stay useful, private, and human.</span>
                     </figcaption>
                 </figure>
             </div>
@@ -332,11 +398,9 @@
                 </div>
                 <div class="survey-intro-copy">
                     <p class="kicker"><i class="fas fa-shield-alt"></i> Gentle feedback</p>
-                    <h2>Short, optional, and practical.</h2>
-                    <p>Answer what you can. The goal is to learn what people want Syntrae to make easier before launch, not to collect unnecessary personal details.</p>
+                    <h2>Short, and Helpful.</h2>
+                    <p>Answer what you can. The goal is to learn how people handle uncertainty before speaking or acting, not to collect unnecessary personal details.</p>
                     <div class="survey-promise">
-                        <div class="promise-item"><i class="fas fa-envelope-open-text"></i><span>No spam. We only want meaningful launch updates and optional feedback invitations.</span></div>
-                        <div class="promise-item"><i class="fas fa-lock"></i><span>Keep examples general. Do not include sensitive private information in this early survey.</span></div>
                         <div class="promise-item"><i class="fas fa-seedling"></i><span>Your answers help shape product direction, language, and early use cases.</span></div>
                     </div>
                 </div>
@@ -344,58 +408,92 @@
 
             <form class="survey-form" id="surveyForm">
                 <div class="question-block">
-                    <h3>1. Which type of situation should Syntrae support first?</h3>
-                    <p>Choose the area where better preparation would feel most useful.</p>
-                    <div class="choice-grid">
-                        <label class="choice"><input type="radio" name="firstUseCase" value="relationship" required> Romantic relationship conversations</label>
-                        <label class="choice"><input type="radio" name="firstUseCase" value="family"> Family or parent-child conversations</label>
-                        <label class="choice"><input type="radio" name="firstUseCase" value="career"> Career decisions with managers or teams</label>
-                        <label class="choice"><input type="radio" name="firstUseCase" value="friendship"> Friendship, conflict repair, or boundaries</label>
-                    </div>
-                </div>
-
-                <div class="question-block">
-                    <h3>2. What would make Syntrae feel trustworthy?</h3>
-                    <p>Select the trust signals that matter most to you.</p>
-                    <div class="choice-grid">
-                        <label class="choice"><input type="checkbox" name="trustSignals" value="privacy"> Clear privacy boundaries</label>
-                        <label class="choice"><input type="checkbox" name="trustSignals" value="non-creepy"> Friendly, non-creepy language</label>
-                        <label class="choice"><input type="checkbox" name="trustSignals" value="probability"> Probabilities instead of absolute claims</label>
-                        <label class="choice"><input type="checkbox" name="trustSignals" value="agency"> Reminders that the user chooses the action</label>
-                    </div>
-                </div>
-
-                <div class="question-block">
-                    <h3>3. Which feature sounds most valuable?</h3>
-                    <p>Pick the product direction you would most want to try.</p>
-                    <div class="choice-grid">
-                        <label class="choice"><input type="radio" name="featurePriority" value="best-way" required> Best Way consequence mapping</label>
-                        <label class="choice"><input type="radio" name="featurePriority" value="persona"> Persona building from context</label>
-                        <label class="choice"><input type="radio" name="featurePriority" value="insight-lab"> Insight Lab persona comparison</label>
-                        <label class="choice"><input type="radio" name="featurePriority" value="message-studio"> Message drafting and tone rehearsal</label>
-                    </div>
-                </div>
-
-                <div class="question-block">
-                    <h3>4. How often would you want opinion-pool invitations?</h3>
-                    <p>We want feedback to feel welcome, not noisy.</p>
+                    <h3>1. Tell me about the last time you felt uncertain about what to say or do with someone you were romantically interested in.</h3>
+                    <p>Use a general example. Please avoid names or identifying details.</p>
                     <label class="field">
-                        Preference
-                        <select name="feedbackCadence" required>
-                            <option value="">Choose one</option>
-                            <option value="monthly">About once a month</option>
-                            <option value="milestones">Only around major product milestones</option>
-                            <option value="rare">Rarely, only for important questions</option>
-                        </select>
+                        Your answer
+                        <textarea name="uncertainMoment" placeholder="Example: I wanted to follow up after a date but could not tell whether another message would feel welcome."></textarea>
                     </label>
                 </div>
 
                 <div class="question-block">
-                    <h3>5. What should we know before launch?</h3>
-                    <p>Share a general hope, concern, or use case. Please avoid sensitive identifying details.</p>
+                    <h3>2. What happened in that situation, and what made it feel uncertain or difficult?</h3>
+                    <p>Share the context, the decision point, and what made the next step hard to judge.</p>
                     <label class="field">
-                        Your note
-                        <textarea name="launchNote" placeholder="Example: I would use Syntrae before difficult conversations with a manager, parent, partner, or close friend."></textarea>
+                        Your answer
+                        <textarea name="situationDetails" placeholder="Example: I did not know how they interpreted the conversation, and I was worried about seeming too eager or too distant."></textarea>
+                    </label>
+                </div>
+
+                <div class="question-block">
+                    <h3>3. How often do situations like that happen for you?</h3>
+                    <p>A rough answer is enough.</p>
+                    <label class="field">
+                        Frequency
+                        <input type="text" name="frequency" placeholder="Example: A few times a month, only when dating someone new, or rarely.">
+                    </label>
+                </div>
+
+                <div class="question-block">
+                    <h3>4. What did you do at the time to handle the uncertainty?</h3>
+                    <p>Tell us what action you took, even if the action was waiting or doing nothing.</p>
+                    <label class="field">
+                        Your answer
+                        <textarea name="uncertaintyResponse" placeholder="Example: I waited a day, drafted a message, deleted it, and then sent something shorter."></textarea>
+                    </label>
+                </div>
+
+                <div class="question-block">
+                    <h3>5. Who, if anyone, did you talk to before deciding what to do?</h3>
+                    <p>Keep this general: friend, sibling, therapist, group chat, no one, or another source.</p>
+                    <label class="field">
+                        Your answer
+                        <input type="text" name="talkedTo" placeholder="Example: A close friend, no one, or a group chat.">
+                    </label>
+                </div>
+
+                <div class="question-block">
+                    <h3>6. What tools, apps, notes, advice, or habits did you use to help you think through the situation?</h3>
+                    <p>Include anything that shaped your decision process.</p>
+                    <label class="field">
+                        Your answer
+                        <textarea name="toolsUsed" placeholder="Example: Notes app drafts, rereading texts, asking ChatGPT, journaling, TikTok advice, or personal rules."></textarea>
+                    </label>
+                </div>
+
+                <div class="question-block">
+                    <h3>7. What made your current way of handling the situation helpful or unhelpful?</h3>
+                    <p>Share what worked, what did not, and where your process still felt weak.</p>
+                    <label class="field">
+                        Your answer
+                        <textarea name="methodEvaluation" placeholder="Example: Talking to a friend helped me calm down, but it also made me overthink every word."></textarea>
+                    </label>
+                </div>
+
+                <div class="question-block">
+                    <h3>8. What was the emotional, social, or practical cost of not knowing what to do?</h3>
+                    <p>Tell us what the uncertainty cost you in time, energy, confidence, connection, or outcome.</p>
+                    <label class="field">
+                        Your answer
+                        <textarea name="uncertaintyCost" placeholder="Example: I lost sleep, delayed the conversation, and felt less confident around them afterward."></textarea>
+                    </label>
+                </div>
+
+                <div class="question-block">
+                    <h3>9. What would have counted as a successful outcome for you in that situation?</h3>
+                    <p>Describe what you wanted to happen, practically or emotionally.</p>
+                    <label class="field">
+                        Your answer
+                        <textarea name="successfulOutcome" placeholder="Example: I wanted to express interest clearly without pressuring them, and still feel calm afterward."></textarea>
+                    </label>
+                </div>
+
+                <div class="question-block">
+                    <h3>10. Do you know anyone else who experiences this kind of uncertainty and might be willing to use Syntrae?</h3>
+                    <p>A yes, no, maybe, or general description is enough. Do not include anyone's private contact information.</p>
+                    <label class="field">
+                        Your answer
+                        <input type="text" name="referrals" placeholder="Example: Yes, a friend who overthinks dating texts, or no.">
                     </label>
                 </div>
 
@@ -426,16 +524,21 @@
             event.preventDefault();
             const data = new FormData(surveyForm);
             const payload = {
-                firstUseCase: data.get("firstUseCase"),
-                trustSignals: data.getAll("trustSignals"),
-                featurePriority: data.get("featurePriority"),
-                feedbackCadence: data.get("feedbackCadence"),
-                launchNote: String(data.get("launchNote") || "").trim(),
+                uncertainMoment: String(data.get("uncertainMoment") || "").trim(),
+                situationDetails: String(data.get("situationDetails") || "").trim(),
+                frequency: String(data.get("frequency") || "").trim(),
+                uncertaintyResponse: String(data.get("uncertaintyResponse") || "").trim(),
+                talkedTo: String(data.get("talkedTo") || "").trim(),
+                toolsUsed: String(data.get("toolsUsed") || "").trim(),
+                methodEvaluation: String(data.get("methodEvaluation") || "").trim(),
+                uncertaintyCost: String(data.get("uncertaintyCost") || "").trim(),
+                successfulOutcome: String(data.get("successfulOutcome") || "").trim(),
+                referrals: String(data.get("referrals") || "").trim(),
                 createdAt: new Date().toISOString()
             };
 
             localStorage.setItem("syntrae:founding-member-survey", JSON.stringify(payload));
-            surveyStatus.textContent = "Thank you. Your founding-member survey response is saved for this demo, and it shows the kind of signal Syntrae will use to shape the product before launch.";
+            surveyStatus.textContent = "Thank you. Your relationship-uncertainty survey response is saved for this demo, and it shows the kind of signal Syntrae will use to shape the product before launch.";
             surveyStatus.classList.add("is-visible");
             surveyStatus.scrollIntoView({ behavior: "smooth", block: "nearest" });
         });

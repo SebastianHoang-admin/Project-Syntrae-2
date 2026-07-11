@@ -9,6 +9,632 @@
     <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@600;700&family=Manrope:wght@400;600;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="syntrae-pages.css">
+    <style>
+        body {
+            overflow-x: hidden;
+        }
+
+        .founder-book-section {
+            position: relative;
+            min-height: calc(100vh - 92px);
+            padding: 54px 28px 70px;
+            background:
+                radial-gradient(circle at 14% 12%, rgba(223, 244, 237, 0.88), transparent 32%),
+                radial-gradient(circle at 82% 16%, rgba(243, 201, 79, 0.18), transparent 30%),
+                linear-gradient(135deg, #fbfff8 0%, #f4fbf4 50%, #fffaf0 100%);
+        }
+
+        .founder-book-section::before,
+        .founder-book-section::after {
+            content: "";
+            position: absolute;
+            border-radius: 999px;
+            pointer-events: none;
+        }
+
+        .founder-book-section::before {
+            width: 360px;
+            height: 360px;
+            right: -120px;
+            top: 16%;
+            background: rgba(243, 201, 79, 0.14);
+            filter: blur(18px);
+        }
+
+        .founder-book-section::after {
+            width: 280px;
+            height: 280px;
+            left: -90px;
+            bottom: 8%;
+            background: rgba(18, 150, 141, 0.12);
+            filter: blur(16px);
+        }
+
+        .book-shell {
+            position: relative;
+            z-index: 1;
+            width: min(1220px, 100%);
+            margin: 0 auto;
+            perspective: 1800px;
+        }
+
+        .book-intro {
+            display: flex;
+            align-items: end;
+            justify-content: space-between;
+            gap: 24px;
+            margin-bottom: 26px;
+        }
+
+        .book-intro h1 {
+            max-width: 760px;
+        }
+
+        .book-intro .lede {
+            max-width: 540px;
+            margin-top: 14px;
+        }
+
+        .story-book {
+            position: relative;
+            min-height: 660px;
+            transform-style: preserve-3d;
+            animation: bookArrive 0.8s ease both;
+        }
+
+        .book-cover {
+            position: absolute;
+            inset: 0;
+            z-index: 6;
+            display: grid;
+            place-items: center;
+            padding: 34px;
+            border: 1px solid rgba(32, 50, 54, 0.16);
+            border-radius: 34px;
+            color: #fff;
+            background:
+                radial-gradient(circle at 22% 18%, rgba(243, 201, 79, 0.34), transparent 24%),
+                linear-gradient(135deg, #163634 0%, #2d7d67 56%, #12968d 100%);
+            box-shadow:
+                0 34px 86px rgba(32, 50, 54, 0.22),
+                inset 0 0 0 1px rgba(255, 255, 255, 0.16);
+            transform-origin: left center;
+            backface-visibility: hidden;
+            animation: bookCoverOpen 1.55s cubic-bezier(0.7, 0, 0.18, 1) 0.3s both;
+        }
+
+        .book-cover::before {
+            content: "";
+            position: absolute;
+            inset: 22px auto 22px 34px;
+            width: 22px;
+            border-radius: 999px;
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.38), rgba(255, 255, 255, 0.04));
+        }
+
+        .book-cover::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            border-radius: inherit;
+            background:
+                linear-gradient(110deg, transparent 20%, rgba(255, 255, 255, 0.18) 42%, transparent 62%),
+                radial-gradient(circle at 72% 68%, rgba(255, 255, 255, 0.14), transparent 26%);
+            pointer-events: none;
+        }
+
+        .book-cover-content {
+            position: relative;
+            z-index: 1;
+            display: grid;
+            justify-items: center;
+            gap: 18px;
+            text-align: center;
+        }
+
+        .book-cover-content img {
+            width: 150px;
+            padding: 8px;
+            border-radius: 20px;
+            background: rgba(255, 255, 255, 0.9);
+            box-shadow: 0 18px 42px rgba(10, 36, 34, 0.18);
+        }
+
+        .book-cover-content h1 {
+            color: #fff;
+            max-width: 650px;
+            text-shadow: 0 12px 26px rgba(10, 36, 34, 0.16);
+        }
+
+        .book-cover-content span {
+            display: inline-flex;
+            align-items: center;
+            gap: 9px;
+            padding: 10px 14px;
+            border: 1px solid rgba(255, 255, 255, 0.22);
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.12);
+            font-weight: 900;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+        }
+
+        .book-spread {
+            position: relative;
+            overflow: hidden;
+            min-height: 660px;
+            border: 1px solid rgba(32, 50, 54, 0.16);
+            border-radius: 34px;
+            background:
+                linear-gradient(90deg, rgba(240, 250, 244, 0.92) 0%, #fffef8 49%, #f6fbf4 51%, rgba(255, 250, 240, 0.96) 100%);
+            box-shadow:
+                0 30px 84px rgba(32, 50, 54, 0.16),
+                inset 0 0 0 1px rgba(255, 255, 255, 0.62);
+            opacity: 0;
+            transform: rotateX(7deg) scale(0.98);
+            animation: bookSpreadReveal 0.8s ease 1.2s both;
+        }
+
+        .book-spread::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            left: 50%;
+            z-index: 2;
+            width: 34px;
+            transform: translateX(-50%);
+            background:
+                linear-gradient(90deg, transparent, rgba(32, 50, 54, 0.1), transparent),
+                linear-gradient(180deg, rgba(255, 255, 255, 0.1), rgba(32, 50, 54, 0.08), rgba(255, 255, 255, 0.08));
+            pointer-events: none;
+        }
+
+        .book-spread::after {
+            content: "";
+            position: absolute;
+            inset: 16px;
+            border: 1px dashed rgba(18, 150, 141, 0.16);
+            border-radius: 26px;
+            pointer-events: none;
+        }
+
+        .book-page {
+            position: absolute;
+            inset: 0;
+            display: grid;
+            grid-template-columns: minmax(290px, 0.88fr) minmax(0, 1.12fr);
+            gap: 54px;
+            align-items: center;
+            padding: clamp(30px, 5vw, 62px);
+            opacity: 0;
+            pointer-events: none;
+            transform: translateX(18px) rotateY(-1deg);
+            transition: opacity 0.36s ease, transform 0.36s ease;
+        }
+
+        .book-page.is-active {
+            opacity: 1;
+            pointer-events: auto;
+            transform: translateX(0) rotateY(0deg);
+            transition-delay: 0.08s;
+        }
+
+        .book-page[data-page="3"] {
+            grid-template-columns: minmax(0, 0.95fr) minmax(280px, 0.85fr);
+        }
+
+        .book-left,
+        .book-right {
+            position: relative;
+            z-index: 3;
+        }
+
+        .book-left h2,
+        .book-right h2 {
+            max-width: 610px;
+        }
+
+        .book-copy {
+            display: grid;
+            gap: 18px;
+        }
+
+        .book-copy p:not(.kicker) {
+            margin: 0;
+            color: var(--quiet);
+            font-size: 17px;
+            line-height: 1.76;
+            font-weight: 760;
+        }
+
+        .founder-card {
+            position: relative;
+            overflow: hidden;
+            padding: 20px;
+            border: 1px solid rgba(18, 150, 141, 0.18);
+            border-radius: 28px;
+            background:
+                radial-gradient(circle at 18% 16%, rgba(223, 244, 237, 0.9), transparent 34%),
+                #fff;
+            box-shadow: 0 22px 54px rgba(32, 50, 54, 0.12);
+        }
+
+        .founder-card::before {
+            content: "";
+            position: absolute;
+            right: -70px;
+            top: -80px;
+            width: 190px;
+            height: 190px;
+            border-radius: 999px;
+            background: rgba(243, 201, 79, 0.22);
+        }
+
+        .founder-card img {
+            position: relative;
+            display: block;
+            width: 100%;
+            border-radius: 24px;
+            filter: drop-shadow(0 22px 26px rgba(32, 50, 54, 0.12));
+            animation: founderFloat 5.5s ease-in-out infinite alternate;
+        }
+
+        .founder-nameplate {
+            position: relative;
+            display: grid;
+            gap: 4px;
+            margin-top: 16px;
+            padding: 16px;
+            border: 1px solid rgba(18, 150, 141, 0.16);
+            border-radius: 20px;
+            background: rgba(251, 255, 248, 0.9);
+        }
+
+        .founder-nameplate strong {
+            font-size: 22px;
+            line-height: 1.15;
+        }
+
+        .founder-nameplate span {
+            color: var(--quiet);
+            font-weight: 850;
+        }
+
+        .founder-quote-slot {
+            position: relative;
+            margin: 16px 0 0;
+            padding: 18px;
+            border: 1px dashed rgba(45, 125, 103, 0.34);
+            border-radius: 20px;
+            color: var(--quiet);
+            background: rgba(255, 255, 255, 0.76);
+            font-weight: 850;
+            line-height: 1.6;
+        }
+
+        .story-panel {
+            display: grid;
+            gap: 18px;
+            padding: 24px;
+            border: 1px solid rgba(32, 50, 54, 0.1);
+            border-radius: 24px;
+            background: rgba(255, 255, 255, 0.78);
+            box-shadow: 0 14px 34px rgba(32, 50, 54, 0.08);
+        }
+
+        .story-panel p {
+            margin: 0;
+            color: var(--quiet);
+            font-weight: 760;
+            line-height: 1.7;
+        }
+
+        .story-prompts {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 12px;
+        }
+
+        .story-prompt {
+            min-height: 132px;
+            padding: 18px;
+            border: 1px solid rgba(18, 150, 141, 0.16);
+            border-radius: 20px;
+            background: rgba(251, 255, 248, 0.88);
+        }
+
+        .story-prompt i {
+            display: inline-grid;
+            width: 36px;
+            height: 36px;
+            margin-bottom: 12px;
+            place-items: center;
+            border-radius: 12px;
+            color: #fff;
+            background: linear-gradient(135deg, var(--leaf), var(--teal));
+            box-shadow: 0 12px 24px rgba(18, 150, 141, 0.16);
+        }
+
+        .story-prompt strong {
+            display: block;
+            margin-bottom: 7px;
+        }
+
+        .story-prompt span {
+            color: var(--quiet);
+            font-size: 14px;
+            line-height: 1.55;
+            font-weight: 760;
+        }
+
+        .community-page-art {
+            position: relative;
+            min-height: 430px;
+            border: 1px solid rgba(18, 150, 141, 0.18);
+            border-radius: 30px;
+            background:
+                radial-gradient(circle at 18% 22%, rgba(223, 244, 237, 0.98), transparent 28%),
+                radial-gradient(circle at 78% 20%, rgba(243, 201, 79, 0.28), transparent 26%),
+                linear-gradient(145deg, #fffef8, #effaf5);
+            box-shadow: 0 22px 58px rgba(32, 50, 54, 0.1);
+            overflow: hidden;
+        }
+
+        .community-page-art::before {
+            content: "";
+            position: absolute;
+            left: 12%;
+            right: 12%;
+            top: 46%;
+            height: 110px;
+            border: 10px solid rgba(18, 150, 141, 0.14);
+            border-color: rgba(18, 150, 141, 0.14) transparent transparent;
+            border-radius: 50% 50% 0 0;
+            transform: rotate(-3deg);
+        }
+
+        .community-page-art::after {
+            content: "";
+            position: absolute;
+            inset: auto 44px 42px;
+            height: 112px;
+            border-radius: 28px;
+            background: rgba(32, 50, 54, 0.72);
+            box-shadow: 0 18px 40px rgba(32, 50, 54, 0.18);
+        }
+
+        .community-orb {
+            position: absolute;
+            z-index: 1;
+            width: 92px;
+            height: 92px;
+            border-radius: 999px;
+            background: var(--leaf);
+            box-shadow: inset 0 0 0 24px rgba(255, 255, 255, 0.24), 0 16px 34px rgba(32, 50, 54, 0.12);
+            animation: communityOrbDrift 5s ease-in-out infinite alternate;
+        }
+
+        .community-orb:nth-child(1) {
+            left: 17%;
+            top: 28%;
+        }
+
+        .community-orb:nth-child(2) {
+            left: 43%;
+            top: 20%;
+            width: 116px;
+            height: 116px;
+            background: var(--teal);
+            animation-delay: 0.5s;
+        }
+
+        .community-orb:nth-child(3) {
+            right: 17%;
+            top: 32%;
+            width: 100px;
+            height: 100px;
+            background: var(--sun);
+            animation-delay: 0.9s;
+        }
+
+        .community-art-caption {
+            position: absolute;
+            z-index: 2;
+            left: 68px;
+            right: 68px;
+            bottom: 62px;
+            color: #fff;
+            font-weight: 900;
+        }
+
+        .community-art-caption strong {
+            display: block;
+            margin-bottom: 7px;
+            font-size: 22px;
+        }
+
+        .community-art-caption span {
+            display: block;
+            max-width: 420px;
+            line-height: 1.55;
+        }
+
+        .book-controls {
+            position: absolute;
+            z-index: 8;
+            right: clamp(28px, 5vw, 58px);
+            bottom: 30px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px;
+            border: 1px solid rgba(18, 150, 141, 0.18);
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.88);
+            box-shadow: 0 16px 38px rgba(32, 50, 54, 0.12);
+            backdrop-filter: blur(10px);
+        }
+
+        .book-nav-button {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            min-width: 88px;
+            min-height: 42px;
+            border: 1px solid rgba(32, 50, 54, 0.12);
+            border-radius: 999px;
+            color: var(--ink);
+            background: #fffef8;
+            font-weight: 900;
+            cursor: pointer;
+            transition: transform 0.18s ease, box-shadow 0.18s ease, opacity 0.18s ease;
+        }
+
+        .book-nav-button:hover:not(:disabled) {
+            transform: translateY(-1px);
+            box-shadow: 0 10px 22px rgba(32, 50, 54, 0.12);
+        }
+
+        .book-nav-button:disabled {
+            cursor: not-allowed;
+            opacity: 0.45;
+        }
+
+        .book-nav-button.next {
+            color: #fff;
+            border-color: transparent;
+            background: var(--leaf);
+        }
+
+        .book-page-count {
+            min-width: 64px;
+            color: var(--quiet);
+            text-align: center;
+            font-size: 13px;
+            font-weight: 900;
+        }
+
+        @keyframes bookArrive {
+            from {
+                opacity: 0;
+                transform: translateY(24px) rotateX(8deg) scale(0.96);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) rotateX(0deg) scale(1);
+            }
+        }
+
+        @keyframes bookCoverOpen {
+            0% {
+                transform: rotateY(0deg);
+                box-shadow: 0 34px 86px rgba(32, 50, 54, 0.22);
+            }
+            72% {
+                opacity: 1;
+            }
+            100% {
+                opacity: 0;
+                transform: rotateY(-112deg) translateX(-20px);
+                pointer-events: none;
+                box-shadow: -20px 28px 64px rgba(32, 50, 54, 0.16);
+            }
+        }
+
+        @keyframes bookSpreadReveal {
+            from {
+                opacity: 0;
+                transform: rotateX(7deg) scale(0.98);
+            }
+            to {
+                opacity: 1;
+                transform: rotateX(0deg) scale(1);
+            }
+        }
+
+        @keyframes founderFloat {
+            from {
+                transform: translateY(0) rotate(-0.4deg);
+            }
+            to {
+                transform: translateY(-8px) rotate(0.5deg);
+            }
+        }
+
+        @keyframes communityOrbDrift {
+            from {
+                transform: translate3d(-8px, 8px, 0) scale(0.98);
+            }
+            to {
+                transform: translate3d(10px, -8px, 0) scale(1.03);
+            }
+        }
+
+        @media (max-width: 980px) {
+            .book-intro {
+                align-items: start;
+                flex-direction: column;
+            }
+
+            .story-book,
+            .book-spread {
+                min-height: 980px;
+            }
+
+            .book-page,
+            .book-page[data-page="3"] {
+                grid-template-columns: 1fr;
+                align-content: start;
+                gap: 28px;
+                padding-bottom: 112px;
+            }
+
+            .story-prompts {
+                grid-template-columns: 1fr;
+            }
+
+            .book-spread::before {
+                display: none;
+            }
+
+            .book-controls {
+                right: 22px;
+                left: 22px;
+                justify-content: space-between;
+                border-radius: 20px;
+            }
+        }
+
+        @media (max-width: 620px) {
+            .founder-book-section {
+                padding: 32px 18px 54px;
+            }
+
+            .story-book,
+            .book-spread {
+                min-height: 1110px;
+            }
+
+            .book-page {
+                padding: 24px 22px 112px;
+            }
+
+            .book-cover-content img {
+                width: 118px;
+            }
+
+            .book-controls {
+                flex-wrap: wrap;
+            }
+
+            .book-page-count {
+                order: -1;
+                width: 100%;
+            }
+        }
+    </style>
 </head>
 <body>
     <nav class="site-nav" aria-label="Primary">
@@ -26,44 +652,172 @@
     </nav>
 
     <main>
-        <section class="page-hero">
-            <div class="page-grid">
-                <div>
-                    <p class="kicker"><i class="fas fa-book-open"></i> Founder stories</p>
-                    <h1>Founder stories are coming soon.</h1>
-                    <p class="lede">This page is intentionally reserved while Syntrae's founder narrative is being written. For now, the product story is told through the mission, demo, and founding-member invitation.</p>
-                    <div class="hero-actions">
-                        <a class="button button-primary" href="landing.html#founding"><i class="fas fa-star"></i> Join for free</a>
+        <section class="founder-book-section" aria-labelledby="founder-book-title">
+            <div class="book-shell">
+                <div class="book-intro">
+                    <div>
+                        <p class="kicker"><i class="fas fa-book-open"></i> Founder stories</p>
+                        <h1 id="founder-book-title">Open the story behind Syntrae.</h1>
+                        <p class="lede">A founder page designed as a living book: meet the founder, read the story as it is written, and continue it with the Syntrae community.</p>
+                    </div>
+                    <a class="button button-primary" href="landing.html#founding"><i class="fas fa-star"></i> Join for free</a>
+                </div>
+
+                <div class="story-book" data-story-book>
+                    <div class="book-cover" aria-hidden="true">
+                        <div class="book-cover-content">
+                            <img src="assets/syntrae-logo.svg" alt="">
+                            <span><i class="fas fa-book-open"></i> Founder stories</span>
+                            <h1>Syntrae founder book</h1>
+                        </div>
+                    </div>
+
+                    <div class="book-spread">
+                        <article class="book-page is-active" data-page="1">
+                            <div class="book-left">
+                                <div class="founder-card">
+                                    <img src="assets/founder-sebastian-avatar.svg" alt="3D-style smiling founder portrait">
+                                    <div class="founder-nameplate">
+                                        <strong>Sebastian Hoang</strong>
+                                        <span>Founder, Syntrae LLC</span>
+                                    </div>
+                                    <blockquote class="founder-quote-slot">
+                                        Quote placeholder. Add the founder quote here later.
+                                    </blockquote>
+                                </div>
+                            </div>
+
+                            <div class="book-right book-copy">
+                                <p class="kicker"><i class="fas fa-user"></i> Meeting the founder</p>
+                                <h2>A calmer product starts with a human story.</h2>
+                                <div class="story-panel">
+                                    <p>This first page introduces the person behind Syntrae and leaves room for the founder narrative that will connect the product to the human problem it serves.</p>
+                                    <p>Use this space to explain why high-stakes conversations felt important enough to build around, why preparation should feel private and caring, and why early members matter.</p>
+                                </div>
+                            </div>
+                        </article>
+
+                        <article class="book-page" data-page="2">
+                            <div class="book-left book-copy">
+                                <p class="kicker"><i class="fas fa-heart"></i> Founder&rsquo;s stories</p>
+                                <h2>The story will live here.</h2>
+                                <div class="story-panel">
+                                    <p>This page is reserved for the founder story: the moment, tension, or lived experience that made Syntrae feel necessary.</p>
+                                    <p>Suggested direction: open with one relatable decision moment, name the cost of guessing, and connect it to a calmer way to choose.</p>
+                                </div>
+                            </div>
+
+                            <div class="book-right">
+                                <div class="story-prompts" aria-label="Founder story prompts">
+                                    <div class="story-prompt">
+                                        <i class="fas fa-compass"></i>
+                                        <strong>Why this matters</strong>
+                                        <span>Describe the personal reason behind the product.</span>
+                                    </div>
+                                    <div class="story-prompt">
+                                        <i class="fas fa-seedling"></i>
+                                        <strong>What changed</strong>
+                                        <span>Share the moment the idea became a product direction.</span>
+                                    </div>
+                                    <div class="story-prompt">
+                                        <i class="fas fa-users"></i>
+                                        <strong>Who it is for</strong>
+                                        <span>Speak to people who want clearer, kinder choices before acting.</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </article>
+
+                        <article class="book-page" data-page="3">
+                            <div class="book-left book-copy">
+                                <p class="kicker"><i class="fas fa-seedling"></i> To be continued</p>
+                                <h2>To be continued with the Syntrae community.</h2>
+                                <div class="story-panel">
+                                    <p>Founder stories should grow with the people who care about the problem. The next chapters will include what early members believe, what they test, and what they help Syntrae become.</p>
+                                    <p>For now, the most important invitation is simple: join the founding circle and help shape the first version.</p>
+                                </div>
+                                <div class="hero-actions">
+                                    <a class="button button-primary" href="landing.html#founding"><i class="fas fa-star"></i> Join for free</a>
+                                    <a class="button button-secondary" href="community.html" target="_blank" rel="noopener noreferrer"><i class="fas fa-users"></i> Visit community</a>
+                                </div>
+                            </div>
+
+                            <div class="book-right">
+                                <div class="community-page-art" aria-label="Abstract community continuation artwork">
+                                    <span class="community-orb"></span>
+                                    <span class="community-orb"></span>
+                                    <span class="community-orb"></span>
+                                    <div class="community-art-caption">
+                                        <strong>The next chapter is shared.</strong>
+                                        <span>Community feedback helps decide what matters first.</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </article>
+
+                        <div class="book-controls" aria-label="Founder story book controls">
+                            <button class="book-nav-button prev" type="button" data-book-prev><i class="fas fa-arrow-left"></i> Prev</button>
+                            <span class="book-page-count" data-book-count>1 / 3</span>
+                            <button class="book-nav-button next" type="button" data-book-next>Next <i class="fas fa-arrow-right"></i></button>
+                        </div>
                     </div>
                 </div>
-                <figure class="image-frame">
-                    <img src="assets/subpage-founder-stories-thread.svg" alt="Abstract founder story threads">
-                    <figcaption class="image-caption">
-                        <strong>More story soon.</strong>
-                        <span>The founder page will share the human reason behind the product once the story is ready.</span>
-                    </figcaption>
-                </figure>
-            </div>
-        </section>
-
-        <section class="section soft-band">
-            <div class="section-inner placeholder">
-                <p class="kicker"><i class="fas fa-pen"></i> Reserved page</p>
-                <h2>For now, explore the mission and demo.</h2>
-                <p class="lede">Founder stories will be added later. The current public focus is the product vision, the customer belief signal, and the founding-member signup.</p>
             </div>
         </section>
     </main>
 
     <footer class="footer">
         <div class="footer-inner">
-            <span>&copy; 2026 Syntrae LLC</span>
+            <span>Predictive social science for considerate decisions.</span>
             <div class="footer-links">
                 <a href="who-we-are.html" target="_blank" rel="noopener noreferrer">Who are we</a>
+                <span aria-hidden="true">&middot;</span>
                 <a href="our-mission.html" target="_blank" rel="noopener noreferrer">Our mission</a>
-                <a href="landing.html#founding">Join for free</a>
+                <span aria-hidden="true">&middot;</span>
+                <a href="community.html" target="_blank" rel="noopener noreferrer">Community</a>
+                <span aria-hidden="true">&middot;</span>
+                <a href="privacy-principles.html" target="_blank" rel="noopener noreferrer">Privacy</a>
+                <span aria-hidden="true">&middot;</span>
+                <a href="founder-stories.html" target="_blank" rel="noopener noreferrer">Founder stories</a>
             </div>
         </div>
     </footer>
+    <script>
+        const founderBookPages = Array.from(document.querySelectorAll(".book-page"));
+        const founderPrevButton = document.querySelector("[data-book-prev]");
+        const founderNextButton = document.querySelector("[data-book-next]");
+        const founderPageCount = document.querySelector("[data-book-count]");
+        let founderBookIndex = 0;
+
+        function renderFounderBookPage() {
+            founderBookPages.forEach((page, index) => {
+                page.classList.toggle("is-active", index === founderBookIndex);
+            });
+
+            if (founderPageCount) {
+                founderPageCount.textContent = `${founderBookIndex + 1} / ${founderBookPages.length}`;
+            }
+
+            if (founderPrevButton) {
+                founderPrevButton.disabled = founderBookIndex === 0;
+            }
+
+            if (founderNextButton) {
+                founderNextButton.disabled = founderBookIndex === founderBookPages.length - 1;
+            }
+        }
+
+        founderPrevButton?.addEventListener("click", () => {
+            founderBookIndex = Math.max(0, founderBookIndex - 1);
+            renderFounderBookPage();
+        });
+
+        founderNextButton?.addEventListener("click", () => {
+            founderBookIndex = Math.min(founderBookPages.length - 1, founderBookIndex + 1);
+            renderFounderBookPage();
+        });
+
+        renderFounderBookPage();
+    </script>
 </body>
 </html>

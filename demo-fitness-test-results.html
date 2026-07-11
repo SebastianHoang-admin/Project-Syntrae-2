@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Demo Fitness Test Results - Syntrae</title>
+  <title>Demo Comparison Test Results - Syntrae</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -737,8 +737,8 @@
       <a class="brand" href="insight-lab.html?demo=decision-tree" aria-label="Back to Insight Lab">
         <img src="assets/syntrae-logo.svg" alt="Syntrae logo">
         <span class="brand-copy">
-          <strong>Demo Fitness Test</strong>
-          <span>Compatibility signals for a clearer next step</span>
+          <strong>Demo Comparison Test</strong>
+          <span>Comparison signals for a clearer next step</span>
         </span>
       </a>
       <div class="top-actions">
@@ -750,7 +750,7 @@
   <main class="shell">
     <section class="hero">
       <article class="panel summary-panel">
-        <span class="kicker"><i class="fas fa-chart-pie"></i> Fitness Test Results</span>
+        <span class="kicker"><i class="fas fa-chart-pie"></i> Comparison Test Results</span>
         <h1>A promising fit, made easier to understand.</h1>
         <p class="lede" id="analyticSummary">This analysis suggests a positive compatibility pattern, with strong alignment in care, communication tone, and willingness to meet each other thoughtfully.</p>
 
@@ -771,7 +771,7 @@
       <article class="panel chart-panel">
         <div class="chart-head">
           <div>
-            <h2>Visualized Compatibility.</h2>
+            <h2>Visualized Comparison.</h2>
             <p>See where the two personas naturally align, where they differ, and how those patterns can support more thoughtful communication.</p>
           </div>
           <div class="legend">
@@ -1000,7 +1000,7 @@
       renderChart(report);
       renderList(matchListEl, report.areas_match, 'No match signals available yet.');
       renderList(mismatchListEl, report.areas_mismatch, 'No mismatch signals available yet.');
-      document.title = `Demo Fitness Test Results - ${String(report?.personaA?.label || 'Syntrae').replace(/\s+\(You\)$/, '')}`;
+      document.title = `Demo Comparison Test Results - ${String(report?.personaA?.label || 'Syntrae').replace(/\s+\(You\)$/, '')}`;
     }
 
     initialize();

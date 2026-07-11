@@ -1295,7 +1295,7 @@ function evaluatePair(optionA, optionB) {
     return { ready: false, reason: 'Select both personas to continue.' };
   }
   if (optionA.key === optionB.key) {
-    return { ready: false, reason: 'Choose two different personas for Fitness Test.' };
+    return { ready: false, reason: 'Choose one comparison target for Comparison Test.' };
   }
 
   const vectorA = getQuantitativeTraitVector(optionA);
@@ -1392,17 +1392,29 @@ function populateSelectors() {
   selectB.innerHTML = '';
   if (outcomeSelectA) outcomeSelectA.innerHTML = '';
   if (outcomeSelectB) outcomeSelectB.innerHTML = '';
-  personaOptions.forEach((option) => {
+
+  const personaAOptions = personaOptions.filter((option) => option.type === 'user' || option.isLinkedUser);
+  const personaBOptions = personaOptions.filter((option) => option.type !== 'user' && !option.isLinkedUser);
+  const selectableA = personaAOptions.length ? personaAOptions : personaOptions.slice(0, 1);
+  const selectableB = personaBOptions.length
+    ? personaBOptions
+    : personaOptions.filter((option) => option.key !== selectableA[0]?.key);
+
+  selectableA.forEach((option) => {
     const optA = document.createElement('option');
     optA.value = option.key;
     optA.textContent = option.label;
     selectA.appendChild(optA);
+  });
 
+  selectableB.forEach((option) => {
     const optB = document.createElement('option');
     optB.value = option.key;
     optB.textContent = option.label;
     selectB.appendChild(optB);
+  });
 
+  personaOptions.forEach((option) => {
     if (outcomeSelectA) {
       const outcomeOptA = document.createElement('option');
       outcomeOptA.value = option.key;
@@ -1417,30 +1429,30 @@ function populateSelectors() {
     }
   });
 
-  if (!personaOptions.length) {
+  if (!personaOptions.length || !selectableA.length || !selectableB.length) {
     selectA.innerHTML = '<option value="">No personas available</option>';
-    selectB.innerHTML = '<option value="">No personas available</option>';
+    selectB.innerHTML = '<option value="">No comparison targets available</option>';
     if (outcomeSelectA) outcomeSelectA.innerHTML = '<option value="">No personas available</option>';
     if (outcomeSelectB) outcomeSelectB.innerHTML = '<option value="">No personas available</option>';
     runBtn.disabled = true;
     if (outcomeRunBtn) outcomeRunBtn.disabled = true;
     setReadyState(false);
     setOutcomeReadyState(false);
-    setStatus('No personas found for this account.', 'error');
+    setStatus('Persona A needs a user persona and Persona B needs at least one comparison target.', 'error');
     setOutcomeStatus('No personas found for this account.', 'error');
     renderPreview(previewA, null);
     renderPreview(previewB, null);
     return;
   }
 
-  const firstKey = personaOptions[0]?.key || '';
-  const secondKey = personaOptions[1]?.key || firstKey;
-  const userOption = personaOptions.find((item) => item.type === 'user' || item.isLinkedUser);
-  selectA.value = userOption?.key || firstKey;
-  selectB.value = secondKey === selectA.value ? firstKey : secondKey;
-  if (outcomeSelectA) outcomeSelectA.value = userOption?.key || firstKey;
+  const firstKey = selectableA[0]?.key || '';
+  const secondKey = selectableB[0]?.key || '';
+  selectA.value = firstKey;
+  selectB.value = secondKey;
+  const outcomeFirstKey = personaOptions.find((item) => item.type === 'user' || item.isLinkedUser)?.key || personaOptions[0]?.key || '';
+  const outcomeSecondKey = personaOptions.find((item) => item.key !== outcomeFirstKey)?.key || outcomeFirstKey;
+  if (outcomeSelectA) outcomeSelectA.value = outcomeFirstKey;
   if (outcomeSelectB) {
-    const outcomeSecondKey = secondKey === (outcomeSelectA?.value || '') ? firstKey : secondKey;
     outcomeSelectB.value = outcomeSecondKey;
   }
   updateFitnessUI();
@@ -1615,7 +1627,7 @@ async function runWithProgress(taskFn) {
     if (value < 45) return 'Computing quantitative compatibility…';
     if (value < 70) return 'Evaluating qualitative diversity…';
     if (value < 90) return 'Generating match and mismatch insights…';
-    return 'Finalizing Fitness report…';
+    return 'Finalizing Comparison Test report...';
   };
 
   const timer = setInterval(() => {
@@ -1891,6 +1903,16 @@ function buildDemoOptions() {
     L2: { L2_A1: 0.54, L2_A2: 0.46, L2_A3: 0.63, L2_A4: 0.35, L2_A5: 0.58, L2_A6: 0.72 },
     L3: { L3_A1: 0.73, L3_A2: 0.76, L3_A3: 0.66, L3_A4: 0.62, L3_A5: 0.68, L3_A6: 0.52 }
   };
+  const aaronAxis = {
+    L1: { L1_A1: 0.7, L1_A2: 0.82, L1_A3: 0.34, L1_A4: 0.5, L1_A5: 0.42, L1_A6: 0.46 },
+    L2: { L2_A1: 0.38, L2_A2: 0.44, L2_A3: 0.58, L2_A4: 0.42, L2_A5: 0.52, L2_A6: 0.64 },
+    L3: { L3_A1: 0.8, L3_A2: 0.86, L3_A3: 0.88, L3_A4: 0.58, L3_A5: 0.72, L3_A6: 0.78 }
+  };
+  const naomiAxis = {
+    L1: { L1_A1: 0.78, L1_A2: 0.84, L1_A3: 0.58, L1_A4: 0.62, L1_A5: 0.6, L1_A6: 0.68 },
+    L2: { L2_A1: 0.44, L2_A2: 0.72, L2_A3: 0.7, L2_A4: 0.58, L2_A5: 0.48, L2_A6: 0.52 },
+    L3: { L3_A1: 0.82, L3_A2: 0.78, L3_A3: 0.62, L3_A4: 0.72, L3_A5: 0.84, L3_A6: 0.7 }
+  };
 
   return [
     {
@@ -1941,6 +1963,52 @@ function buildDemoOptions() {
             decision_context: 'Best Way should balance clarity with emotional room.'
           },
           'Warm, sincere, and receptive when directness is paired with emotional room'
+        )
+      }
+    },
+    {
+      key: 'aaron-chen-demo',
+      label: 'Aaron Chen',
+      sourceLabel: 'Demo Family Persona',
+      type: 'persona',
+      data: {
+        avatar_url: 'assets/aaron-chen-avatar.svg',
+        name: 'Aaron Chen',
+        profile: buildDemoProfile(
+          'Aaron Chen',
+          aaronAxis,
+          {
+            'basic-profile': 'Aaron Chen. Male. 55 yrs old. Maya Chen\'s father.',
+            relationship_role: 'Family persona and father figure Maya wants to approach with care',
+            likely_response_pattern: 'Responds best to honest context, practical next steps, and being included respectfully.',
+            emotional_needs: 'Needs to know Maya is safe, thinking clearly, and not carrying a difficult choice alone.',
+            concern: 'May worry quickly if information arrives suddenly or without enough practical context.',
+            decision_context: 'Best Way should help Maya share important family news with warmth and preparation.'
+          },
+          'Protective, practical, and warm when Maya leads with honesty and a clear plan'
+        )
+      }
+    },
+    {
+      key: 'naomi-brooks-demo',
+      label: 'Naomi Brooks',
+      sourceLabel: 'Demo Workplace Persona',
+      type: 'persona',
+      data: {
+        avatar_url: 'assets/naomi-brooks-avatar.svg',
+        name: 'Naomi Brooks',
+        profile: buildDemoProfile(
+          'Naomi Brooks',
+          naomiAxis,
+          {
+            'basic-profile': 'Naomi Brooks. Female. 39 yrs old. Maya Chen\'s manager and team lead.',
+            relationship_role: 'Workplace persona and professional decision maker Maya wants to approach clearly',
+            likely_response_pattern: 'Responds best to concise evidence, accountability, and requests that protect team work.',
+            emotional_needs: 'Needs clarity, specificity, and evidence that Maya understands business pressure.',
+            concern: 'May become more evaluative if the ask is vague, delayed, or disconnected from team impact.',
+            decision_context: 'Best Way should help Maya make professional conversations specific, fair, and easy to evaluate.'
+          },
+          'Fair, direct, and supportive when requests are specific, accountable, and team-aware'
         )
       }
     }
@@ -2020,21 +2088,10 @@ function buildDemoOutcomeReport() {
   };
 }
 
-async function runDemoFitnessReview() {
-  const optionA = optionByKey.get(selectA.value);
-  const optionB = optionByKey.get(selectB.value);
-  const evaluation = evaluatePair(optionA, optionB);
-  if (!evaluation.ready) {
-    setStatus(evaluation.reason, 'error');
-    return;
-  }
-  const report = await runWithProgress(async () => {
-    await wait(700);
-    return {
-      report_id: 'demo-fitness-test-compatibility',
-      comparedAt: new Date().toISOString(),
-      personaA: { key: optionA.key, label: optionA.label, signature: { key: optionA.key, profile_hash: 'demo-a' } },
-      personaB: { key: optionB.key, label: optionB.label, signature: { key: optionB.key, profile_hash: 'demo-b' } },
+function buildDemoFitnessReport(optionA, optionB) {
+  const reportsByPersona = {
+    'daniel-smith-demo': {
+      report_id: 'demo-comparison-test-maya-daniel',
       compatibilityPercent: 78,
       quantitativeDeviationPercent: 22,
       qualitativeMisalignmentPercent: 18,
@@ -2050,18 +2107,94 @@ async function runDemoFitnessReview() {
       ],
       top_matches_axes: [
         { axis_name: 'Respect / Dignity Boundary', deviation: 0.06, persona_a_value: 0.82, persona_b_value: 0.76 },
-        { axis_name: 'Depth ↔ Breadth', deviation: 0.04, persona_a_value: 0.76, persona_b_value: 0.72 },
-        { axis_name: 'Immediate ↔ Deferred Reward', deviation: 0.01, persona_a_value: 0.62, persona_b_value: 0.63 }
+        { axis_name: 'Depth <-> Breadth', deviation: 0.04, persona_a_value: 0.76, persona_b_value: 0.72 },
+        { axis_name: 'Immediate <-> Deferred Reward', deviation: 0.01, persona_a_value: 0.62, persona_b_value: 0.63 }
       ],
       top_mismatches_axes: [
         { axis_name: 'Conflict Response', deviation: 0.1, persona_a_value: 0.58, persona_b_value: 0.48 },
         { axis_name: 'Loyalty / Commitment Boundary', deviation: 0.04, persona_a_value: 0.7, persona_b_value: 0.66 }
+      ]
+    },
+    'aaron-chen-demo': {
+      report_id: 'demo-comparison-test-maya-aaron',
+      compatibilityPercent: 71,
+      quantitativeDeviationPercent: 29,
+      qualitativeMisalignmentPercent: 24,
+      mutationRatePercent: 18,
+      areas_match: [
+        'Both value respect, honesty, and careful timing in emotionally important moments',
+        'Maya\'s warmth pairs well with Aaron\'s protective family loyalty',
+        'A prepared next step helps both people feel less reactive'
       ],
-      llm_model: 'Demo predictive model'
-    };
+      areas_mismatch: [
+        'Aaron may move into practical worry before Maya feels emotionally understood',
+        'Maya may soften the message so much that Aaron misses the seriousness at first',
+        'The father-daughter role raises the stakes around independence and protection'
+      ],
+      top_matches_axes: [
+        { axis_name: 'Respect / Dignity Boundary', deviation: 0.04, persona_a_value: 0.82, persona_b_value: 0.86 },
+        { axis_name: 'Honesty Boundary', deviation: 0.02, persona_a_value: 0.78, persona_b_value: 0.8 },
+        { axis_name: 'Persistence', deviation: 0.1, persona_a_value: 0.72, persona_b_value: 0.82 }
+      ],
+      top_mismatches_axes: [
+        { axis_name: 'Risk / Safety Boundary', deviation: 0.24, persona_a_value: 0.54, persona_b_value: 0.78 },
+        { axis_name: 'Stability <-> Growth', deviation: 0.14, persona_a_value: 0.52, persona_b_value: 0.38 },
+        { axis_name: 'Adaptation Speed', deviation: 0.15, persona_a_value: 0.61, persona_b_value: 0.46 }
+      ]
+    },
+    'naomi-brooks-demo': {
+      report_id: 'demo-comparison-test-maya-naomi',
+      compatibilityPercent: 64,
+      quantitativeDeviationPercent: 36,
+      qualitativeMisalignmentPercent: 31,
+      mutationRatePercent: 22,
+      areas_match: [
+        'Both respond well to clear intentions and respectful directness',
+        'Accountability and preparation create a strong shared starting point',
+        'Maya\'s care can become persuasive when paired with evidence and a specific ask'
+      ],
+      areas_mismatch: [
+        'Naomi may evaluate business impact before acknowledging emotional context',
+        'Maya may over-polish the request and make the practical ask less clear',
+        'Workplace timing and role hierarchy create more pressure than a personal conversation'
+      ],
+      top_matches_axes: [
+        { axis_name: 'Honesty Boundary', deviation: 0.04, persona_a_value: 0.78, persona_b_value: 0.82 },
+        { axis_name: 'Fairness / Reciprocity Boundary', deviation: 0.08, persona_a_value: 0.76, persona_b_value: 0.84 },
+        { axis_name: 'Adaptation Speed', deviation: 0.07, persona_a_value: 0.61, persona_b_value: 0.68 }
+      ],
+      top_mismatches_axes: [
+        { axis_name: 'Autonomy <-> Coordination', deviation: 0.24, persona_a_value: 0.48, persona_b_value: 0.72 },
+        { axis_name: 'Immediate <-> Deferred Reward', deviation: 0.08, persona_a_value: 0.62, persona_b_value: 0.7 },
+        { axis_name: 'Depth <-> Breadth', deviation: 0.24, persona_a_value: 0.76, persona_b_value: 0.52 }
+      ]
+    }
+  };
+
+  const selectedReport = reportsByPersona[optionB?.key] || reportsByPersona['daniel-smith-demo'];
+  return {
+    ...selectedReport,
+    comparedAt: new Date().toISOString(),
+    personaA: { key: optionA.key, label: optionA.label, signature: { key: optionA.key, profile_hash: 'demo-a' } },
+    personaB: { key: optionB.key, label: optionB.label, signature: { key: optionB.key, profile_hash: `demo-${optionB.key}` } },
+    llm_model: 'Demo predictive model'
+  };
+}
+
+async function runDemoFitnessReview() {
+  const optionA = optionByKey.get(selectA.value);
+  const optionB = optionByKey.get(selectB.value);
+  const evaluation = evaluatePair(optionA, optionB);
+  if (!evaluation.ready) {
+    setStatus(evaluation.reason, 'error');
+    return;
+  }
+  const report = await runWithProgress(async () => {
+    await wait(700);
+    return buildDemoFitnessReport(optionA, optionB);
   });
   localStorage.setItem(FITNESS_RESULT_STORAGE_KEY, JSON.stringify(report));
-  setStatus('Demo Fitness Test complete for Maya Chen and Daniel Smith.', 'success');
+  setStatus(`Demo Comparison Test complete for Maya Chen and ${optionB.label}.`, 'success');
   window.setTimeout(() => {
     window.location.href = demoUrl('demo-fitness-test-results.html');
   }, 450);
@@ -2094,7 +2227,6 @@ function setupDemoInsightLab() {
     hero.insertAdjacentHTML('beforeend', `
       <div class="demo-intro-grid" aria-label="Insight Lab function overview">
         <article class="demo-intro-card demo-story-card">
-          <span class="demo-kicker">Friendly experimental space</span>
           <h3>Compare personas before the moment matters.</h3>
           <p>Insight Lab is a virtual experimental space for placing two personas side by side, reading their likely points of fit and friction, and turning private context into calmer real-world decisions.</p>
         </article>
@@ -2653,7 +2785,7 @@ runBtn.addEventListener('click', async () => {
     window.location.href = 'fitness-test-results.html';
   } catch (error) {
     setReadyState(false);
-    setStatus(`Fitness Test failed: ${error?.message || 'Unexpected error'}`, 'error');
+    setStatus(`Comparison Test failed: ${error?.message || 'Unexpected error'}`, 'error');
   }
 });
 
