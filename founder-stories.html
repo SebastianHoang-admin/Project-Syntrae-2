@@ -635,6 +635,543 @@
             }
         }
     </style>
+  <style>
+    .founder-book-start {
+      position: relative;
+      min-height: clamp(560px, 74vh, 760px);
+      perspective: 1600px;
+      overflow: hidden;
+      isolation: isolate;
+    }
+
+    .founder-book-start:not(.founder-book-open) > *:not(.founder-book-cover) {
+      opacity: 0;
+      transform: scale(0.985);
+      filter: blur(3px);
+      pointer-events: none;
+      transition: opacity 420ms ease, transform 420ms ease, filter 420ms ease;
+    }
+
+    .founder-book-start.founder-book-open > *:not(.founder-book-cover) {
+      opacity: 1;
+      transform: none;
+      filter: none;
+      transition: opacity 520ms ease 220ms, transform 520ms ease 220ms, filter 520ms ease 220ms;
+    }
+
+    .founder-book-cover {
+      position: absolute;
+      inset: clamp(10px, 2vw, 28px);
+      z-index: 20;
+      display: grid;
+      place-items: center;
+      padding: clamp(24px, 5vw, 64px);
+      border: 1px solid rgba(34, 102, 91, 0.22);
+      border-radius: clamp(28px, 4vw, 46px);
+      background:
+        radial-gradient(circle at 25% 20%, rgba(255, 255, 255, 0.92), transparent 34%),
+        radial-gradient(circle at 78% 18%, rgba(246, 205, 78, 0.22), transparent 32%),
+        linear-gradient(135deg, #f8fff9 0%, #effbf5 42%, #fff8e6 100%);
+      box-shadow: 0 34px 80px rgba(20, 69, 62, 0.18), inset 0 0 0 10px rgba(255, 255, 255, 0.42);
+      color: #1b3032;
+      cursor: pointer;
+      text-align: left;
+      transform-origin: left center;
+      transition: transform 720ms cubic-bezier(0.2, 0.85, 0.2, 1), opacity 520ms ease, filter 520ms ease;
+    }
+
+    .founder-book-cover::before {
+      content: "";
+      position: absolute;
+      top: 8%;
+      bottom: 8%;
+      left: 50%;
+      width: 2px;
+      background: linear-gradient(to bottom, transparent, rgba(34, 102, 91, 0.25), transparent);
+      box-shadow: 0 0 30px rgba(34, 102, 91, 0.24);
+    }
+
+    .founder-book-cover::after {
+      content: "";
+      position: absolute;
+      inset: 18px;
+      border: 1px dashed rgba(34, 102, 91, 0.18);
+      border-radius: inherit;
+      pointer-events: none;
+    }
+
+    .founder-book-cover__inner {
+      position: relative;
+      z-index: 1;
+      width: min(780px, 90%);
+      display: grid;
+      gap: 18px;
+    }
+
+    .founder-book-cover__eyebrow {
+      width: max-content;
+      padding: 10px 16px;
+      border: 1px solid rgba(20, 151, 134, 0.24);
+      border-radius: 999px;
+      background: rgba(226, 249, 242, 0.86);
+      color: #237c6e;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      font-size: clamp(0.74rem, 1vw, 0.9rem);
+    }
+
+    .founder-book-cover__title {
+      max-width: 720px;
+      font-family: var(--display-font, Georgia, serif);
+      font-size: clamp(3rem, 8vw, 7.4rem);
+      line-height: 0.92;
+      letter-spacing: -0.04em;
+      margin: 0;
+    }
+
+    .founder-book-cover__copy {
+      max-width: 560px;
+      color: #607574;
+      font-size: clamp(1rem, 1.4vw, 1.28rem);
+      font-weight: 700;
+      line-height: 1.55;
+    }
+
+    .founder-book-cover__hint {
+      width: max-content;
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 13px 18px;
+      border-radius: 999px;
+      background: #2f8a75;
+      color: #fff;
+      font-weight: 900;
+      box-shadow: 0 16px 34px rgba(47, 138, 117, 0.24);
+    }
+
+    .founder-book-cover__hint::before {
+      content: "";
+      width: 10px;
+      height: 10px;
+      border-radius: 999px;
+      background: #f5ca42;
+      box-shadow: 0 0 0 8px rgba(245, 202, 66, 0.2);
+    }
+
+    .founder-book-cover__edge {
+      position: absolute;
+      right: 34px;
+      top: 34px;
+      bottom: 34px;
+      width: 34px;
+      border-radius: 999px;
+      background: repeating-linear-gradient(to bottom, rgba(255, 255, 255, 0.86) 0 8px, rgba(213, 231, 224, 0.78) 8px 11px);
+      opacity: 0.72;
+    }
+
+    .founder-book-start.founder-book-open .founder-book-cover {
+      transform: rotateY(-78deg) translateX(-22px) scale(0.96);
+      opacity: 0;
+      filter: blur(4px);
+      pointer-events: none;
+    }
+
+    @media (max-width: 760px) {
+      .founder-book-cover::before {
+        left: 18px;
+      }
+
+      .founder-book-cover__title {
+        font-size: clamp(2.8rem, 15vw, 4.8rem);
+      }
+
+      .founder-book-cover__edge {
+        display: none;
+      }
+    }
+  </style>
+  <style>
+    /* Founder Stories starts as a still book cover until the user opens it. */
+    .founder-book-start {
+      position: relative;
+      min-height: clamp(560px, 74vh, 760px);
+      perspective: 1600px;
+      overflow: hidden;
+      isolation: isolate;
+    }
+
+    .founder-book-start:not(.founder-book-open) > *:not(.founder-book-cover) {
+      opacity: 0;
+      transform: scale(0.985);
+      filter: blur(3px);
+      pointer-events: none;
+      transition: opacity 420ms ease, transform 420ms ease, filter 420ms ease;
+    }
+
+    .founder-book-start.founder-book-open > *:not(.founder-book-cover) {
+      opacity: 1;
+      transform: none;
+      filter: none;
+      transition: opacity 520ms ease 220ms, transform 520ms ease 220ms, filter 520ms ease 220ms;
+    }
+
+    .founder-book-cover {
+      position: absolute;
+      inset: clamp(10px, 2vw, 28px);
+      z-index: 20;
+      display: grid;
+      place-items: center;
+      padding: clamp(24px, 5vw, 64px);
+      border: 1px solid rgba(34, 102, 91, 0.22);
+      border-radius: clamp(28px, 4vw, 46px);
+      background:
+        radial-gradient(circle at 25% 20%, rgba(255, 255, 255, 0.92), transparent 34%),
+        radial-gradient(circle at 78% 18%, rgba(246, 205, 78, 0.22), transparent 32%),
+        linear-gradient(135deg, #f8fff9 0%, #effbf5 42%, #fff8e6 100%);
+      box-shadow: 0 34px 80px rgba(20, 69, 62, 0.18), inset 0 0 0 10px rgba(255, 255, 255, 0.42);
+      color: #1b3032;
+      cursor: pointer;
+      text-align: left;
+      transform-origin: left center;
+      transition: transform 720ms cubic-bezier(0.2, 0.85, 0.2, 1), opacity 520ms ease, filter 520ms ease;
+    }
+
+    .founder-book-cover::before {
+      content: "";
+      position: absolute;
+      top: 8%;
+      bottom: 8%;
+      left: 50%;
+      width: 2px;
+      background: linear-gradient(to bottom, transparent, rgba(34, 102, 91, 0.25), transparent);
+      box-shadow: 0 0 30px rgba(34, 102, 91, 0.24);
+    }
+
+    .founder-book-cover::after {
+      content: "";
+      position: absolute;
+      inset: 18px;
+      border: 1px dashed rgba(34, 102, 91, 0.18);
+      border-radius: inherit;
+      pointer-events: none;
+    }
+
+    .founder-book-cover__inner {
+      position: relative;
+      z-index: 1;
+      width: min(780px, 90%);
+      display: grid;
+      gap: 18px;
+    }
+
+    .founder-book-cover__eyebrow {
+      width: max-content;
+      padding: 10px 16px;
+      border: 1px solid rgba(20, 151, 134, 0.24);
+      border-radius: 999px;
+      background: rgba(226, 249, 242, 0.86);
+      color: #237c6e;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      font-size: clamp(0.74rem, 1vw, 0.9rem);
+    }
+
+    .founder-book-cover__title {
+      max-width: 720px;
+      font-family: var(--display-font, Georgia, serif);
+      font-size: clamp(3rem, 8vw, 7.4rem);
+      line-height: 0.92;
+      letter-spacing: -0.04em;
+      margin: 0;
+    }
+
+    .founder-book-cover__copy {
+      max-width: 560px;
+      color: #607574;
+      font-size: clamp(1rem, 1.4vw, 1.28rem);
+      font-weight: 700;
+      line-height: 1.55;
+    }
+
+    .founder-book-cover__hint {
+      width: max-content;
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 13px 18px;
+      border-radius: 999px;
+      background: #2f8a75;
+      color: #fff;
+      font-weight: 900;
+      box-shadow: 0 16px 34px rgba(47, 138, 117, 0.24);
+    }
+
+    .founder-book-cover__hint::before {
+      content: "";
+      width: 10px;
+      height: 10px;
+      border-radius: 999px;
+      background: #f5ca42;
+      box-shadow: 0 0 0 8px rgba(245, 202, 66, 0.2);
+      animation: founderHintPulse 1.6s ease-in-out infinite;
+    }
+
+    .founder-book-cover__edge {
+      position: absolute;
+      right: 34px;
+      top: 34px;
+      bottom: 34px;
+      width: 34px;
+      border-radius: 999px;
+      background: repeating-linear-gradient(to bottom, rgba(255, 255, 255, 0.86) 0 8px, rgba(213, 231, 224, 0.78) 8px 11px);
+      opacity: 0.72;
+    }
+
+    .founder-book-start.founder-book-open .founder-book-cover {
+      transform: rotateY(-78deg) translateX(-22px) scale(0.96);
+      opacity: 0;
+      filter: blur(4px);
+      pointer-events: none;
+    }
+
+    @keyframes founderHintPulse {
+      0%, 100% {
+        transform: scale(1);
+        box-shadow: 0 0 0 7px rgba(245, 202, 66, 0.18);
+      }
+
+      50% {
+        transform: scale(1.18);
+        box-shadow: 0 0 0 13px rgba(245, 202, 66, 0.08);
+      }
+    }
+
+    @media (max-width: 760px) {
+      .founder-book-cover::before {
+        left: 18px;
+      }
+
+      .founder-book-cover__title {
+        font-size: clamp(2.8rem, 15vw, 4.8rem);
+      }
+
+      .founder-book-cover__edge {
+        display: none;
+      }
+    }
+  </style>
+  <style>
+    /* Founder Stories opens only after the reader clicks the cover. */
+    .founder-book-start {
+      position: relative;
+      min-height: clamp(520px, 70vh, 760px);
+      overflow: hidden;
+      perspective: 1800px;
+      isolation: isolate;
+    }
+
+    .founder-book-start:not(.founder-book-open) > *:not(.founder-book-cover) {
+      opacity: 0;
+      pointer-events: none;
+      transform: scale(.985);
+      filter: blur(8px);
+      transition: opacity .45s ease, transform .45s ease, filter .45s ease;
+    }
+
+    .founder-book-start.founder-book-open > *:not(.founder-book-cover) {
+      animation: founderBookContentReveal .7s ease both;
+    }
+
+    .founder-book-cover {
+      position: absolute;
+      inset: 0;
+      z-index: 20;
+      display: grid;
+      place-items: center;
+      width: 100%;
+      min-height: inherit;
+      border: 0;
+      border-radius: inherit;
+      cursor: pointer;
+      overflow: hidden;
+      color: #1c3030;
+      background:
+        radial-gradient(circle at 24% 22%, rgba(255, 210, 92, .22), transparent 28%),
+        radial-gradient(circle at 75% 72%, rgba(21, 151, 142, .20), transparent 34%),
+        linear-gradient(135deg, rgba(247, 255, 249, .98), rgba(232, 249, 242, .96) 48%, rgba(255, 248, 224, .94));
+      box-shadow: inset 0 0 0 1px rgba(31, 125, 113, .18);
+      transform-origin: left center;
+    }
+
+    .founder-book-cover::before,
+    .founder-book-cover::after {
+      content: "";
+      position: absolute;
+      pointer-events: none;
+    }
+
+    .founder-book-cover::before {
+      inset: 9%;
+      border-radius: 34px;
+      border: 1px solid rgba(31, 125, 113, .22);
+      background:
+        linear-gradient(90deg, rgba(31, 125, 113, .10), transparent 22%, transparent 78%, rgba(247, 201, 79, .18)),
+        repeating-linear-gradient(90deg, rgba(31, 125, 113, .06) 0 1px, transparent 1px 56px);
+      box-shadow:
+        inset 16px 0 30px rgba(31, 125, 113, .10),
+        inset -12px 0 24px rgba(247, 201, 79, .12),
+        0 28px 70px rgba(31, 55, 52, .12);
+    }
+
+    .founder-book-cover::after {
+      left: 9%;
+      top: 9%;
+      bottom: 9%;
+      width: 24px;
+      border-radius: 24px;
+      background: linear-gradient(90deg, rgba(29, 82, 75, .28), rgba(29, 82, 75, .03));
+      filter: blur(.2px);
+    }
+
+    .founder-book-cover__inner {
+      position: relative;
+      z-index: 2;
+      width: min(560px, 78%);
+      padding: clamp(30px, 5vw, 56px);
+      border-radius: 30px;
+      text-align: left;
+      background: rgba(255, 255, 250, .88);
+      border: 1px solid rgba(31, 125, 113, .20);
+      box-shadow: 0 28px 80px rgba(31, 55, 52, .14);
+      transition: transform .24s ease, box-shadow .24s ease;
+    }
+
+    .founder-book-cover:hover .founder-book-cover__inner,
+    .founder-book-cover:focus-visible .founder-book-cover__inner {
+      transform: translateY(-4px);
+      box-shadow: 0 34px 92px rgba(31, 55, 52, .18);
+    }
+
+    .founder-book-cover__eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      width: fit-content;
+      margin-bottom: 18px;
+      padding: 8px 14px;
+      border-radius: 999px;
+      color: #197466;
+      background: rgba(221, 247, 238, .92);
+      border: 1px solid rgba(31, 125, 113, .20);
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+    }
+
+    .founder-book-cover__title {
+      display: block;
+      max-width: 10ch;
+      color: #213333;
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: clamp(48px, 8vw, 88px);
+      font-weight: 900;
+      line-height: .9;
+      letter-spacing: -.05em;
+    }
+
+    .founder-book-cover__copy {
+      display: block;
+      max-width: 460px;
+      margin-top: 24px;
+      color: #607575;
+      font-size: clamp(17px, 2vw, 22px);
+      font-weight: 700;
+      line-height: 1.45;
+    }
+
+    .founder-book-cover__hint {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      margin-top: 28px;
+      padding: 14px 18px;
+      border-radius: 999px;
+      color: #fffdf4;
+      background: linear-gradient(135deg, #2a8a74, #168f85);
+      box-shadow: 0 16px 34px rgba(22, 143, 133, .26);
+      font-size: 15px;
+      font-weight: 900;
+      animation: founderHintPulse 1.9s ease-in-out infinite;
+    }
+
+    .founder-book-cover__hint::before {
+      content: "";
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      background: #ffd65a;
+      box-shadow: 0 0 0 8px rgba(255, 214, 90, .18);
+    }
+
+    .founder-book-start.founder-book-open .founder-book-cover {
+      pointer-events: none;
+      animation: founderBookOpen .78s cubic-bezier(.2, .72, .2, 1) forwards;
+    }
+
+    @keyframes founderBookOpen {
+      0% {
+        opacity: 1;
+        transform: rotateY(0deg) translateX(0);
+      }
+      58% {
+        opacity: .92;
+        transform: rotateY(-62deg) translateX(-2%);
+      }
+      100% {
+        opacity: 0;
+        transform: rotateY(-88deg) translateX(-8%);
+        visibility: hidden;
+      }
+    }
+
+    @keyframes founderBookContentReveal {
+      0% {
+        opacity: 0;
+        transform: scale(.985);
+        filter: blur(8px);
+      }
+      100% {
+        opacity: 1;
+        transform: scale(1);
+        filter: blur(0);
+      }
+    }
+
+    @keyframes founderHintPulse {
+      0%, 100% {
+        transform: translateY(0);
+        box-shadow: 0 16px 34px rgba(22, 143, 133, .22);
+      }
+      50% {
+        transform: translateY(-3px);
+        box-shadow: 0 22px 44px rgba(22, 143, 133, .30);
+      }
+    }
+
+    @media (max-width: 760px) {
+      .founder-book-start {
+        min-height: 540px;
+      }
+
+      .founder-book-cover__inner {
+        width: min(88%, 460px);
+      }
+    }
+  </style>
 </head>
 <body>
     <nav class="site-nav" aria-label="Primary">
@@ -819,5 +1356,299 @@
 
         renderFounderBookPage();
     </script>
+  <script>
+    (() => {
+      const findFounderBook = () => {
+        const candidates = Array.from(document.querySelectorAll('section, article, main > div, div'));
+        return candidates
+          .filter((el) => {
+            const text = (el.textContent || '').replace(/\s+/g, ' ').toLowerCase();
+            return text.includes('meeting the founder') &&
+              text.includes('sebastian hoang') &&
+              text.includes('next');
+          })
+          .sort((a, b) => {
+            const ar = a.getBoundingClientRect();
+            const br = b.getBoundingClientRect();
+            return (ar.width * ar.height) - (br.width * br.height);
+          })[0];
+      };
+
+      const book = findFounderBook();
+      if (!book || book.querySelector('.founder-book-cover')) return;
+
+      book.classList.add('founder-book-start');
+
+      const cover = document.createElement('button');
+      cover.type = 'button';
+      cover.className = 'founder-book-cover';
+      cover.setAttribute('aria-label', 'Open the founder stories book');
+      cover.innerHTML = `
+        <span class="founder-book-cover__edge" aria-hidden="true"></span>
+        <span class="founder-book-cover__inner">
+          <span class="founder-book-cover__eyebrow">Founder Stories</span>
+          <span class="founder-book-cover__title">The story is inside.</span>
+          <span class="founder-book-cover__copy">Click the cover to open the founder book and start reading the first page.</span>
+          <span class="founder-book-cover__hint">Click to start reading</span>
+        </span>
+      `;
+
+      cover.addEventListener('click', () => {
+        book.classList.add('founder-book-open');
+        cover.setAttribute('aria-hidden', 'true');
+        cover.tabIndex = -1;
+        setTimeout(() => cover.remove(), 760);
+      }, { once: true });
+
+      book.appendChild(cover);
+    })();
+  </script>
+  <style id="founder-book-cover-click-style">
+    .founder-book-start {
+      position: relative;
+      min-height: 520px;
+      overflow: hidden;
+      perspective: 1600px;
+      isolation: isolate;
+    }
+
+    .founder-book-start:not(.founder-book-open) > :not(.founder-book-cover) {
+      opacity: 0;
+      pointer-events: none;
+      transform: translateY(14px) scale(.98);
+    }
+
+    .founder-book-start.founder-book-open > :not(.founder-book-cover) {
+      animation: founderBookContentReveal .62s ease both;
+    }
+
+    .founder-book-cover {
+      position: absolute;
+      inset: 0;
+      z-index: 20;
+      display: grid;
+      place-items: center;
+      width: 100%;
+      min-height: 520px;
+      padding: clamp(24px, 5vw, 64px);
+      border: 1px solid rgba(23, 118, 99, .18);
+      border-radius: 34px;
+      background:
+        radial-gradient(circle at 18% 20%, rgba(255, 210, 80, .24), transparent 24%),
+        radial-gradient(circle at 82% 72%, rgba(24, 151, 138, .2), transparent 28%),
+        linear-gradient(132deg, #fffdf4 0%, #f1fbf4 48%, #e5f6ef 100%);
+      box-shadow: 0 32px 90px rgba(17, 84, 72, .18);
+      color: #1e3333;
+      cursor: pointer;
+      transform-origin: left center;
+      transition: transform .32s ease, box-shadow .32s ease, border-color .32s ease;
+      appearance: none;
+      text-align: left;
+      font: inherit;
+    }
+
+    .founder-book-cover::before {
+      content: "";
+      position: absolute;
+      inset: 22px;
+      border: 1px dashed rgba(23, 118, 99, .22);
+      border-radius: 26px;
+      pointer-events: none;
+    }
+
+    .founder-book-cover::after {
+      content: "";
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      left: clamp(88px, 13vw, 180px);
+      width: 18px;
+      background: linear-gradient(90deg, rgba(20, 78, 70, .1), rgba(255, 255, 255, .74), rgba(20, 78, 70, .08));
+      box-shadow: 16px 0 42px rgba(24, 95, 82, .12);
+      pointer-events: none;
+    }
+
+    .founder-book-cover:hover,
+    .founder-book-cover:focus-visible {
+      transform: translateY(-4px) rotateY(-2deg);
+      border-color: rgba(23, 118, 99, .36);
+      box-shadow: 0 38px 110px rgba(17, 84, 72, .24);
+      outline: none;
+    }
+
+    .founder-book-open .founder-book-cover {
+      animation: founderBookOpen .82s cubic-bezier(.2, .74, .16, 1) forwards;
+      pointer-events: none;
+    }
+
+    .founder-book-cover__inner {
+      position: relative;
+      z-index: 2;
+      display: grid;
+      max-width: 560px;
+      gap: 18px;
+    }
+
+    .founder-book-cover__eyebrow,
+    .founder-book-cover__hint {
+      width: max-content;
+      border: 1px solid rgba(23, 118, 99, .22);
+      border-radius: 999px;
+      background: rgba(255, 255, 255, .78);
+      color: #247762;
+      font-size: 12px;
+      font-weight: 900;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+    }
+
+    .founder-book-cover__eyebrow {
+      padding: 9px 14px;
+    }
+
+    .founder-book-cover__hint {
+      position: relative;
+      padding: 12px 18px 12px 38px;
+      animation: founderHintPulse 1.65s ease-in-out infinite;
+    }
+
+    .founder-book-cover__hint::before {
+      content: "";
+      position: absolute;
+      left: 16px;
+      top: 50%;
+      width: 9px;
+      height: 9px;
+      border-radius: 999px;
+      background: #f5c943;
+      box-shadow: 0 0 0 7px rgba(245, 201, 67, .18);
+      transform: translateY(-50%);
+    }
+
+    .founder-book-cover__title {
+      font-family: var(--display-font, Georgia, serif);
+      font-size: clamp(48px, 8vw, 92px);
+      font-weight: 900;
+      line-height: .9;
+      letter-spacing: -.05em;
+    }
+
+    .founder-book-cover__copy {
+      max-width: 460px;
+      color: #5f7372;
+      font-size: clamp(17px, 1.8vw, 22px);
+      font-weight: 800;
+      line-height: 1.45;
+    }
+
+    @keyframes founderBookOpen {
+      0% {
+        opacity: 1;
+        transform: rotateY(0) translateX(0) scale(1);
+      }
+      62% {
+        opacity: .82;
+        transform: rotateY(-72deg) translateX(-5%) scale(.98);
+      }
+      100% {
+        opacity: 0;
+        transform: rotateY(-104deg) translateX(-15%) scale(.94);
+      }
+    }
+
+    @keyframes founderBookContentReveal {
+      from {
+        opacity: 0;
+        transform: translateY(18px) scale(.985);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+
+    @keyframes founderHintPulse {
+      0%, 100% {
+        transform: translateY(0);
+        box-shadow: 0 8px 24px rgba(23, 118, 99, .1);
+      }
+      50% {
+        transform: translateY(-2px);
+        box-shadow: 0 16px 32px rgba(23, 118, 99, .16);
+      }
+    }
+
+    @media (max-width: 720px) {
+      .founder-book-start,
+      .founder-book-cover {
+        min-height: 460px;
+      }
+
+      .founder-book-cover {
+        border-radius: 24px;
+      }
+    }
+  </style>
+  <script>
+    (() => {
+      const initFounderBookCover = () => {
+        document.querySelectorAll('.founder-book-cover').forEach((cover) => cover.remove());
+        document.querySelectorAll('.founder-book-start').forEach((book) => {
+          book.classList.remove('founder-book-start', 'founder-book-open');
+        });
+
+        const preferred = Array.from(document.querySelectorAll('[data-founder-book], .founder-book, .story-book, .book-stage, .founder-story-book, .book-shell'));
+        const fallback = Array.from(document.querySelectorAll('main section, section, article, main > div, .container > div, div'));
+        const candidates = [...preferred, ...fallback];
+        const book = candidates
+          .filter((el) => {
+            const text = (el.textContent || '').replace(/\s+/g, ' ').toLowerCase();
+            const rect = el.getBoundingClientRect();
+            return rect.width > 420 &&
+              rect.height > 320 &&
+              text.includes('meeting the founder') &&
+              text.includes('sebastian hoang') &&
+              text.includes('next');
+          })
+          .sort((a, b) => {
+            const ar = a.getBoundingClientRect();
+            const br = b.getBoundingClientRect();
+            return (br.width * br.height) - (ar.width * ar.height);
+          })[0];
+
+        if (!book) return;
+
+        book.classList.add('founder-book-start');
+
+        const cover = document.createElement('button');
+        cover.type = 'button';
+        cover.className = 'founder-book-cover';
+        cover.setAttribute('aria-label', 'Open the founder stories book');
+        cover.innerHTML = `
+          <span class="founder-book-cover__inner">
+            <span class="founder-book-cover__eyebrow">Founder Stories</span>
+            <span class="founder-book-cover__title">Open the story.</span>
+            <span class="founder-book-cover__copy">The founder book is ready. Click the cover to start reading and turn through the pages.</span>
+            <span class="founder-book-cover__hint">Click to start reading</span>
+          </span>
+        `;
+
+        cover.addEventListener('click', () => {
+          book.classList.add('founder-book-open');
+          cover.setAttribute('aria-hidden', 'true');
+          cover.tabIndex = -1;
+          setTimeout(() => cover.remove(), 820);
+        }, { once: true });
+
+        book.appendChild(cover);
+      };
+
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initFounderBookCover, { once: true });
+      } else {
+        initFounderBookCover();
+      }
+    })();
+  </script>
 </body>
 </html>
