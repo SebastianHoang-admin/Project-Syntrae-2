@@ -1065,46 +1065,48 @@
     <script src="js/page-tour.js"></script>
     <script type="module" src="js/insight-lab.js?v=20260710-comparison-test"></script>
     <script>
-        window.SyntraePageTour?.init({
-            pageKey: 'insight-lab',
-            title: 'Insight Lab guide',
-            triggerText: 'Page guide',
-            autoStart: () => new URLSearchParams(window.location.search).get('tour') === '1',
-            steps: [
-                {
-                    selector: '.hero',
-                    title: 'Insight Lab',
-                    description: 'Insight Lab is a virtual experimental space where Syntrae analyzes and compares personas before a real-world decision is made.',
-                    placement: 'bottom'
-                },
-                {
-                    selector: '.row',
-                    title: 'Persona selectors',
-                    description: 'These selectors choose the two personas that will be compared inside the review workflow.',
-                    placement: 'bottom'
-                },
-                {
-                    selector: '.preview-row',
-                    title: 'Persona previews',
-                    description: 'These preview cards make the comparison concrete by showing the two selected personas before the analysis runs.',
-                    placement: 'top'
-                },
-                {
-                    selector: '.panel',
-                    title: 'Comparison Test',
-                    description: 'This main panel is the comparison workspace. It brings selected personas, readiness state, and the test action together in one place.',
-                    placement: 'top'
-                },
-                {
-                    selector: '#runFitnessBtn',
-                    title: 'Run review',
-                    description: 'This action starts the comparison test and opens the results page once the comparison is complete.',
-                    placement: 'top',
-                    highlightSelector: '.panel',
-                    highlight: 'soft'
-                }
-            ]
-        });
+        if (new URLSearchParams(window.location.search).get('demo') !== 'decision-tree') {
+            window.SyntraePageTour?.init({
+                pageKey: 'insight-lab',
+                title: 'Insight Lab guide',
+                triggerText: 'Page guide',
+                autoStart: () => new URLSearchParams(window.location.search).get('tour') === '1',
+                steps: [
+                    {
+                        selector: '.hero',
+                        title: 'Insight Lab',
+                        description: 'Insight Lab is a virtual experimental space where Syntrae analyzes and compares personas before a real-world decision is made.',
+                        placement: 'bottom'
+                    },
+                    {
+                        selector: '.row',
+                        title: 'Persona selectors',
+                        description: 'These selectors choose the two personas that will be compared inside the review workflow.',
+                        placement: 'bottom'
+                    },
+                    {
+                        selector: '.preview-row',
+                        title: 'Persona previews',
+                        description: 'These preview cards make the comparison concrete by showing the two selected personas before the analysis runs.',
+                        placement: 'top'
+                    },
+                    {
+                        selector: '.panel',
+                        title: 'Comparison Test',
+                        description: 'This main panel is the comparison workspace. It brings selected personas, readiness state, and the test action together in one place.',
+                        placement: 'top'
+                    },
+                    {
+                        selector: '#runFitnessBtn',
+                        title: 'Run review',
+                        description: 'This action starts the comparison test and opens the results page once the comparison is complete.',
+                        placement: 'top',
+                        highlightSelector: '.panel',
+                        highlight: 'soft'
+                    }
+                ]
+            });
+        }
     </script>
 </body>
 </html>

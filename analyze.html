@@ -2748,45 +2748,113 @@ Authority figure</div>
         }
 
         startAnalyzePage().finally(() => {
-            window.SyntraePageTour?.init({
-                pageKey: 'analyze',
-                title: 'Analyze guide',
-                triggerText: 'Page guide',
-                autoStart: () => new URLSearchParams(window.location.search).get('tour') === '1',
-                steps: [
-                    {
-                        selector: '.demo-context-strip, .persona-header',
-                        title: 'Persona summary',
-                        description: 'This top area identifies which persona is active, exposes the selector, and keeps the edit action close by so the user can move between analysis and persona editing quickly.',
-                        placement: 'bottom'
-                    },
-                    {
-                        selector: '.portrait',
-                        title: 'Portrait column',
-                        description: 'This left column holds the persona image. It gives the analysis page a stable visual anchor while the user reviews the rest of the profile.',
-                        placement: 'right'
-                    },
-                    {
-                        selector: '.radar',
-                        title: 'Persona chart',
-                        description: 'This central analysis card summarizes the persona across the main behavioral axes so the user can see the overall shape before reading details.',
-                        placement: 'left'
-                    },
-                    {
-                        selector: '.backgrounds',
-                        title: 'Extra information',
-                        description: 'These background cards hold the contextual fields that matter to decision quality: time and life stage, current context, active stressors, and the broader social moment.',
-                        placement: 'top'
-                    },
-                    {
-                        selector: '.edit-btn',
-                        title: 'Edit flow',
-                        description: 'Use this button to open the questionnaire and refine the persona whenever the private context changes.',
-                        placement: 'left',
-                        highlightSelector: '.demo-context-strip, .persona-header',
-                        highlight: 'soft'
+            const analyzeGuideParams = new URLSearchParams(window.location.search);
+            const isUniversalGuideFlow = analyzeGuideParams.get('flow') === 'universal';
+            const buildUniversalGuideUrl = (path, params = {}) => {
+                const url = new URL(path, window.location.href);
+                url.searchParams.set('demo', 'decision-tree');
+                url.searchParams.set('tour', '1');
+                url.searchParams.set('flow', 'universal');
+                Object.entries(params).forEach(([key, value]) => {
+                    if (value !== undefined && value !== null && value !== '') {
+                        url.searchParams.set(key, String(value));
                     }
-                ]
+                });
+                return `${url.pathname.split('/').pop()}?${url.searchParams.toString()}`;
+            };
+
+            if (isDecisionTreeDemo() && !isUniversalGuideFlow) return;
+
+            const universalAnalyzeSteps = [
+                {
+                    selector: '.demo-context-strip, .persona-header',
+                    title: 'Step 2: Build the other person',
+                    description: 'This page is where you model the person you care about: a crush, romantic partner, parent, best friend, or anyone you know enough about to describe respectfully.',
+                    placement: 'bottom'
+                },
+                {
+                    selector: '.portrait',
+                    title: 'Add a visual anchor',
+                    description: 'A portrait is optional, but it helps keep the persona concrete while you review their context and likely behavior.',
+                    placement: 'right'
+                },
+                {
+                    selector: '.backgrounds',
+                    title: 'Add what you know',
+                    description: 'Use these cards for age or life stage, stressors, current context, and relationship role. The goal is useful context, not private details you do not know.',
+                    placement: 'top'
+                },
+                {
+                    selector: '.radar',
+                    title: 'Review the persona shape',
+                    description: 'The chart summarizes behavioral signals so you can see whether the model fits the person before using it in a decision.',
+                    placement: 'left'
+                },
+                {
+                    selector: '.edit-btn',
+                    title: 'Refine the persona when needed',
+                    description: 'Use Edit Your Persona when you need to answer more questions or update what you know. When this stage finishes, the flow returns to the dashboard.',
+                    placement: 'left',
+                    highlightSelector: '.demo-context-strip, .persona-header',
+                    highlight: 'soft'
+                }
+            ];
+
+            const standardAnalyzeSteps = [
+                {
+                    selector: '.demo-context-strip, .persona-header',
+                    title: 'Persona summary',
+                    description: 'This top area identifies which persona is active, exposes the selector, and keeps the edit action close by so the user can move between analysis and persona editing quickly.',
+                    placement: 'bottom'
+                },
+                {
+                    selector: '.portrait',
+                    title: 'Portrait column',
+                    description: 'This left column holds the persona image. It gives the analysis page a stable visual anchor while the user reviews the rest of the profile.',
+                    placement: 'right'
+                },
+                {
+                    selector: '.radar',
+                    title: 'Persona chart',
+                    description: 'This central analysis card summarizes the persona across the main behavioral axes so the user can see the overall shape before reading details.',
+                    placement: 'left'
+                },
+                {
+                    selector: '.backgrounds',
+                    title: 'Extra information',
+                    description: 'These background cards hold the contextual fields that matter to decision quality: time and life stage, current context, active stressors, and the broader social moment.',
+                    placement: 'top'
+                },
+                {
+                    selector: '.edit-btn',
+                    title: 'Edit flow',
+                    description: 'Use this button to open the questionnaire and refine the persona whenever the private context changes.',
+                    placement: 'left',
+                    highlightSelector: '.demo-context-strip, .persona-header',
+                    highlight: 'soft'
+                }
+            ];
+
+            window.SyntraePageTour?.init({
+                pageKey: isUniversalGuideFlow ? 'universal-analyze' : 'analyze',
+                title: isUniversalGuideFlow ? 'Step 2: Build Persona' : 'Analyze guide',
+                triggerText: 'Page guide',
+                showTrigger: !isUniversalGuideFlow,
+                autoStartOnce: !isUniversalGuideFlow,
+                autoStart: () => {
+                    if (isUniversalGuideFlow) return analyzeGuideParams.get('stage') === 'analyze';
+                    return analyzeGuideParams.get('tour') === '1';
+                },
+                onFinish: ({ reason } = {}) => {
+                    if (!isUniversalGuideFlow || reason !== 'complete') return;
+                    window.setTimeout(() => {
+                        window.location.assign(buildUniversalGuideUrl('DashboardDemo.html', {
+                            state: 'start',
+                            stage: 'dashboard'
+                        }));
+                    }, 420);
+                },
+                steps: isUniversalGuideFlow ? universalAnalyzeSteps : standardAnalyzeSteps
             });
         });
     </script>

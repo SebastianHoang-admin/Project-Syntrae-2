@@ -291,6 +291,69 @@
             animation: pageRise 0.35s ease both;
         }
 
+        .share-card {
+            display: grid;
+            grid-template-columns: auto minmax(0, 1fr) auto;
+            gap: 16px;
+            align-items: center;
+            padding: 18px;
+            border: 1px solid rgba(18, 150, 141, 0.2);
+            border-radius: 20px;
+            background:
+                radial-gradient(circle at 10% 20%, rgba(255, 255, 255, 0.9), transparent 32%),
+                linear-gradient(135deg, rgba(223, 244, 237, 0.9), rgba(255, 246, 214, 0.76));
+            box-shadow: 0 18px 42px rgba(32, 50, 54, 0.1);
+        }
+
+        .share-emoji {
+            display: grid;
+            width: 68px;
+            height: 68px;
+            place-items: center;
+            border-radius: 24px;
+            background: rgba(255, 255, 255, 0.78);
+            font-size: 44px;
+            line-height: 1;
+            box-shadow:
+                inset 0 1px 0 rgba(255, 255, 255, 0.9),
+                0 16px 30px rgba(243, 201, 79, 0.28);
+            filter: drop-shadow(0 8px 14px rgba(32, 50, 54, 0.12));
+        }
+
+        .share-copy {
+            display: grid;
+            gap: 4px;
+        }
+
+        .share-copy strong {
+            color: var(--ink);
+            font-size: 18px;
+            font-weight: 900;
+        }
+
+        .share-copy span {
+            color: var(--quiet);
+            font-weight: 750;
+            line-height: 1.5;
+        }
+
+        .share-button {
+            white-space: nowrap;
+        }
+
+        .share-note {
+            display: none;
+            padding: 12px 14px;
+            border-radius: 14px;
+            background: rgba(223, 244, 237, 0.72);
+            color: var(--leaf);
+            font-weight: 900;
+        }
+
+        .share-note.is-visible {
+            display: block;
+        }
+
         @media (max-width: 920px) {
             .survey-shell {
                 grid-template-columns: 1fr;
@@ -372,6 +435,11 @@
                 font-size: 20px;
             }
 
+            .share-card {
+                grid-template-columns: 1fr;
+                justify-items: start;
+            }
+
             .field textarea {
                 min-height: 128px;
             }
@@ -385,9 +453,16 @@
             <span>Predictive social science</span>
         </a>
         <div class="nav-links">
-            <a href="who-we-are.html" target="_blank" rel="noopener noreferrer">Who are we</a>
-            <a href="our-mission.html" target="_blank" rel="noopener noreferrer">Mission</a>
-            <a href="community.html" target="_blank" rel="noopener noreferrer">Community</a>
+            <div class="subpage-menu">
+                <button class="subpage-menu-trigger" type="button" aria-haspopup="true">
+                    <i class="fas fa-book-open"></i> Learn <i class="fas fa-chevron-down"></i>
+                </button>
+                <div class="subpage-menu-panel" role="menu" aria-label="Syntrae information pages">
+                    <a href="our-mission.html" target="_blank" rel="noopener noreferrer" role="menuitem"><i class="fas fa-compass"></i> Our mission</a>
+                    <a href="privacy-principles.html" target="_blank" rel="noopener noreferrer" role="menuitem"><i class="fas fa-lock"></i> Privacy</a>
+                    <a href="founder-stories.html" target="_blank" rel="noopener noreferrer" role="menuitem"><i class="fas fa-feather-alt"></i> Founder Stories</a>
+                </div>
+            </div>
             <a class="button button-primary" href="landing.html#founding"><i class="fas fa-star"></i> Join for free</a>
         </div>
     </nav>
@@ -397,8 +472,8 @@
             <div class="page-grid">
                 <div>
                     <p class="kicker"><i class="fas fa-poll"></i> Founding member survey</p>
-                    <h1>Tell us where romantic uncertainty gets difficult.</h1>
-                    <p class="lede">This short survey helps us understand real moments when people feel unsure what to say or do with someone they are romantically interested in.</p>
+                    <h1>Tell us where uncertainty gets difficult.</h1>
+                    <p class="lede">This short survey helps us understand real moments when people feel unsure what to say or do with someone they care about.</p>
                 </div>
                 <figure class="image-frame">
                     <img src="assets/founding-survey-signal.svg" alt="Abstract survey feedback signal">
@@ -419,7 +494,7 @@
                 </div>
                 <div class="survey-intro-copy">
                     <p class="kicker"><i class="fas fa-shield-alt"></i> Gentle feedback</p>
-                    <h2>Short, and Helpful.</h2>
+                    <h2>Short and helpful.</h2>
                     <p>Answer what you can. The goal is to learn how people handle uncertainty before speaking or acting, not to collect unnecessary personal details.</p>
                     <div class="survey-promise">
                         <div class="promise-item"><i class="fas fa-seedling"></i><span>Your answers help shape product direction, language, and early use cases.</span></div>
@@ -429,93 +504,99 @@
 
             <form class="survey-form" id="surveyForm">
                 <div class="question-block">
-                    <h3>1. Tell me about the last time you felt uncertain about what to say or do with someone you were romantically interested in.</h3>
+                    <h3>1. Tell me about the last time you felt uncertain about what to say or do with someone you care about.</h3>
                     <p>Use a general example. Please avoid names or identifying details.</p>
                     <label class="field">
                         Your answer
-                        <textarea name="uncertainMoment" placeholder="Example: I wanted to follow up after a date but could not tell whether another message would feel welcome."></textarea>
+                        <textarea name="uncertainMoment" placeholder="Example: I wanted to check in with someone important to me but could not tell whether another message would feel welcome."></textarea>
                     </label>
                 </div>
 
                 <div class="question-block">
-                    <h3>2. What happened in that situation, and what made it feel uncertain or difficult?</h3>
-                    <p>Share the context, the decision point, and what made the next step hard to judge.</p>
+                    <h3>2. Who was this person to you, in general terms?</h3>
+                    <p>Keep it broad, such as close friend, parent, partner, crush, sibling, coworker, or someone else you care about.</p>
                     <label class="field">
                         Your answer
-                        <textarea name="situationDetails" placeholder="Example: I did not know how they interpreted the conversation, and I was worried about seeming too eager or too distant."></textarea>
+                        <input type="text" name="personRelationship" placeholder="Example: A close friend, a parent, a romantic partner, a crush, or a best friend.">
                     </label>
                 </div>
 
                 <div class="question-block">
-                    <h3>3. How often do situations like that happen for you?</h3>
-                    <p>A rough answer is enough.</p>
+                    <h3>3. What happened, and what made the situation hard to read?</h3>
+                    <p>Share the context, the decision point, and what made the next step difficult to judge.</p>
                     <label class="field">
-                        Frequency
-                        <input type="text" name="frequency" placeholder="Example: A few times a month, only when dating someone new, or rarely.">
+                        Your answer
+                        <textarea name="situationDetails" placeholder="Example: Their reply was short, and I could not tell if they were busy, upset, or quietly pulling away."></textarea>
                     </label>
                 </div>
 
                 <div class="question-block">
-                    <h3>4. What did you do at the time to handle the uncertainty?</h3>
+                    <h3>4. What choices were you considering?</h3>
+                    <p>List the possible actions, including waiting, sending a message, asking directly, apologizing, or doing nothing.</p>
+                    <label class="field">
+                        Your answer
+                        <textarea name="possibleActions" placeholder="Example: I could ask what was wrong, send a lighter message, wait until tomorrow, or leave it alone."></textarea>
+                    </label>
+                </div>
+
+                <div class="question-block">
+                    <h3>5. What consequence were you most worried about?</h3>
+                    <p>Tell us what you feared could happen if you chose the wrong next step.</p>
+                    <label class="field">
+                        Your answer
+                        <textarea name="fearedConsequences" placeholder="Example: I worried they would feel pressured, become distant, misunderstand me, or think I did not care."></textarea>
+                    </label>
+                </div>
+
+                <div class="question-block">
+                    <h3>6. What outcome were you hoping for?</h3>
+                    <p>Describe the practical or emotional result you wanted.</p>
+                    <label class="field">
+                        Your answer
+                        <textarea name="hopedOutcome" placeholder="Example: I wanted to be honest, keep the connection safe, and understand what they needed from me."></textarea>
+                    </label>
+                </div>
+
+                <div class="question-block">
+                    <h3>7. What did you do at the time to handle the uncertainty?</h3>
                     <p>Tell us what action you took, even if the action was waiting or doing nothing.</p>
                     <label class="field">
                         Your answer
-                        <textarea name="uncertaintyResponse" placeholder="Example: I waited a day, drafted a message, deleted it, and then sent something shorter."></textarea>
+                        <textarea name="uncertaintyResponse" placeholder="Example: I waited, drafted a message, asked one friend, then sent something shorter than I wanted to send."></textarea>
                     </label>
                 </div>
 
                 <div class="question-block">
-                    <h3>5. Who, if anyone, did you talk to before deciding what to do?</h3>
-                    <p>Keep this general: friend, sibling, therapist, group chat, no one, or another source.</p>
-                    <label class="field">
-                        Your answer
-                        <input type="text" name="talkedTo" placeholder="Example: A close friend, no one, or a group chat.">
-                    </label>
-                </div>
-
-                <div class="question-block">
-                    <h3>6. What tools, apps, notes, advice, or habits did you use to help you think through the situation?</h3>
+                    <h3>8. What support, tools, advice, or habits helped you think it through?</h3>
                     <p>Include anything that shaped your decision process.</p>
                     <label class="field">
                         Your answer
-                        <textarea name="toolsUsed" placeholder="Example: Notes app drafts, rereading texts, asking ChatGPT, journaling, TikTok advice, or personal rules."></textarea>
+                        <textarea name="supportsUsed" placeholder="Example: A friend, journaling, rereading messages, ChatGPT, a therapist, personal rules, or no support."></textarea>
                     </label>
                 </div>
 
                 <div class="question-block">
-                    <h3>7. What made your current way of handling the situation helpful or unhelpful?</h3>
-                    <p>Share what worked, what did not, and where your process still felt weak.</p>
+                    <h3>9. What would have made Syntrae useful in that moment?</h3>
+                    <p>Tell us what kind of consequence forecast, context check, or next-step comparison would have helped.</p>
                     <label class="field">
                         Your answer
-                        <textarea name="methodEvaluation" placeholder="Example: Talking to a friend helped me calm down, but it also made me overthink every word."></textarea>
+                        <textarea name="syntraeUsefulness" placeholder="Example: I wanted to compare what might happen if I asked directly, waited, or sent a warmer message."></textarea>
                     </label>
                 </div>
 
-                <div class="question-block">
-                    <h3>8. What was the emotional, social, or practical cost of not knowing what to do?</h3>
-                    <p>Tell us what the uncertainty cost you in time, energy, confidence, connection, or outcome.</p>
-                    <label class="field">
-                        Your answer
-                        <textarea name="uncertaintyCost" placeholder="Example: I lost sleep, delayed the conversation, and felt less confident around them afterward."></textarea>
-                    </label>
-                </div>
-
-                <div class="question-block">
-                    <h3>9. What would have counted as a successful outcome for you in that situation?</h3>
-                    <p>Describe what you wanted to happen, practically or emotionally.</p>
-                    <label class="field">
-                        Your answer
-                        <textarea name="successfulOutcome" placeholder="Example: I wanted to express interest clearly without pressuring them, and still feel calm afterward."></textarea>
-                    </label>
-                </div>
-
-                <div class="question-block">
-                    <h3>10. Do you know anyone else who experiences this kind of uncertainty and might be willing to use Syntrae?</h3>
-                    <p>A yes, no, maybe, or general description is enough. Do not include anyone's private contact information.</p>
-                    <label class="field">
-                        Your answer
-                        <input type="text" name="referrals" placeholder="Example: Yes, a friend who overthinks dating texts, or no.">
-                    </label>
+                <div class="question-block share-question">
+                    <h3>10. If you know somebody with uncertainty anxiety, please share Syntrae with them. You will be helping us a lot.</h3>
+                    <p>A small share can help someone feel less alone before a hard message, conversation, or decision.</p>
+                    <div class="share-card">
+                        <span class="share-emoji" aria-hidden="true">🥰</span>
+                        <div class="share-copy">
+                            <strong>Send them Syntrae.app</strong>
+                            <span>Share the link with someone who could use clearer next steps.</span>
+                        </div>
+                        <button class="button button-secondary share-button" type="button" id="shareSyntraeButton" data-share-url="https://Syntrae.app"><i class="fas fa-share-alt"></i> Share Syntrae.app</button>
+                    </div>
+                    <input type="hidden" name="sharedSyntrae" id="sharedSyntrae" value="not_shared">
+                    <p class="share-note" id="shareStatus" role="status" aria-live="polite"></p>
                 </div>
 
                 <div class="survey-actions">
@@ -540,26 +621,61 @@
     <script>
         const surveyForm = document.getElementById("surveyForm");
         const surveyStatus = document.getElementById("surveyStatus");
+        const shareSyntraeButton = document.getElementById("shareSyntraeButton");
+        const sharedSyntraeField = document.getElementById("sharedSyntrae");
+        const shareStatus = document.getElementById("shareStatus");
+
+        function updateShareStatus(message) {
+            if (!shareStatus) return;
+            shareStatus.textContent = message;
+            shareStatus.classList.add("is-visible");
+        }
+
+        shareSyntraeButton?.addEventListener("click", async () => {
+            const shareUrl = shareSyntraeButton.dataset.shareUrl || "https://Syntrae.app";
+            const shareText = "Syntrae helps quantify the likelihood of real-life consequences from real situations.";
+
+            try {
+                if (navigator.share) {
+                    await navigator.share({
+                        title: "Syntrae",
+                        text: shareText,
+                        url: shareUrl
+                    });
+                    updateShareStatus("Thank you for sharing Syntrae.app.");
+                } else if (navigator.clipboard) {
+                    await navigator.clipboard.writeText("Syntrae.app");
+                    updateShareStatus("Syntrae.app copied to your clipboard.");
+                } else {
+                    updateShareStatus("Copy this link: Syntrae.app");
+                }
+
+                if (sharedSyntraeField) sharedSyntraeField.value = "shared_or_copied";
+            } catch (error) {
+                if (error?.name === "AbortError") return;
+                updateShareStatus("Copy this link: Syntrae.app");
+            }
+        });
 
         surveyForm?.addEventListener("submit", (event) => {
             event.preventDefault();
             const data = new FormData(surveyForm);
             const payload = {
                 uncertainMoment: String(data.get("uncertainMoment") || "").trim(),
+                personRelationship: String(data.get("personRelationship") || "").trim(),
                 situationDetails: String(data.get("situationDetails") || "").trim(),
-                frequency: String(data.get("frequency") || "").trim(),
+                possibleActions: String(data.get("possibleActions") || "").trim(),
+                fearedConsequences: String(data.get("fearedConsequences") || "").trim(),
+                hopedOutcome: String(data.get("hopedOutcome") || "").trim(),
                 uncertaintyResponse: String(data.get("uncertaintyResponse") || "").trim(),
-                talkedTo: String(data.get("talkedTo") || "").trim(),
-                toolsUsed: String(data.get("toolsUsed") || "").trim(),
-                methodEvaluation: String(data.get("methodEvaluation") || "").trim(),
-                uncertaintyCost: String(data.get("uncertaintyCost") || "").trim(),
-                successfulOutcome: String(data.get("successfulOutcome") || "").trim(),
-                referrals: String(data.get("referrals") || "").trim(),
+                supportsUsed: String(data.get("supportsUsed") || "").trim(),
+                syntraeUsefulness: String(data.get("syntraeUsefulness") || "").trim(),
+                sharedSyntrae: String(data.get("sharedSyntrae") || "").trim(),
                 createdAt: new Date().toISOString()
             };
 
             localStorage.setItem("syntrae:founding-member-survey", JSON.stringify(payload));
-            surveyStatus.textContent = "Thank you. Your relationship-uncertainty survey response is saved for this demo, and it shows the kind of signal Syntrae will use to shape the product before launch.";
+            surveyStatus.textContent = "Thank you. Your survey response is saved for this demo, and it shows the kind of signal Syntrae will use to shape the product before launch.";
             surveyStatus.classList.add("is-visible");
             surveyStatus.scrollIntoView({ behavior: "smooth", block: "nearest" });
         });

@@ -127,19 +127,30 @@
             0% {
                 clip-path: circle(0 at 42px calc(100% - 42px));
                 filter: saturate(0.9) brightness(1.08);
+                transform: translateZ(0) scale(1.012);
             }
-            18% {
-                clip-path: circle(180px at 42px calc(100% - 42px));
+            24% {
+                clip-path: circle(22vmax at 42px calc(100% - 42px));
+                filter: saturate(0.94) brightness(1.06);
+            }
+            58% {
+                clip-path: circle(86vmax at 42px calc(100% - 42px));
+                filter: saturate(0.98) brightness(1.03);
+            }
+            82% {
+                clip-path: circle(128vmax at 42px calc(100% - 42px));
             }
             100% {
                 clip-path: circle(155vmax at 42px calc(100% - 42px));
                 filter: saturate(1) brightness(1);
+                transform: translateZ(0) scale(1);
             }
         }
 
         @keyframes demoPreviewPulse {
-            0%, 100% { opacity: 0.65; transform: scale(0.85); }
-            50% { opacity: 0; transform: scale(2.4); }
+            0% { opacity: 0.72; transform: scale(0.84); }
+            58% { opacity: 0.18; transform: scale(1.95); }
+            100% { opacity: 0; transform: scale(2.65); }
         }
 
         .reveal {
@@ -231,6 +242,114 @@
             box-shadow: 0 14px 30px rgba(18, 150, 141, 0.12);
         }
 
+        .subpage-menu {
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+        }
+
+        .subpage-menu::after {
+            content: "";
+            position: absolute;
+            top: 100%;
+            right: 0;
+            left: 0;
+            height: 12px;
+        }
+
+        .subpage-menu-trigger {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            min-height: 38px;
+            padding: 9px 13px;
+            border: 1px solid rgba(18, 150, 141, 0.18);
+            border-radius: 999px;
+            color: var(--ink);
+            background: rgba(255, 255, 255, 0.88);
+            font: inherit;
+            font-size: 14px;
+            font-weight: 800;
+            box-shadow: 0 10px 22px rgba(32, 50, 54, 0.07);
+            cursor: pointer;
+            transition: transform 0.18s ease, box-shadow 0.18s ease, color 0.18s ease, border-color 0.18s ease, background 0.18s ease;
+        }
+
+        .subpage-menu-trigger i:first-child {
+            color: var(--leaf);
+            font-size: 13px;
+        }
+
+        .subpage-menu-trigger .fa-chevron-down {
+            font-size: 10px;
+            transition: transform 0.18s ease;
+        }
+
+        .subpage-menu:hover .subpage-menu-trigger,
+        .subpage-menu:focus-within .subpage-menu-trigger {
+            transform: translateY(-1px);
+            color: var(--leaf);
+            border-color: rgba(18, 150, 141, 0.34);
+            background: #fff;
+            box-shadow: 0 14px 30px rgba(18, 150, 141, 0.12);
+        }
+
+        .subpage-menu:hover .fa-chevron-down,
+        .subpage-menu:focus-within .fa-chevron-down {
+            transform: rotate(180deg);
+        }
+
+        .subpage-menu-panel {
+            position: absolute;
+            top: calc(100% + 10px);
+            right: 0;
+            z-index: 30;
+            display: grid;
+            min-width: 220px;
+            padding: 8px;
+            border: 1px solid rgba(18, 150, 141, 0.18);
+            border-radius: 18px;
+            background: rgba(255, 255, 255, 0.96);
+            box-shadow: 0 20px 46px rgba(32, 50, 54, 0.14);
+            opacity: 0;
+            pointer-events: none;
+            transform: translateY(-6px) scale(0.98);
+            transform-origin: top right;
+            transition: opacity 0.18s ease, transform 0.18s ease;
+        }
+
+        .subpage-menu:hover .subpage-menu-panel,
+        .subpage-menu:focus-within .subpage-menu-panel {
+            opacity: 1;
+            pointer-events: auto;
+            transform: translateY(0) scale(1);
+        }
+
+        .nav-links .subpage-menu-panel a:not(.button) {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-start;
+            min-height: 42px;
+            padding: 10px 12px;
+            border: 0;
+            border-radius: 12px;
+            background: transparent;
+            box-shadow: none;
+            font-size: 14px;
+        }
+
+        .nav-links .subpage-menu-panel a:not(.button) i {
+            width: 16px;
+            color: var(--leaf);
+            text-align: center;
+        }
+
+        .nav-links .subpage-menu-panel a:not(.button):hover {
+            transform: none;
+            background: rgba(223, 244, 237, 0.62);
+            box-shadow: none;
+        }
+
         .nav-links .vision-link {
             position: relative;
             min-height: 44px;
@@ -296,13 +415,19 @@
         }
 
         .button-primary {
-            color: #fff;
-            background: var(--leaf);
-            box-shadow: 0 12px 24px rgba(45, 125, 103, 0.22);
+            color: #17312d;
+            background: var(--sun);
+            border-color: rgba(32, 50, 54, 0.18);
+            box-shadow:
+                0 14px 30px rgba(243, 201, 79, 0.4),
+                0 0 0 4px rgba(243, 201, 79, 0.18);
         }
 
         .button-primary:hover {
-            background: #246f5b;
+            background: #ffd85f;
+            box-shadow:
+                0 18px 38px rgba(243, 201, 79, 0.5),
+                0 0 0 4px rgba(243, 201, 79, 0.24);
         }
 
         .button-secondary {
@@ -316,15 +441,15 @@
         }
 
         .hero {
-            min-height: 86vh;
+            min-height: calc(100vh - 78px);
             position: relative;
             display: grid;
-            align-items: end;
+            align-items: center;
             overflow: hidden;
-            padding: 124px 28px 80px;
+            padding: 84px 28px 72px;
             color: #fff;
             background:
-                linear-gradient(90deg, rgba(23, 47, 43, 0.88) 0%, rgba(23, 47, 43, 0.62) 45%, rgba(23, 47, 43, 0.16) 100%),
+                linear-gradient(90deg, rgba(23, 47, 43, 0.94) 0%, rgba(23, 47, 43, 0.78) 46%, rgba(23, 47, 43, 0.18) 100%),
                 url("assets/syntrae-relationship-hero.png") center / cover;
             animation: photoDrift 18s ease-in-out infinite alternate;
         }
@@ -344,7 +469,7 @@
             position: relative;
             z-index: 1;
             display: grid;
-            gap: 26px;
+            gap: 22px;
         }
 
         .hero-inner > * {
@@ -374,29 +499,58 @@
             align-items: center;
             gap: 8px;
             padding: 8px 10px;
+            border: 1px solid rgba(255, 255, 255, 0.18);
             border-radius: 8px;
-            color: #18312e;
-            background: rgba(255, 255, 255, 0.88);
+            color: #fff;
+            background: #2d7d67;
+            box-shadow: 0 14px 28px rgba(12, 77, 62, 0.26);
             font-size: 13px;
             font-weight: 800;
         }
 
         .hero h1 {
-            width: min(760px, 100%);
+            width: min(880px, 100%);
             margin: 0;
             font-family: "Fraunces", Georgia, serif;
-            font-size: clamp(48px, 8vw, 102px);
-            line-height: 0.94;
+            font-size: clamp(42px, 6.6vw, 86px);
+            line-height: 0.98;
             letter-spacing: 0;
         }
 
         .hero p {
-            width: min(690px, 100%);
+            width: min(750px, 100%);
             margin: 0;
             color: rgba(255, 255, 255, 0.9);
             font-size: clamp(18px, 2.1vw, 24px);
             line-height: 1.55;
             font-weight: 600;
+        }
+
+        .hero-signup {
+            width: min(660px, 100%);
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) auto;
+            gap: 10px;
+            padding: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.28);
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.16);
+            box-shadow: 0 24px 54px rgba(0, 0, 0, 0.2);
+            backdrop-filter: blur(12px);
+        }
+
+        .hero-signup input {
+            min-height: 52px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            background: rgba(255, 255, 255, 0.95);
+            font-size: 16px;
+        }
+
+        .hero-signup .button {
+            min-height: 52px;
+            padding-inline: 22px;
+            font-size: 15px;
+            white-space: nowrap;
         }
 
         .hero-actions {
@@ -406,38 +560,12 @@
             gap: 12px;
         }
 
-        .hero-proof {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-            padding-top: 8px;
-        }
-
-        .proof-item {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            min-height: 36px;
-            border-radius: 8px;
-            padding: 8px 10px;
-            color: #173330;
-            background: rgba(255, 255, 255, 0.84);
-            font-size: 13px;
-            font-weight: 800;
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
-        }
-
-        .proof-item:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 22px rgba(32, 50, 54, 0.12);
-        }
-
         section {
             scroll-margin-top: 86px;
         }
 
         .section {
-            padding: 86px 28px;
+            padding: 68px 28px;
         }
 
         .section-inner {
@@ -605,7 +733,7 @@
 
         .demo-launch-btn {
             width: fit-content;
-            box-shadow: 0 16px 34px rgba(45, 125, 103, 0.18);
+            box-shadow: 0 16px 34px rgba(243, 201, 79, 0.34);
         }
 
         .demo-launch-note {
@@ -627,11 +755,13 @@
             opacity: 0;
             visibility: hidden;
             background: #effaf4;
+            transition: opacity 0.22s ease-out, visibility 0s linear 0.22s;
         }
 
         .dimension-transition.is-active {
             opacity: 1;
             visibility: visible;
+            transition-delay: 0s;
         }
 
         .demo-preview {
@@ -666,11 +796,11 @@
         }
 
         .dimension-transition.is-active .demo-preview {
-            animation: demoPreviewRadiate 1.12s cubic-bezier(0.15, 0.82, 0.22, 1) forwards;
+            animation: demoPreviewRadiate 2s cubic-bezier(0.22, 0.72, 0.18, 1) forwards;
         }
 
         .dimension-transition.is-active .demo-preview::after {
-            animation: demoPreviewPulse 0.8s ease-out 0.05s 2;
+            animation: demoPreviewPulse 1.55s cubic-bezier(0.2, 0.72, 0.22, 1) 0.08s 1;
         }
 
         .video-points {
@@ -1429,6 +1559,10 @@
                 display: none;
             }
 
+            .nav-links .subpage-menu-panel a:not(.button) {
+                display: flex;
+            }
+
             .nav-links {
                 margin-left: auto;
             }
@@ -1444,13 +1578,16 @@
             }
 
             .hero-actions,
-            .hero-proof {
+            .hero-signup {
                 align-items: stretch;
                 flex-direction: column;
             }
 
-            .button,
-            .proof-item {
+            .hero-signup {
+                grid-template-columns: 1fr;
+            }
+
+            .button {
                 width: 100%;
             }
 
@@ -1477,10 +1614,16 @@
             </span>
         </a>
         <div class="nav-links">
-            <a href="who-we-are.html" target="_blank" rel="noopener noreferrer">Who are we</a>
-            <a href="our-mission.html" target="_blank" rel="noopener noreferrer">Mission</a>
-            <a href="community.html" target="_blank" rel="noopener noreferrer">Community</a>
-            <a href="founder-stories.html" target="_blank" rel="noopener noreferrer">Stories</a>
+            <div class="subpage-menu">
+                <button class="subpage-menu-trigger" type="button" aria-haspopup="true">
+                    <i class="fas fa-book-open"></i> Learn <i class="fas fa-chevron-down"></i>
+                </button>
+                <div class="subpage-menu-panel" role="menu" aria-label="Syntrae information pages">
+                    <a href="our-mission.html" target="_blank" rel="noopener noreferrer" role="menuitem"><i class="fas fa-compass"></i> Our mission</a>
+                    <a href="privacy-principles.html" target="_blank" rel="noopener noreferrer" role="menuitem"><i class="fas fa-lock"></i> Privacy</a>
+                    <a href="founder-stories.html" target="_blank" rel="noopener noreferrer" role="menuitem"><i class="fas fa-feather-alt"></i> Founder Stories</a>
+                </div>
+            </div>
             <a class="button vision-link" href="#vision"><i class="fas fa-play"></i> Feel the vision</a>
             <a href="#founding" class="button button-primary"><i class="fas fa-star"></i> Join for free</a>
         </div>
@@ -1489,82 +1632,48 @@
     <main>
         <section class="hero" id="top">
             <div class="hero-inner">
-                <span class="eyebrow"><i class="fas fa-seedling"></i> Founding member access now open</span>
-                <h1>Syntrae</h1>
-                <p>Decision clarity for messages, invites, and relationship moments. Syntrae is being designed as a statistics-based way to compare possible next moves before you choose one.</p>
-            </div>
-        </section>
-
-        <section class="quote-band" aria-label="Syntrae mission quote">
-            <div class="quote-panel">
-                <blockquote class="quote-mark">"What's the meaning of a forest when all you want is just a tree?"</blockquote>
-                <p class="quote-copy">Syntrae exists to deepen relationships between people. We are building for the moments when one person matters more than the crowd, and when a thoughtful next step can turn shallow connection into something more honest, intentional, and lasting.</p>
-            </div>
-        </section>
-
-        <section class="section belief-band" id="beliefs">
-            <div class="section-inner">
-                <p class="section-kicker">Why people join</p>
-                <h2>A friendlier future for important decisions.</h2>
-                <p class="lede">Syntrae is for people who believe better relationships are built through privacy, preparation, and care. Founding members help shape the product around those beliefs before launch.</p>
-                <div class="belief-grid" aria-label="Syntrae belief stories">
-                    <article class="belief-card">
-                        <img src="assets/syntrae-solidarity.svg" alt="People joining hands in solidarity">
-                        <div class="belief-copy">
-                            <h3>Solidarity over pressure</h3>
-                            <p>We are building a product that helps people slow down, understand each other better, and choose the next step with more kindness.</p>
-                        </div>
-                    </article>
-                    <article class="belief-card">
-                        <img src="assets/syntrae-family-care.svg" alt="Family holding hands in a caring conversation">
-                        <div class="belief-copy">
-                            <h3>Family and trust</h3>
-                            <p>High-stakes conversations often happen with people we love. Syntrae should make those moments more thoughtful, not more mechanical.</p>
-                        </div>
-                    </article>
-                    <article class="belief-card">
-                        <img src="assets/syntrae-mission-abstract.svg" alt="Abstract workplace decision paths">
-                        <div class="belief-copy">
-                            <h3>Career moments need clarity</h3>
-                            <p>Prepare for hard conversations with managers and bosses, from asking for a raise to owning a mistake or requesting time away during a busy week.</p>
-                        </div>
-                    </article>
-                </div>
+                <span class="eyebrow"><i class="fas fa-seedling"></i> Free founding access is open</span>
+                <h1>Predict the likely real-life consequence before you act.</h1>
+                <p>Syntrae uses real input from your situation to estimate the probability of real-life outcomes, so you can compare possible next moves before sending the message, invite, or request.</p>
+                <form class="hero-signup" action="founding-welcome.html" method="get" aria-label="Join Syntrae for free">
+                    <input type="email" name="email" autocomplete="email" placeholder="Enter your email" aria-label="Email address" required>
+                    <button class="button button-primary" type="submit"><i class="fas fa-user-plus"></i> Join for free</button>
+                </form>
             </div>
         </section>
 
         <section class="section video-band" id="vision">
             <div class="section-inner video-layout">
-                <div class="demo-launch-card" aria-label="Syntrae demo chat launch">
-                    <p class="section-kicker">Demo access</p>
-                    <h2>Open the demo.</h2>
-                    <p>See how the vision is introduced and the demo decision flow comes alive.</p>
-                    <a class="button button-primary demo-launch-btn" href="DashboardDemo.html?demo=decision-tree&amp;state=start&amp;tour=1" data-demo-transition-link><i class="fas fa-play"></i> Try it here</a>
+                <div class="demo-launch-card" aria-label="Syntrae demo launch">
+                    <p class="section-kicker">Feel the vision</p>
+                    <h2>Try the demo flow.</h2>
+                    <p>Open the Syntrae demo to see how real context becomes clearer outcome paths.</p>
+                    <a class="button button-primary demo-launch-btn" href="DashboardDemo.html?demo=decision-tree&amp;state=start&amp;tour=1&amp;flow=universal&amp;stage=start" data-demo-transition-link><i class="fas fa-play"></i> Open demo</a>
                 </div>
                 <div>
-                    <p class="section-kicker">The vision</p>
-                    <h2>Less guessing, more caring.</h2>
-                    <p class="lede">Syntrae is a planning layer for social decisions: Describe the situation, Explore the outcomes, and review statistically framed paths that may make the next move easier to choose.</p>
+                    <p class="section-kicker">Demo preview</p>
+                    <h2>From input to possible consequence.</h2>
+                    <p class="lede">The demo shows the basic Syntrae loop: enter a real situation, compare likely outcomes, and choose the next step with more clarity.</p>
                     <div class="video-points">
                         <article class="point">
-                            <span class="point-icon" aria-hidden="true"><i class="fas fa-map-signs"></i></span>
+                            <span class="point-icon" aria-hidden="true"><i class="fas fa-keyboard"></i></span>
                             <div>
-                                <h3>Start with the moment</h3>
-                                <p>Use real context: the message, timing, constraints, and what a good outcome would look like.</p>
+                                <h3>Add the situation</h3>
+                                <p>Give Syntrae the message, relationship context, goal, and constraints.</p>
                             </div>
                         </article>
                         <article class="point">
-                            <span class="point-icon" aria-hidden="true"><i class="fas fa-chart-bar"></i></span>
+                            <span class="point-icon" aria-hidden="true"><i class="fas fa-chart-line"></i></span>
                             <div>
-                                <h3>Compare possible paths</h3>
-                                <p>See a few routes side by side with clear probability language instead of absolute promises.</p>
+                                <h3>See likely outcomes</h3>
+                                <p>Compare possible real-life consequences before you act.</p>
                             </div>
                         </article>
                         <article class="point">
                             <span class="point-icon" aria-hidden="true"><i class="fas fa-hand-holding-heart"></i></span>
                             <div>
-                                <h3>Choose with care</h3>
-                                <p>Syntrae should encourage better judgment, not pressure or manipulation.</p>
+                                <h3>Keep agency</h3>
+                                <p>Syntrae informs your decision. You still choose what to do.</p>
                             </div>
                         </article>
                     </div>
@@ -1574,59 +1683,28 @@
 
         <section class="section works-band" id="how-it-works">
             <div class="section-inner">
-                <p class="section-kicker">How Syntrae works</p>
-                <h2>From context to clearer action.</h2>
-                <p class="lede">Syntrae turns relationship context into private decision context, helping you understand patterns, compare paths, and act with more care.</p>
+                <p class="section-kicker">What Syntrae does</p>
+                <h2>Real input. Real-world probabilities. Clearer next steps.</h2>
+                <p class="lede">Describe the situation honestly. Syntrae compares possible actions and quantifies the likelihood of consequences from your situation, while leaving the final decision with you.</p>
                 <div class="works-grid">
                     <article class="work-card">
-                        <span class="work-icon" aria-hidden="true"><i class="fas fa-seedling"></i></span>
+                        <span class="work-icon" aria-hidden="true"><i class="fas fa-keyboard"></i></span>
                         <p class="work-step">Step 1</p>
-                        <h3>Build a persona</h3>
-                        <p>Create a respectful relationship model from the details that matter: communication style, shared history, timing, values, and the current situation.</p>
+                        <h3>Enter real context</h3>
+                        <p>Add the message, timing, relationship details, goal, and constraints that shape what could happen next.</p>
                     </article>
                     <article class="work-card">
-                        <span class="work-icon" aria-hidden="true"><i class="fas fa-comment-dots"></i></span>
+                        <span class="work-icon" aria-hidden="true"><i class="fas fa-chart-pie"></i></span>
                         <p class="work-step">Step 2</p>
-                        <h3>Interact with the persona</h3>
-                        <p>Explore messages, invites, and important conversations in a private space so you can compare possible responses before acting.</p>
+                        <h3>Compare likely outcomes</h3>
+                        <p>Review the probability of practical consequences across different choices before you send or say anything.</p>
                     </article>
                     <article class="work-card">
-                        <span class="work-icon" aria-hidden="true"><i class="fas fa-sun"></i></span>
+                        <span class="work-icon" aria-hidden="true"><i class="fas fa-hand-pointer"></i></span>
                         <p class="work-step">Step 3</p>
-                        <h3>Achieve insights</h3>
-                        <p>Review likely paths, tradeoffs, and confidence signals. Then choose the action that best supports the relationship you want to deepen.</p>
+                        <h3>Choose with clarity</h3>
+                        <p>Use the forecast to make a calmer decision. Syntrae informs your action; it does not choose for you.</p>
                     </article>
-                </div>
-            </div>
-        </section>
-
-        <section class="section science-band" id="science">
-            <div class="section-inner">
-                <p class="section-kicker">Predictive science</p>
-                <h2>Built to improve decision quality.</h2>
-                <p class="lede">Syntrae uses statistical framing to help people prepare for important relationship moments. Your data is kept private, and the product is designed to improve certainty around high-stakes decisions while keeping agency where it belongs: with your actions.</p>
-                <div class="science-grid">
-                    <article class="science-card">
-                        <span class="number">1</span>
-                        <h3>Data stays private</h3>
-                        <p>Your context, goals, and relationship details should stay protected. Syntrae is built around private preparation, not public exposure.</p>
-                    </article>
-                    <article class="science-card">
-                        <span class="number">2</span>
-                        <h3>Decisions get clearer</h3>
-                        <p>Compare likely paths, tradeoffs, and confidence ranges before acting, so the next step is chosen with more evidence and less panic.</p>
-                    </article>
-                    <article class="science-card">
-                        <span class="number">3</span>
-                        <h3>Your action determines the outcome</h3>
-                        <p>Syntrae helps clarify the likely paths ahead, but the result is shaped by what you choose, how you communicate, and the care you bring into the moment.</p>
-                    </article>
-                </div>
-                <div class="principles" aria-label="Brand principles">
-                    <div class="principle">Private context</div>
-                    <div class="principle">Higher-quality decisions</div>
-                    <div class="principle">Statistics-based</div>
-                    <div class="principle">Action shapes outcomes</div>
                 </div>
             </div>
         </section>
@@ -1634,22 +1712,22 @@
         <section class="section founding-band" id="founding">
             <div class="section-inner founding-layout">
                 <div>
-                    <p class="section-kicker">Founding members</p>
-                    <h2>Help shape the first version.</h2>
-                    <p class="lede">Joining is free. It reserves early access and invites you into short opinion pools that help shape Syntrae before launch. No paid commitment is required.</p>
+                    <p class="section-kicker">Join Syntrae</p>
+                    <h2>Reserve free founding access.</h2>
+                    <p class="lede">Use your email to join the founding list. You will get early updates, product previews, and short feedback invitations before launch.</p>
                     <div class="join-lockup">
                         <div class="join-orb" aria-hidden="true">
                             <i class="fas fa-star"></i>
                             <span>Join</span>
                         </div>
-                        <p class="join-note">Join the founding circle to share what matters, preview the product direction, and help us build a calmer decision tool around real human needs.</p>
+                        <p class="join-note">Founding access is free. No paid commitment is required.</p>
                     </div>
-                    <div class="mission-callout">Join us in a mission of creating a better world.</div>
+                    <div class="mission-callout">Syntrae helps people estimate real-life consequences before they act.</div>
                 </div>
 
                 <form class="member-form" id="foundingForm" action="founding-welcome.html" method="get">
-                    <h3>Reserve founding access</h3>
-                    <p>Create your free founding-member reservation. You will receive early updates and opinion-pool invitations that help shape Syntrae before launch.</p>
+                    <h3>Join for free</h3>
+                    <p>Enter your email to reserve founding access with Syntrae.</p>
                     <div class="field-grid">
                         <label>
                             Full name
@@ -1665,39 +1743,17 @@
                         </label>
                         <label class="checkbox">
                             <input type="checkbox" name="foundingConsent" required>
-                            <span>I understand joining is free and includes early updates plus optional opinion-pool invitations during development.</span>
+                            <span>I understand joining is free and includes early updates plus optional feedback invitations during development.</span>
                         </label>
                     </div>
                     <div class="form-footer">
-                        <div class="privacy-note"><i class="fas fa-shield-alt"></i><span>No spam. We will only send meaningful Syntrae launch updates, founding-member invitations, and product feedback opportunities.</span></div>
-                        <button class="button button-primary" type="submit"><i class="fas fa-user-plus"></i> Sign-up</button>
+                        <div class="privacy-note"><i class="fas fa-shield-alt"></i><span>No spam. We will only send Syntrae launch updates, founding access details, and product feedback opportunities.</span></div>
+                        <button class="button button-primary" type="submit"><i class="fas fa-user-plus"></i> Join for free</button>
                         <div class="form-status" id="formStatus" role="status" aria-live="polite"></div>
                         <div class="account-switch">Have an account already? <a href="sign-in.html">Sign-in instead</a></div>
-                        <div class="disclaimer">Founding members receive early access updates and optional opinion-pool invitations. Joining does not require a paid commitment.</div>
+                        <div class="disclaimer">Founding members receive early access updates and optional feedback invitations. Joining does not require a paid commitment.</div>
                     </div>
                 </form>
-            </div>
-        </section>
-
-        <section class="section faq-band" id="questions">
-            <div class="section-inner">
-                <p class="section-kicker">Relationship-first</p>
-                <h2>Relationships deserve depth.</h2>
-                <p class="lede">Syntrae is built around the belief that better relationships begin with more considerate decisions. The product vision is practical, respectful, and centered on helping people choose with care.</p>
-                <div class="faq-grid">
-                    <article class="faq-item">
-                        <h3>Decision quality comes first</h3>
-                        <p>Syntrae is about helping people prepare with more context, clearer tradeoffs, and a calmer sense of what to do next.</p>
-                    </article>
-                    <article class="faq-item">
-                        <h3>Signals stay humble</h3>
-                        <p>Predictive science can frame patterns, scenarios, ranges, and tradeoffs without pretending every answer is certain.</p>
-                    </article>
-                    <article class="faq-item">
-                        <h3>What does founding member mean?</h3>
-                        <p>Founding members join for free, receive early access updates, and may participate in opinion pools that shape Syntrae before launch.</p>
-                    </article>
-                </div>
             </div>
         </section>
     </main>
@@ -1706,11 +1762,7 @@
         <div class="footer-inner">
             <span>Predictive social science for considerate decisions.</span>
             <div class="footer-links">
-                <a href="who-we-are.html" target="_blank" rel="noopener noreferrer">Who are we</a>
-                <span aria-hidden="true">&middot;</span>
                 <a href="our-mission.html" target="_blank" rel="noopener noreferrer">Our mission</a>
-                <span aria-hidden="true">&middot;</span>
-                <a href="community.html" target="_blank" rel="noopener noreferrer">Community</a>
                 <span aria-hidden="true">&middot;</span>
                 <a href="privacy-principles.html" target="_blank" rel="noopener noreferrer">Privacy</a>
                 <span aria-hidden="true">&middot;</span>
@@ -1728,14 +1780,16 @@
     <script src="js/page-tour.js"></script>
     <script>
         const welcomeUrl = "founding-welcome.html";
+        const heroSignupForm = document.querySelector(".hero-signup");
         const foundingForm = document.getElementById("foundingForm");
         const formStatus = document.getElementById("formStatus");
         const demoTransitionLink = document.querySelector("[data-demo-transition-link]");
         const dimensionTransition = document.querySelector("[data-dimension-transition]");
         const demoPreview = document.querySelector("[data-demo-preview]");
+        const demoTransitionDurationMs = 2000;
 
         const revealTargets = [
-            ...document.querySelectorAll(".quote-panel, .demo-launch-card, .video-points .point, .science-card, .principle, .founding-layout > div, .member-form, .faq-item")
+            ...document.querySelectorAll(".demo-launch-card, .video-points .point, .work-card, .founding-layout > div, .member-form")
         ];
 
         if ("IntersectionObserver" in window) {
@@ -1770,18 +1824,28 @@
             window.addEventListener("resize", revealVisibleNow);
         }
 
+        const saveFoundingInterest = (form) => {
+            const data = new FormData(form);
+            const payload = {
+                name: String(data.get("name") || "").trim(),
+                email: String(data.get("email") || "").trim(),
+                reservedPlan: "founding-member",
+                createdAt: new Date().toISOString()
+            };
+
+            localStorage.setItem("syntrae:founding-member-interest", JSON.stringify(payload));
+        };
+
+        if (heroSignupForm) {
+            heroSignupForm.addEventListener("submit", () => {
+                saveFoundingInterest(heroSignupForm);
+            });
+        }
+
         if (foundingForm && formStatus) {
             foundingForm.addEventListener("submit", (event) => {
                 event.preventDefault();
-                const data = new FormData(foundingForm);
-                const payload = {
-                    name: String(data.get("name") || "").trim(),
-                    email: String(data.get("email") || "").trim(),
-                    reservedPlan: "founding-member",
-                    createdAt: new Date().toISOString()
-                };
-
-                localStorage.setItem("syntrae:founding-member-interest", JSON.stringify(payload));
+                saveFoundingInterest(foundingForm);
 
                 formStatus.textContent = "Creating your founding-member reservation...";
                 window.setTimeout(() => {
@@ -1826,53 +1890,10 @@
 
                 window.setTimeout(() => {
                     window.location.assign(destination);
-                }, 1140);
+                }, demoTransitionDurationMs);
             });
         }
 
-        window.SyntraePageTour?.init({
-            pageKey: "landing",
-            title: "Landing guide",
-            triggerText: "Page guide",
-            steps: [
-                {
-                    selector: ".hero-inner",
-                    title: "Hero",
-                    description: "This first panel sets the promise of Syntrae: clearer decisions for important relationship moments.",
-                    placement: "right"
-                },
-                {
-                    selector: ".demo-launch-card",
-                    title: "Demo access",
-                    description: "This card launches the guided demo experience. The play button opens Decision Studio directly so people can feel the product instead of only reading about it.",
-                    placement: "right"
-                },
-                {
-                    selector: ".video-points",
-                    title: "Vision",
-                    description: "These three blocks explain the product logic in plain business language: start with the real moment, compare possible paths, and choose with care.",
-                    placement: "left"
-                },
-                {
-                    selector: ".works-grid",
-                    title: "How it works",
-                    description: "This section walks visitors through the product loop: build a persona of the other person, interact with that persona, and review insights before taking one real-world action.",
-                    placement: "top"
-                },
-                {
-                    selector: ".science-grid",
-                    title: "Predictive science",
-                    description: "These cards explain the product standards: private data, better decision quality, and clear ownership that the user's action still shapes the result.",
-                    placement: "top"
-                },
-                {
-                    selector: ".founding-layout",
-                    title: "Founding access",
-                    description: "This final section explains the free founding-member invitation and the opinion-pool feedback loop that helps shape Syntrae before launch.",
-                    placement: "top"
-                }
-            ]
-        });
     </script>
 </body>
 </html>

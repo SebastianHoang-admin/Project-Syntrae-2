@@ -643,12 +643,59 @@
     <script src="js/page-tour.js"></script>
     <script type="module" src="js/profile.js?v=20260707-persona-pdf"></script>
     <script>
-        window.SyntraePageTour?.init({
-            pageKey: 'profile',
-            title: 'Profile guide',
-            triggerText: 'Page guide',
-            autoStart: () => new URLSearchParams(window.location.search).get('tour') === '1',
-            steps: [
+        const profileGuideParams = new URLSearchParams(window.location.search);
+        const isDecisionTreeProfileDemo = profileGuideParams.get('demo') === 'decision-tree';
+        const isUniversalGuideFlow = profileGuideParams.get('flow') === 'universal';
+        const buildUniversalGuideUrl = (path, params = {}) => {
+            const url = new URL(path, window.location.href);
+            url.searchParams.set('demo', 'decision-tree');
+            url.searchParams.set('tour', '1');
+            url.searchParams.set('flow', 'universal');
+            Object.entries(params).forEach(([key, value]) => {
+                if (value !== undefined && value !== null && value !== '') {
+                    url.searchParams.set(key, String(value));
+                }
+            });
+            return `${url.pathname.split('/').pop()}?${url.searchParams.toString()}`;
+        };
+
+        if (!isDecisionTreeProfileDemo || isUniversalGuideFlow) {
+            const universalProfileSteps = [
+                {
+                    selector: '.persona-pdf-space',
+                    title: 'Step 1: Add your own persona',
+                    description: 'Start here. Upload a PDF that summarizes you, and Syntrae will turn that document into private context for future decisions.',
+                    placement: 'bottom'
+                },
+                {
+                    selector: '.persona-pdf-actions .btn-primary',
+                    title: 'Upload the PDF summary',
+                    description: 'This upload button is where the persona PDF goes. In the full product, Syntrae reads it and builds the first version of your account-level persona.',
+                    placement: 'right',
+                    highlight: 'soft'
+                },
+                {
+                    selector: '#personaPdfReading',
+                    title: 'Review the extracted reading',
+                    description: 'After upload, this reading area shows the persona summary Syntrae will use. You can check whether the private context feels accurate before using it.',
+                    placement: 'left'
+                },
+                {
+                    selector: '#profile-form .section:nth-of-type(2)',
+                    title: 'Add useful personal context',
+                    description: 'Goals, strengths, constraints, and communication style help Syntrae estimate consequences in a way that fits you, not a generic user.',
+                    placement: 'top'
+                },
+                {
+                    selector: '.actions',
+                    title: 'Save, then build the other person',
+                    description: 'Once your own context is ready, the flow moves to the page for building the persona of someone you care about.',
+                    placement: 'top',
+                    highlight: 'soft'
+                }
+            ];
+
+            const standardProfileSteps = [
                 {
                     selector: '.persona-pdf-space',
                     title: 'Your Persona',
@@ -680,8 +727,30 @@
                     placement: 'top',
                     highlight: 'soft'
                 }
-            ]
-        });
+            ];
+
+            window.SyntraePageTour?.init({
+                pageKey: isUniversalGuideFlow ? 'universal-profile' : 'profile',
+                title: isUniversalGuideFlow ? 'Step 1: Your Persona' : 'Profile guide',
+                triggerText: 'Page guide',
+                showTrigger: !isUniversalGuideFlow,
+                autoStartOnce: !isUniversalGuideFlow,
+                autoStart: () => {
+                    if (isUniversalGuideFlow) return profileGuideParams.get('stage') === 'profile';
+                    return profileGuideParams.get('tour') === '1';
+                },
+                onFinish: ({ reason } = {}) => {
+                    if (!isUniversalGuideFlow || reason !== 'complete') return;
+                    window.setTimeout(() => {
+                        window.location.assign(buildUniversalGuideUrl('analyze.html', {
+                            stage: 'analyze',
+                            persona: 'daniel-smith-demo'
+                        }));
+                    }, 420);
+                },
+                steps: isUniversalGuideFlow ? universalProfileSteps : standardProfileSteps
+            });
+        }
     </script>
 </body>
 </html>

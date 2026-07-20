@@ -305,6 +305,114 @@ a {
     box-shadow: 0 14px 30px rgba(18, 150, 141, 0.12);
 }
 
+.subpage-menu {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+}
+
+.subpage-menu::after {
+    content: "";
+    position: absolute;
+    top: 100%;
+    right: 0;
+    left: 0;
+    height: 12px;
+}
+
+.subpage-menu-trigger {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 38px;
+    padding: 9px 13px;
+    border: 1px solid rgba(18, 150, 141, 0.18);
+    border-radius: 999px;
+    color: var(--ink);
+    background: rgba(255, 255, 255, 0.88);
+    font: inherit;
+    font-size: 13px;
+    font-weight: 900;
+    box-shadow: 0 10px 22px rgba(32, 50, 54, 0.07);
+    cursor: pointer;
+    transition: transform 0.18s ease, box-shadow 0.18s ease, color 0.18s ease, border-color 0.18s ease, background 0.18s ease;
+}
+
+.subpage-menu-trigger i:first-child {
+    color: var(--leaf);
+    font-size: 13px;
+}
+
+.subpage-menu-trigger .fa-chevron-down {
+    font-size: 10px;
+    transition: transform 0.18s ease;
+}
+
+.subpage-menu:hover .subpage-menu-trigger,
+.subpage-menu:focus-within .subpage-menu-trigger {
+    transform: translateY(-1px);
+    color: var(--leaf);
+    border-color: rgba(18, 150, 141, 0.34);
+    background: #fff;
+    box-shadow: 0 14px 30px rgba(18, 150, 141, 0.12);
+}
+
+.subpage-menu:hover .fa-chevron-down,
+.subpage-menu:focus-within .fa-chevron-down {
+    transform: rotate(180deg);
+}
+
+.subpage-menu-panel {
+    position: absolute;
+    top: calc(100% + 10px);
+    right: 0;
+    z-index: 30;
+    display: grid;
+    min-width: 220px;
+    padding: 8px;
+    border: 1px solid rgba(18, 150, 141, 0.18);
+    border-radius: 18px;
+    background: rgba(255, 255, 255, 0.96);
+    box-shadow: 0 20px 46px rgba(32, 50, 54, 0.14);
+    opacity: 0;
+    pointer-events: none;
+    transform: translateY(-6px) scale(0.98);
+    transform-origin: top right;
+    transition: opacity 0.18s ease, transform 0.18s ease;
+}
+
+.subpage-menu:hover .subpage-menu-panel,
+.subpage-menu:focus-within .subpage-menu-panel {
+    opacity: 1;
+    pointer-events: auto;
+    transform: translateY(0) scale(1);
+}
+
+.nav-links .subpage-menu-panel a:not(.button) {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-start;
+    min-height: 42px;
+    padding: 10px 12px;
+    border: 0;
+    border-radius: 12px;
+    background: transparent;
+    box-shadow: none;
+    font-size: 14px;
+}
+
+.nav-links .subpage-menu-panel a:not(.button) i {
+    width: 16px;
+    color: var(--leaf);
+    text-align: center;
+}
+
+.nav-links .subpage-menu-panel a:not(.button):hover {
+    transform: none;
+    background: rgba(223, 244, 237, 0.62);
+    box-shadow: none;
+}
+
 .button {
     display: inline-flex;
     align-items: center;
@@ -1121,6 +1229,10 @@ h2 {
     .brand span,
     .nav-links a:not(.button) {
         display: none;
+    }
+
+    .nav-links .subpage-menu-panel a:not(.button) {
+        display: flex;
     }
 
     .page-hero,

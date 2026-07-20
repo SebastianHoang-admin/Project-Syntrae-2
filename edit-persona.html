@@ -454,6 +454,8 @@
     function ensurePageTour() {
       if (pageTourInitialized) return;
       pageTourInitialized = true;
+      if (new URLSearchParams(window.location.search).get('demo') === 'decision-tree') return;
+
       window.SyntraePageTour?.init({
         pageKey: 'edit-persona',
         title: 'Edit persona guide',

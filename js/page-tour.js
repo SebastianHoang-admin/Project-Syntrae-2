@@ -304,7 +304,9 @@
 
       injectStyles();
       this.buildUi();
-      this.mountTrigger();
+      if (this.config.showTrigger !== false) {
+        this.mountTrigger();
+      }
       this.attachEvents();
 
       if (this.shouldAutoStart()) {
@@ -362,17 +364,19 @@
     }
 
     attachEvents() {
-      this.trigger.addEventListener('click', () => this.start());
-      this.skipButton.addEventListener('click', () => this.finish());
+      if (this.trigger) {
+        this.trigger.addEventListener('click', () => this.start());
+      }
+      this.skipButton.addEventListener('click', () => this.finish('skip'));
       this.backButton.addEventListener('click', () => this.goTo(this.index - 1, -1));
       this.nextButton.addEventListener('click', () => {
         if (this.index >= this.steps.length - 1) {
-          this.finish();
+          this.finish('complete');
           return;
         }
         this.goTo(this.index + 1, 1);
       });
-      this.backdrop.addEventListener('click', () => this.finish());
+      this.backdrop.addEventListener('click', () => this.finish('dismiss'));
       window.addEventListener('resize', () => {
         if (!this.active) return;
         this.positionCard();
@@ -384,7 +388,7 @@
       document.addEventListener('keydown', (event) => {
         if (!this.active) return;
         if (event.key === 'Escape') {
-          this.finish();
+          this.finish('dismiss');
         } else if (event.key === 'ArrowRight') {
           event.preventDefault();
           this.nextButton.click();
@@ -441,21 +445,30 @@
       this.card.hidden = false;
       this.backdrop.classList.add('is-visible');
       this.card.classList.add('is-visible');
-      this.trigger.style.opacity = '0';
-      this.trigger.style.pointerEvents = 'none';
+      if (this.trigger) {
+        this.trigger.style.opacity = '0';
+        this.trigger.style.pointerEvents = 'none';
+      }
       this.goTo(0, 1);
     }
 
-    finish() {
+    finish(reason = 'complete') {
       this.active = false;
-      this.card.hidden = true;
       this.card.classList.remove('is-visible');
       this.backdrop.classList.remove('is-visible');
-      this.trigger.style.opacity = '';
-      this.trigger.style.pointerEvents = '';
+      window.setTimeout(() => {
+        if (!this.active) this.card.hidden = true;
+      }, 260);
+      if (this.trigger) {
+        this.trigger.style.opacity = '';
+        this.trigger.style.pointerEvents = '';
+      }
       this.clearTarget();
       if (typeof this.config.onFinish === 'function') {
-        this.config.onFinish();
+        this.config.onFinish({
+          reason,
+          tour: this
+        });
       }
     }
 
@@ -593,7 +606,7 @@
     goTo(startIndex, direction) {
       const resolved = this.resolveStep(startIndex, direction || 1);
       if (!resolved) {
-        this.finish();
+        this.finish('complete');
         return;
       }
 

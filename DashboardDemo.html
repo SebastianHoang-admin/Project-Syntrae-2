@@ -139,6 +139,36 @@
             color: var(--teal-dark);
         }
 
+        .guide-replay-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            min-height: 40px;
+            padding: 10px 14px;
+            border: 1px solid rgba(242, 204, 93, 0.62);
+            border-radius: 999px;
+            color: #24413e;
+            background: linear-gradient(135deg, #fff9e5, #f2cc5d);
+            font-size: 13px;
+            font-weight: 900;
+            box-shadow: 0 14px 30px rgba(242, 204, 93, 0.24);
+            white-space: nowrap;
+            transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+        }
+
+        .guide-replay-btn:hover,
+        .guide-replay-btn:focus-visible {
+            transform: translateY(-1px);
+            border-color: rgba(242, 204, 93, 0.86);
+            box-shadow: 0 18px 36px rgba(242, 204, 93, 0.32);
+            outline: none;
+        }
+
+        .guide-replay-btn i {
+            color: var(--teal-dark);
+        }
+
         .account-indicator {
             justify-self: center;
             min-width: 120px;
@@ -1322,9 +1352,10 @@
             </a>
             <nav class="dashboard-nav" aria-label="Primary dashboard navigation">
                 <a id="topAnalyzeLink" href="analyze.html?demo=decision-tree&amp;persona=daniel-smith-demo"><i class="fas fa-pencil-alt"></i> Analyze</a>
-                <a href="profile.html?demo=decision-tree"><i class="fas fa-id-card"></i> Your Persona</a>
+                <a id="topProfileLink" href="profile.html?demo=decision-tree"><i class="fas fa-id-card"></i> Your Persona</a>
                 <a href="insight-lab.html?demo=decision-tree"><i class="fas fa-desktop"></i> Insight Lab</a>
                 <a href="subscription.html"><i class="fas fa-crown"></i> Subscription</a>
+                <button class="guide-replay-btn" id="startUniversalGuide" type="button"><i class="fas fa-route"></i> How to use Syntrae</button>
             </nav>
         </div>
         <div class="account-indicator" id="accountIndicator">Daniel Smith</div>
@@ -1366,7 +1397,7 @@
             </div>
         </aside>
 
-        <section class="workspace panel">
+        <section class="workspace panel" data-tour-step="dashboard-workflow">
             <div class="guide-head">
                 <div class="guide-mark">S</div>
                 <div>
@@ -2009,6 +2040,8 @@
             account: document.getElementById('accountIndicator'),
             analyzeLink: document.getElementById('analyzeLink'),
             topAnalyzeLink: document.getElementById('topAnalyzeLink'),
+            topProfileLink: document.getElementById('topProfileLink'),
+            startUniversalGuide: document.getElementById('startUniversalGuide'),
             personaList: document.getElementById('personaList'),
             avatar: document.getElementById('activePersonaAvatar'),
             name: document.getElementById('activePersonaName'),
@@ -2333,70 +2366,108 @@
             if (event.key === 'Escape') closeLaunchSoonNotice();
         });
 
-        window.SyntraePageTour?.init({
-            pageKey: 'dashboard-demo',
-            title: 'Dashboard guide',
-            triggerText: 'Page guide',
-            autoStart: () => {
-                const requested = new URLSearchParams(window.location.search).get('tour') === '1';
-                if (!requested) return false;
-                try {
-                    return !localStorage.getItem('syntrae-tour-seen-dashboard-demo');
-                } catch (_) {
-                    return true;
+        const universalGuideSeenKey = 'syntrae-universal-guide-seen-dashboard-demo';
+        const dashboardParams = new URLSearchParams(window.location.search);
+        const shouldLaunchUniversalGuide = dashboardParams.get('tour') === '1' || dashboardParams.get('tour') === 'dashboard-demo';
+        const universalGuideFlow = dashboardParams.get('flow') === 'universal' || shouldLaunchUniversalGuide;
+        const universalGuideStage = dashboardParams.get('stage') || (universalGuideFlow ? 'start' : '');
+        const isEmbeddedDashboardPreview = (() => {
+            try {
+                return window.self !== window.top;
+            } catch (_) {
+                return true;
+            }
+        })();
+        const buildUniversalGuideUrl = (path, params = {}) => {
+            const url = new URL(path, window.location.href);
+            url.searchParams.set('demo', 'decision-tree');
+            url.searchParams.set('tour', '1');
+            url.searchParams.set('flow', 'universal');
+            Object.entries(params).forEach(([key, value]) => {
+                if (value !== undefined && value !== null && value !== '') {
+                    url.searchParams.set(key, String(value));
                 }
+            });
+            return `${url.pathname.split('/').pop()}?${url.searchParams.toString()}`;
+        };
+        const hasSeenUniversalGuide = () => {
+            try {
+                return localStorage.getItem(universalGuideSeenKey) === '1';
+            } catch (_) {
+                return false;
+            }
+        };
+        const markUniversalGuideSeen = () => {
+            try {
+                localStorage.setItem(universalGuideSeenKey, '1');
+            } catch (_) {
+                // The tour should still finish when browser storage is unavailable.
+            }
+        };
+        const beginUniversalGuideFlow = (delay = 0) => {
+            if (isEmbeddedDashboardPreview) return;
+            try {
+                localStorage.removeItem(universalGuideSeenKey);
+            } catch (_) {
+                // Non-critical: explicit replay still works without storage.
+            }
+            window.setTimeout(() => {
+                window.location.assign(buildUniversalGuideUrl('profile.html', { stage: 'profile' }));
+            }, delay);
+        };
+
+        if (!isEmbeddedDashboardPreview && universalGuideStage !== 'dashboard' && (shouldLaunchUniversalGuide || !hasSeenUniversalGuide())) {
+            beginUniversalGuideFlow(2000);
+        }
+
+        const dashboardUniversalTour = window.SyntraePageTour?.init({
+            pageKey: 'dashboard-demo',
+            title: 'How to use Syntrae',
+            triggerText: 'How to use Syntrae',
+            showTrigger: false,
+            autoDelay: 700,
+            autoStartOnce: false,
+            autoStart: () => {
+                if (isEmbeddedDashboardPreview) return false;
+                return universalGuideFlow && universalGuideStage === 'dashboard';
             },
-            onFinish: () => {
-                try {
-                    localStorage.setItem('syntrae-tour-seen-dashboard-demo', '1');
-                } catch (_) {
-                    // The tour should still finish when browser storage is unavailable.
+            onFinish: ({ reason } = {}) => {
+                if (reason !== 'complete') return;
+                markUniversalGuideSeen();
+                if (window.history?.replaceState) {
+                    window.history.replaceState({}, '', 'DashboardDemo.html?demo=decision-tree&state=start');
                 }
             },
             steps: [
                 {
-                    selector: '[data-tour-step="persona"]',
-                    title: 'Your Persona',
-                    description: 'This column keeps the active persona visible so every path is grounded in the person Maya is thinking about.',
-                    placement: 'right'
-                },
-                {
                     selector: '[data-tour-step="chatspaces"]',
-                    title: 'Chat Spaces',
-                    description: 'Each chat space is a different high-stakes moment for the selected persona. Choosing Aaron only shows Aaron family scenarios; choosing Daniel only shows Daniel scenarios.',
-                    placement: 'bottom'
-                },
-                {
-                    selector: '[data-tour-step="embedded-chat"]',
-                    title: 'Decision Studio Chat',
-                    description: 'This visual chat area shows Maya and Syntrae taking turns. It is embedded here for the demo and does not require backend setup.',
+                    title: 'Step 3: Start with the uncertain situation',
+                    description: 'Back on the dashboard, choose the real situation you are unsure about. Use the message, timing, relationship context, and goal as the input Syntrae should reason from.',
                     placement: 'left'
                 },
                 {
                     selector: '[data-tour-step="bestway"]',
-                    title: 'Best Way',
-                    description: 'This section holds the current question and the three mutually exclusive options Syntrae will compare.',
-                    placement: 'right'
+                    title: 'Compare likely consequence paths',
+                    description: 'This section frames the possible next moves. Syntrae is meant to compare likely real-life consequences before you send, ask, wait, or choose another action.',
+                    placement: 'left',
+                    highlight: 'soft'
                 },
                 {
                     selector: '[data-tour-step="settings"]',
-                    title: 'Syntrae Settings',
-                    description: 'This confirms the active persona and runs the visual consequence map immediately for the current scenario.',
-                    placement: 'left'
-                },
-                {
-                    selector: '[data-tour-step="tree"]',
-                    title: 'Consequence Tree',
-                    description: 'After Syntrae runs, this section shows the option totals, outcome totals, and reasoning behind each probability.',
-                    placement: 'top',
-                    allowHidden: true,
-                    beforeShow: () => els.treeSection.classList.add('visible')
+                    title: 'Run Syntrae, then keep agency',
+                    description: 'Use the Syntrae button to generate the consequence map. The dashboard informs the decision; you still choose what to do in real life.',
+                    placement: 'left',
+                    highlight: 'soft'
                 }
             ]
         });
 
+        els.startUniversalGuide?.addEventListener('click', () => {
+            beginUniversalGuideFlow(0);
+        });
+
         renderAll({ resetTree: true, animateChat: true });
-        if (new URLSearchParams(window.location.search).get('state') === 'end') {
+        if (dashboardParams.get('state') === 'end') {
             els.treeSection.classList.add('visible');
             els.syntraeButton.innerHTML = '<i class="fas fa-check"></i> Syntrae complete';
             els.syntraeButton.disabled = true;
