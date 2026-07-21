@@ -105,6 +105,12 @@
       color: var(--muted);
       font-weight: 600;
     }
+    .demo-summary-line {
+      border-color: rgba(32,50,54,0.1);
+      background: rgba(251,255,248,0.94);
+      color: #1f3236;
+      box-shadow: 0 10px 26px rgba(32,50,54,0.06);
+    }
     .questions { display: grid; gap: 16px; }
     .question-card {
       background: var(--panel);
@@ -336,10 +342,12 @@
       .question-box { padding: 12px 14px; }
     }
   </style>
+  <link rel="stylesheet" href="css/syntrae-product-theme.css">
 </head>
 <body>
   <header>
     <a id="backToAnalyze" class="back-btn" href="analyze.html"><span class="arrow">←</span><span>Back to Analyze</span></a>
+    <img class="syntrae-logo-image" src="assets/syntrae-logo.svg" alt="Syntrae logo">
     <div class="pager" id="pager"></div>
     <button id="reviewBtn" class="nav-btn" type="button">Review all answers</button>
   </header>
@@ -351,6 +359,7 @@
   </main>
 
   <script src="js/supabase-config.js"></script>
+  <script src="js/page-tour.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script>
     window.syntraeSupabaseClient = window.syntraeSupabaseClient || window.supabase.createClient(
@@ -358,6 +367,7 @@
       window.SUPABASE_ANON_KEY
     );
   </script>
+  <script src="js/daniel-demo-persona.js?v=20260709-aaron"></script>
   <script>
     const DATASET_PATH = '/data/Identitybuilder.json';
     const personalityRoot = document.getElementById('personality');
@@ -370,6 +380,7 @@
     const PERSONA_TABLE = 'personas';
     const ACTIVE_PERSONA_KEY_STORAGE = 'active-persona-key';
     const PERSONA_QUERY_PARAM = 'persona';
+    const DECISION_TREE_DEMO = 'decision-tree';
     const syntraeSupabase = window.syntraeSupabaseClient || null;
 
     const fallbackQuestions = [];
@@ -385,12 +396,109 @@
     let cloudSaveTimer = null;
     let lastCloudPayload = '';
     let personaKey = '';
+    let pageTourInitialized = false;
+
+    if (isDecisionTreeDemo()) {
+      document.body.classList.add('demo-mode');
+      const requestedDemoKey = sanitizePersonaKey(new URLSearchParams(window.location.search || '').get(PERSONA_QUERY_PARAM));
+      const demoDefinition = window.getDemoPersonaDefinition
+        ? window.getDemoPersonaDefinition(requestedDemoKey)
+        : {
+            key: 'daniel-smith-demo',
+            name: 'Daniel Smith',
+            editTitle: 'Edit Daniel Smith Persona - Syntrae Demo',
+            portrait: 'assets/daniel-smith-cartoon-avatar.png',
+            buildState: window.buildDanielDemoPersonaState
+          };
+      document.title = demoDefinition.editTitle;
+      personaKey = demoDefinition.key;
+      localStorage.setItem(ACTIVE_PERSONA_KEY_STORAGE, personaKey);
+      localStorage.setItem('persona-name', demoDefinition.name);
+      backToAnalyze.href = demoUrl('analyze.html', { persona: personaKey });
+      statusEl.textContent = `Demo mode: editing the saved ${demoDefinition.name} persona.`;
+      statusEl.insertAdjacentHTML('afterend', `
+        <section class="status demo-summary-line" data-type="success" style="display:grid;gap:6px;margin-bottom:14px;">
+          <strong>${demoDefinition.name} demo persona</strong>
+        </section>
+      `);
+    }
 
     function sanitizePersonaKey(value) {
       const normalized = String(value || '').trim().toLowerCase();
       if (!normalized) return '';
       const cleaned = normalized.replace(/[^a-z0-9_-]/g, '');
       return cleaned || '';
+    }
+
+    function isDecisionTreeDemo() {
+      const params = new URLSearchParams(window.location.search || '');
+      return params.get('demo') === DECISION_TREE_DEMO;
+    }
+
+    function demoUrl(path, params = {}) {
+      const url = new URL(path, window.location.href);
+      url.searchParams.set('demo', DECISION_TREE_DEMO);
+      const currentParams = new URLSearchParams(window.location.search || '');
+      const guided = currentParams.get('tour');
+      if (guided) {
+        url.searchParams.set('tour', guided);
+      }
+      Object.entries(params).forEach(([key, value]) => {
+        if (value !== undefined && value !== null && value !== '') {
+          url.searchParams.set(key, String(value));
+        }
+      });
+      return `${url.pathname.split('/').pop()}?${url.searchParams.toString()}`;
+    }
+
+    function ensurePageTour() {
+      if (pageTourInitialized) return;
+      pageTourInitialized = true;
+      if (new URLSearchParams(window.location.search).get('demo') === 'decision-tree') return;
+
+      window.SyntraePageTour?.init({
+        pageKey: 'edit-persona',
+        title: 'Edit persona guide',
+        triggerText: 'Page guide',
+        autoStart: () => new URLSearchParams(window.location.search).get('tour') === '1',
+        steps: [
+          {
+            selector: 'header',
+            title: 'Progress header',
+            description: 'This header keeps the questionnaire oriented: back navigation, the current step count, and the review action for the full answer set.',
+            placement: 'bottom'
+          },
+          {
+            selector: '.question-card',
+            title: 'Question card',
+            description: 'This is the active question container. Each screen focuses on one part of the persona so the user can build context deliberately instead of dumping everything at once.',
+            placement: 'top',
+            highlightSelector: '.question-card'
+          },
+          {
+            selector: '.question-box',
+            title: 'Prompt',
+            description: 'The prompt box shows the current question number, the actual question, and the category it belongs to so the user knows what kind of context they are adding.',
+            placement: 'bottom',
+            highlightSelector: '.question-card'
+          },
+          {
+            selector: '.options, .free-response',
+            title: 'Answer input',
+            description: 'This section is where the persona gets defined. Depending on the question, the user selects an option, sets confidence, or writes freeform context.',
+            placement: 'top',
+            highlightSelector: '.question-card'
+          },
+          {
+            selector: '.question-footer',
+            title: 'Save and navigation',
+            description: 'The footer controls movement through the builder. It saves the current answer, moves forward or backward, and makes the 99-question flow workable during a recording or demo.',
+            placement: 'top',
+            highlightSelector: '.question-card',
+            highlight: 'soft'
+          }
+        ]
+      });
     }
 
     function createPersonaKeyFromSeed(name, seed = '') {
@@ -412,6 +520,9 @@
     }
 
     function buildPersonaUrl(path, key = personaKey) {
+      if (isDecisionTreeDemo()) {
+        return demoUrl(path, { persona: key || 'daniel-smith-demo' });
+      }
       const safeKey = sanitizePersonaKey(key);
       if (!safeKey) return path;
       return `${path}?${PERSONA_QUERY_PARAM}=${encodeURIComponent(safeKey)}`;
@@ -497,14 +608,89 @@
       return traits;
     }
 
+    function clamp01(value, fallback = 0) {
+      const numeric = Number(value);
+      if (!Number.isFinite(numeric)) return fallback;
+      return Math.max(0, Math.min(1, numeric));
+    }
+
     function parseLayerScores(rawValue) {
       if (typeof rawValue !== 'string' || !rawValue) return {};
       try {
         const parsed = JSON.parse(rawValue);
-        return parsed && typeof parsed === 'object' ? parsed : {};
+        if (!parsed || typeof parsed !== 'object') return {};
+        const normalized = {};
+        Object.entries(parsed).forEach(([axisId, entry]) => {
+          if (!axisId) return;
+          if (typeof entry === 'number') {
+            normalized[axisId] = { value: clamp01(entry, 0.5), confidence: 0.6 };
+            return;
+          }
+          if (!entry || typeof entry !== 'object') return;
+          if (typeof entry.value !== 'number') return;
+          normalized[axisId] = {
+            value: clamp01(entry.value, 0.5),
+            confidence: clamp01(entry.confidence, 0.6)
+          };
+        });
+        return normalized;
       } catch (_) {
         return {};
       }
+    }
+
+    function splitQualitativeTerms(raw) {
+      const text = String(raw || '').toLowerCase();
+      if (!text) return [];
+      return text
+        .replace(/[\n\r\t]/g, ' ')
+        .replace(/[^\w\s,/+-]/g, ' ')
+        .split(/[\s,;/|]+/g)
+        .map((part) => part.trim())
+        .filter((part) => part.length >= 2 && part.length <= 32);
+    }
+
+    function collectQualitativeTags({ adjectiveSignals, freeformSignals, criticalFactors, extras }) {
+      const tags = new Set();
+
+      adjectiveSignals.forEach((entry) => {
+        const selected = Array.isArray(entry?.selected) ? entry.selected : [];
+        selected.forEach((label) => {
+          splitQualitativeTerms(label).forEach((term) => tags.add(`adj:${term}`));
+        });
+      });
+
+      Object.values(freeformSignals || {}).forEach((value) => {
+        splitQualitativeTerms(value).forEach((term) => tags.add(`free:${term}`));
+      });
+
+      Object.entries(criticalFactors || {}).forEach(([factorKey, value]) => {
+        if (factorKey) tags.add(`critical:${String(factorKey).toLowerCase()}`);
+        splitQualitativeTerms(value).forEach((term) => tags.add(`critical:${term}`));
+      });
+
+      Object.values(extras || {}).forEach((value) => {
+        splitQualitativeTerms(value).forEach((term) => tags.add(`extra:${term}`));
+      });
+
+      return Array.from(tags).slice(0, 320);
+    }
+
+    function buildQuantitativeTraitVector(axisScores) {
+      const vector = {};
+      ['L1', 'L2', 'L3'].forEach((layerId) => {
+        const layer = axisScores?.[layerId];
+        if (!layer || typeof layer !== 'object') return;
+        Object.entries(layer).forEach(([axisId, entry]) => {
+          if (!entry || typeof entry !== 'object' || typeof entry.value !== 'number') return;
+          vector[axisId] = {
+            layer_id: layerId,
+            value: clamp01(entry.value, 0.5),
+            confidence: clamp01(entry.confidence, 0.6)
+          };
+        });
+      });
+      return vector;
     }
 
     function buildPersonaProfile(state) {
@@ -512,12 +698,18 @@
       const freeformSignals = {};
       const adjectiveSignals = [];
       const choiceSignals = {};
+      const criticalFactors = {};
+      const extras = state?.extras && typeof state.extras === 'object' ? state.extras : {};
 
       Object.entries(answers).forEach(([questionId, answer]) => {
         if (!answer || typeof answer !== 'object') return;
         if (answer.type === 'free') {
           const text = String(answer.text || '').trim();
           if (text) freeformSignals[questionId] = text;
+          if (text && answer.layerId === 'L6') {
+            const factorKey = String(answer.fieldName || '').trim();
+            if (factorKey) criticalFactors[factorKey] = text;
+          }
           return;
         }
         if (answer.type === 'multi') {
@@ -542,20 +734,46 @@
         }
       });
 
+      const axisScores = {
+        L1: parseLayerScores(state?.identityLayers?.L1),
+        L2: parseLayerScores(state?.identityLayers?.L2),
+        L3: parseLayerScores(state?.identityLayers?.L3)
+      };
+      const quantitativeVector = buildQuantitativeTraitVector(axisScores);
+      const qualitativeTags = collectQualitativeTags({
+        adjectiveSignals,
+        freeformSignals,
+        criticalFactors,
+        extras
+      });
+
       return {
-        schema_version: '2.0.0',
+        schema_version: '3.0.0',
         persona_key: personaKey,
         persona_name: normalizePersonaName(state?.personaName),
         generated_at: new Date().toISOString(),
-        axis_scores: {
-          L1: parseLayerScores(state?.identityLayers?.L1),
-          L2: parseLayerScores(state?.identityLayers?.L2),
-          L3: parseLayerScores(state?.identityLayers?.L3)
+        quantitative_data: {
+          source_layers: ['L1', 'L2', 'L3'],
+          axis_scores: axisScores,
+          trait_vector: quantitativeVector
         },
+        qualitative_data: {
+          adjective_signals: adjectiveSignals,
+          freeform_signals: freeformSignals,
+          critical_factors: criticalFactors,
+          extras_text: extras,
+          qualitative_tags: qualitativeTags
+        },
+        data_split: {
+          quantitative_fields: ['axis_scores', 'trait_vector'],
+          qualitative_fields: ['adjective_signals', 'freeform_signals', 'critical_factors', 'extras_text', 'qualitative_tags']
+        },
+        axis_scores: axisScores,
         adjective_signals: adjectiveSignals,
         freeform_signals: freeformSignals,
         choice_signals: choiceSignals,
-        extras: state?.extras && typeof state.extras === 'object' ? state.extras : {}
+        critical_factors: criticalFactors,
+        extras
       };
     }
 
@@ -758,14 +976,20 @@
     }
 
     function saveAxisAggregates() {
-      // Compute averages per axis for layers 1-3
+      // Compute confidence-weighted averages per axis for layers 1-3
       const layerBuckets = { L1: {}, L2: {}, L3: {} };
       Object.values(currentAnswers).forEach(ans => {
         if (!ans || !ans.axisId || !ans.layerId) return;
         if (!layerBuckets[ans.layerId]) return;
         const bucket = layerBuckets[ans.layerId];
         if (!bucket[ans.axisId]) bucket[ans.axisId] = [];
-        if (typeof ans.value === 'number') bucket[ans.axisId].push(ans.value);
+        if (typeof ans.value !== 'number') return;
+        const confidenceRaw = typeof ans.confidence === 'number' ? ans.confidence : 3;
+        const confidence = Math.max(1, Math.min(5, confidenceRaw)) / 5;
+        bucket[ans.axisId].push({
+          value: Math.max(0, Math.min(1, ans.value)),
+          confidence
+        });
       });
       ['L1','L2','L3'].forEach(layerId => {
         const result = {};
@@ -773,8 +997,14 @@
         Object.keys(bucket).forEach(axisId => {
           const vals = bucket[axisId];
           if (vals.length) {
-            const avg = vals.reduce((a,b)=>a+b,0)/vals.length;
-            result[axisId] = { value: avg };
+            const weightedValue = vals.reduce((sum, item) => sum + item.value * item.confidence, 0);
+            const confidenceMass = vals.reduce((sum, item) => sum + item.confidence, 0) || vals.length;
+            const avg = weightedValue / confidenceMass;
+            const avgConfidence = vals.reduce((sum, item) => sum + item.confidence, 0) / vals.length;
+            result[axisId] = {
+              value: avg,
+              confidence: Math.max(0, Math.min(1, avgConfidence))
+            };
           }
         });
         localStorage.setItem(`identity-layer-${layerId}`, JSON.stringify(result));
@@ -1001,7 +1231,8 @@
             type: 'free',
             text: textarea.value,
             sectionId: q.sectionId || null,
-            layerId: q.layerId || null
+            layerId: q.layerId || null,
+            fieldName: q.fieldName || null
           };
           hasUnsaved = true;
           saveAnswers();
@@ -1255,7 +1486,8 @@
               type: 'free',
               text: textarea.value,
               sectionId: q.sectionId || null,
-              layerId: q.layerId || null
+              layerId: q.layerId || null,
+              fieldName: q.fieldName || null
             };
             hasUnsaved = true;
             saveAnswers();
@@ -1316,12 +1548,16 @@
     async function loadQuestions() {
       try {
         await ensureWorkingPersonaKey();
-        await migrateLegacyDefaultPersonaKeys();
-        await ensureWorkingPersonaKey();
+        if (!isDecisionTreeDemo()) {
+          await migrateLegacyDefaultPersonaKeys();
+          await ensureWorkingPersonaKey();
+        }
         backToAnalyze.href = buildPersonaUrl('analyze.html');
-        await hydrateFromAccount();
-        currentAnswers = loadStoredAnswers();
-        saveAxisAggregates();
+        if (!isDecisionTreeDemo()) {
+          await hydrateFromAccount();
+          currentAnswers = loadStoredAnswers();
+          saveAxisAggregates();
+        }
 
         statusEl.textContent = 'Loading questions…';
         const res = await fetch(DATASET_PATH, { cache: 'no-store' });
@@ -1378,7 +1614,24 @@
                   type: 'free',
                   placeholder: field.placeholder || (field.examples ? field.examples.join(', ') : ''),
                   sectionId: section.section_id,
-                  layerId: layer.layer_id
+                  layerId: layer.layer_id,
+                  fieldName: field.name || null
+                });
+              });
+            });
+          } else if (layer.layer_id === 'L6') {
+            (layer.sections || []).forEach(section => {
+              (section.fields || []).forEach(field => {
+                questions.push({
+                  id: field.field_id,
+                  prompt: field.prompt || field.name,
+                  category: section.name || layer.name || '',
+                  type: 'free',
+                  placeholder: field.placeholder || (field.examples ? field.examples.join(', ') : ''),
+                  helper: field.helper || '',
+                  sectionId: section.section_id,
+                  layerId: layer.layer_id,
+                  fieldName: field.name || null
                 });
               });
             });
@@ -1403,13 +1656,35 @@
 
         allQuestions = questions;
         questionMap = new Map(allQuestions.map((q) => [q.id, q]));
+        if (isDecisionTreeDemo()) {
+          const demoDefinition = window.getDemoPersonaDefinition
+            ? window.getDemoPersonaDefinition(personaKey)
+            : {
+                portrait: 'assets/daniel-smith-cartoon-avatar.png',
+                buildState: window.buildDanielDemoPersonaState
+              };
+          const demoState = demoDefinition.buildState({
+            portraitDataUrl: demoDefinition.portrait,
+            savedAt: new Date().toISOString()
+          });
+          applyPersonaState(demoState);
+          lastCloudPayload = JSON.stringify(demoState);
+          currentAnswers = loadStoredAnswers();
+          saveAxisAggregates();
+        }
         const session = loadSession();
-        visibleIds = Array.isArray(session.visibleIds) && session.visibleIds.length
-          ? session.visibleIds.filter(id => questionMap.has(id))
-          : questions.map(q => q.id);
+        const allQuestionIds = questions.map(q => q.id);
+        if (Array.isArray(session.visibleIds) && session.visibleIds.length) {
+          const fromSession = session.visibleIds.filter(id => questionMap.has(id));
+          const missingNewIds = allQuestionIds.filter(id => !fromSession.includes(id));
+          visibleIds = [...fromSession, ...missingNewIds];
+        } else {
+          visibleIds = allQuestionIds;
+        }
         currentIndex = Number.isInteger(session.currentIndex) ? Math.max(0, Math.min(session.currentIndex, visibleIds.length - 1)) : 0;
         saveSession({ visibleIds, currentIndex });
         renderCurrentQuestion();
+        ensurePageTour();
       } catch (err) {
         console.warn('Could not load databank:', err);
         const msg = err && err.message ? err.message : err;

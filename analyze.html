@@ -476,11 +476,11 @@
         .conclusion h4 {
             margin: 0 0 8px;
             font-size: 15px;
-            color: #dfe7f5;
+            color: #203236;
         }
         .conclusion p {
             margin: 0;
-            color: #e7edf8;
+            color: #405457;
             line-height: 1.7;
         }
         @keyframes popIn {
@@ -560,11 +560,85 @@
             color: #0b1224;
             box-shadow: 0 12px 24px rgba(34,211,238,0.28);
         }
+        .demo-mode .panel {
+            position: relative;
+        }
+        .demo-context-strip {
+            grid-column: 1 / -1;
+            display: grid;
+            grid-template-columns: 1.1fr .9fr;
+            gap: 14px;
+            padding: 18px;
+            border-radius: 16px;
+            border: 1px solid rgba(32,50,54,0.1);
+            background: rgba(251,255,248,0.94);
+            box-shadow: 0 10px 26px rgba(32,50,54,0.06);
+        }
+        .demo-context-strip h2 {
+            margin-bottom: 6px;
+            color: var(--ink);
+        }
+        .demo-context-strip p {
+            color: var(--muted);
+            line-height: 1.5;
+        }
+        .demo-chip-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            align-content: start;
+        }
+        .demo-chip {
+            border: 1px solid rgba(32,50,54,0.12);
+            border-radius: 999px;
+            padding: 8px 10px;
+            background: rgba(251,255,248,0.86);
+            color: var(--ink);
+            font-size: 12px;
+            font-weight: 800;
+        }
+        .demo-mode .portrait {
+            min-height: 460px;
+        }
+        .demo-mode .portrait .placeholder {
+            display: none;
+        }
         @keyframes spin {
             from { transform: rotate(0deg); }
             to { transform: rotate(360deg); }
         }
+        @media (max-width: 640px) {
+            body {
+                padding: 18px 12px 42px;
+                overflow-x: hidden;
+            }
+            header {
+                align-items: flex-start;
+                gap: 12px;
+                flex-direction: column;
+            }
+            .panel {
+                grid-template-columns: minmax(0, 1fr);
+                gap: 18px;
+                padding: 16px;
+            }
+            .portrait {
+                min-height: 280px;
+            }
+            .primary-btn {
+                width: 100%;
+                justify-content: center;
+                text-align: center;
+            }
+            .persona-check .actions {
+                flex-direction: column;
+            }
+            .demo-context-strip {
+                grid-template-columns: 1fr;
+            }
+        }
     </style>
+    <link rel="stylesheet" href="css/syntrae-product-theme.css">
 </head>
 <body>
     <div class="persona-check-overlay" id="personaCheckOverlay" role="dialog" aria-modal="true" aria-labelledby="personaCheckTitle">
@@ -573,7 +647,7 @@
             <p>You don't have an existing persona yet. Do you want to create one?</p>
             <div class="actions">
                 <button class="yes" type="button" id="personaYesBtn">Yes</button>
-                <button type="button" id="personaNoBtn">Back to Chat</button>
+                <button type="button" id="personaNoBtn">Back to Dashboard</button>
                 <button type="button" id="personaLaterBtn">I'll do it later</button>
             </div>
         </div>
@@ -598,19 +672,16 @@
         </div>
         <div class="persona-check" id="personaStepRedirect" style="display:none;">
             <h4>Redirecting…</h4>
-            <p>You don't have a valid persona, redirecting you now to Chat.</p>
+            <p>You don't have a valid persona, redirecting you now to Dashboard.</p>
             <div style="margin:12px auto; width:48px; height:48px; border-radius:50%; border:4px solid rgba(255,255,255,0.25); border-top-color: #22d3ee; animation: spin 1.8s linear infinite;"></div>
         </div>
     </div>
     <header>
         <a class="brand" href="Chat.html">
-            <div class="logo-icon">🧠</div>
-            <div class="brand-text">
-                <span>SYNTRAE</span>
-                <span>Persona Prediction</span>
-            </div>
+            <img class="syntrae-logo-image" src="assets/syntrae-logo.svg" alt="Syntrae logo">
+            <span class="brand-page-label">Relationship Persona</span>
         </a>
-        <a class="primary-btn" href="Chat.html">Back to Chat</a>
+        <a class="primary-btn" href="Chat.html">Back to Dashboard</a>
     </header>
 
     <main class="panel">
@@ -712,6 +783,8 @@ Authority figure</div>
     </main>
 
     <script src="js/supabase-config.js"></script>
+    <script src="js/daniel-demo-persona.js?v=20260709-aaron"></script>
+    <script src="js/page-tour.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>
         window.syntraeSupabaseClient = window.syntraeSupabaseClient || window.supabase.createClient(
@@ -736,6 +809,7 @@ Authority figure</div>
         const PERSONA_QUERY_PARAM = 'persona';
         const PERSONA_PORTRAITS_BUCKET = 'persona-portraits';
         const PORTRAIT_STORAGE_KEY = 'persona-portrait-storage-path';
+        const DECISION_TREE_DEMO = 'decision-tree';
         const syntraeSupabase = window.syntraeSupabaseClient || null;
         let cloudHydrated = false;
         let cloudHydrating = false;
@@ -743,6 +817,27 @@ Authority figure</div>
         let lastCloudPayload = '';
         let personaKey = '';
         let currentUserId = '';
+
+        function isDecisionTreeDemo() {
+            const params = new URLSearchParams(window.location.search || '');
+            return params.get('demo') === DECISION_TREE_DEMO;
+        }
+
+        function demoUrl(path, params = {}) {
+            const url = new URL(path, window.location.href);
+            url.searchParams.set('demo', DECISION_TREE_DEMO);
+            const currentParams = new URLSearchParams(window.location.search);
+            const guided = currentParams.get('tour');
+            if (guided) {
+                url.searchParams.set('tour', guided);
+            }
+            Object.entries(params).forEach(([key, value]) => {
+                if (value !== undefined && value !== null && value !== '') {
+                    url.searchParams.set(key, String(value));
+                }
+            });
+            return `${url.pathname.split('/').pop()}?${url.searchParams.toString()}`;
+        }
 
         function sanitizePersonaKey(value) {
             const normalized = String(value || '').trim().toLowerCase();
@@ -784,6 +879,9 @@ Authority figure</div>
 
         function buildPersonaUrl(path, key = personaKey) {
             const safeKey = sanitizePersonaKey(key);
+            if (isDecisionTreeDemo()) {
+                return demoUrl(path, safeKey ? { [PERSONA_QUERY_PARAM]: safeKey } : {});
+            }
             if (!safeKey) return path;
             return `${path}?${PERSONA_QUERY_PARAM}=${encodeURIComponent(safeKey)}`;
         }
@@ -1062,14 +1160,89 @@ Authority figure</div>
             return traits;
         }
 
+        function clamp01(value, fallback = 0) {
+            const numeric = Number(value);
+            if (!Number.isFinite(numeric)) return fallback;
+            return Math.max(0, Math.min(1, numeric));
+        }
+
         function parseLayerScores(rawValue) {
             if (typeof rawValue !== 'string' || !rawValue) return {};
             try {
                 const parsed = JSON.parse(rawValue);
-                return parsed && typeof parsed === 'object' ? parsed : {};
+                if (!parsed || typeof parsed !== 'object') return {};
+                const normalized = {};
+                Object.entries(parsed).forEach(([axisId, entry]) => {
+                    if (!axisId) return;
+                    if (typeof entry === 'number') {
+                        normalized[axisId] = { value: clamp01(entry, 0.5), confidence: 0.6 };
+                        return;
+                    }
+                    if (!entry || typeof entry !== 'object') return;
+                    if (typeof entry.value !== 'number') return;
+                    normalized[axisId] = {
+                        value: clamp01(entry.value, 0.5),
+                        confidence: clamp01(entry.confidence, 0.6)
+                    };
+                });
+                return normalized;
             } catch (_) {
                 return {};
             }
+        }
+
+        function splitQualitativeTerms(raw) {
+            const text = String(raw || '').toLowerCase();
+            if (!text) return [];
+            return text
+                .replace(/[\n\r\t]/g, ' ')
+                .replace(/[^\w\s,/+-]/g, ' ')
+                .split(/[\s,;/|]+/g)
+                .map((part) => part.trim())
+                .filter((part) => part.length >= 2 && part.length <= 32);
+        }
+
+        function collectQualitativeTags({ adjectiveSignals, freeformSignals, criticalFactors, extras }) {
+            const tags = new Set();
+
+            adjectiveSignals.forEach((entry) => {
+                const selected = Array.isArray(entry?.selected) ? entry.selected : [];
+                selected.forEach((label) => {
+                    splitQualitativeTerms(label).forEach((term) => tags.add(`adj:${term}`));
+                });
+            });
+
+            Object.values(freeformSignals || {}).forEach((value) => {
+                splitQualitativeTerms(value).forEach((term) => tags.add(`free:${term}`));
+            });
+
+            Object.entries(criticalFactors || {}).forEach(([factorKey, value]) => {
+                if (factorKey) tags.add(`critical:${String(factorKey).toLowerCase()}`);
+                splitQualitativeTerms(value).forEach((term) => tags.add(`critical:${term}`));
+            });
+
+            Object.values(extras || {}).forEach((value) => {
+                splitQualitativeTerms(value).forEach((term) => tags.add(`extra:${term}`));
+            });
+
+            return Array.from(tags).slice(0, 320);
+        }
+
+        function buildQuantitativeTraitVector(axisScores) {
+            const vector = {};
+            ['L1', 'L2', 'L3'].forEach((layerId) => {
+                const layer = axisScores?.[layerId];
+                if (!layer || typeof layer !== 'object') return;
+                Object.entries(layer).forEach(([axisId, entry]) => {
+                    if (!entry || typeof entry !== 'object' || typeof entry.value !== 'number') return;
+                    vector[axisId] = {
+                        layer_id: layerId,
+                        value: clamp01(entry.value, 0.5),
+                        confidence: clamp01(entry.confidence, 0.6)
+                    };
+                });
+            });
+            return vector;
         }
 
         function buildPersonaProfile(state) {
@@ -1077,12 +1250,18 @@ Authority figure</div>
             const freeformSignals = {};
             const adjectiveSignals = [];
             const choiceSignals = {};
+            const criticalFactors = {};
+            const extras = state?.extras && typeof state.extras === 'object' ? state.extras : {};
 
             Object.entries(answers).forEach(([questionId, answer]) => {
                 if (!answer || typeof answer !== 'object') return;
                 if (answer.type === 'free') {
                     const text = String(answer.text || '').trim();
                     if (text) freeformSignals[questionId] = text;
+                    if (text && answer.layerId === 'L6') {
+                        const factorKey = String(answer.fieldName || '').trim();
+                        if (factorKey) criticalFactors[factorKey] = text;
+                    }
                     return;
                 }
                 if (answer.type === 'multi') {
@@ -1107,20 +1286,46 @@ Authority figure</div>
                 }
             });
 
+            const axisScores = {
+                L1: parseLayerScores(state?.identityLayers?.L1),
+                L2: parseLayerScores(state?.identityLayers?.L2),
+                L3: parseLayerScores(state?.identityLayers?.L3)
+            };
+            const quantitativeVector = buildQuantitativeTraitVector(axisScores);
+            const qualitativeTags = collectQualitativeTags({
+                adjectiveSignals,
+                freeformSignals,
+                criticalFactors,
+                extras
+            });
+
             return {
-                schema_version: '2.0.0',
+                schema_version: '3.0.0',
                 persona_key: personaKey,
                 persona_name: normalizePersonaName(state?.personaName),
                 generated_at: new Date().toISOString(),
-                axis_scores: {
-                    L1: parseLayerScores(state?.identityLayers?.L1),
-                    L2: parseLayerScores(state?.identityLayers?.L2),
-                    L3: parseLayerScores(state?.identityLayers?.L3)
+                quantitative_data: {
+                    source_layers: ['L1', 'L2', 'L3'],
+                    axis_scores: axisScores,
+                    trait_vector: quantitativeVector
                 },
+                qualitative_data: {
+                    adjective_signals: adjectiveSignals,
+                    freeform_signals: freeformSignals,
+                    critical_factors: criticalFactors,
+                    extras_text: extras,
+                    qualitative_tags: qualitativeTags
+                },
+                data_split: {
+                    quantitative_fields: ['axis_scores', 'trait_vector'],
+                    qualitative_fields: ['adjective_signals', 'freeform_signals', 'critical_factors', 'extras_text', 'qualitative_tags']
+                },
+                axis_scores: axisScores,
                 adjective_signals: adjectiveSignals,
                 freeform_signals: freeformSignals,
                 choice_signals: choiceSignals,
-                extras: state?.extras && typeof state.extras === 'object' ? state.extras : {}
+                critical_factors: criticalFactors,
+                extras
             };
         }
 
@@ -1394,7 +1599,7 @@ Authority figure</div>
             { layer: 'L2', id: 'L2_A2', name: 'Autonomy ↔ Coordination' },
             { layer: 'L2', id: 'L2_A3', name: 'Immediate ↔ Deferred Reward' },
             { layer: 'L2', id: 'L2_A4', name: 'Status ↔ Belonging' },
-            { layer: 'L2', id: 'L2_A5', name: 'Internal ↔ External Validation' },
+            { layer: 'L2', id: 'L2_A5', name: 'Inner Confidence ↔ Social Reassurance' },
             { layer: 'L2', id: 'L2_A6', name: 'Depth ↔ Breadth' },
             { layer: 'L3', id: 'L3_A1', name: 'Honesty Boundary' },
             { layer: 'L3', id: 'L3_A2', name: 'Respect / Dignity Boundary' },
@@ -1414,7 +1619,7 @@ Authority figure</div>
             L2_A2: ['Autonomy', 'Coordination'],
             L2_A3: ['Immediate reward', 'Deferred reward'],
             L2_A4: ['Status', 'Belonging'],
-            L2_A5: ['Internal validation', 'External validation'],
+            L2_A5: ['Inner confidence', 'Social reassurance'],
             L2_A6: ['Depth', 'Breadth'],
             L3_A1: ['Flexible honesty', 'Strict honesty'],
             L3_A2: ['Low dignity sensitivity', 'High dignity sensitivity'],
@@ -1436,6 +1641,13 @@ Authority figure</div>
                 }
                 if (saved) valueEl.textContent = saved;
             });
+        }
+
+        function loadConclusionFromStorage() {
+            const conclusionEl = document.querySelector('[data-field="conclusion"]');
+            if (!conclusionEl) return;
+            const saved = localStorage.getItem('extra-conclusion');
+            conclusionEl.textContent = saved || 'Conclusion will appear once the persona has enough context.';
         }
         window.addEventListener('resize', adjustCardHeights);
 
@@ -1546,6 +1758,10 @@ Authority figure</div>
                 if (!selectedKey) return;
                 if (selectedKey === personaKey) return;
                 localStorage.setItem(ACTIVE_PERSONA_KEY_STORAGE, selectedKey);
+                if (isDecisionTreeDemo()) {
+                    window.location.href = demoUrl('analyze.html', { [PERSONA_QUERY_PARAM]: selectedKey });
+                    return;
+                }
                 window.location.href = buildPersonaUrl('analyze.html', selectedKey);
             });
         }
@@ -1571,6 +1787,7 @@ Authority figure</div>
 
         function refreshPersonaUiFromStorage() {
             loadBackgroundsFromStorage();
+            loadConclusionFromStorage();
             adjustCardHeights();
             renderPersonaBars();
             loadPersonaName();
@@ -2224,8 +2441,11 @@ Authority figure</div>
             const axes = layer.axes;
             const axesCount = Math.min(baseAxes.length, axes.length);
             const labelRadius = size * ((layer.radiusScale || 0.42) + 0.07);
-            ctx.fillStyle = layer.textColor || layer.color || 'rgba(255,255,255,0.9)';
-            ctx.font = '12px \"Space Grotesk\", sans-serif';
+            ctx.fillStyle = layer.textColor || '#203236';
+            ctx.strokeStyle = 'rgba(255,255,255,0.92)';
+            ctx.lineWidth = 4;
+            ctx.lineJoin = 'round';
+            ctx.font = '700 12px \"Space Grotesk\", sans-serif';
             for (let i = 0; i < axesCount; i++) {
                 const angle = startAngle + step * i;
                 const basePoint = {
@@ -2241,6 +2461,7 @@ Authority figure</div>
                 ctx.rotate(angle);
                 ctx.textAlign = 'center';
                 ctx.textBaseline = 'middle';
+                ctx.strokeText(name, 0, 0);
                 ctx.fillText(name, 0, 0);
                 ctx.restore();
             }
@@ -2257,8 +2478,11 @@ Authority figure</div>
                 const y = center + Math.sin(angle) * labelRadius;
                 vertices.push({ x, y });
             });
-            ctx.fillStyle = 'rgba(255,255,255,0.9)';
-            ctx.font = '13px \"Space Grotesk\", sans-serif';
+            ctx.fillStyle = '#203236';
+            ctx.strokeStyle = 'rgba(255,255,255,0.94)';
+            ctx.lineWidth = 5;
+            ctx.lineJoin = 'round';
+            ctx.font = '800 13px \"Space Grotesk\", sans-serif';
             baseAxes.forEach((axis, i) => {
                 const p1 = vertices[i];
                 const p2 = vertices[(i + 1) % vertices.length];
@@ -2277,6 +2501,7 @@ Authority figure</div>
                 ctx.rotate(angle);
                 ctx.textAlign = 'center';
                 ctx.textBaseline = 'middle';
+                ctx.strokeText(name, 0, 0);
                 ctx.fillText(name, 0, 0);
                 ctx.restore();
             });
@@ -2414,7 +2639,7 @@ Authority figure</div>
                 gradient: ['rgba(102,242,255,0.6)', 'rgba(34,211,238,0.6)'],
                 color: '#22d3ee',
                 lineWidth: 1.5,
-                textColor: 'rgba(255,255,255,0.9)',
+                textColor: '#203236',
                 textFont: '12px "Space Grotesk", sans-serif'
             };
             radarLayers = [layer];
@@ -2436,7 +2661,84 @@ Authority figure</div>
             ensureRadarLoop();
         });
 
+        function getRequestedDemoPersonaKey() {
+            const params = new URLSearchParams(window.location.search || '');
+            const requested = sanitizePersonaKey(params.get(PERSONA_QUERY_PARAM));
+            const definitions = window.SYNTRAE_DEMO_PERSONAS || {};
+            return definitions[requested] ? requested : 'daniel-smith-demo';
+        }
+
+        function setupDemoPersona() {
+            document.body.classList.add('demo-mode');
+            personaKey = getRequestedDemoPersonaKey();
+            const definition = window.getDemoPersonaDefinition
+                ? window.getDemoPersonaDefinition(personaKey)
+                : null;
+            const demoDefinition = definition || {
+                key: 'daniel-smith-demo',
+                name: 'Daniel Smith',
+                title: 'Daniel Smith Persona - Syntrae Demo',
+                portrait: 'assets/daniel-smith-cartoon-avatar.png',
+                chips: ['Graduate student', 'Male', '23 yrs old'],
+                buildState: window.buildDanielDemoPersonaState
+            };
+            document.title = demoDefinition.title;
+            personaKey = demoDefinition.key;
+            localStorage.setItem(ACTIVE_PERSONA_KEY_STORAGE, personaKey);
+            const params = new URLSearchParams(window.location.search);
+            params.set('demo', DECISION_TREE_DEMO);
+            params.set(PERSONA_QUERY_PARAM, personaKey);
+            window.history.replaceState({}, '', `${window.location.pathname}?${params.toString()}`);
+
+            const demoState = demoDefinition.buildState({
+                portraitDataUrl: demoDefinition.portrait,
+                savedAt: new Date().toISOString()
+            });
+            clearPersonaLocalState();
+            applyPersonaState(demoState);
+
+            if (personaSelectorEl) {
+                const definitions = Object.values(window.SYNTRAE_DEMO_PERSONAS || {});
+                personaSelectorEl.innerHTML = definitions.map((item) => (
+                    `<option value="${item.key}">${item.name}</option>`
+                )).join('');
+                personaSelectorEl.value = personaKey;
+            }
+            if (editPersonaLink) editPersonaLink.href = demoUrl('edit-persona.html', { persona: personaKey });
+            document.querySelector('.brand')?.setAttribute('href', demoUrl('DashboardDemo.html', { state: 'start' }));
+            document.querySelector('.primary-btn')?.setAttribute('href', demoUrl('DashboardDemo.html', { state: 'start' }));
+
+            const panel = document.querySelector('.panel');
+            if (panel) {
+                const stripMarkup = `
+                    <div>
+                        <h2>${demoDefinition.name} persona</h2>
+                    </div>
+                    <div class="demo-chip-row">
+                        ${demoDefinition.chips.map((chip) => `<span class="demo-chip">${chip}</span>`).join('')}
+                    </div>
+                `;
+                const existingStrip = document.querySelector('.demo-context-strip');
+                if (existingStrip) {
+                    existingStrip.setAttribute('aria-label', `${demoDefinition.name} demo context`);
+                    existingStrip.innerHTML = stripMarkup;
+                } else {
+                    panel.insertAdjacentHTML('afterbegin', `
+                        <section class="demo-context-strip" aria-label="${demoDefinition.name} demo context">
+                            ${stripMarkup}
+                        </section>
+                    `);
+                }
+            }
+        }
+
         async function startAnalyzePage() {
+            if (isDecisionTreeDemo()) {
+                setupDemoPersona();
+                refreshPersonaUiFromStorage();
+                await initRadar();
+                return;
+            }
             await ensureWorkingPersonaKey();
             await migrateLegacyDefaultPersonaKeys();
             await ensureWorkingPersonaKey();
@@ -2446,7 +2748,133 @@ Authority figure</div>
             await initRadar();
         }
 
-        startAnalyzePage();
+        startAnalyzePage().finally(() => {
+            const analyzeGuideParams = new URLSearchParams(window.location.search);
+            const isUniversalGuideFlow = analyzeGuideParams.get('flow') === 'universal';
+            const universalGuideSeenKey = 'syntrae-universal-guide-seen-dashboard-demo';
+            const buildUniversalGuideUrl = (path, params = {}) => {
+                const url = new URL(path, window.location.href);
+                url.searchParams.set('demo', 'decision-tree');
+                url.searchParams.set('tour', '1');
+                url.searchParams.set('flow', 'universal');
+                Object.entries(params).forEach(([key, value]) => {
+                    if (value !== undefined && value !== null && value !== '') {
+                        url.searchParams.set(key, String(value));
+                    }
+                });
+                return `${url.pathname.split('/').pop()}?${url.searchParams.toString()}`;
+            };
+            const stopUniversalGuideFlow = () => {
+                try {
+                    localStorage.setItem(universalGuideSeenKey, '1');
+                } catch (_) {
+                    // Non-critical: Skip should still close the active guide.
+                }
+                if (window.history?.replaceState) {
+                    const url = new URL(window.location.href);
+                    ['tour', 'flow', 'stage'].forEach((key) => url.searchParams.delete(key));
+                    window.history.replaceState({}, '', `${url.pathname.split('/').pop()}${url.search}${url.hash}`);
+                }
+            };
+
+            if (isDecisionTreeDemo() && !isUniversalGuideFlow) return;
+
+            const universalAnalyzeSteps = [
+                {
+                    selector: '.demo-context-strip, .persona-header',
+                    title: 'Step 2: Build the other person',
+                    description: 'This page is where you model the person you care about: a crush, romantic partner, parent, best friend, or anyone you know enough about to describe respectfully.',
+                    placement: 'bottom'
+                },
+                {
+                    selector: '.portrait',
+                    title: 'Add a visual anchor',
+                    description: 'A portrait is optional, but it helps keep the persona concrete while you review their context and likely behavior.',
+                    placement: 'right'
+                },
+                {
+                    selector: '.backgrounds',
+                    title: 'Add what you know',
+                    description: 'Use these cards for age or life stage, stressors, current context, and relationship role. The goal is useful context, not private details you do not know.',
+                    placement: 'top'
+                },
+                {
+                    selector: '.radar',
+                    title: 'Review the persona shape',
+                    description: 'The chart summarizes behavioral signals so you can see whether the model fits the person before using it in a decision.',
+                    placement: 'left'
+                },
+                {
+                    selector: '.edit-btn',
+                    title: 'Refine the persona when needed',
+                    description: 'Use Edit Your Persona when you need to answer more questions or update what you know. When this stage finishes, the flow returns to the dashboard.',
+                    placement: 'left',
+                    highlightSelector: '.demo-context-strip, .persona-header',
+                    highlight: 'soft'
+                }
+            ];
+
+            const standardAnalyzeSteps = [
+                {
+                    selector: '.demo-context-strip, .persona-header',
+                    title: 'Persona summary',
+                    description: 'This top area identifies which persona is active, exposes the selector, and keeps the edit action close by so the user can move between analysis and persona editing quickly.',
+                    placement: 'bottom'
+                },
+                {
+                    selector: '.portrait',
+                    title: 'Portrait column',
+                    description: 'This left column holds the persona image. It gives the analysis page a stable visual anchor while the user reviews the rest of the profile.',
+                    placement: 'right'
+                },
+                {
+                    selector: '.radar',
+                    title: 'Persona chart',
+                    description: 'This central analysis card summarizes the persona across the main behavioral axes so the user can see the overall shape before reading details.',
+                    placement: 'left'
+                },
+                {
+                    selector: '.backgrounds',
+                    title: 'Extra information',
+                    description: 'These background cards hold the contextual fields that matter to decision quality: time and life stage, current context, active stressors, and the broader social moment.',
+                    placement: 'top'
+                },
+                {
+                    selector: '.edit-btn',
+                    title: 'Edit flow',
+                    description: 'Use this button to open the questionnaire and refine the persona whenever the private context changes.',
+                    placement: 'left',
+                    highlightSelector: '.demo-context-strip, .persona-header',
+                    highlight: 'soft'
+                }
+            ];
+
+            window.SyntraePageTour?.init({
+                pageKey: isUniversalGuideFlow ? 'universal-analyze' : 'analyze',
+                title: isUniversalGuideFlow ? 'Step 2: Build Persona' : 'Analyze guide',
+                triggerText: 'Page guide',
+                showTrigger: !isUniversalGuideFlow,
+                autoStartOnce: !isUniversalGuideFlow,
+                autoStart: () => {
+                    if (isUniversalGuideFlow) return analyzeGuideParams.get('stage') === 'analyze';
+                    return analyzeGuideParams.get('tour') === '1';
+                },
+                onFinish: ({ reason } = {}) => {
+                    if (isUniversalGuideFlow && reason === 'skip') {
+                        stopUniversalGuideFlow();
+                        return;
+                    }
+                    if (!isUniversalGuideFlow || reason !== 'complete') return;
+                    window.setTimeout(() => {
+                        window.location.assign(buildUniversalGuideUrl('DashboardDemo.html', {
+                            state: 'start',
+                            stage: 'dashboard'
+                        }));
+                    }, 420);
+                },
+                steps: isUniversalGuideFlow ? universalAnalyzeSteps : standardAnalyzeSteps
+            });
+        });
     </script>
 </body>
 </html>

@@ -1679,6 +1679,150 @@
           "Media & Aesthetic Preferences: music={media.music}; shows_movies={media.shows_movies}; games={media.games}; aesthetic_style={media.aesthetic_style}"
         ]
       }
+    },
+    {
+      "layer_id": "L6",
+      "name": "Critical Factors (Hard Gates)",
+      "version": "1.0.0",
+      "status": "active",
+      "scope": {
+        "purpose": "Capture critical hard-gate factors that should trigger all-or-nothing behavior in task inference.",
+        "non_goals": [
+          "General personality scoring",
+          "Soft preference weighting",
+          "Replacing Layers 1-5"
+        ],
+        "audience": ["observer_report", "self_report"]
+      },
+      "mechanics": {
+        "question_format": "free_response_only",
+        "all_fields_optional": true,
+        "matching_rule": "Use keyword/phrase matching against task text. Conflict signals map to hard-negative outcomes; support signals map to hard-positive outcomes."
+      },
+      "sections": [
+        {
+          "section_id": "L6_S1",
+          "name": "Critical Factors",
+          "fields": [
+            {
+              "field_id": "L6_S1_F1",
+              "name": "physical_incapability",
+              "type": "free_text",
+              "prompt": "Physical incapability or hard physical limitations (if any):",
+              "placeholder": "Examples: knee injury, cannot run, cannot swim, no strenuous exercise",
+              "helper": "If this is present and the task requires physical activity, the algorithm treats it as a hard contradiction.",
+              "unknown_option_label": "None / Not sure"
+            },
+            {
+              "field_id": "L6_S1_F2",
+              "name": "hard_no_activities",
+              "type": "free_text",
+              "prompt": "Activities they absolutely will not do:",
+              "placeholder": "Comma-separated examples: clubbing, hiking, drinking, overnight travel",
+              "helper": "If the task includes any of these items, treat as a hard-negative signal.",
+              "unknown_option_label": "None / Not sure"
+            },
+            {
+              "field_id": "L6_S1_F3",
+              "name": "absolute_boundaries",
+              "type": "free_text",
+              "prompt": "Absolute boundaries / no-go topics or requests:",
+              "placeholder": "Comma-separated examples: borrowing money, smoking environments, political debates",
+              "helper": "Direct boundary contradiction is handled as critical failure.",
+              "unknown_option_label": "None / Not sure"
+            }
+          ]
+        },
+        {
+          "section_id": "L6_S2",
+          "name": "Critical Factors",
+          "fields": [
+            {
+              "field_id": "L6_S2_F1",
+              "name": "favorite_dishes",
+              "type": "free_text",
+              "prompt": "Favorite dishes / foods that strongly increase openness:",
+              "placeholder": "Comma-separated examples: ramen, sushi, milk tea, tacos",
+              "helper": "If a task explicitly matches these preferences, treat as a strong support signal.",
+              "unknown_option_label": "None / Not sure"
+            },
+            {
+              "field_id": "L6_S2_F2",
+              "name": "favorite_colors",
+              "type": "free_text",
+              "prompt": "Favorite colors (if behaviorally relevant):",
+              "placeholder": "Comma-separated examples: blue, black, green",
+              "helper": "Used only when a task explicitly references these attributes.",
+              "unknown_option_label": "None / Not sure"
+            },
+            {
+              "field_id": "L6_S2_F3",
+              "name": "preferred_activities",
+              "type": "free_text",
+              "prompt": "Preferred activities they are highly likely to accept:",
+              "placeholder": "Comma-separated examples: coffee chat, anime movie night, board games, museum visit",
+              "helper": "Direct activity match can trigger critical support.",
+              "unknown_option_label": "None / Not sure"
+            }
+          ]
+        },
+        {
+          "section_id": "L6_S3",
+          "name": "Critical Factors",
+          "fields": [
+            {
+              "field_id": "L6_S3_F1",
+              "name": "extreme_dislikes",
+              "type": "free_text",
+              "prompt": "Extreme dislikes (foods, celebrities, places, topics, vibes):",
+              "placeholder": "Comma-separated examples: spicy food, celebrity X, crowded bars, horror movies",
+              "helper": "Strong contradiction here is treated as hard failure.",
+              "unknown_option_label": "None / Not sure"
+            },
+            {
+              "field_id": "L6_S3_F2",
+              "name": "strong_likes",
+              "type": "free_text",
+              "prompt": "Strong likes / affinity triggers:",
+              "placeholder": "Comma-separated examples: jazz cafes, Japanese films, quiet bookstores, bubble tea",
+              "helper": "Strong alignment here is treated as hard support.",
+              "unknown_option_label": "None / Not sure"
+            }
+          ]
+        }
+      ],
+      "storage": {
+        "store_raw_inputs": true,
+        "derived_output_schema": {
+          "critical_factor_id": "string",
+          "text": "string",
+          "last_updated_iso": "string"
+        }
+      },
+      "output": {
+        "type": "critical_factor_map",
+        "description": "Qualitative hard-gate signals used for conflict/support overrides in task inference logic.",
+        "fields": ["critical_factors", "layer_id", "version", "timestamp_iso"]
+      },
+      "llm_injection": {
+        "block_title": "CRITICAL FACTORS — Layer 6",
+        "usage_rules": [
+          "Treat contradictions here as hard negatives and alignments as hard positives.",
+          "These factors are for task gating, not full personality replacement.",
+          "If blank/unknown, fall back to standard trait-based reasoning."
+        ],
+        "template": [
+          "[CRITICAL FACTORS — Layer 6]",
+          "Physical incapability: {physical_incapability}",
+          "Hard no activities: {hard_no_activities}",
+          "Absolute boundaries: {absolute_boundaries}",
+          "Favorite dishes: {favorite_dishes}",
+          "Favorite colors: {favorite_colors}",
+          "Preferred activities: {preferred_activities}",
+          "Extreme dislikes: {extreme_dislikes}",
+          "Strong likes: {strong_likes}"
+        ]
+      }
     }
   ],
   "extra_information": {

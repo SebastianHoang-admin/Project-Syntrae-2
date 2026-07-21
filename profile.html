@@ -3,93 +3,771 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Complete Your Profile - Syntrae</title>
+    <title>Your Persona - Syntrae</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        :root { --ink:#0b1224; --glass:rgba(255,255,255,0.06); --border:rgba(255,255,255,0.12); --accent:#22d3ee; --accent-hot:#f97316; --text:#e2e8f0; --muted:#94a3b8; }
-        * { margin:0; padding:0; box-sizing:border-box; font-family:'Space Grotesk','Helvetica Neue',Arial,sans-serif; }
-        body { min-height:100vh; background: radial-gradient(circle at 20% 20%, rgba(34,211,238,0.08), transparent 30%), radial-gradient(circle at 80% 10%, rgba(249,115,22,0.08), transparent 25%), linear-gradient(145deg,#0a0f1f 0%,#0f172a 60%,#0b1224 100%); color:var(--text); display:flex; flex-direction:column; padding:24px; }
-        .brand { display:flex; align-items:center; justify-content:center; gap:12px; margin-bottom:18px; }
-        .brand-link { text-decoration:none; color:inherit; display:inline-flex; }
-        .logo-icon { width:44px; height:44px; display:grid; place-items:center; border-radius:12px; background:linear-gradient(135deg,#f84f25,#b8120e); box-shadow:0 10px 24px rgba(248,79,37,0.35); padding:6px; }
-        .logo-text { display:flex; flex-direction:column; gap:2px; align-items:flex-start; }
-        .logo-text span:first-child { font-size:18px; font-weight:700; letter-spacing:1.5px; }
-        .logo-text span:last-child { font-size:12px; color:var(--muted); }
-        .main { flex:1; display:grid; place-items:center; padding:24px 0; }
-        .card { width:min(640px,100%); background:rgba(8,10,16,0.6); border:1px solid rgba(255,255,255,0.1); border-radius:20px; padding:32px; box-shadow:0 16px 36px rgba(0,0,0,0.35); backdrop-filter:blur(8px); }
-        .card h1 { font-size:24px; margin-bottom:8px; letter-spacing:0.5px; }
-        .card p { color:var(--muted); margin-bottom:20px; }
-        .grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:14px; }
-        .field { display:flex; flex-direction:column; gap:8px; margin-bottom:12px; }
-        .field label { font-weight:600; color:var(--text); }
-        .field input { padding:12px 14px; border-radius:12px; border:1px solid var(--border); background:rgba(255,255,255,0.04); color:var(--text); font-size:15px; outline:none; transition:all 0.2s ease; }
-        .field input:focus { border-color:rgba(34,211,238,0.6); box-shadow:0 0 0 3px rgba(34,211,238,0.12); }
-        .actions { display:flex; gap:12px; margin-top:12px; flex-wrap:wrap; }
-        .btn { display:inline-flex; align-items:center; justify-content:center; gap:8px; padding:12px 18px; border-radius:14px; font-weight:700; font-size:14px; cursor:pointer; border:none; text-decoration:none; transition:all 0.2s ease; }
-        .btn-primary { background:linear-gradient(135deg,var(--accent),var(--accent-hot)); color:#0b1224; box-shadow:0 12px 26px rgba(34,211,238,0.3); }
-        .btn-ghost { background:rgba(255,255,255,0.04); color:var(--text); border:1px solid rgba(255,255,255,0.08); }
-        .btn:hover { transform:translateY(-1px); box-shadow:0 16px 30px rgba(34,211,238,0.18); }
-        .status { margin: 8px 0 12px; padding: 10px 12px; border-radius: 12px; font-weight: 600; border: 1px solid rgba(255, 255, 255, 0.08); background: rgba(255, 255, 255, 0.04); }
-        .status[data-type=\"error\"] { color:#fecdd3; border-color:rgba(248,79,37,0.35); }
-        .status[data-type=\"success\"] { color:#bbf7d0; border-color:rgba(74,222,128,0.35); }
-        .status[data-type=\"info\"] { color:var(--text); }
-        .footer { text-align:center; color:var(--muted); font-size:13px; padding:16px 0; }
+        :root {
+            --ink:#0b1224;
+            --glass:rgba(255,255,255,0.06);
+            --glass-strong:rgba(255,255,255,0.12);
+            --border:rgba(255,255,255,0.12);
+            --accent:#22d3ee;
+            --accent-hot:#f97316;
+            --text:#e2e8f0;
+            --muted:#94a3b8;
+        }
+        * {
+            margin:0;
+            padding:0;
+            box-sizing:border-box;
+            font-family:'Space Grotesk','Helvetica Neue',Arial,sans-serif;
+        }
+        body {
+            min-height:100vh;
+            background:
+                radial-gradient(circle at 18% 18%, rgba(34,211,238,0.09), transparent 28%),
+                radial-gradient(circle at 84% 8%, rgba(249,115,22,0.08), transparent 24%),
+                linear-gradient(145deg,#0a0f1f 0%,#0f172a 58%,#0b1224 100%);
+            color:var(--text);
+            display:flex;
+            flex-direction:column;
+            padding:24px;
+        }
+        .brand {
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            gap:12px;
+            margin-bottom:18px;
+            text-decoration:none;
+            color:inherit;
+        }
+        .logo-icon {
+            width:44px;
+            height:44px;
+            display:grid;
+            place-items:center;
+            border-radius:12px;
+            background:linear-gradient(135deg,#f84f25,#b8120e);
+            box-shadow:0 10px 24px rgba(248,79,37,0.35);
+            padding:6px;
+        }
+        .logo-text {
+            display:flex;
+            flex-direction:column;
+            gap:2px;
+            align-items:flex-start;
+        }
+        .logo-text span:first-child {
+            font-size:18px;
+            font-weight:700;
+            letter-spacing:1.5px;
+        }
+        .logo-text span:last-child {
+            font-size:12px;
+            color:var(--muted);
+        }
+        .main {
+            flex:1;
+            display:grid;
+            place-items:center;
+            padding:24px 0;
+        }
+        .card {
+            width:min(920px,100%);
+            background:rgba(8,10,16,0.62);
+            border:1px solid rgba(255,255,255,0.1);
+            border-radius:20px;
+            padding:30px;
+            box-shadow:0 16px 36px rgba(0,0,0,0.35);
+            backdrop-filter:blur(8px);
+            display:grid;
+            gap:18px;
+        }
+        .title-row {
+            display:flex;
+            justify-content:space-between;
+            align-items:flex-start;
+            gap:14px;
+            flex-wrap:wrap;
+        }
+        .title-row h1 {
+            font-size:24px;
+            margin-bottom:8px;
+            letter-spacing:0.4px;
+        }
+        .title-row p {
+            color:var(--muted);
+            max-width:620px;
+        }
+        .status {
+            margin:2px 0 6px;
+            padding:10px 12px;
+            border-radius:12px;
+            font-weight:600;
+            border:1px solid rgba(255,255,255,0.08);
+            background:rgba(255,255,255,0.04);
+        }
+        .status[data-type="error"] {
+            color:#fecdd3;
+            border-color:rgba(248,79,37,0.35);
+        }
+        .status[data-type="success"] {
+            color:#bbf7d0;
+            border-color:rgba(74,222,128,0.35);
+        }
+        .status[data-type="info"] {
+            color:var(--text);
+        }
+        .section {
+            background:rgba(255,255,255,0.03);
+            border:1px solid var(--border);
+            border-radius:16px;
+            padding:16px;
+            display:grid;
+            gap:14px;
+        }
+        .section-head {
+            display:flex;
+            align-items:center;
+            justify-content:space-between;
+            gap:10px;
+            flex-wrap:wrap;
+        }
+        .section-head h2 {
+            font-size:16px;
+            letter-spacing:0.2px;
+            display:inline-flex;
+            align-items:center;
+            gap:8px;
+        }
+        .section-head p {
+            color:var(--muted);
+            font-size:13px;
+        }
+        .section-title-icon {
+            width:16px;
+            height:16px;
+            flex:0 0 auto;
+            color:var(--accent);
+        }
+        .grid {
+            display:grid;
+            grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+            gap:14px;
+        }
+        .field {
+            display:flex;
+            flex-direction:column;
+            gap:8px;
+        }
+        .field-wide {
+            grid-column:1 / -1;
+        }
+        .field label {
+            font-weight:600;
+            color:var(--text);
+            font-size:14px;
+        }
+        .field input,
+        .field textarea,
+        .field select {
+            padding:12px 14px;
+            border-radius:12px;
+            border:1px solid var(--border);
+            background:rgba(255,255,255,0.04);
+            color:var(--text);
+            font-size:14px;
+            outline:none;
+            transition:all 0.2s ease;
+        }
+        .field textarea {
+            min-height:86px;
+            resize:vertical;
+            line-height:1.45;
+        }
+        .field input:focus,
+        .field textarea:focus,
+        .field select:focus {
+            border-color:rgba(34,211,238,0.6);
+            box-shadow:0 0 0 3px rgba(34,211,238,0.12);
+        }
+        .hint {
+            font-size:12px;
+            color:var(--muted);
+        }
+        .persona-pdf-space {
+            display:grid;
+            grid-template-columns:0.85fr 1.15fr;
+            gap:16px;
+            align-items:stretch;
+            padding:18px;
+            border-radius:18px;
+            border:1px solid rgba(32,50,54,0.13);
+            background:
+                radial-gradient(circle at 8% 8%, rgba(223,244,237,0.86), transparent 42%),
+                linear-gradient(135deg, rgba(255,255,255,0.93), rgba(251,255,248,0.82));
+            box-shadow:0 16px 40px rgba(32,50,54,0.08);
+        }
+        .persona-pdf-copy {
+            display:flex;
+            flex-direction:column;
+            gap:12px;
+        }
+        .persona-pdf-copy h2 {
+            display:flex;
+            align-items:center;
+            gap:8px;
+            font-size:22px;
+            color:var(--ink);
+        }
+        .persona-pdf-copy p {
+            color:var(--muted);
+            line-height:1.55;
+        }
+        .persona-pdf-actions {
+            display:flex;
+            gap:10px;
+            flex-wrap:wrap;
+            align-items:center;
+        }
+        .persona-pdf-input {
+            position:absolute;
+            width:1px;
+            height:1px;
+            opacity:0;
+            pointer-events:none;
+        }
+        .persona-pdf-file {
+            display:flex;
+            flex-direction:column;
+            gap:10px;
+            min-width:0;
+        }
+        .persona-file-card {
+            display:flex;
+            align-items:center;
+            justify-content:space-between;
+            gap:12px;
+            padding:14px 16px;
+            border-radius:14px;
+            border:1px solid rgba(18,150,141,0.18);
+            background:rgba(251,255,248,0.92);
+            color:var(--ink);
+            text-decoration:none;
+        }
+        .persona-file-name {
+            display:flex;
+            align-items:center;
+            gap:10px;
+            min-width:0;
+            font-weight:800;
+        }
+        .persona-file-name span:last-child {
+            overflow:hidden;
+            text-overflow:ellipsis;
+            white-space:nowrap;
+        }
+        .persona-file-status {
+            border-radius:999px;
+            padding:7px 9px;
+            background:rgba(18,150,141,0.1);
+            color:var(--accent);
+            font-size:11px;
+            font-weight:800;
+            white-space:nowrap;
+        }
+        .persona-pdf-reading {
+            width:100%;
+            min-height:230px;
+            resize:vertical;
+            padding:14px 16px;
+            border-radius:14px;
+            border:1px solid rgba(32,50,54,0.14);
+            background:rgba(255,255,255,0.82);
+            color:var(--ink);
+            font-size:14px;
+            line-height:1.62;
+            outline:none;
+        }
+        .actions {
+            display:flex;
+            gap:12px;
+            margin-top:2px;
+            flex-wrap:wrap;
+        }
+        .btn {
+            display:inline-flex;
+            align-items:center;
+            justify-content:center;
+            gap:8px;
+            padding:12px 18px;
+            border-radius:14px;
+            font-weight:700;
+            font-size:14px;
+            cursor:pointer;
+            border:none;
+            text-decoration:none;
+            transition:all 0.2s ease;
+        }
+        .inline-icon {
+            width:15px;
+            height:15px;
+            flex:0 0 auto;
+            display:inline-block;
+        }
+        .btn-primary {
+            background:linear-gradient(135deg,var(--accent),var(--accent-hot));
+            color:#0b1224;
+            box-shadow:0 12px 26px rgba(34,211,238,0.3);
+        }
+        .btn-ghost {
+            background:rgba(255,255,255,0.04);
+            color:var(--text);
+            border:1px solid rgba(255,255,255,0.12);
+        }
+        .btn:hover {
+            transform:translateY(-1px);
+            box-shadow:0 16px 30px rgba(34,211,238,0.18);
+        }
+        .footer {
+            text-align:center;
+            color:var(--muted);
+            font-size:13px;
+            padding:16px 0;
+        }
+        .demo-mode .card {
+            width:min(1080px,100%);
+        }
+        .demo-video-strip {
+            display:grid;
+            grid-template-columns:1.1fr .9fr;
+            gap:14px;
+            align-items:center;
+            padding:16px;
+            border-radius:16px;
+            border:1px solid rgba(32,50,54,0.12);
+            background:linear-gradient(135deg, rgba(223,244,237,0.82), rgba(255,255,255,0.92));
+            box-shadow:0 14px 36px rgba(32,50,54,0.08);
+        }
+        .demo-profile-intro {
+            display:flex;
+            align-items:center;
+            gap:14px;
+            min-width:0;
+        }
+        .demo-profile-avatar {
+            width:82px;
+            height:82px;
+            border-radius:22px;
+            object-fit:cover;
+            object-position:center;
+            border:3px solid rgba(251,255,248,0.95);
+            box-shadow:0 16px 34px rgba(32,50,54,0.16);
+            flex:0 0 auto;
+        }
+        .demo-video-strip h3 {
+            margin-bottom:6px;
+            color:var(--ink);
+        }
+        .demo-video-strip p {
+            color:var(--muted);
+            line-height:1.5;
+        }
+        .demo-chip-row {
+            display:flex;
+            gap:8px;
+            flex-wrap:wrap;
+            align-content:start;
+        }
+        .demo-chip {
+            border:1px solid rgba(32,50,54,0.12);
+            border-radius:999px;
+            padding:8px 10px;
+            background:rgba(251,255,248,0.86);
+            color:var(--ink);
+            font-size:12px;
+            font-weight:800;
+        }
+        @media (max-width: 700px) {
+            body {
+                padding:18px;
+            }
+            .card {
+                padding:20px;
+            }
+            .title-row h1 {
+                font-size:22px;
+            }
+            .demo-video-strip {
+                grid-template-columns:1fr;
+            }
+            .persona-pdf-space {
+                grid-template-columns:1fr;
+            }
+            .demo-profile-intro {
+                align-items:flex-start;
+            }
+            .demo-profile-avatar {
+                width:68px;
+                height:68px;
+                border-radius:18px;
+            }
+        }
+    </style>
+    <link rel="stylesheet" href="css/syntrae-product-theme.css">
+    <style>
+        body {
+            background: #f7fbf7 !important;
+        }
+
+        .main {
+            background: #f7fbf7;
+        }
+
+        .card {
+            background: #ffffff !important;
+            border-color: rgba(32, 50, 54, 0.12) !important;
+            box-shadow: 0 18px 42px rgba(32, 50, 54, 0.08) !important;
+        }
+
+        .demo-video-strip,
+        .persona-pdf-space,
+        .section {
+            background: #fbfff8 !important;
+            border-color: rgba(32, 50, 54, 0.12) !important;
+            box-shadow: 0 12px 30px rgba(32, 50, 54, 0.06) !important;
+        }
+
+        .persona-file-card,
+        .persona-pdf-reading,
+        .field input,
+        .field textarea,
+        .field select,
+        .demo-chip {
+            background: #ffffff !important;
+        }
+
+        .btn-primary {
+            background: #2d7d67 !important;
+            color: #ffffff !important;
+            box-shadow: 0 12px 24px rgba(45, 125, 103, 0.18) !important;
+        }
+
+        .btn-primary:hover {
+            box-shadow: 0 14px 28px rgba(45, 125, 103, 0.22) !important;
+        }
+
+        .persona-file-status {
+            background: #e8f5ef !important;
+            color: #2d7d67 !important;
+        }
     </style>
 </head>
 <body>
     <main class="main">
-        <a class="brand brand-link" href="landing.html">
-            <div class="logo-icon" aria-label="Syntrae logo">🧠</div>
-            <div class="logo-text">
-                <span>SYNTRAE</span>
-                <span>Persona Simulation Engine</span>
-            </div>
+        <a class="brand" href="landing.html">
+            <img class="syntrae-logo-image" src="assets/syntrae-logo.svg" alt="Syntrae logo">
+            <span class="brand-page-label">Persona Profile</span>
         </a>
         <div class="card">
-            <h1>Welcome! Tell us a bit about you</h1>
-            <p>This helps personalize your workspace. You can edit it anytime.</p>
+            <div class="title-row">
+                <div>
+                    <h1>Your Persona</h1>
+                    <p>This is your account-level persona profile. Syntrae uses this page as the primary source of private context for Best Way and insight tools.</p>
+                </div>
+            </div>
+
             <div id="status" class="status" hidden></div>
+
+            <section class="persona-pdf-space" aria-label="Persona PDF upload and reading">
+                <div class="persona-pdf-copy">
+                    <h2>
+                        <svg class="section-title-icon" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M7 3h7l4 4v14H7z"></path>
+                            <path d="M14 3v5h5"></path>
+                            <path d="M9.5 13h5"></path>
+                            <path d="M9.5 16h4"></path>
+                        </svg>
+                        Your Persona
+                    </h2>
+                    <p>Upload a PDF summary of your persona. Syntrae can use this as a readable private context layer before you compare paths in decision tools.</p>
+                    <div class="persona-pdf-actions">
+                        <label class="btn btn-primary" for="persona_pdf_upload">
+                            <svg class="inline-icon" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M8 11V3"></path>
+                                <path d="M4.8 6.2 8 3l3.2 3.2"></path>
+                                <path d="M3 12.5h10"></path>
+                            </svg>
+                            Upload PDF
+                        </label>
+                        <input class="persona-pdf-input" id="persona_pdf_upload" type="file" accept="application/pdf">
+                    </div>
+                </div>
+                <div class="persona-pdf-file">
+                    <a class="persona-file-card" id="personaPdfLink" href="#" target="_blank" rel="noopener" aria-label="Open uploaded persona PDF">
+                        <span class="persona-file-name">
+                            <svg class="section-title-icon" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M7 3h7l4 4v14H7z"></path>
+                                <path d="M14 3v5h5"></path>
+                            </svg>
+                            <span id="personaPdfName">No persona PDF uploaded yet</span>
+                        </span>
+                        <span class="persona-file-status" id="personaPdfStatus">Waiting</span>
+                    </a>
+                    <label class="hint" for="personaPdfReading">PDF reading for your information</label>
+                    <textarea class="persona-pdf-reading" id="personaPdfReading" readonly>Upload a persona PDF to preview its reading here.</textarea>
+                </div>
+            </section>
+
             <form id="profile-form">
-                <div class="grid">
-                    <div class="field">
-                        <label for="first_name">First name</label>
-                        <input id="first_name" name="first_name" autocomplete="given-name" required>
+                <section class="section">
+                    <div class="section-head">
+                        <h2>
+                            <svg class="section-title-icon" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+                                <rect x="3" y="5" width="18" height="14" rx="2"></rect>
+                                <path d="M7 10h4"></path>
+                                <path d="M7 13h7"></path>
+                                <circle cx="17" cy="11.5" r="1.8"></circle>
+                            </svg>
+                            Core Profile
+                        </h2>
+                        <p>Basic account information</p>
+                    </div>
+                    <div class="grid">
+                        <div class="field">
+                            <label for="first_name">First name</label>
+                            <input id="first_name" name="first_name" autocomplete="given-name" required>
+                        </div>
+                        <div class="field">
+                            <label for="last_name">Last name</label>
+                            <input id="last_name" name="last_name" autocomplete="family-name" required>
+                        </div>
+                        <div class="field">
+                            <label for="occupation">Occupation</label>
+                            <input id="occupation" name="occupation" placeholder="Product Manager, Researcher, etc.">
+                        </div>
+                        <div class="field">
+                            <label for="organization">Organization</label>
+                            <input id="organization" name="organization" placeholder="Company or team">
+                        </div>
+                        <div class="field field-wide">
+                            <label for="location">Location</label>
+                            <input id="location" name="location" placeholder="City, Country">
+                        </div>
+                    </div>
+                </section>
+
+                <section class="section">
+                    <div class="section-head">
+                        <h2>
+                            <svg class="section-title-icon" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="9" cy="8" r="3"></circle>
+                                <path d="M3.5 19c.8-3.2 2.7-5 5.5-5 1.8 0 3.2.7 4.2 2"></path>
+                                <path d="M17 14v6"></path>
+                                <path d="M14 17h6"></path>
+                            </svg>
+                            User Persona Context
+                        </h2>
+                        <p>Personal context used by Syntrae decision tools</p>
+                    </div>
+                    <div class="grid">
+                        <div class="field">
+                            <label for="display_name">Display name</label>
+                            <input id="display_name" name="display_name" placeholder="How should Syntrae refer to you?">
+                        </div>
+                        <div class="field">
+                            <label for="personal_headline">Personal headline</label>
+                            <input id="personal_headline" name="personal_headline" placeholder="Example: Founder building healthier relationships">
+                        </div>
+                        <div class="field field-wide">
+                            <label for="goals">Current goals</label>
+                            <textarea id="goals" name="goals" placeholder="What outcomes are you currently trying to achieve?"></textarea>
+                        </div>
+                        <div class="field field-wide">
+                            <label for="strengths">Strengths and leverage</label>
+                            <textarea id="strengths" name="strengths" placeholder="What gives you an advantage in social interactions?"></textarea>
+                        </div>
+                        <div class="field field-wide">
+                            <label for="constraints">Constraints and risks</label>
+                            <textarea id="constraints" name="constraints" placeholder="What currently makes this harder for you?"></textarea>
+                        </div>
+                        <div class="field field-wide">
+                            <label for="communication_style">Communication style</label>
+                            <textarea id="communication_style" name="communication_style" placeholder="How do you usually communicate? tone, pacing, directness, etc."></textarea>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="section">
+                    <div class="section-head">
+                        <h2>
+                            <svg class="section-title-icon" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M10 13a5 5 0 0 0 7.1 0l1.4-1.4a5 5 0 0 0-7.1-7.1L10.6 5.3"></path>
+                                <path d="M14 11a5 5 0 0 0-7.1 0l-1.4 1.4a5 5 0 0 0 7.1 7.1l.8-.8"></path>
+                            </svg>
+                            Persona Link
+                        </h2>
+                        <p>Select which persona represents you in decision tools</p>
                     </div>
                     <div class="field">
-                        <label for="last_name">Last name</label>
-                        <input id="last_name" name="last_name" autocomplete="family-name" required>
+                        <label for="primary_persona_key">Primary user persona (optional)</label>
+                        <select id="primary_persona_key" name="primary_persona_key">
+                            <option value="">No linked persona</option>
+                        </select>
+                        <div class="hint">This option is used by Insight Lab to include your own persona in private comparisons.</div>
                     </div>
-                </div>
-                <div class="grid">
-                    <div class="field">
-                        <label for="occupation">Occupation</label>
-                        <input id="occupation" name="occupation" placeholder="Product Manager, Researcher, etc.">
-                    </div>
-                    <div class="field">
-                        <label for="organization">Organization</label>
-                        <input id="organization" name="organization" placeholder="Company or team">
-                    </div>
-                </div>
-                <div class="field">
-                    <label for="location">Location</label>
-                    <input id="location" name="location" placeholder="City, Country">
-                </div>
+                </section>
+
                 <div class="actions">
-                    <button type="submit" class="btn btn-primary"><i class="fas fa-check"></i>Save profile</button>
-                    <button type="button" id="skipBtn" class="btn btn-ghost">Skip for now</button>
+                    <button type="submit" class="btn btn-primary">
+                        <svg class="inline-icon" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M3.25 8.35 6.5 11.6 12.9 4.4"></path>
+                        </svg>
+                        Save user persona
+                    </button>
+                    <button type="button" id="skipBtn" class="btn btn-ghost">Back to Dashboard</button>
                 </div>
             </form>
         </div>
     </main>
 
     <div class="footer">
-        © 2026 Syntrae. All rights reserved.
+        © 2026 Syntrae LLC.
     </div>
 
     <script src="js/supabase-config.js"></script>
-    <script type="module" src="js/profile.js"></script>
+    <script src="js/page-tour.js"></script>
+    <script type="module" src="js/profile.js?v=20260707-persona-pdf"></script>
+    <script>
+        const profileGuideParams = new URLSearchParams(window.location.search);
+        const isDecisionTreeProfileDemo = profileGuideParams.get('demo') === 'decision-tree';
+        const isUniversalGuideFlow = profileGuideParams.get('flow') === 'universal';
+        const universalGuideSeenKey = 'syntrae-universal-guide-seen-dashboard-demo';
+        const buildUniversalGuideUrl = (path, params = {}) => {
+            const url = new URL(path, window.location.href);
+            url.searchParams.set('demo', 'decision-tree');
+            url.searchParams.set('tour', '1');
+            url.searchParams.set('flow', 'universal');
+            Object.entries(params).forEach(([key, value]) => {
+                if (value !== undefined && value !== null && value !== '') {
+                    url.searchParams.set(key, String(value));
+                }
+            });
+            return `${url.pathname.split('/').pop()}?${url.searchParams.toString()}`;
+        };
+        const stopUniversalGuideFlow = () => {
+            try {
+                localStorage.setItem(universalGuideSeenKey, '1');
+            } catch (_) {
+                // Non-critical: Skip should still close the active guide.
+            }
+            if (window.history?.replaceState) {
+                const url = new URL(window.location.href);
+                ['tour', 'flow', 'stage'].forEach((key) => url.searchParams.delete(key));
+                window.history.replaceState({}, '', `${url.pathname.split('/').pop()}${url.search}${url.hash}`);
+            }
+        };
+
+        if (!isDecisionTreeProfileDemo || isUniversalGuideFlow) {
+            const universalProfileSteps = [
+                {
+                    selector: '.persona-pdf-space',
+                    title: 'Step 1: Add your own persona',
+                    description: 'Start here. Upload a PDF that summarizes you, and Syntrae will turn that document into private context for future decisions.',
+                    placement: 'bottom'
+                },
+                {
+                    selector: '.persona-pdf-actions .btn-primary',
+                    title: 'Upload the PDF summary',
+                    description: 'This upload button is where the persona PDF goes. In the full product, Syntrae reads it and builds the first version of your account-level persona.',
+                    placement: 'right',
+                    highlight: 'soft'
+                },
+                {
+                    selector: '#personaPdfReading',
+                    title: 'Review the extracted reading',
+                    description: 'After upload, this reading area shows the persona summary Syntrae will use. You can check whether the private context feels accurate before using it.',
+                    placement: 'left'
+                },
+                {
+                    selector: '#profile-form .section:nth-of-type(2)',
+                    title: 'Add useful personal context',
+                    description: 'Goals, strengths, constraints, and communication style help Syntrae estimate consequences in a way that fits you, not a generic user.',
+                    placement: 'top'
+                },
+                {
+                    selector: '.actions',
+                    title: 'Save, then build the other person',
+                    description: 'Once your own context is ready, the flow moves to the page for building the persona of someone you care about.',
+                    placement: 'top',
+                    highlight: 'soft'
+                }
+            ];
+
+            const standardProfileSteps = [
+                {
+                    selector: '.persona-pdf-space',
+                    title: 'Your Persona',
+                    description: 'This space lets the user upload a persona PDF and review the extracted reading before that context is used in Syntrae decision tools.',
+                    placement: 'bottom'
+                },
+                {
+                    selector: '#profile-form .section:nth-of-type(1)',
+                    title: 'Core Profile',
+                    description: 'This first section captures stable account information such as name, occupation, and location.',
+                    placement: 'top'
+                },
+                {
+                    selector: '#profile-form .section:nth-of-type(2)',
+                    title: 'User Persona Context',
+                    description: 'This is the richer self-context layer: your goals, strengths, constraints, and communication style. It helps Syntrae reason about what kind of decision support actually fits you.',
+                    placement: 'top'
+                },
+                {
+                    selector: '#profile-form .section:nth-of-type(3)',
+                    title: 'Persona Link',
+                    description: 'This section optionally links one stored persona to your account so comparison tools can include your own side of the relationship.',
+                    placement: 'top'
+                },
+                {
+                    selector: '.actions',
+                    title: 'Save actions',
+                    description: 'Use these actions to save the account-level profile or return to chat once the context is updated.',
+                    placement: 'top',
+                    highlight: 'soft'
+                }
+            ];
+
+            window.SyntraePageTour?.init({
+                pageKey: isUniversalGuideFlow ? 'universal-profile' : 'profile',
+                title: isUniversalGuideFlow ? 'Step 1: Your Persona' : 'Profile guide',
+                triggerText: 'Page guide',
+                showTrigger: !isUniversalGuideFlow,
+                autoStartOnce: !isUniversalGuideFlow,
+                autoStart: () => {
+                    if (isUniversalGuideFlow) return profileGuideParams.get('stage') === 'profile';
+                    return profileGuideParams.get('tour') === '1';
+                },
+                onFinish: ({ reason } = {}) => {
+                    if (isUniversalGuideFlow && reason === 'skip') {
+                        stopUniversalGuideFlow();
+                        return;
+                    }
+                    if (!isUniversalGuideFlow || reason !== 'complete') return;
+                    window.setTimeout(() => {
+                        window.location.assign(buildUniversalGuideUrl('analyze.html', {
+                            stage: 'analyze',
+                            persona: 'daniel-smith-demo'
+                        }));
+                    }, 420);
+                },
+                steps: isUniversalGuideFlow ? universalProfileSteps : standardProfileSteps
+            });
+        }
+    </script>
 </body>
 </html>

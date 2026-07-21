@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-store">
     <title>Sign In - Syntrae</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -150,19 +151,17 @@
         .status[data-type="info"] { color: var(--text); }
         .captcha-wrap { margin: 8px 0 4px; }
     </style>
+    <link rel="stylesheet" href="css/syntrae-product-theme.css">
 </head>
 <body>
     <main class="main">
         <a class="brand brand-link" href="landing.html">
-            <div class="logo-icon" aria-label="Syntrae logo">🧠</div>
-            <div class="logo-text">
-                <span>SYNTRAE</span>
-                <span>Persona Simulation Engine</span>
-            </div>
+            <img class="syntrae-logo-image" src="assets/syntrae-logo.svg" alt="Syntrae logo">
+            <span class="brand-page-label">Decision Studio</span>
         </a>
         <div class="card">
-            <h1>Welcome to Syntrae, how do you want to get started?</h1>
-            <p>Choose a sign-in method to continue to your chat.</p>
+            <h1>Welcome back to Syntrae</h1>
+            <p>Continue to your private decision studio and relationship insight tools.</p>
             <div id="auth-message" class="status" hidden></div>
             <form id="email-signin-form">
                 <div class="field">
@@ -187,9 +186,9 @@
         </div>
     </main>
 
-    <div class="footer">© 2026 Syntrae. All rights reserved.</div>
+    <div class="footer">© 2026 Syntrae LLC. Predictive social science for considerate decisions.</div>
     <script src="js/supabase-config.js"></script>
     <script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit" async defer></script>
-    <script type="module" src="js/sign-in.js"></script>
+    <script type="module" src="js/sign-in.js?v=20260701"></script>
 </body>
 </html>

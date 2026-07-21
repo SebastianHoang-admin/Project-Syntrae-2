@@ -28,7 +28,7 @@ function safeJson(value) {
 
 function buildContextPrompt({ userProfile, personaProfile, personaName, personaKey }) {
   return [
-    'You are Syntrae assistant.',
+    'You are Syntrae AI.',
     'Use account-scoped profile context exactly as provided.',
     'If context fields are missing, ask concise follow-up questions instead of guessing.',
     '',

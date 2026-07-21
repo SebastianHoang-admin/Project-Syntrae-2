@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" role="img" aria-labelledby="title desc">
+  <title id="title">Aaron Chen avatar</title>
+  <desc id="desc">Warm illustrated portrait of Aaron Chen, Maya Chen's father.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#edf8f2"/>
+      <stop offset="1" stop-color="#fff4df"/>
+    </linearGradient>
+    <linearGradient id="shirt" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#2f8c77"/>
+      <stop offset="1" stop-color="#164f48"/>
+    </linearGradient>
+    <filter id="softShadow" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="18" stdDeviation="18" flood-color="#17483f" flood-opacity="0.18"/>
+    </filter>
+  </defs>
+  <rect width="640" height="640" rx="88" fill="url(#bg)"/>
+  <circle cx="138" cy="132" r="96" fill="#d6f0e8" opacity="0.85"/>
+  <circle cx="530" cy="132" r="112" fill="#ffe6c8" opacity="0.7"/>
+  <circle cx="486" cy="516" r="138" fill="#d8f3ea" opacity="0.8"/>
+  <g filter="url(#softShadow)">
+    <path d="M168 560c24-117 86-174 152-174s128 57 152 174H168Z" fill="url(#shirt)"/>
+    <path d="M254 416c16 34 43 52 66 52s50-18 66-52v-58H254v58Z" fill="#d69a76"/>
+    <path d="M226 272c-14-6-32 3-32 27 0 29 21 44 40 42l-8-69Z" fill="#c88968"/>
+    <path d="M414 272c14-6 32 3 32 27 0 29-21 44-40 42l8-69Z" fill="#c88968"/>
+    <path d="M223 245c0-84 39-143 97-143s97 59 97 143v70c0 75-46 128-97 128s-97-53-97-128v-70Z" fill="#dca17d"/>
+    <path d="M215 253c8-88 42-143 105-143 64 0 101 54 107 143-26-34-62-51-107-51-44 0-79 17-105 51Z" fill="#263c3a"/>
+    <path d="M227 249c11-69 44-112 93-112 50 0 84 43 94 112-28-21-59-31-94-31-34 0-65 10-93 31Z" fill="#344f4a"/>
+    <path d="M248 270c23-17 54-24 79-19" fill="none" stroke="#263c3a" stroke-width="12" stroke-linecap="round"/>
+    <path d="M338 251c25-5 56 2 79 19" fill="none" stroke="#263c3a" stroke-width="12" stroke-linecap="round"/>
+    <circle cx="281" cy="302" r="12" fill="#1b2b2a"/>
+    <circle cx="359" cy="302" r="12" fill="#1b2b2a"/>
+    <path d="M298 348c13 10 31 10 44 0" fill="none" stroke="#7f4c3c" stroke-width="9" stroke-linecap="round"/>
+    <path d="M300 382c14 13 28 18 42 0" fill="none" stroke="#613a32" stroke-width="8" stroke-linecap="round"/>
+    <path d="M276 292h-42m130 0h42" fill="none" stroke="#263c3a" stroke-width="10" stroke-linecap="round"/>
+    <rect x="239" y="270" width="76" height="50" rx="22" fill="none" stroke="#263c3a" stroke-width="8"/>
+    <rect x="325" y="270" width="76" height="50" rx="22" fill="none" stroke="#263c3a" stroke-width="8"/>
+    <path d="M315 294h10" fill="none" stroke="#263c3a" stroke-width="8" stroke-linecap="round"/>
+    <path d="M236 560c15-42 42-70 84-70s69 28 84 70" fill="none" stroke="#f4ead8" stroke-width="20" stroke-linecap="round" opacity="0.82"/>
+  </g>
+</svg>

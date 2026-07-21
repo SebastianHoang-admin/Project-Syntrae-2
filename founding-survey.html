@@ -1,0 +1,683 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Founding Member Survey | Syntrae</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@600;700&family=Manrope:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="syntrae-pages.css">
+    <style>
+        .survey-hero {
+            padding-bottom: 38px;
+        }
+
+        .survey-hero .image-frame {
+            margin: 0;
+        }
+
+        .survey-shell {
+            display: grid;
+            grid-template-columns: minmax(280px, 0.72fr) minmax(0, 1fr);
+            gap: 28px;
+            align-items: start;
+            width: min(1180px, calc(100% - 56px));
+            margin: 0 auto 82px;
+        }
+
+        .survey-intro,
+        .survey-form {
+            border: 1px solid var(--line);
+            border-radius: 28px;
+            background: rgba(255, 255, 255, 0.9);
+            box-shadow: var(--shadow);
+        }
+
+        .survey-intro {
+            position: sticky;
+            top: 112px;
+            overflow: hidden;
+        }
+
+        .survey-mini-visual {
+            position: relative;
+            min-height: 214px;
+            overflow: hidden;
+            border-bottom: 1px solid var(--line);
+            background:
+                radial-gradient(circle at 18% 72%, rgba(223, 244, 237, 0.88), transparent 34%),
+                radial-gradient(circle at 82% 18%, rgba(243, 201, 79, 0.24), transparent 30%),
+                #fbfff8;
+        }
+
+        .survey-mini-visual::before,
+        .survey-mini-visual::after {
+            content: "";
+            position: absolute;
+            border-radius: 999px;
+        }
+
+        .survey-mini-visual::before {
+            inset: 68px 42px auto;
+            height: 18px;
+            background: linear-gradient(90deg, rgba(45, 125, 103, 0.72), rgba(18, 150, 141, 0.32), rgba(243, 201, 79, 0.52));
+            transform: rotate(-7deg);
+        }
+
+        .survey-mini-visual::after {
+            right: 40px;
+            bottom: 34px;
+            width: 128px;
+            height: 128px;
+            background: rgba(255, 255, 255, 0.82);
+            box-shadow: 0 18px 44px rgba(32, 50, 54, 0.12);
+        }
+
+        .signal-dot {
+            position: absolute;
+            z-index: 2;
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            background: var(--leaf);
+            box-shadow: 0 14px 28px rgba(45, 125, 103, 0.2);
+        }
+
+        .signal-dot:nth-child(1) {
+            top: 74px;
+            left: 70px;
+        }
+
+        .signal-dot:nth-child(2) {
+            top: 112px;
+            left: 48%;
+            background: var(--coral);
+        }
+
+        .signal-dot:nth-child(3) {
+            top: 66px;
+            right: 64px;
+            background: var(--sun);
+        }
+
+        .survey-intro-copy {
+            padding: 26px;
+        }
+
+        .survey-intro-copy h2 {
+            font-size: clamp(30px, 4vw, 44px);
+        }
+
+        .survey-intro-copy p {
+            color: var(--quiet);
+            font-weight: 750;
+            line-height: 1.7;
+        }
+
+        .survey-intro-copy > .kicker {
+            border-color: rgba(45, 125, 103, 0.34);
+            background: #dff4e9;
+            color: #176c55;
+            box-shadow: 0 8px 20px rgba(45, 125, 103, 0.12);
+        }
+
+        .survey-intro-copy > .kicker i {
+            color: #23886b;
+        }
+
+        .survey-promise {
+            display: grid;
+            gap: 12px;
+            margin-top: 20px;
+        }
+
+        .promise-item {
+            display: flex;
+            gap: 10px;
+            align-items: flex-start;
+            padding: 13px 14px;
+            border: 1px solid rgba(45, 125, 103, 0.3);
+            border-left: 4px solid #2d7d67;
+            border-radius: 16px;
+            background: #eaf7f0;
+            color: #235f50;
+            font-size: 14px;
+            font-weight: 800;
+            line-height: 1.5;
+            box-shadow: 0 10px 24px rgba(45, 125, 103, 0.1);
+        }
+
+        .promise-item i {
+            display: grid;
+            flex: 0 0 28px;
+            width: 28px;
+            height: 28px;
+            margin-top: -1px;
+            place-items: center;
+            border-radius: 50%;
+            background: #2d7d67;
+            color: #fff;
+            box-shadow: 0 6px 14px rgba(45, 125, 103, 0.2);
+        }
+
+        .survey-form {
+            padding: clamp(24px, 4vw, 38px);
+        }
+
+        .question-block {
+            display: grid;
+            gap: 14px;
+            padding: 24px 0;
+            border-bottom: 1px solid var(--line);
+        }
+
+        .question-block:first-child {
+            padding-top: 0;
+        }
+
+        .question-block:last-of-type {
+            border-bottom: 0;
+        }
+
+        .question-block h3 {
+            margin: 0;
+            font-size: 23px;
+            line-height: 1.25;
+        }
+
+        .question-block p {
+            margin: 0;
+            color: var(--quiet);
+            font-weight: 700;
+            line-height: 1.62;
+        }
+
+        .choice-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 12px;
+        }
+
+        .choice {
+            position: relative;
+            display: flex;
+            gap: 11px;
+            align-items: flex-start;
+            min-height: 66px;
+            padding: 15px;
+            border: 1px solid rgba(32, 50, 54, 0.13);
+            border-radius: 16px;
+            background: #fbfff8;
+            font-weight: 850;
+            line-height: 1.42;
+            cursor: pointer;
+            transition: transform 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease, background 0.18s ease;
+        }
+
+        .choice:hover,
+        .choice:focus-within {
+            transform: translateY(-2px);
+            border-color: rgba(18, 150, 141, 0.34);
+            background: #fff;
+            box-shadow: 0 16px 32px rgba(32, 50, 54, 0.09);
+        }
+
+        .choice input {
+            accent-color: var(--leaf);
+            margin-top: 4px;
+        }
+
+        .field {
+            display: grid;
+            gap: 8px;
+            color: var(--ink);
+            font-weight: 900;
+        }
+
+        .field textarea,
+        .field input,
+        .field select {
+            width: 100%;
+            border: 1px solid rgba(32, 50, 54, 0.18);
+            border-radius: 14px;
+            background: #fbfff8;
+            color: var(--ink);
+            font: inherit;
+            font-weight: 700;
+            line-height: 1.5;
+            padding: 14px 15px;
+            outline: none;
+            transition: border-color 0.18s ease, box-shadow 0.18s ease, background 0.18s ease;
+        }
+
+        .field textarea {
+            min-height: 140px;
+            resize: vertical;
+        }
+
+        .field textarea:focus,
+        .field input:focus,
+        .field select:focus {
+            border-color: rgba(18, 150, 141, 0.44);
+            background: #fff;
+            box-shadow: 0 0 0 4px rgba(18, 150, 141, 0.12);
+        }
+
+        .survey-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            align-items: center;
+            justify-content: space-between;
+            padding-top: 26px;
+        }
+
+        .survey-status {
+            display: none;
+            flex: 1 1 100%;
+            padding: 18px;
+            border: 1px solid rgba(18, 150, 141, 0.18);
+            border-radius: 18px;
+            color: var(--leaf);
+            background: rgba(223, 244, 237, 0.54);
+            font-weight: 900;
+            line-height: 1.6;
+        }
+
+        .survey-status.is-visible {
+            display: block;
+            animation: pageRise 0.35s ease both;
+        }
+
+        .share-card {
+            display: grid;
+            grid-template-columns: auto minmax(0, 1fr) auto;
+            gap: 16px;
+            align-items: center;
+            padding: 18px;
+            border: 1px solid rgba(18, 150, 141, 0.2);
+            border-radius: 20px;
+            background:
+                radial-gradient(circle at 10% 20%, rgba(255, 255, 255, 0.9), transparent 32%),
+                linear-gradient(135deg, rgba(223, 244, 237, 0.9), rgba(255, 246, 214, 0.76));
+            box-shadow: 0 18px 42px rgba(32, 50, 54, 0.1);
+        }
+
+        .share-emoji {
+            display: grid;
+            width: 68px;
+            height: 68px;
+            place-items: center;
+            border-radius: 24px;
+            background: rgba(255, 255, 255, 0.78);
+            font-size: 44px;
+            line-height: 1;
+            box-shadow:
+                inset 0 1px 0 rgba(255, 255, 255, 0.9),
+                0 16px 30px rgba(243, 201, 79, 0.28);
+            filter: drop-shadow(0 8px 14px rgba(32, 50, 54, 0.12));
+        }
+
+        .share-copy {
+            display: grid;
+            gap: 4px;
+        }
+
+        .share-copy strong {
+            color: var(--ink);
+            font-size: 18px;
+            font-weight: 900;
+        }
+
+        .share-copy span {
+            color: var(--quiet);
+            font-weight: 750;
+            line-height: 1.5;
+        }
+
+        .share-button {
+            white-space: nowrap;
+        }
+
+        .share-note {
+            display: none;
+            padding: 12px 14px;
+            border-radius: 14px;
+            background: rgba(223, 244, 237, 0.72);
+            color: var(--leaf);
+            font-weight: 900;
+        }
+
+        .share-note.is-visible {
+            display: block;
+        }
+
+        @media (max-width: 920px) {
+            .survey-shell {
+                grid-template-columns: 1fr;
+                width: min(100% - 36px, 680px);
+            }
+
+            .survey-intro {
+                position: static;
+            }
+        }
+
+        @media (max-width: 620px) {
+            html,
+            body {
+                max-width: 100%;
+                overflow-x: hidden;
+            }
+
+            .site-nav {
+                gap: 12px;
+                width: 100vw;
+                max-width: 100vw;
+                justify-content: flex-start;
+            }
+
+            .site-nav .nav-links {
+                flex: 0 0 auto;
+                margin-left: auto;
+                max-width: calc(100vw - 190px);
+                overflow: hidden;
+            }
+
+            .site-nav .button {
+                width: auto;
+                max-width: 100%;
+                min-height: 40px;
+                padding-inline: 12px;
+                white-space: nowrap;
+            }
+
+            .survey-hero .page-grid {
+                grid-template-columns: minmax(0, 1fr);
+                gap: 30px;
+            }
+
+            .survey-hero .page-grid > *,
+            .survey-hero .lede,
+            .survey-hero .hero-actions,
+            .survey-hero .image-frame {
+                width: 100%;
+                max-width: calc(100vw - 36px);
+                min-width: 0;
+            }
+
+            .survey-hero h1 {
+                max-width: 11ch;
+                font-size: 39px;
+                line-height: 1.04;
+            }
+
+            .survey-hero .lede {
+                font-size: 16px;
+                line-height: 1.65;
+            }
+
+            .choice-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .survey-actions .button {
+                width: 100%;
+            }
+
+            .survey-form {
+                padding: 22px 18px;
+            }
+
+            .question-block h3 {
+                font-size: 20px;
+            }
+
+            .share-card {
+                grid-template-columns: 1fr;
+                justify-items: start;
+            }
+
+            .field textarea {
+                min-height: 128px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav class="site-nav" aria-label="Primary">
+        <a class="brand" href="landing.html" aria-label="Syntrae home">
+            <img src="assets/syntrae-logo.svg" alt="Syntrae logo">
+            <span>Predictive social science</span>
+        </a>
+        <div class="nav-links">
+            <div class="subpage-menu">
+                <button class="subpage-menu-trigger" type="button" aria-haspopup="true">
+                    <i class="fas fa-book-open"></i> Learn <i class="fas fa-chevron-down"></i>
+                </button>
+                <div class="subpage-menu-panel" role="menu" aria-label="Syntrae information pages">
+                    <a href="our-mission.html" target="_blank" rel="noopener noreferrer" role="menuitem"><i class="fas fa-compass"></i> Our mission</a>
+                    <a href="privacy-principles.html" target="_blank" rel="noopener noreferrer" role="menuitem"><i class="fas fa-lock"></i> Privacy</a>
+                </div>
+            </div>
+            <a class="button button-primary" href="landing.html#founding"><i class="fas fa-star"></i> Join for free</a>
+        </div>
+    </nav>
+
+    <main>
+        <section class="page-hero survey-hero">
+            <div class="page-grid">
+                <div>
+                    <p class="kicker"><i class="fas fa-poll"></i> Founding member survey</p>
+                    <h1>Tell us where uncertainty gets difficult.</h1>
+                    <p class="lede">This short survey helps us understand real moments when people feel unsure what to say or do with someone they care about.</p>
+                </div>
+                <figure class="image-frame">
+                    <img src="assets/founding-survey-signal.svg" alt="Abstract survey feedback signal">
+                    <figcaption class="image-caption">
+                        <strong>Your experience becomes signal.</strong>
+                        <span>General examples help Syntrae stay useful, private, and human.</span>
+                    </figcaption>
+                </figure>
+            </div>
+        </section>
+
+        <section class="survey-shell" aria-label="Founding member survey form">
+            <aside class="survey-intro">
+                <div class="survey-mini-visual" aria-hidden="true">
+                    <span class="signal-dot"></span>
+                    <span class="signal-dot"></span>
+                    <span class="signal-dot"></span>
+                </div>
+                <div class="survey-intro-copy">
+                    <p class="kicker"><i class="fas fa-shield-alt"></i> Gentle feedback</p>
+                    <h2>Short and helpful.</h2>
+                    <p>Answer what you can. The goal is to learn how people handle uncertainty before speaking or acting, not to collect unnecessary personal details.</p>
+                    <div class="survey-promise">
+                        <div class="promise-item"><i class="fas fa-seedling"></i><span>Your answers help shape product direction, language, and early use cases.</span></div>
+                    </div>
+                </div>
+            </aside>
+
+            <form class="survey-form" id="surveyForm">
+                <div class="question-block">
+                    <h3>1. Tell me about the last time you felt uncertain about what to say or do with someone you care about.</h3>
+                    <p>Use a general example. Please avoid names or identifying details.</p>
+                    <label class="field">
+                        Your answer
+                        <textarea name="uncertainMoment" placeholder="Example: I wanted to check in with someone important to me but could not tell whether another message would feel welcome."></textarea>
+                    </label>
+                </div>
+
+                <div class="question-block">
+                    <h3>2. Who was this person to you, in general terms?</h3>
+                    <p>Keep it broad, such as close friend, parent, partner, crush, sibling, coworker, or someone else you care about.</p>
+                    <label class="field">
+                        Your answer
+                        <input type="text" name="personRelationship" placeholder="Example: A close friend, a parent, a romantic partner, a crush, or a best friend.">
+                    </label>
+                </div>
+
+                <div class="question-block">
+                    <h3>3. What happened, and what made the situation hard to read?</h3>
+                    <p>Share the context, the decision point, and what made the next step difficult to judge.</p>
+                    <label class="field">
+                        Your answer
+                        <textarea name="situationDetails" placeholder="Example: Their reply was short, and I could not tell if they were busy, upset, or quietly pulling away."></textarea>
+                    </label>
+                </div>
+
+                <div class="question-block">
+                    <h3>4. What choices were you considering?</h3>
+                    <p>List the possible actions, including waiting, sending a message, asking directly, apologizing, or doing nothing.</p>
+                    <label class="field">
+                        Your answer
+                        <textarea name="possibleActions" placeholder="Example: I could ask what was wrong, send a lighter message, wait until tomorrow, or leave it alone."></textarea>
+                    </label>
+                </div>
+
+                <div class="question-block">
+                    <h3>5. What consequence were you most worried about?</h3>
+                    <p>Tell us what you feared could happen if you chose the wrong next step.</p>
+                    <label class="field">
+                        Your answer
+                        <textarea name="fearedConsequences" placeholder="Example: I worried they would feel pressured, become distant, misunderstand me, or think I did not care."></textarea>
+                    </label>
+                </div>
+
+                <div class="question-block">
+                    <h3>6. What outcome were you hoping for?</h3>
+                    <p>Describe the practical or emotional result you wanted.</p>
+                    <label class="field">
+                        Your answer
+                        <textarea name="hopedOutcome" placeholder="Example: I wanted to be honest, keep the connection safe, and understand what they needed from me."></textarea>
+                    </label>
+                </div>
+
+                <div class="question-block">
+                    <h3>7. What did you do at the time to handle the uncertainty?</h3>
+                    <p>Tell us what action you took, even if the action was waiting or doing nothing.</p>
+                    <label class="field">
+                        Your answer
+                        <textarea name="uncertaintyResponse" placeholder="Example: I waited, drafted a message, asked one friend, then sent something shorter than I wanted to send."></textarea>
+                    </label>
+                </div>
+
+                <div class="question-block">
+                    <h3>8. What support, tools, advice, or habits helped you think it through?</h3>
+                    <p>Include anything that shaped your decision process.</p>
+                    <label class="field">
+                        Your answer
+                        <textarea name="supportsUsed" placeholder="Example: A friend, journaling, rereading messages, ChatGPT, a therapist, personal rules, or no support."></textarea>
+                    </label>
+                </div>
+
+                <div class="question-block">
+                    <h3>9. What would have made Syntrae useful in that moment?</h3>
+                    <p>Tell us what kind of consequence forecast, context check, or next-step comparison would have helped.</p>
+                    <label class="field">
+                        Your answer
+                        <textarea name="syntraeUsefulness" placeholder="Example: I wanted to compare what might happen if I asked directly, waited, or sent a warmer message."></textarea>
+                    </label>
+                </div>
+
+                <div class="question-block share-question">
+                    <h3>10. If you know somebody with uncertainty anxiety, please share Syntrae with them. You will be helping us a lot.</h3>
+                    <p>A small share can help someone feel less alone before a hard message, conversation, or decision.</p>
+                    <div class="share-card">
+                        <span class="share-emoji" aria-hidden="true">🥰</span>
+                        <div class="share-copy">
+                            <strong>Send them Syntrae.app</strong>
+                            <span>Share the link with someone who could use clearer next steps.</span>
+                        </div>
+                        <button class="button button-secondary share-button" type="button" id="shareSyntraeButton" data-share-url="https://Syntrae.app"><i class="fas fa-share-alt"></i> Share Syntrae.app</button>
+                    </div>
+                    <input type="hidden" name="sharedSyntrae" id="sharedSyntrae" value="not_shared">
+                    <p class="share-note" id="shareStatus" role="status" aria-live="polite"></p>
+                </div>
+
+                <div class="survey-actions">
+                    <button class="button button-primary" type="submit"><i class="fas fa-paper-plane"></i> Submit survey</button>
+                    <a class="button button-secondary" href="founding-welcome.html"><i class="fas fa-arrow-left"></i> Back to welcome</a>
+                    <div class="survey-status" id="surveyStatus" role="status" aria-live="polite"></div>
+                </div>
+            </form>
+        </section>
+    </main>
+
+    <footer class="footer">
+        <div class="footer-inner">
+            <span>&copy; 2026 Syntrae LLC</span>
+            <div class="footer-links">
+                <a href="landing.html#founding">Join for free</a>
+                <a href="privacy-principles.html" target="_blank" rel="noopener noreferrer">Privacy principles</a>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        const surveyForm = document.getElementById("surveyForm");
+        const surveyStatus = document.getElementById("surveyStatus");
+        const shareSyntraeButton = document.getElementById("shareSyntraeButton");
+        const sharedSyntraeField = document.getElementById("sharedSyntrae");
+        const shareStatus = document.getElementById("shareStatus");
+
+        function updateShareStatus(message) {
+            if (!shareStatus) return;
+            shareStatus.textContent = message;
+            shareStatus.classList.add("is-visible");
+        }
+
+        shareSyntraeButton?.addEventListener("click", async () => {
+            const shareUrl = shareSyntraeButton.dataset.shareUrl || "https://Syntrae.app";
+            const shareText = "Syntrae helps quantify the likelihood of real-life consequences from real situations.";
+
+            try {
+                if (navigator.share) {
+                    await navigator.share({
+                        title: "Syntrae",
+                        text: shareText,
+                        url: shareUrl
+                    });
+                    updateShareStatus("Thank you for sharing Syntrae.app.");
+                } else if (navigator.clipboard) {
+                    await navigator.clipboard.writeText("Syntrae.app");
+                    updateShareStatus("Syntrae.app copied to your clipboard.");
+                } else {
+                    updateShareStatus("Copy this link: Syntrae.app");
+                }
+
+                if (sharedSyntraeField) sharedSyntraeField.value = "shared_or_copied";
+            } catch (error) {
+                if (error?.name === "AbortError") return;
+                updateShareStatus("Copy this link: Syntrae.app");
+            }
+        });
+
+        surveyForm?.addEventListener("submit", (event) => {
+            event.preventDefault();
+            const data = new FormData(surveyForm);
+            const payload = {
+                uncertainMoment: String(data.get("uncertainMoment") || "").trim(),
+                personRelationship: String(data.get("personRelationship") || "").trim(),
+                situationDetails: String(data.get("situationDetails") || "").trim(),
+                possibleActions: String(data.get("possibleActions") || "").trim(),
+                fearedConsequences: String(data.get("fearedConsequences") || "").trim(),
+                hopedOutcome: String(data.get("hopedOutcome") || "").trim(),
+                uncertaintyResponse: String(data.get("uncertaintyResponse") || "").trim(),
+                supportsUsed: String(data.get("supportsUsed") || "").trim(),
+                syntraeUsefulness: String(data.get("syntraeUsefulness") || "").trim(),
+                sharedSyntrae: String(data.get("sharedSyntrae") || "").trim(),
+                createdAt: new Date().toISOString()
+            };
+
+            localStorage.setItem("syntrae:founding-member-survey", JSON.stringify(payload));
+            surveyStatus.textContent = "Thank you. Your survey response is saved for this demo, and it shows the kind of signal Syntrae will use to shape the product before launch.";
+            surveyStatus.classList.add("is-visible");
+            surveyStatus.scrollIntoView({ behavior: "smooth", block: "nearest" });
+        });
+    </script>
+</body>
+</html>

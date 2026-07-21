@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Best Way Results - Syntrae</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <style>
+    :root {
+      --ink:#0b1224;
+      --text:#e2e8f0;
+      --muted:#94a3b8;
+      --border:rgba(255,255,255,0.14);
+      --aqua:#22d3ee;
+      --hot:#fb923c;
+      --good:#22c55e;
+      --warn:#facc15;
+      --bad:#ef4444;
+    }
+    * {
+      margin:0;
+      padding:0;
+      box-sizing:border-box;
+      font-family:'Space Grotesk','Helvetica Neue',Arial,sans-serif;
+    }
+    body {
+      min-height:100vh;
+      background:
+        radial-gradient(circle at 12% 8%, rgba(34,211,238,0.12), transparent 35%),
+        radial-gradient(circle at 90% 4%, rgba(251,146,60,0.1), transparent 30%),
+        linear-gradient(145deg,#070d1d 0%,#0f172a 62%,#0b1224 100%);
+      color:var(--text);
+      display:flex;
+      flex-direction:column;
+    }
+    .header {
+      padding:20px 24px;
+      border-bottom:1px solid rgba(255,255,255,0.12);
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:12px;
+      flex-wrap:wrap;
+      backdrop-filter:blur(4px);
+    }
+    .left-head {
+      display:flex;
+      align-items:center;
+      gap:12px;
+      flex-wrap:wrap;
+    }
+    .back-link {
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      border:1px solid rgba(255,255,255,0.2);
+      border-radius:12px;
+      padding:10px 12px;
+      color:var(--text);
+      text-decoration:none;
+      font-weight:700;
+      background:rgba(255,255,255,0.04);
+      transition:all .2s ease;
+    }
+    .back-link:hover {
+      border-color:rgba(34,211,238,0.5);
+      background:rgba(34,211,238,0.12);
+      transform:translateY(-1px);
+    }
+    .title {
+      font-size:18px;
+      font-weight:700;
+      letter-spacing:.3px;
+    }
+    .history-btn {
+      border:1px solid rgba(255,255,255,0.2);
+      border-radius:12px;
+      padding:10px 12px;
+      color:var(--text);
+      background:rgba(255,255,255,0.05);
+      font-weight:700;
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      cursor:pointer;
+      transition:all .2s ease;
+    }
+    .history-btn:hover {
+      border-color:rgba(34,211,238,0.5);
+      background:rgba(34,211,238,0.12);
+    }
+    .container {
+      width:min(1160px,100%);
+      margin:0 auto;
+      padding:28px 22px 34px;
+      display:grid;
+      gap:18px;
+      flex:1;
+    }
+    .card {
+      border:1px solid var(--border);
+      border-radius:18px;
+      background:linear-gradient(145deg,rgba(30,41,59,0.4),rgba(15,23,42,0.75));
+      padding:20px;
+      box-shadow:0 20px 52px rgba(0,0,0,0.35);
+      animation:rise .38s ease both;
+    }
+    .card:nth-child(2) {
+      animation-delay:.08s;
+    }
+    @keyframes rise {
+      from {
+        opacity:0;
+        transform:translateY(8px);
+      }
+      to {
+        opacity:1;
+        transform:translateY(0);
+      }
+    }
+    .summary-top {
+      display:flex;
+      justify-content:space-between;
+      align-items:flex-start;
+      gap:12px;
+      flex-wrap:wrap;
+    }
+    .summary-title {
+      font-size:23px;
+      font-weight:800;
+      line-height:1.2;
+      margin-bottom:6px;
+    }
+    .summary-sub {
+      color:var(--muted);
+      font-size:14px;
+      line-height:1.5;
+    }
+    .summary-grid {
+      margin-top:14px;
+      display:grid;
+      grid-template-columns:repeat(4,minmax(0,1fr));
+      gap:10px;
+    }
+    .metric {
+      border:1px solid rgba(255,255,255,0.12);
+      border-radius:12px;
+      padding:10px 12px;
+      background:rgba(255,255,255,0.03);
+      display:grid;
+      gap:4px;
+    }
+    .metric-label {
+      color:var(--muted);
+      font-size:11px;
+      text-transform:uppercase;
+      letter-spacing:.4px;
+      font-weight:700;
+    }
+    .metric-value {
+      font-size:18px;
+      font-weight:800;
+      color:#f8fafc;
+    }
+    .scenarios-head {
+      display:flex;
+      justify-content:space-between;
+      align-items:flex-end;
+      gap:12px;
+      flex-wrap:wrap;
+      margin-bottom:14px;
+    }
+    .scenarios-title {
+      font-size:22px;
+      font-weight:800;
+    }
+    .scenarios-sub {
+      color:var(--muted);
+      font-size:13px;
+    }
+    .scenario-grid {
+      display:grid;
+      grid-template-columns:1fr;
+      gap:12px;
+    }
+    .scenario-card {
+      border:1px solid rgba(255,255,255,0.13);
+      border-radius:14px;
+      padding:14px;
+      background:rgba(255,255,255,0.03);
+      display:grid;
+      gap:10px;
+    }
+    .scenario-card h3 {
+      font-size:16px;
+      font-weight:800;
+      letter-spacing:.2px;
+    }
+    .scenario-metrics {
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px;
+      color:var(--muted);
+      font-size:12px;
+    }
+    .scenario-metrics span {
+      border:1px solid rgba(255,255,255,0.16);
+      border-radius:999px;
+      padding:4px 8px;
+      background:rgba(255,255,255,0.03);
+    }
+    .scenario-actions {
+      display:grid;
+      gap:7px;
+    }
+    .scenario-actions div {
+      border-left:2px solid rgba(34,211,238,0.45);
+      padding-left:8px;
+      font-size:14px;
+      line-height:1.45;
+      color:#dce6f4;
+    }
+    .fallback {
+      color:var(--muted);
+      font-size:14px;
+      line-height:1.5;
+    }
+    .modal {
+      position:fixed;
+      inset:0;
+      background:rgba(2,6,23,0.74);
+      backdrop-filter:blur(6px);
+      display:grid;
+      place-items:center;
+      z-index:40;
+      padding:16px;
+    }
+    .modal[hidden] {
+      display:none !important;
+    }
+    .modal-card {
+      width:min(920px,100%);
+      max-height:min(78vh,740px);
+      overflow:auto;
+      border:1px solid rgba(255,255,255,0.16);
+      border-radius:16px;
+      background:linear-gradient(145deg,rgba(15,23,42,0.96),rgba(30,41,59,0.96));
+      box-shadow:0 22px 60px rgba(0,0,0,0.42);
+      padding:16px;
+      display:grid;
+      gap:12px;
+    }
+    .modal-head {
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:12px;
+      position:sticky;
+      top:0;
+      background:linear-gradient(145deg,rgba(15,23,42,0.97),rgba(30,41,59,0.97));
+      padding-bottom:8px;
+      z-index:2;
+    }
+    .modal-title {
+      font-size:18px;
+      font-weight:800;
+      letter-spacing:.2px;
+    }
+    .close-btn {
+      border:1px solid rgba(255,255,255,0.2);
+      border-radius:10px;
+      padding:7px 10px;
+      background:rgba(255,255,255,0.05);
+      color:var(--text);
+      font-weight:700;
+      cursor:pointer;
+    }
+    .history-list {
+      display:grid;
+      gap:10px;
+    }
+    .history-item {
+      border:1px solid rgba(255,255,255,0.12);
+      border-radius:12px;
+      padding:12px;
+      background:rgba(255,255,255,0.03);
+      display:grid;
+      gap:7px;
+      cursor:pointer;
+      transition:all .2s ease;
+    }
+    .history-item:hover {
+      border-color:rgba(34,211,238,0.42);
+      background:rgba(34,211,238,0.08);
+      transform:translateY(-1px);
+    }
+    .history-item-top {
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:10px;
+      flex-wrap:wrap;
+    }
+    .history-pair {
+      font-weight:800;
+      color:#f8fafc;
+      letter-spacing:.2px;
+      font-size:15px;
+    }
+    .history-time {
+      color:var(--muted);
+      font-size:13px;
+    }
+    .history-meta {
+      color:var(--muted);
+      font-size:13px;
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px;
+    }
+    .empty {
+      color:var(--muted);
+      font-size:14px;
+      border:1px dashed rgba(255,255,255,0.24);
+      border-radius:12px;
+      padding:14px;
+      text-align:center;
+    }
+    @media (max-width: 880px) {
+      .summary-grid {
+        grid-template-columns:1fr 1fr;
+      }
+    }
+  </style>
+  <link rel="stylesheet" href="css/syntrae-product-theme.css">
+</head>
+<body>
+  <header class="header">
+    <div class="left-head">
+      <a class="back-link" href="insight-lab.html"><i class="fas fa-arrow-left"></i>Insight Lab</a>
+      <img class="syntrae-logo-image" src="assets/syntrae-logo.svg" alt="Syntrae logo">
+      <div class="title">Best Way Results</div>
+    </div>
+    <button id="historyBtn" class="history-btn" type="button"><i class="fas fa-clock-rotate-left"></i>Report History</button>
+  </header>
+
+  <main class="container">
+    <section class="card">
+      <div class="summary-top">
+        <div>
+          <h1 id="summaryTitle" class="summary-title">No outcome report loaded.</h1>
+          <p id="summarySub" class="summary-sub">Run Best Way in Decision Studio to generate scenario guidance.</p>
+        </div>
+      </div>
+      <div class="summary-grid">
+        <article class="metric">
+          <span class="metric-label">Generated At</span>
+          <span id="metricGeneratedAt" class="metric-value">-</span>
+        </article>
+        <article class="metric">
+          <span class="metric-label">Total Combinations</span>
+          <span id="metricCombinations" class="metric-value">-</span>
+        </article>
+        <article class="metric">
+          <span class="metric-label">Best Integrity</span>
+          <span id="metricIntegrity" class="metric-value">-</span>
+        </article>
+        <article class="metric">
+          <span class="metric-label">Transitions</span>
+          <span id="metricTransitions" class="metric-value">-</span>
+        </article>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="scenarios-head">
+        <h2 class="scenarios-title">Scenarios</h2>
+        <p class="scenarios-sub">Top 5 generated pathways from initial conditions to requested outcome.</p>
+      </div>
+      <div id="scenarioGrid" class="scenario-grid"></div>
+      <div id="scenarioFallback" class="fallback" hidden>No scenarios available yet.</div>
+    </section>
+  </main>
+
+  <section id="historyModal" class="modal" hidden>
+    <article class="modal-card">
+      <header class="modal-head">
+        <h3 class="modal-title">Best Way History (Last 10)</h3>
+        <button id="historyCloseBtn" class="close-btn" type="button">Close</button>
+      </header>
+      <div id="historyList" class="history-list"></div>
+    </article>
+  </section>
+
+  <script src="js/supabase-config.js"></script>
+  <script type="module" src="js/outcome-test-results.js?v=20260701"></script>
+</body>
+</html>

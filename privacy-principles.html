@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Privacy Principles | Syntrae</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@600;700&family=Manrope:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="syntrae-pages.css">
+  <style>
+    /* Product Standards emphasis for the privacy page */
+    .product-standards-enhanced {
+      position: relative;
+      isolation: isolate;
+    }
+
+    .product-standards-enhanced::before {
+      content: "";
+      position: absolute;
+      inset: -2.25rem -1.5rem auto;
+      height: 18rem;
+      pointer-events: none;
+      z-index: -1;
+      background:
+        radial-gradient(circle at 14% 32%, rgba(31, 143, 123, 0.12), transparent 34%),
+        radial-gradient(circle at 86% 24%, rgba(247, 199, 69, 0.13), transparent 30%),
+        linear-gradient(135deg, rgba(233, 250, 244, 0.68), rgba(255, 250, 231, 0.48));
+      border-radius: 34px;
+      filter: blur(1px);
+    }
+
+    .standards-kicker-enhanced {
+      display: inline-flex !important;
+      align-items: center;
+      gap: 0.45rem;
+      padding: 0.58rem 0.9rem !important;
+      border: 1px solid rgba(31, 143, 123, 0.32) !important;
+      border-radius: 999px !important;
+      background:
+        linear-gradient(135deg, rgba(214, 247, 236, 0.96), rgba(255, 249, 224, 0.78)) !important;
+      color: #1d7566 !important;
+      box-shadow:
+        0 12px 28px rgba(31, 143, 123, 0.14),
+        inset 0 1px 0 rgba(255, 255, 255, 0.95) !important;
+    }
+
+    .standard-card-enhanced {
+      --standard-accent: #208a78;
+      --standard-glow: rgba(31, 143, 123, 0.15);
+      position: relative;
+      overflow: hidden;
+      border-color: rgba(31, 143, 123, 0.24) !important;
+      background:
+        radial-gradient(circle at 86% 12%, var(--standard-glow), transparent 28%),
+        linear-gradient(145deg, rgba(255, 255, 255, 0.98), rgba(245, 253, 249, 0.92)) !important;
+      box-shadow:
+        0 18px 46px rgba(29, 68, 61, 0.09),
+        inset 0 1px 0 rgba(255, 255, 255, 0.98) !important;
+      transition:
+        transform 220ms ease,
+        border-color 220ms ease,
+        box-shadow 220ms ease;
+    }
+
+    .standard-card-enhanced:hover {
+      transform: translateY(-5px);
+      border-color: rgba(31, 143, 123, 0.42) !important;
+      box-shadow:
+        0 26px 60px rgba(29, 68, 61, 0.13),
+        0 0 0 1px rgba(31, 143, 123, 0.08),
+        inset 0 1px 0 rgba(255, 255, 255, 1) !important;
+    }
+
+    .standard-card-enhanced::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 6px;
+      background:
+        linear-gradient(90deg, var(--standard-accent), rgba(20, 157, 148, 0.75), rgba(247, 199, 69, 0.72));
+    }
+
+    .standard-card-enhanced::after {
+      content: "";
+      position: absolute;
+      width: 6.5rem;
+      height: 6.5rem;
+      right: -2.2rem;
+      bottom: -2.6rem;
+      border-radius: 50%;
+      background: color-mix(in srgb, var(--standard-accent) 14%, transparent);
+      opacity: 0.72;
+      pointer-events: none;
+    }
+
+    .standard-card-private {
+      --standard-accent: #208a78;
+      --standard-glow: rgba(32, 138, 120, 0.16);
+    }
+
+    .standard-card-framing {
+      --standard-accent: #2e79a7;
+      --standard-glow: rgba(46, 121, 167, 0.14);
+    }
+
+    .standard-card-action {
+      --standard-accent: #f0bd3d;
+      --standard-glow: rgba(240, 189, 61, 0.18);
+    }
+
+    .standard-card-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      width: fit-content;
+      margin: 0 0 1rem;
+      padding: 0.48rem 0.72rem;
+      border-radius: 999px;
+      border: 1px solid rgba(31, 143, 123, 0.24);
+      background: rgba(234, 251, 245, 0.88);
+      color: #227765;
+      font-size: 0.72rem;
+      font-weight: 800;
+      letter-spacing: 0.075em;
+      text-transform: uppercase;
+      box-shadow: 0 10px 24px rgba(31, 143, 123, 0.1);
+    }
+  </style>
+</head>
+<body>
+    <nav class="site-nav" aria-label="Primary">
+        <a class="brand" href="landing.html" aria-label="Syntrae home">
+            <img src="assets/syntrae-logo.svg" alt="Syntrae logo">
+            <span>Predictive social science</span>
+        </a>
+        <div class="nav-links">
+            <div class="subpage-menu">
+                <button class="subpage-menu-trigger" type="button" aria-haspopup="true">
+                    <i class="fas fa-book-open"></i> Learn <i class="fas fa-chevron-down"></i>
+                </button>
+                <div class="subpage-menu-panel" role="menu" aria-label="Syntrae information pages">
+                    <a href="our-mission.html" target="_blank" rel="noopener noreferrer" role="menuitem"><i class="fas fa-compass"></i> Our mission</a>
+                    <a href="privacy-principles.html" target="_blank" rel="noopener noreferrer" role="menuitem"><i class="fas fa-lock"></i> Privacy</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <main>
+        <section class="page-hero">
+            <div class="page-grid">
+                <div>
+                    <p class="kicker"><i class="fas fa-lock"></i> Privacy principles</p>
+                    <h1>Private context should stay private.</h1>
+                    <p class="lede">Syntrae's product direction starts from a clear trust obligation. The context people add should exist to improve their own decision rehearsal, not to expose, judge, or pressure anyone.</p>
+                </div>
+                <figure class="image-frame">
+                    <img src="assets/subpage-privacy-shield.svg" alt="Abstract privacy shield">
+                    <figcaption class="image-caption">
+                        <strong>Trust is part of the product.</strong>
+                        <span>Privacy principles shape how safe, respectful decision tools feel in use.</span>
+                    </figcaption>
+                </figure>
+            </div>
+        </section>
+
+        <section class="section soft-band">
+            <div class="section-inner">
+                <p class="kicker"><i class="fas fa-shield-alt"></i> Product standards</p>
+                <h2>Privacy, clarity, and responsibility should be designed together.</h2>
+                <p class="lede">These are early principles, not final policy language. They describe the trust standard Syntrae is being designed around before launch.</p>
+                <div class="cards">
+                    <article class="card">
+                        <h3>Private preparation</h3>
+                        <p>Users should be able to think through sensitive moments in a space that respects the seriousness of personal context.</p>
+                    </article>
+                    <article class="card">
+                        <h3>No mind-reading framing</h3>
+                        <p>Syntrae should describe patterns, probabilities, and scenarios without claiming access to another person's private thoughts.</p>
+                    </article>
+                    <article class="card">
+                        <h3>Responsible action</h3>
+                        <p>Decision support should remind users that their tone, timing, and choices still determine what happens next.</p>
+                    </article>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="footer">
+        <div class="footer-inner">
+            <span>Predictive social science for considerate decisions.</span>
+            <div class="footer-links">
+                <a href="our-mission.html" target="_blank" rel="noopener noreferrer">Our mission</a>
+                <span aria-hidden="true">&middot;</span>
+                <a href="privacy-principles.html" target="_blank" rel="noopener noreferrer">Privacy</a>
+            </div>
+        </div>
+    </footer>
+  <script>
+    (function enhanceProductStandards() {
+      const headings = [
+        ["Private preparation", "Context stays protected", "standard-card-private"],
+        ["No mind-reading framing", "Pattern language only", "standard-card-framing"],
+        ["Responsible action", "Choice stays human", "standard-card-action"]
+      ];
+
+      const label = Array.from(document.querySelectorAll("body *")).find((element) => {
+        return element.textContent && element.textContent.trim().toUpperCase() === "PRODUCT STANDARDS";
+      });
+
+      if (!label) return;
+
+      let section = label.closest("section") || label.parentElement;
+      while (section && !headings.every(([title]) => section.textContent.includes(title))) {
+        section = section.parentElement;
+      }
+
+      if (!section) return;
+
+      section.classList.add("product-standards-enhanced");
+      label.classList.add("standards-kicker-enhanced");
+
+      headings.forEach(([title, tag, className]) => {
+        const heading = Array.from(section.querySelectorAll("h2, h3, h4")).find((element) => {
+          return element.textContent.trim() === title;
+        });
+
+        if (!heading) return;
+
+        const card = heading.closest("article, .card, .subpage-card, .value-card, .belief-card, .mission-card, .principle-card") || heading.parentElement;
+        card.classList.add("standard-card-enhanced", className);
+
+        if (!card.querySelector(".standard-card-tag")) {
+          const badge = document.createElement("span");
+          badge.className = "standard-card-tag";
+          badge.textContent = tag;
+          heading.before(badge);
+        }
+      });
+    })();
+  </script>
+</body>
+</html>

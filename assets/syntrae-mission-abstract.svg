@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 760" role="img" aria-labelledby="title desc">
+  <title id="title">Syntrae mission abstract</title>
+  <desc id="desc">An abstract warm image of people, paths, and caring decisions coming together.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#f4fbf7"/>
+      <stop offset="0.5" stop-color="#fffef9"/>
+      <stop offset="1" stop-color="#fff1dd"/>
+    </linearGradient>
+    <linearGradient id="path" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#2d7d67"/>
+      <stop offset="0.45" stop-color="#12968d"/>
+      <stop offset="1" stop-color="#ef745f"/>
+    </linearGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="18" stdDeviation="18" flood-color="#203236" flood-opacity="0.12"/>
+    </filter>
+  </defs>
+  <rect width="1200" height="760" rx="44" fill="url(#bg)"/>
+  <circle cx="238" cy="574" r="172" fill="#dff4ed" opacity="0.7"/>
+  <circle cx="974" cy="148" r="146" fill="#f3c94f" opacity="0.22"/>
+  <path d="M173 441c124-118 235-168 333-151 104 18 145 102 246 121 87 16 175-18 267-101" fill="none" stroke="url(#path)" stroke-width="18" stroke-linecap="round" opacity="0.24"/>
+  <path d="M169 514c139-68 270-82 393-42 99 33 164 97 286 83 65-7 126-33 184-77" fill="none" stroke="#2d7d67" stroke-width="6" stroke-linecap="round" opacity="0.16"/>
+  <g filter="url(#shadow)">
+    <rect x="230" y="172" width="222" height="154" rx="32" fill="#fffef9"/>
+    <rect x="489" y="278" width="222" height="154" rx="32" fill="#fffef9"/>
+    <rect x="748" y="172" width="222" height="154" rx="32" fill="#fffef9"/>
+    <circle cx="342" cy="226" r="34" fill="#2d7d67"/>
+    <circle cx="600" cy="332" r="34" fill="#ef745f"/>
+    <circle cx="859" cy="226" r="34" fill="#f3c94f"/>
+    <path d="M292 280c16-40 50-61 101-61 48 0 82 21 100 61" fill="none" stroke="#12968d" stroke-width="18" stroke-linecap="round" opacity="0.28"/>
+    <path d="M550 386c16-40 50-61 101-61 48 0 82 21 100 61" fill="none" stroke="#ef745f" stroke-width="18" stroke-linecap="round" opacity="0.25"/>
+    <path d="M809 280c16-40 50-61 101-61 48 0 82 21 100 61" fill="none" stroke="#f3c94f" stroke-width="18" stroke-linecap="round" opacity="0.38"/>
+  </g>
+  <g filter="url(#shadow)">
+    <circle cx="600" cy="536" r="94" fill="#fffef9"/>
+    <path d="M557 530c16-33 70-33 86 0 14-23 51-20 62 4 14 31-10 67-105 111-94-44-119-80-105-111 11-24 48-27 62-4z" fill="#2d7d67"/>
+  </g>
+  <g opacity="0.34">
+    <circle cx="170" cy="160" r="10" fill="#12968d"/>
+    <circle cx="198" cy="214" r="6" fill="#ef745f"/>
+    <circle cx="1032" cy="560" r="12" fill="#2d7d67"/>
+    <circle cx="996" cy="610" r="7" fill="#f3c94f"/>
+  </g>
+</svg>
