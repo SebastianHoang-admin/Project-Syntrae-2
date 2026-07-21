@@ -270,7 +270,7 @@ function loadDemoProfile() {
     titleRow.insertAdjacentHTML('afterend', `
       <section class="demo-video-strip" aria-label="Demo profile context">
         <div class="demo-profile-intro">
-          <img class="demo-profile-avatar" src="assets/maya-chen-avatar.png" alt="Maya Chen avatar">
+          <img class="demo-profile-avatar" src="assets/maya-chen-cartoon-avatar.png" alt="Maya Chen avatar">
           <div>
             <h3>Maya Chen profile</h3>
             <p>This page shows Maya's private context for choosing a considerate next step with Daniel.</p>

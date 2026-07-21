@@ -301,6 +301,7 @@
       this.target = null;
       this.highlightTarget = null;
       this.highlightTargetStyles = null;
+      this.targetClickHandler = null;
 
       injectStyles();
       this.buildUi();
@@ -367,16 +368,24 @@
       if (this.trigger) {
         this.trigger.addEventListener('click', () => this.start());
       }
-      this.skipButton.addEventListener('click', () => this.finish('skip'));
+      this.skipButton.addEventListener('click', (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        this.finish('skip');
+      });
       this.backButton.addEventListener('click', () => this.goTo(this.index - 1, -1));
       this.nextButton.addEventListener('click', () => {
+        if (this.step?.waitForTargetClick) return;
         if (this.index >= this.steps.length - 1) {
           this.finish('complete');
           return;
         }
         this.goTo(this.index + 1, 1);
       });
-      this.backdrop.addEventListener('click', () => this.finish('dismiss'));
+      this.backdrop.addEventListener('click', () => {
+        if (this.step?.lockToTarget || this.step?.waitForTargetClick) return;
+        this.finish('dismiss');
+      });
       window.addEventListener('resize', () => {
         if (!this.active) return;
         this.positionCard();
@@ -388,11 +397,14 @@
       document.addEventListener('keydown', (event) => {
         if (!this.active) return;
         if (event.key === 'Escape') {
+          if (this.step?.lockToTarget || this.step?.waitForTargetClick) return;
           this.finish('dismiss');
         } else if (event.key === 'ArrowRight') {
+          if (this.step?.waitForTargetClick) return;
           event.preventDefault();
           this.nextButton.click();
         } else if (event.key === 'ArrowLeft') {
+          if (this.step?.waitForTargetClick) return;
           event.preventDefault();
           if (!this.backButton.hidden) this.backButton.click();
         }
@@ -453,7 +465,11 @@
     }
 
     finish(reason = 'complete') {
+      if (!this.active) return;
       this.active = false;
+      if (reason === 'skip') {
+        this.markAutoTourSeen();
+      }
       this.card.classList.remove('is-visible');
       this.backdrop.classList.remove('is-visible');
       window.setTimeout(() => {
@@ -473,6 +489,10 @@
     }
 
     clearTarget() {
+      if (this.targetClickHandler && this.highlightTarget) {
+        this.highlightTarget.removeEventListener('click', this.targetClickHandler);
+      }
+      this.targetClickHandler = null;
       if (this.highlightTarget) {
         this.highlightTarget.classList.remove('syntrae-tour-target', 'syntrae-tour-target--soft');
         if (this.highlightTargetStyles) {
@@ -632,9 +652,36 @@
 
       this.stepLabel.textContent = `${index + 1} of ${this.steps.length}`;
       this.heading.textContent = step.title || 'Guide';
-      this.copy.textContent = step.description || '';
-      this.backButton.hidden = index === 0;
-      this.nextButton.textContent = index === this.steps.length - 1 ? 'Finish' : 'Next';
+      const description = String(step.description || '').trim();
+      this.copy.textContent = description;
+      this.copy.hidden = !description;
+      const waitForTargetClick = step.waitForTargetClick === true;
+      this.backButton.hidden = waitForTargetClick || index === 0;
+      this.skipButton.hidden = waitForTargetClick || step.hideSkip === true;
+      this.nextButton.hidden = waitForTargetClick || step.hideNext === true;
+      this.nextButton.textContent = step.nextLabel || (index === this.steps.length - 1 ? 'Finish' : 'Next');
+      const actionsHidden = this.skipButton.hidden && this.backButton.hidden && this.nextButton.hidden;
+      this.card.querySelector('.syntrae-tour-actions').hidden = actionsHidden;
+
+      if (waitForTargetClick) {
+        this.targetClickHandler = (event) => {
+          if (typeof step.onTargetClick === 'function') {
+            step.onTargetClick({
+              event,
+              element: this.highlightTarget,
+              tour: this
+            });
+          }
+          if (step.advanceOnTargetClick === true) {
+            if (this.index >= this.steps.length - 1) {
+              this.finish('complete');
+            } else {
+              this.goTo(this.index + 1, 1);
+            }
+          }
+        };
+        this.highlightTarget.addEventListener('click', this.targetClickHandler, { once: true });
+      }
 
       const block = step.scrollBlock || 'center';
       this.target.scrollIntoView({ behavior: 'smooth', block, inline: 'nearest' });

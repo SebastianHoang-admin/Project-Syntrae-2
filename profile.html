@@ -646,6 +646,7 @@
         const profileGuideParams = new URLSearchParams(window.location.search);
         const isDecisionTreeProfileDemo = profileGuideParams.get('demo') === 'decision-tree';
         const isUniversalGuideFlow = profileGuideParams.get('flow') === 'universal';
+        const universalGuideSeenKey = 'syntrae-universal-guide-seen-dashboard-demo';
         const buildUniversalGuideUrl = (path, params = {}) => {
             const url = new URL(path, window.location.href);
             url.searchParams.set('demo', 'decision-tree');
@@ -657,6 +658,18 @@
                 }
             });
             return `${url.pathname.split('/').pop()}?${url.searchParams.toString()}`;
+        };
+        const stopUniversalGuideFlow = () => {
+            try {
+                localStorage.setItem(universalGuideSeenKey, '1');
+            } catch (_) {
+                // Non-critical: Skip should still close the active guide.
+            }
+            if (window.history?.replaceState) {
+                const url = new URL(window.location.href);
+                ['tour', 'flow', 'stage'].forEach((key) => url.searchParams.delete(key));
+                window.history.replaceState({}, '', `${url.pathname.split('/').pop()}${url.search}${url.hash}`);
+            }
         };
 
         if (!isDecisionTreeProfileDemo || isUniversalGuideFlow) {
@@ -740,6 +753,10 @@
                     return profileGuideParams.get('tour') === '1';
                 },
                 onFinish: ({ reason } = {}) => {
+                    if (isUniversalGuideFlow && reason === 'skip') {
+                        stopUniversalGuideFlow();
+                        return;
+                    }
                     if (!isUniversalGuideFlow || reason !== 'complete') return;
                     window.setTimeout(() => {
                         window.location.assign(buildUniversalGuideUrl('analyze.html', {

@@ -437,7 +437,7 @@
       version: 1,
       savedAt: options.savedAt || '2026-07-06T00:00:00.000Z',
       personaName: 'Daniel Smith',
-      personaPortrait: Object.prototype.hasOwnProperty.call(options, 'portraitDataUrl') ? options.portraitDataUrl : 'assets/daniel-smith-avatar.png',
+      personaPortrait: Object.prototype.hasOwnProperty.call(options, 'portraitDataUrl') ? options.portraitDataUrl : 'assets/daniel-smith-cartoon-avatar.png',
       personaAvatarPresent: Object.prototype.hasOwnProperty.call(options, 'portraitDataUrl') ? (options.portraitDataUrl ? 'yes' : '') : 'yes',
       answers,
       session: {
@@ -460,7 +460,7 @@
       version: 1,
       savedAt: options.savedAt || '2026-07-06T00:00:00.000Z',
       personaName: 'Maya Chen',
-      personaPortrait: Object.prototype.hasOwnProperty.call(options, 'portraitDataUrl') ? options.portraitDataUrl : 'assets/maya-chen-avatar.png',
+      personaPortrait: Object.prototype.hasOwnProperty.call(options, 'portraitDataUrl') ? options.portraitDataUrl : 'assets/maya-chen-cartoon-avatar.png',
       personaAvatarPresent: Object.prototype.hasOwnProperty.call(options, 'portraitDataUrl') ? (options.portraitDataUrl ? 'yes' : '') : 'yes',
       answers,
       session: {
@@ -479,7 +479,7 @@
       version: 1,
       savedAt: options.savedAt || '2026-07-06T00:00:00.000Z',
       personaName: 'Aaron Chen',
-      personaPortrait: Object.prototype.hasOwnProperty.call(options, 'portraitDataUrl') ? options.portraitDataUrl : 'assets/aaron-chen-avatar.svg',
+      personaPortrait: Object.prototype.hasOwnProperty.call(options, 'portraitDataUrl') ? options.portraitDataUrl : 'assets/aaron-chen-cartoon-avatar.png',
       personaAvatarPresent: Object.prototype.hasOwnProperty.call(options, 'portraitDataUrl') ? (options.portraitDataUrl ? 'yes' : '') : 'yes',
       answers,
       session: {
@@ -498,7 +498,7 @@
       version: 1,
       savedAt: options.savedAt || '2026-07-06T00:00:00.000Z',
       personaName: 'Naomi Brooks',
-      personaPortrait: Object.prototype.hasOwnProperty.call(options, 'portraitDataUrl') ? options.portraitDataUrl : 'assets/naomi-brooks-avatar.svg',
+      personaPortrait: Object.prototype.hasOwnProperty.call(options, 'portraitDataUrl') ? options.portraitDataUrl : 'assets/naomi-brooks-cartoon-avatar.png',
       personaAvatarPresent: Object.prototype.hasOwnProperty.call(options, 'portraitDataUrl') ? (options.portraitDataUrl ? 'yes' : '') : 'yes',
       answers,
       session: {
@@ -517,7 +517,7 @@
       name: 'Daniel Smith',
       title: 'Daniel Smith Persona - Syntrae Demo',
       editTitle: 'Edit Daniel Smith Persona - Syntrae Demo',
-      portrait: 'assets/daniel-smith-avatar.png',
+      portrait: 'assets/daniel-smith-cartoon-avatar.png',
       chips: ['Graduate student', 'Male', '23 yrs old'],
       buildState: buildDanielDemoPersonaState
     },
@@ -526,7 +526,7 @@
       name: 'Maya Chen',
       title: 'Maya Chen Persona - Syntrae Demo',
       editTitle: 'Edit Maya Chen Persona - Syntrae Demo',
-      portrait: 'assets/maya-chen-avatar.png',
+      portrait: 'assets/maya-chen-cartoon-avatar.png',
       chips: ['Student', 'Female', '22 yrs old'],
       buildState: buildMayaDemoPersonaState
     },
@@ -535,7 +535,7 @@
       name: 'Aaron Chen',
       title: 'Aaron Chen Persona - Syntrae Demo',
       editTitle: 'Edit Aaron Chen Persona - Syntrae Demo',
-      portrait: 'assets/aaron-chen-avatar.svg',
+      portrait: 'assets/aaron-chen-cartoon-avatar.png',
       chips: ['Maya\'s dad', 'Male', '55 yrs old'],
       buildState: buildAaronDemoPersonaState
     },
@@ -544,7 +544,7 @@
       name: 'Naomi Brooks',
       title: 'Naomi Brooks Persona - Syntrae Demo',
       editTitle: 'Edit Naomi Brooks Persona - Syntrae Demo',
-      portrait: 'assets/naomi-brooks-avatar.svg',
+      portrait: 'assets/naomi-brooks-cartoon-avatar.png',
       chips: ['Maya\'s boss', 'Team lead', '39 yrs old'],
       buildState: buildNaomiDemoPersonaState
     }

@@ -1439,6 +1439,368 @@
             line-height: 1.55;
         }
 
+        .landing-founder-band {
+            background:
+                radial-gradient(circle at 12% 18%, rgba(223, 244, 237, 0.86), transparent 30%),
+                radial-gradient(circle at 86% 14%, rgba(243, 201, 79, 0.2), transparent 28%),
+                linear-gradient(180deg, #f7fbf8 0%, #fffef8 100%);
+            perspective: 1600px;
+        }
+
+        .landing-founder-layout {
+            display: grid;
+            grid-template-columns: minmax(280px, 0.78fr) minmax(0, 1.22fr);
+            gap: 38px;
+            align-items: stretch;
+            transform-style: preserve-3d;
+        }
+
+        .landing-founder-card,
+        .landing-founder-story {
+            border: 1px solid rgba(32, 50, 54, 0.12);
+            border-radius: 24px;
+            background: rgba(255, 255, 255, 0.82);
+            box-shadow: var(--shadow);
+        }
+
+        .landing-founder-card {
+            position: relative;
+            display: grid;
+            align-content: stretch;
+            min-height: 720px;
+            padding: 26px;
+            overflow: hidden;
+            color: #fffdf4;
+            background:
+                linear-gradient(90deg, rgba(8, 41, 38, 0.72), rgba(8, 41, 38, 0.18) 10%, transparent 18%),
+                radial-gradient(circle at 22% 18%, rgba(243, 201, 79, 0.36), transparent 28%),
+                radial-gradient(circle at 78% 82%, rgba(18, 150, 141, 0.26), transparent 32%),
+                linear-gradient(145deg, #163634 0%, #2d7d67 56%, #12968d 100%);
+            box-shadow:
+                0 26px 72px rgba(32, 50, 54, 0.18),
+                inset 16px 0 28px rgba(8, 41, 38, 0.28),
+                inset 0 0 0 1px rgba(255, 255, 255, 0.16);
+            transform-origin: left center;
+            transition: transform 0.78s cubic-bezier(0.2, 0.78, 0.18, 1), box-shadow 0.42s ease;
+        }
+
+        .landing-founder-card::before {
+            content: "";
+            position: absolute;
+            inset: 18px;
+            border: 1px dashed rgba(255, 255, 255, 0.24);
+            border-radius: 18px;
+            pointer-events: none;
+        }
+
+        .landing-founder-card::after {
+            content: "";
+            position: absolute;
+            top: 26px;
+            bottom: 26px;
+            left: 28px;
+            width: 14px;
+            border-radius: 999px;
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.34), rgba(255, 255, 255, 0.05));
+            pointer-events: none;
+        }
+
+        .landing-founder-cover-content {
+            position: relative;
+            z-index: 2;
+            display: grid;
+            gap: 22px;
+            align-content: space-between;
+            min-height: 100%;
+        }
+
+        .landing-founder-portrait {
+            position: absolute;
+            inset: 18px;
+            z-index: 1;
+            opacity: 0;
+            transform: scale(1.04);
+            transition: opacity 0.54s ease, transform 0.78s cubic-bezier(0.2, 0.78, 0.18, 1);
+            pointer-events: none;
+        }
+
+        .landing-founder-portrait img {
+            display: block;
+            width: 100%;
+            height: 100%;
+            border-radius: 18px;
+            object-fit: cover;
+            object-position: center top;
+            filter: saturate(1.03) contrast(1.02);
+        }
+
+        .landing-founder-portrait::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            border-radius: 18px;
+            background:
+                linear-gradient(180deg, rgba(8, 41, 38, 0.06), rgba(8, 41, 38, 0.18)),
+                linear-gradient(90deg, rgba(8, 41, 38, 0.26), transparent 32%);
+            pointer-events: none;
+        }
+
+        .landing-founder-cover-top,
+        .landing-founder-nameplate,
+        .landing-founder-quote {
+            transition: opacity 0.42s ease, transform 0.42s ease;
+        }
+
+        .landing-founder-cover-top {
+            display: grid;
+            gap: 18px;
+        }
+
+        .landing-founder-cover-mark {
+            width: 86px;
+            height: 86px;
+            display: grid;
+            place-items: center;
+            border-radius: 22px;
+            color: var(--ink);
+            background: rgba(255, 255, 255, 0.92);
+            box-shadow: 0 18px 42px rgba(8, 41, 38, 0.18);
+        }
+
+        .landing-founder-cover-mark img {
+            display: block;
+            width: 100%;
+            height: auto;
+        }
+
+        .landing-founder-cover-kicker {
+            width: fit-content;
+            margin: 0;
+            padding: 9px 13px;
+            border: 1px solid rgba(255, 255, 255, 0.24);
+            border-radius: 999px;
+            color: #fffdf4;
+            background: rgba(255, 255, 255, 0.12);
+            font-size: 12px;
+            font-weight: 900;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+        }
+
+        .landing-founder-cover-title {
+            margin: 0;
+            font-family: "Fraunces", Georgia, serif;
+            font-size: clamp(46px, 5.2vw, 78px);
+            line-height: 0.94;
+            letter-spacing: 0;
+            color: #fffdf4;
+            text-shadow: 0 18px 40px rgba(8, 41, 38, 0.2);
+        }
+
+        .landing-founder-cover-copy {
+            margin: 0;
+            max-width: 34ch;
+            color: rgba(255, 253, 244, 0.84);
+            font-size: 16px;
+            line-height: 1.65;
+            font-weight: 750;
+        }
+
+        .landing-founder-cover-foot {
+            display: grid;
+            gap: 18px;
+        }
+
+        .landing-founder-open {
+            width: fit-content;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            min-height: 48px;
+            padding: 13px 18px;
+            border: 0;
+            border-radius: 10px;
+            color: var(--ink);
+            background: var(--sun);
+            font-size: 15px;
+            font-weight: 900;
+            box-shadow: 0 18px 36px rgba(243, 201, 79, 0.28);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .landing-founder-open:hover,
+        .landing-founder-open:focus-visible {
+            transform: translateY(-2px);
+            box-shadow: 0 22px 44px rgba(243, 201, 79, 0.34);
+            outline: none;
+        }
+
+        .landing-founder-open:disabled {
+            cursor: default;
+            opacity: 0.82;
+            transform: none;
+            box-shadow: 0 14px 28px rgba(243, 201, 79, 0.2);
+        }
+
+        .landing-founder-nameplate {
+            display: grid;
+            gap: 4px;
+            padding: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.22);
+            border-radius: 18px;
+            background: rgba(255, 255, 255, 0.12);
+            backdrop-filter: blur(8px);
+        }
+
+        .landing-founder-nameplate strong {
+            font-size: 21px;
+            line-height: 1.15;
+        }
+
+        .landing-founder-nameplate span {
+            color: rgba(255, 253, 244, 0.78);
+            font-weight: 850;
+        }
+
+        .landing-founder-quote {
+            margin: 0;
+            padding: 18px;
+            border: 1px dashed rgba(255, 255, 255, 0.3);
+            border-radius: 18px;
+            color: rgba(255, 253, 244, 0.86);
+            background: rgba(255, 255, 255, 0.1);
+            font-weight: 850;
+            line-height: 1.6;
+        }
+
+        .landing-founder-story {
+            position: relative;
+            display: grid;
+            gap: 16px;
+            align-content: start;
+            padding: clamp(24px, 4vw, 38px);
+            transform-origin: left center;
+            transition: opacity 0.52s ease, transform 0.78s cubic-bezier(0.2, 0.78, 0.18, 1), filter 0.52s ease;
+        }
+
+        .landing-founder-story > * {
+            position: relative;
+            z-index: 1;
+            transition: opacity 0.44s ease;
+        }
+
+        .landing-founder-story::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            left: 0;
+            width: 18px;
+            border-radius: 24px 0 0 24px;
+            background: linear-gradient(90deg, rgba(32, 50, 54, 0.1), rgba(255, 255, 255, 0));
+            pointer-events: none;
+        }
+
+        .landing-founder-story::after {
+            content: "";
+            position: absolute;
+            inset: 28px;
+            border: 1px dashed rgba(45, 125, 103, 0.2);
+            border-radius: 18px;
+            background:
+                linear-gradient(90deg, rgba(32, 50, 54, 0.08), transparent 18%),
+                repeating-linear-gradient(180deg, rgba(45, 125, 103, 0.1) 0 1px, transparent 1px 34px),
+                rgba(255, 255, 255, 0.5);
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.34s ease;
+        }
+
+        .landing-founder-story h2 {
+            max-width: 720px;
+        }
+
+        .landing-founder-layout.founder-book-ready:not(.is-open) .landing-founder-card {
+            transform: rotateY(-3deg) translateX(4px);
+        }
+
+        .landing-founder-layout.founder-book-ready:not(.is-open) .landing-founder-story {
+            opacity: 1;
+            pointer-events: none;
+            filter: none;
+            transform: rotateY(-14deg) translateX(-26px) scale(0.98);
+        }
+
+        .landing-founder-layout.founder-book-ready:not(.is-open) .landing-founder-story > * {
+            opacity: 0;
+        }
+
+        .landing-founder-layout.founder-book-ready:not(.is-open) .landing-founder-story::after {
+            opacity: 1;
+        }
+
+        .landing-founder-layout.is-open .landing-founder-card {
+            transform: rotateY(-8deg) translateX(-4px);
+            box-shadow:
+                0 30px 84px rgba(32, 50, 54, 0.16),
+                inset 16px 0 28px rgba(8, 41, 38, 0.24);
+        }
+
+        .landing-founder-layout.is-open .landing-founder-portrait {
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        .landing-founder-layout.is-open .landing-founder-cover-top,
+        .landing-founder-layout.is-open .landing-founder-nameplate,
+        .landing-founder-layout.is-open .landing-founder-quote {
+            opacity: 0;
+            transform: translateY(-8px);
+            pointer-events: none;
+        }
+
+        .landing-founder-layout.is-open .landing-founder-cover-foot {
+            align-content: end;
+        }
+
+        .landing-founder-layout.is-open .landing-founder-story {
+            opacity: 1;
+            filter: none;
+            transform: rotateY(0) translateX(0) scale(1);
+        }
+
+        .landing-founder-story-panel {
+            display: grid;
+            gap: 13px;
+            padding: 22px;
+            border: 1px solid rgba(32, 50, 54, 0.1);
+            border-radius: 20px;
+            background: rgba(255, 255, 255, 0.78);
+        }
+
+        .landing-founder-story-panel p {
+            margin: 0;
+            color: var(--quiet);
+            font-size: 15px;
+            line-height: 1.62;
+            font-weight: 760;
+        }
+
+        .landing-founder-emphasis {
+            margin-top: 2px;
+            padding: 15px 16px;
+            border: 1px solid rgba(45, 125, 103, 0.22);
+            border-left: 5px solid var(--leaf);
+            border-radius: 16px;
+            color: var(--ink);
+            background: rgba(223, 244, 237, 0.76);
+            font-size: 16px;
+        }
+
+        .landing-founder-emphasis strong {
+            font-weight: 900;
+        }
+
         .faq-band {
             background: #203236;
             color: #fff;
@@ -1528,7 +1890,8 @@
         @media (max-width: 920px) {
             .video-layout,
             .quote-panel,
-            .founding-layout {
+            .founding-layout,
+            .landing-founder-layout {
                 grid-template-columns: 1fr;
             }
 
@@ -1551,6 +1914,7 @@
         @media (max-width: 680px) {
             .nav {
                 align-items: flex-start;
+                flex-wrap: wrap;
                 padding: 12px 18px;
             }
 
@@ -1564,7 +1928,23 @@
             }
 
             .nav-links {
+                width: 100%;
+                flex-wrap: wrap;
+                justify-content: flex-start;
                 margin-left: auto;
+            }
+
+            .nav-links .button {
+                width: auto;
+                flex: 0 0 auto;
+            }
+
+            .subpage-menu-panel {
+                right: auto;
+                left: 0;
+                width: min(220px, calc(100vw - 36px));
+                min-width: 0;
+                transform-origin: top left;
             }
 
             .hero {
@@ -1602,6 +1982,17 @@
             .member-form {
                 padding: 22px;
             }
+
+            .landing-founder-card img {
+                height: auto;
+                min-height: 0;
+                object-fit: contain;
+            }
+
+            .landing-founder-card,
+            .landing-founder-story {
+                border-radius: 18px;
+            }
         }
     </style>
 </head>
@@ -1621,7 +2012,6 @@
                 <div class="subpage-menu-panel" role="menu" aria-label="Syntrae information pages">
                     <a href="our-mission.html" target="_blank" rel="noopener noreferrer" role="menuitem"><i class="fas fa-compass"></i> Our mission</a>
                     <a href="privacy-principles.html" target="_blank" rel="noopener noreferrer" role="menuitem"><i class="fas fa-lock"></i> Privacy</a>
-                    <a href="founder-stories.html" target="_blank" rel="noopener noreferrer" role="menuitem"><i class="fas fa-feather-alt"></i> Founder Stories</a>
                 </div>
             </div>
             <a class="button vision-link" href="#vision"><i class="fas fa-play"></i> Feel the vision</a>
@@ -1756,6 +2146,50 @@
                 </form>
             </div>
         </section>
+
+        <section class="section landing-founder-band" id="founder-story">
+            <div class="section-inner landing-founder-layout" data-founder-book>
+                <div class="landing-founder-card">
+                    <div class="landing-founder-portrait" aria-hidden="true">
+                        <img src="assets/founder-stories-picture.png" alt="">
+                    </div>
+                    <div class="landing-founder-cover-content">
+                        <div class="landing-founder-cover-top">
+                            <div class="landing-founder-cover-mark" aria-hidden="true">
+                                <img src="assets/syntrae-logo.svg" alt="">
+                            </div>
+                            <p class="landing-founder-cover-kicker">Founder book</p>
+                            <h2 class="landing-founder-cover-title">The story behind Syntrae.</h2>
+                            <p class="landing-founder-cover-copy">Open the first page to meet the founder and read why Syntrae began.</p>
+                        </div>
+                        <div class="landing-founder-cover-foot">
+                            <div class="landing-founder-nameplate">
+                                <strong>Sebastian Hoang</strong>
+                                <span>Founder, Syntrae LLC</span>
+                            </div>
+                            <blockquote class="landing-founder-quote">
+                                &ldquo;Time does not move backward because life is asking us to move forward&mdash;and while we cannot change yesterday, we can shape tomorrow.&rdquo;
+                            </blockquote>
+                            <button class="landing-founder-open" type="button" data-open-founder-book aria-controls="founder-story-page" aria-expanded="false">
+                                <i class="fas fa-book-open"></i> Open the book
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="landing-founder-story" id="founder-story-page">
+                    <p class="section-kicker"><i class="fas fa-user"></i> Meeting the founder</p>
+                    <h2>A Mission Starts With A Human Story.</h2>
+                    <div class="landing-founder-story-panel">
+                        <p>Hi, I&rsquo;m Sebastian, the founder of Syntrae.</p>
+                        <p>Like everyone, I have lived a life filled with highs and lows&mdash;moments of success and failure, happiness and heartbreak, choices I am proud of and mistakes I still carry. Yet, it often feels as though regret has occupied more space in my heart than joy.</p>
+                        <p>There were moments when one different decision, a few kinder words, or a little more courage might have changed everything. In the silence that followed, I often wished for a chance to turn back, undo the pain, correct my mistakes, and finally make things right. But that chance never came, and the more tightly I held on to the past, the more incomplete I felt.</p>
+                        <p>Eventually, I began to understand that while we cannot change yesterday, we can determine tomorrow. Our actions now shape the people we become. Time does not move backward because life is asking us to move forward, and I wish there were a better way to advance rather than learning from past mistakes, which implies that mistakes have already happened.</p>
+                        <p class="landing-founder-emphasis"><strong>This is why I founded Syntrae: it is there to predict the outcomes of your actions and, hence, help you think through possible outcomes and turn the odds in your favor for a better decision.</strong></p>
+                    </div>
+                </div>
+            </div>
+        </section>
     </main>
 
     <footer class="footer">
@@ -1765,8 +2199,6 @@
                 <a href="our-mission.html" target="_blank" rel="noopener noreferrer">Our mission</a>
                 <span aria-hidden="true">&middot;</span>
                 <a href="privacy-principles.html" target="_blank" rel="noopener noreferrer">Privacy</a>
-                <span aria-hidden="true">&middot;</span>
-                <a href="founder-stories.html" target="_blank" rel="noopener noreferrer">Founder stories</a>
             </div>
         </div>
     </footer>
@@ -1787,6 +2219,9 @@
         const dimensionTransition = document.querySelector("[data-dimension-transition]");
         const demoPreview = document.querySelector("[data-demo-preview]");
         const demoTransitionDurationMs = 2000;
+        const founderBookLayout = document.querySelector("[data-founder-book]");
+        const founderBookOpenButton = document.querySelector("[data-open-founder-book]");
+        const founderStoryPage = document.getElementById("founder-story-page");
 
         const revealTargets = [
             ...document.querySelectorAll(".demo-launch-card, .video-points .point, .work-card, .founding-layout > div, .member-form")
@@ -1822,6 +2257,26 @@
             requestAnimationFrame(revealVisibleNow);
             window.addEventListener("scroll", revealVisibleNow, { passive: true });
             window.addEventListener("resize", revealVisibleNow);
+        }
+
+        if (founderBookLayout && founderBookOpenButton && founderStoryPage) {
+            founderBookLayout.classList.add("founder-book-ready");
+            founderStoryPage.setAttribute("aria-hidden", "true");
+
+            founderBookOpenButton.addEventListener("click", () => {
+                const isOpen = founderBookLayout.classList.toggle("is-open");
+                founderBookOpenButton.setAttribute("aria-expanded", String(isOpen));
+                founderBookOpenButton.innerHTML = isOpen
+                    ? '<i class="fas fa-book"></i> Close book'
+                    : '<i class="fas fa-book-open"></i> Open the book';
+                founderStoryPage.setAttribute("aria-hidden", String(!isOpen));
+
+                if (isOpen) {
+                    window.setTimeout(() => {
+                        founderStoryPage.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "nearest" });
+                    }, 280);
+                }
+            });
         }
 
         const saveFoundingInterest = (form) => {

@@ -1949,7 +1949,7 @@ function buildDemoOptions() {
       sourceLabel: 'Demo Relationship Persona',
       type: 'persona',
       data: {
-        avatar_url: 'assets/daniel-smith-avatar.png',
+        avatar_url: 'assets/daniel-smith-cartoon-avatar.png',
         name: 'Daniel Smith',
         profile: buildDemoProfile(
           'Daniel Smith',
@@ -1972,7 +1972,7 @@ function buildDemoOptions() {
       sourceLabel: 'Demo Family Persona',
       type: 'persona',
       data: {
-        avatar_url: 'assets/aaron-chen-avatar.svg',
+        avatar_url: 'assets/aaron-chen-cartoon-avatar.png',
         name: 'Aaron Chen',
         profile: buildDemoProfile(
           'Aaron Chen',
@@ -1995,7 +1995,7 @@ function buildDemoOptions() {
       sourceLabel: 'Demo Workplace Persona',
       type: 'persona',
       data: {
-        avatar_url: 'assets/naomi-brooks-avatar.svg',
+        avatar_url: 'assets/naomi-brooks-cartoon-avatar.png',
         name: 'Naomi Brooks',
         profile: buildDemoProfile(
           'Naomi Brooks',

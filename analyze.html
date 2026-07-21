@@ -2677,7 +2677,7 @@ Authority figure</div>
                 key: 'daniel-smith-demo',
                 name: 'Daniel Smith',
                 title: 'Daniel Smith Persona - Syntrae Demo',
-                portrait: 'assets/daniel-smith-avatar.png',
+                portrait: 'assets/daniel-smith-cartoon-avatar.png',
                 chips: ['Graduate student', 'Male', '23 yrs old'],
                 buildState: window.buildDanielDemoPersonaState
             };
@@ -2750,6 +2750,7 @@ Authority figure</div>
         startAnalyzePage().finally(() => {
             const analyzeGuideParams = new URLSearchParams(window.location.search);
             const isUniversalGuideFlow = analyzeGuideParams.get('flow') === 'universal';
+            const universalGuideSeenKey = 'syntrae-universal-guide-seen-dashboard-demo';
             const buildUniversalGuideUrl = (path, params = {}) => {
                 const url = new URL(path, window.location.href);
                 url.searchParams.set('demo', 'decision-tree');
@@ -2761,6 +2762,18 @@ Authority figure</div>
                     }
                 });
                 return `${url.pathname.split('/').pop()}?${url.searchParams.toString()}`;
+            };
+            const stopUniversalGuideFlow = () => {
+                try {
+                    localStorage.setItem(universalGuideSeenKey, '1');
+                } catch (_) {
+                    // Non-critical: Skip should still close the active guide.
+                }
+                if (window.history?.replaceState) {
+                    const url = new URL(window.location.href);
+                    ['tour', 'flow', 'stage'].forEach((key) => url.searchParams.delete(key));
+                    window.history.replaceState({}, '', `${url.pathname.split('/').pop()}${url.search}${url.hash}`);
+                }
             };
 
             if (isDecisionTreeDemo() && !isUniversalGuideFlow) return;
@@ -2846,6 +2859,10 @@ Authority figure</div>
                     return analyzeGuideParams.get('tour') === '1';
                 },
                 onFinish: ({ reason } = {}) => {
+                    if (isUniversalGuideFlow && reason === 'skip') {
+                        stopUniversalGuideFlow();
+                        return;
+                    }
                     if (!isUniversalGuideFlow || reason !== 'complete') return;
                     window.setTimeout(() => {
                         window.location.assign(buildUniversalGuideUrl('DashboardDemo.html', {

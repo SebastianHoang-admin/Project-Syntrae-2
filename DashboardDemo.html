@@ -241,14 +241,19 @@
             display: flex;
             align-items: center;
             gap: 14px;
+            width: 100%;
             min-height: 62px;
             padding: 16px 20px;
+            border: 0;
             border-bottom: 1px solid rgba(216, 231, 223, 0.9);
             color: var(--ink);
             text-decoration: none;
             font-size: 18px;
             font-weight: 700;
+            font-family: inherit;
+            text-align: left;
             background: rgba(255, 255, 255, 0.92);
+            cursor: pointer;
             transition: background 0.2s ease, padding 0.2s ease;
         }
 
@@ -263,6 +268,48 @@
 
         .dropdown-item.sign-out {
             color: #d36b6b;
+        }
+
+        .dropdown-item.guide-menu-item {
+            background: rgba(255, 249, 229, 0.72);
+        }
+
+        .dropdown-item.syntrae-tour-target {
+            background: linear-gradient(135deg, #fff9e5, #fff2b9);
+        }
+
+        body.menu-guide-lock .app-header {
+            z-index: 1280;
+        }
+
+        body.menu-guide-lock .brand,
+        body.menu-guide-lock .account-indicator,
+        body.menu-guide-lock .more-btn,
+        body.menu-guide-lock .dropdown-item {
+            pointer-events: none;
+            opacity: 0.38;
+            filter: grayscale(0.45) brightness(0.68);
+        }
+
+        body.menu-guide-lock .dropdown-item {
+            background: rgba(244, 249, 246, 0.78);
+            color: rgba(31, 52, 52, 0.72);
+            box-shadow: none;
+        }
+
+        body.menu-guide-lock .dropdown-item.syntrae-tour-target {
+            opacity: 1 !important;
+            filter: none !important;
+            color: var(--ink);
+            background: linear-gradient(135deg, #fff6ad, #ffd24a);
+            box-shadow:
+                0 0 0 3px rgba(255, 255, 255, 0.96),
+                0 0 0 10px rgba(245, 199, 54, 0.26),
+                0 18px 42px rgba(201, 151, 8, 0.24) !important;
+        }
+
+        body.menu-guide-lock #dropdownProfileLink.syntrae-tour-target {
+            pointer-events: auto;
         }
 
         .dashboard-shell {
@@ -915,6 +962,10 @@
         }
 
         .primary-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
             min-height: 46px;
             border: 0;
             border-radius: 10px;
@@ -924,11 +975,36 @@
             font-weight: 900;
             box-shadow: 0 14px 32px rgba(45, 132, 111, 0.18);
             transition: transform 0.2s ease, box-shadow 0.2s ease;
+            cursor: pointer;
         }
 
-        .primary-btn:hover {
+        .primary-btn:hover:not(:disabled) {
             transform: translateY(-1px);
             box-shadow: 0 18px 40px rgba(45, 132, 111, 0.24);
+        }
+
+        .primary-btn:disabled {
+            cursor: default;
+        }
+
+        .primary-btn.is-loading {
+            cursor: wait;
+            background: linear-gradient(135deg, #247b6a, #0f9b93);
+        }
+
+        .syntrae-spinner {
+            width: 16px;
+            height: 16px;
+            border: 2px solid rgba(255, 255, 255, 0.36);
+            border-top-color: #fff;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
         }
 
         .stage-grid {
@@ -1350,13 +1426,6 @@
                 <img src="assets/syntrae-logo.svg" alt="Syntrae logo">
                 <span>Dashboard</span>
             </a>
-            <nav class="dashboard-nav" aria-label="Primary dashboard navigation">
-                <a id="topAnalyzeLink" href="analyze.html?demo=decision-tree&amp;persona=daniel-smith-demo"><i class="fas fa-pencil-alt"></i> Analyze</a>
-                <a id="topProfileLink" href="profile.html?demo=decision-tree"><i class="fas fa-id-card"></i> Your Persona</a>
-                <a href="insight-lab.html?demo=decision-tree"><i class="fas fa-desktop"></i> Insight Lab</a>
-                <a href="subscription.html"><i class="fas fa-crown"></i> Subscription</a>
-                <button class="guide-replay-btn" id="startUniversalGuide" type="button"><i class="fas fa-route"></i> How to use Syntrae</button>
-            </nav>
         </div>
         <div class="account-indicator" id="accountIndicator">Daniel Smith</div>
         <div class="more-menu">
@@ -1367,9 +1436,9 @@
             </button>
             <nav class="dropdown-menu" id="dropdownMenu" aria-label="Dashboard navigation">
                 <a class="dropdown-item" id="analyzeLink" href="analyze.html?demo=decision-tree&amp;persona=daniel-smith-demo"><i class="fas fa-pencil-alt"></i> Analyze and Edit Your Persona</a>
-                <a class="dropdown-item" href="profile.html?demo=decision-tree"><i class="fas fa-id-card"></i> Your Persona</a>
+                <a class="dropdown-item" id="dropdownProfileLink" href="profile.html?demo=decision-tree"><i class="fas fa-id-card"></i> Your Persona</a>
                 <a class="dropdown-item" href="insight-lab.html?demo=decision-tree"><i class="fas fa-desktop"></i> Insight Lab</a>
-                <a class="dropdown-item" href="subscription.html"><i class="fas fa-crown"></i> Manage Subscription</a>
+                <button class="dropdown-item guide-menu-item" id="startUniversalGuide" type="button"><i class="fas fa-route"></i> How to use Syntrae</button>
                 <a class="dropdown-item sign-out" href="sign-out.html"><i class="fas fa-sign-out-alt"></i> Sign Out</a>
             </nav>
         </div>
@@ -1510,7 +1579,7 @@
                 name: 'Daniel Smith',
                 demoKey: 'daniel-smith-demo',
                 role: 'Relationship persona',
-                avatar: 'assets/daniel-smith-avatar.png',
+                avatar: 'assets/daniel-smith-cartoon-avatar.png',
                 listLabel: 'Use Daniel\'s relationship context',
                 facts: ['Graduate student', 'Male', '23 yrs old', 'Private context'],
                 headline: 'Warm, thoughtful, and responsive when serious topics are introduced with room to think.',
@@ -1521,7 +1590,7 @@
                 name: 'Aaron Chen',
                 demoKey: 'aaron-chen-demo',
                 role: 'Family persona',
-                avatar: 'assets/aaron-chen-avatar.svg',
+                avatar: 'assets/aaron-chen-cartoon-avatar.png',
                 listLabel: 'Use family context with Maya\'s dad',
                 facts: ['Maya\'s dad', 'Male', '55 yrs old', 'Family context'],
                 headline: 'Protective, steady, and deeply caring when family news is shared with honesty and a clear plan.',
@@ -1532,7 +1601,7 @@
                 name: 'Naomi Brooks',
                 demoKey: 'naomi-brooks-demo',
                 role: 'Workplace persona',
-                avatar: 'assets/naomi-brooks-avatar.svg',
+                avatar: 'assets/naomi-brooks-cartoon-avatar.png',
                 listLabel: 'Use workplace context with Maya\'s boss',
                 facts: ['Maya\'s boss', 'Team lead', 'Deadline aware', 'Work context'],
                 headline: 'Fair, direct, and supportive when requests are specific, accountable, and tied to team impact.',
@@ -2039,8 +2108,7 @@
             dropdown: document.getElementById('dropdownMenu'),
             account: document.getElementById('accountIndicator'),
             analyzeLink: document.getElementById('analyzeLink'),
-            topAnalyzeLink: document.getElementById('topAnalyzeLink'),
-            topProfileLink: document.getElementById('topProfileLink'),
+            dropdownProfileLink: document.getElementById('dropdownProfileLink'),
             startUniversalGuide: document.getElementById('startUniversalGuide'),
             personaList: document.getElementById('personaList'),
             avatar: document.getElementById('activePersonaAvatar'),
@@ -2075,6 +2143,7 @@
         let activePersonaKey = 'daniel';
         let activeChatKey = 'main';
         let typingRun = 0;
+        let syntraeRunTimer = null;
 
         function escapeHtml(value) {
             return String(value ?? '')
@@ -2095,6 +2164,35 @@
             const number = Number(value || 0);
             if (!Number.isFinite(number)) return 0;
             return Math.max(0, Math.min(100, number <= 1 ? number * 100 : number));
+        }
+
+        function clearSyntraeRunTimer() {
+            if (!syntraeRunTimer) return;
+            window.clearTimeout(syntraeRunTimer);
+            syntraeRunTimer = null;
+        }
+
+        function setSyntraeButtonReady() {
+            clearSyntraeRunTimer();
+            els.syntraeButton.classList.remove('is-loading');
+            els.syntraeButton.removeAttribute('aria-busy');
+            els.syntraeButton.innerHTML = '<i class="fas fa-play"></i> Syntrae';
+            els.syntraeButton.disabled = false;
+        }
+
+        function setSyntraeButtonLoading() {
+            els.syntraeButton.classList.add('is-loading');
+            els.syntraeButton.setAttribute('aria-busy', 'true');
+            els.syntraeButton.innerHTML = '<span class="syntrae-spinner" aria-hidden="true"></span> Loading consequence tree...';
+            els.syntraeButton.disabled = true;
+        }
+
+        function setSyntraeButtonComplete() {
+            clearSyntraeRunTimer();
+            els.syntraeButton.classList.remove('is-loading');
+            els.syntraeButton.removeAttribute('aria-busy');
+            els.syntraeButton.innerHTML = '<i class="fas fa-check"></i> Syntrae complete';
+            els.syntraeButton.disabled = true;
         }
 
         function demoUrl(path, params = {}) {
@@ -2147,7 +2245,6 @@
             els.settingsPersona.textContent = persona.name;
             const analyzeHref = demoUrl('analyze.html', { persona: persona.demoKey });
             els.analyzeLink.href = analyzeHref;
-            els.topAnalyzeLink.href = analyzeHref;
             els.facts.innerHTML = (context.facts || persona.facts).map((fact) => `<span class="chip">${escapeHtml(fact)}</span>`).join('');
             els.headline.textContent = context.headline || persona.headline;
             els.summary.textContent = context.summary || persona.summary;
@@ -2271,8 +2368,7 @@
                 els.treeSection.classList.remove('visible');
                 els.outcomeDetail.classList.remove('visible');
                 els.outcomeDetail.innerHTML = '';
-                els.syntraeButton.innerHTML = '<i class="fas fa-play"></i> Syntrae';
-                els.syntraeButton.disabled = false;
+                setSyntraeButtonReady();
             }
         }
 
@@ -2328,25 +2424,43 @@
             els.launchSoonModal.setAttribute('aria-hidden', 'true');
         }
 
+        function setDropdownOpen(open) {
+            els.dropdown.classList.toggle('active', open);
+            els.moreBtn.setAttribute('aria-expanded', String(open));
+        }
+
+        function openDropdown() {
+            setDropdownOpen(true);
+        }
+
+        function closeDropdown() {
+            setDropdownOpen(false);
+        }
+
         els.moreBtn.addEventListener('click', (event) => {
             event.stopPropagation();
             const open = !els.dropdown.classList.contains('active');
-            els.dropdown.classList.toggle('active', open);
-            els.moreBtn.setAttribute('aria-expanded', String(open));
+            setDropdownOpen(open);
         });
 
         document.addEventListener('click', () => {
-            els.dropdown.classList.remove('active');
-            els.moreBtn.setAttribute('aria-expanded', 'false');
+            closeDropdown();
         });
 
         els.dropdown.addEventListener('click', (event) => event.stopPropagation());
 
         els.syntraeButton.addEventListener('click', () => {
-            els.treeSection.classList.add('visible');
-            els.syntraeButton.innerHTML = '<i class="fas fa-check"></i> Syntrae complete';
-            els.syntraeButton.disabled = true;
-            els.treeSection.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            if (els.syntraeButton.disabled) return;
+            els.treeSection.classList.remove('visible');
+            els.outcomeDetail.classList.remove('visible');
+            els.outcomeDetail.innerHTML = '';
+            setSyntraeButtonLoading();
+            syntraeRunTimer = window.setTimeout(() => {
+                syntraeRunTimer = null;
+                els.treeSection.classList.add('visible');
+                setSyntraeButtonComplete();
+                els.treeSection.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }, 2000);
         });
 
         els.visualChatForm.addEventListener('submit', (event) => {
@@ -2404,6 +2518,16 @@
                 // The tour should still finish when browser storage is unavailable.
             }
         };
+        const clearUniversalGuideParams = () => {
+            if (!window.history?.replaceState) return;
+            const url = new URL(window.location.href);
+            ['tour', 'flow', 'stage'].forEach((key) => url.searchParams.delete(key));
+            window.history.replaceState({}, '', `${url.pathname.split('/').pop()}${url.search}${url.hash}`);
+        };
+        const stopUniversalGuideFlow = () => {
+            markUniversalGuideSeen();
+            clearUniversalGuideParams();
+        };
         const beginUniversalGuideFlow = (delay = 0) => {
             if (isEmbeddedDashboardPreview) return;
             try {
@@ -2412,13 +2536,64 @@
                 // Non-critical: explicit replay still works without storage.
             }
             window.setTimeout(() => {
-                window.location.assign(buildUniversalGuideUrl('profile.html', { stage: 'profile' }));
+                window.location.assign(buildUniversalGuideUrl('DashboardDemo.html', {
+                    state: 'start',
+                    stage: 'start'
+                }));
             }, delay);
         };
 
-        if (!isEmbeddedDashboardPreview && universalGuideStage !== 'dashboard' && (shouldLaunchUniversalGuide || !hasSeenUniversalGuide())) {
-            beginUniversalGuideFlow(2000);
+        const isDashboardReturnGuideStage = universalGuideFlow && universalGuideStage === 'dashboard';
+        const shouldStartMenuGuide = !isEmbeddedDashboardPreview && !isDashboardReturnGuideStage && (universalGuideFlow || !hasSeenUniversalGuide());
+        const defaultProfileHref = els.dropdownProfileLink?.getAttribute('href') || 'profile.html?demo=decision-tree';
+
+        function setUniversalProfileMenuHref(active) {
+            if (!els.dropdownProfileLink) return;
+            els.dropdownProfileLink.href = active
+                ? buildUniversalGuideUrl('profile.html', { stage: 'profile' })
+                : defaultProfileHref;
         }
+
+        const dashboardMenuTourSteps = [
+            {
+                selector: '#dropdownProfileLink',
+                title: 'Step 1: Open Your Persona',
+                placement: 'left',
+                allowHidden: true,
+                waitForTargetClick: true,
+                lockToTarget: true,
+                spotlightPadding: 8,
+                beforeShow: ({ element }) => {
+                    setUniversalProfileMenuHref(true);
+                    openDropdown();
+                    document.body.classList.add('menu-guide-lock');
+                    element?.focus({ preventScroll: true });
+                }
+            }
+        ];
+
+        const dashboardWorkflowTourSteps = [
+            {
+                selector: '[data-tour-step="chatspaces"]',
+                title: 'Step 3: Start with the uncertain situation',
+                description: 'Back on the dashboard, choose the real situation you are unsure about. Use the message, timing, relationship context, and goal as the input Syntrae should reason from.',
+                placement: 'left'
+            },
+            {
+                selector: '[data-tour-step="bestway"]',
+                title: 'Compare likely consequence paths',
+                description: 'This section frames the possible next moves. Syntrae is meant to compare likely real-life consequences before you send, ask, wait, or choose another action.',
+                placement: 'left',
+                highlight: 'soft'
+            },
+            {
+                selector: '[data-tour-step="settings"]',
+                title: 'Run Syntrae, then keep agency',
+                description: 'Use the Syntrae button to generate the consequence map. The dashboard informs the decision; you still choose what to do in real life.',
+                placement: 'left',
+                highlight: 'soft'
+            }
+        ];
 
         const dashboardUniversalTour = window.SyntraePageTour?.init({
             pageKey: 'dashboard-demo',
@@ -2429,37 +2604,24 @@
             autoStartOnce: false,
             autoStart: () => {
                 if (isEmbeddedDashboardPreview) return false;
-                return universalGuideFlow && universalGuideStage === 'dashboard';
+                return isDashboardReturnGuideStage || shouldStartMenuGuide;
             },
             onFinish: ({ reason } = {}) => {
+                setUniversalProfileMenuHref(false);
+                closeDropdown();
+                document.body.classList.remove('menu-guide-lock');
+                if (reason === 'skip') {
+                    stopUniversalGuideFlow();
+                    return;
+                }
+                if (!isDashboardReturnGuideStage) return;
                 if (reason !== 'complete') return;
                 markUniversalGuideSeen();
                 if (window.history?.replaceState) {
                     window.history.replaceState({}, '', 'DashboardDemo.html?demo=decision-tree&state=start');
                 }
             },
-            steps: [
-                {
-                    selector: '[data-tour-step="chatspaces"]',
-                    title: 'Step 3: Start with the uncertain situation',
-                    description: 'Back on the dashboard, choose the real situation you are unsure about. Use the message, timing, relationship context, and goal as the input Syntrae should reason from.',
-                    placement: 'left'
-                },
-                {
-                    selector: '[data-tour-step="bestway"]',
-                    title: 'Compare likely consequence paths',
-                    description: 'This section frames the possible next moves. Syntrae is meant to compare likely real-life consequences before you send, ask, wait, or choose another action.',
-                    placement: 'left',
-                    highlight: 'soft'
-                },
-                {
-                    selector: '[data-tour-step="settings"]',
-                    title: 'Run Syntrae, then keep agency',
-                    description: 'Use the Syntrae button to generate the consequence map. The dashboard informs the decision; you still choose what to do in real life.',
-                    placement: 'left',
-                    highlight: 'soft'
-                }
-            ]
+            steps: isDashboardReturnGuideStage ? dashboardWorkflowTourSteps : dashboardMenuTourSteps
         });
 
         els.startUniversalGuide?.addEventListener('click', () => {
@@ -2469,8 +2631,7 @@
         renderAll({ resetTree: true, animateChat: true });
         if (dashboardParams.get('state') === 'end') {
             els.treeSection.classList.add('visible');
-            els.syntraeButton.innerHTML = '<i class="fas fa-check"></i> Syntrae complete';
-            els.syntraeButton.disabled = true;
+            setSyntraeButtonComplete();
         }
     </script>
 </body>
