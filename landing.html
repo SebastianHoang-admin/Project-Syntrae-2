@@ -553,6 +553,31 @@
             white-space: nowrap;
         }
 
+        .hero-captcha,
+        .hero-form-status {
+            width: min(660px, 100%);
+        }
+
+        .hero-captcha {
+            min-height: 65px;
+        }
+
+        .hero-form-status {
+            min-height: 22px;
+            color: rgba(255, 255, 255, 0.92);
+            font-size: 13px;
+            font-weight: 800;
+            line-height: 1.5;
+        }
+
+        .hero-form-status[data-type="error"] {
+            color: #ffd2c8;
+        }
+
+        .hero-form-status[data-type="success"] {
+            color: #d7fff2;
+        }
+
         .hero-actions {
             display: flex;
             align-items: center;
@@ -1413,6 +1438,18 @@
             line-height: 1.5;
         }
 
+        .form-status[data-type="error"] {
+            color: #b83a2d;
+        }
+
+        .form-status[data-type="success"] {
+            color: var(--leaf);
+        }
+
+        .waitlist-captcha {
+            min-height: 65px;
+        }
+
         .account-switch {
             margin: 14px 0 0;
             text-align: center;
@@ -2029,6 +2066,8 @@
                     <input type="email" name="email" autocomplete="email" placeholder="Enter your email" aria-label="Email address" required>
                     <button class="button button-primary" type="submit"><i class="fas fa-user-plus"></i> Join for free</button>
                 </form>
+                <div id="heroTurnstileWidget" class="hero-captcha" aria-label="CAPTCHA verification"></div>
+                <div class="hero-form-status" id="heroFormStatus" role="status" aria-live="polite"></div>
             </div>
         </section>
 
@@ -2127,10 +2166,6 @@
                             Email
                             <input type="email" name="email" autocomplete="email" placeholder="you@example.com" required>
                         </label>
-                        <label>
-                            Password
-                            <input type="password" name="password" autocomplete="new-password" placeholder="Create a password" required>
-                        </label>
                         <label class="checkbox">
                             <input type="checkbox" name="foundingConsent" required>
                             <span>I understand joining is free and includes early updates plus optional feedback invitations during development.</span>
@@ -2138,6 +2173,7 @@
                     </div>
                     <div class="form-footer">
                         <div class="privacy-note"><i class="fas fa-shield-alt"></i><span>No spam. We will only send Syntrae launch updates, founding access details, and product feedback opportunities.</span></div>
+                        <div id="foundingTurnstileWidget" class="waitlist-captcha" aria-label="CAPTCHA verification"></div>
                         <button class="button button-primary" type="submit"><i class="fas fa-user-plus"></i> Join for free</button>
                         <div class="form-status" id="formStatus" role="status" aria-live="polite"></div>
                         <div class="account-switch">Have an account already? <a href="sign-in.html">Sign-in instead</a></div>
@@ -2209,12 +2245,19 @@
         </div>
     </div>
 
+    <script src="js/supabase-config.js"></script>
     <script src="js/page-tour.js"></script>
-    <script>
-        const welcomeUrl = "founding-welcome.html";
+    <script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit" async defer></script>
+    <script type="module">
+        import { supabase } from './js/supabase-client.js';
+
+        const welcomeUrl = "founding-welcome.html?waitlist=verified";
         const heroSignupForm = document.querySelector(".hero-signup");
+        const heroFormStatus = document.getElementById("heroFormStatus");
+        const heroTurnstileWidget = document.getElementById("heroTurnstileWidget");
         const foundingForm = document.getElementById("foundingForm");
         const formStatus = document.getElementById("formStatus");
+        const foundingTurnstileWidget = document.getElementById("foundingTurnstileWidget");
         const demoTransitionLink = document.querySelector("[data-demo-transition-link]");
         const dimensionTransition = document.querySelector("[data-dimension-transition]");
         const demoPreview = document.querySelector("[data-demo-preview]");
@@ -2279,35 +2322,208 @@
             });
         }
 
+        const duplicateWaitlistCode = "23505";
+        const captchaWidgets = new Map();
+        const formStatusElements = new Map();
+        const captchaContainers = new Map();
+
+        if (heroSignupForm && heroFormStatus) formStatusElements.set(heroSignupForm, heroFormStatus);
+        if (foundingForm && formStatus) formStatusElements.set(foundingForm, formStatus);
+        if (heroSignupForm && heroTurnstileWidget) captchaContainers.set(heroSignupForm, heroTurnstileWidget);
+        if (foundingForm && foundingTurnstileWidget) captchaContainers.set(foundingForm, foundingTurnstileWidget);
+
+        const getReferralSource = () => {
+            const params = new URLSearchParams(window.location.search);
+            const campaignKeys = ["utm_source", "utm_medium", "utm_campaign", "utm_content", "utm_term", "ref"];
+            const campaignValues = campaignKeys
+                .map((key) => {
+                    const value = params.get(key);
+                    return value ? `${key}=${value.trim()}` : "";
+                })
+                .filter(Boolean);
+
+            if (campaignValues.length > 0) return campaignValues.join("&");
+            return document.referrer || "direct";
+        };
+
         const saveFoundingInterest = (form) => {
             const data = new FormData(form);
             const payload = {
                 name: String(data.get("name") || "").trim(),
-                email: String(data.get("email") || "").trim(),
+                email: String(data.get("email") || "").trim().toLowerCase(),
+                referralSource: getReferralSource(),
                 reservedPlan: "founding-member",
+                consentToUpdates: form.elements.foundingConsent ? form.elements.foundingConsent.checked : true,
                 createdAt: new Date().toISOString()
             };
 
             localStorage.setItem("syntrae:founding-member-interest", JSON.stringify(payload));
+            return payload;
         };
 
-        if (heroSignupForm) {
-            heroSignupForm.addEventListener("submit", () => {
-                saveFoundingInterest(heroSignupForm);
-            });
-        }
+        const setFormStatus = (form, message, type = "info") => {
+            const statusElement = formStatusElements.get(form);
+            if (!statusElement) return;
+            statusElement.textContent = message;
+            statusElement.dataset.type = type;
+        };
 
-        if (foundingForm && formStatus) {
-            foundingForm.addEventListener("submit", (event) => {
-                event.preventDefault();
-                saveFoundingInterest(foundingForm);
+        const setSubmitState = (form, pending) => {
+            const button = form.querySelector('button[type="submit"]');
+            if (!button) return;
 
-                formStatus.textContent = "Creating your founding-member reservation...";
-                window.setTimeout(() => {
-                    window.location.href = welcomeUrl;
-                }, 480);
+            if (pending) {
+                button.dataset.originalHtml = button.innerHTML;
+                button.disabled = true;
+                button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Joining...';
+                return;
+            }
+
+            button.disabled = false;
+            if (button.dataset.originalHtml) {
+                button.innerHTML = button.dataset.originalHtml;
+                delete button.dataset.originalHtml;
+            }
+        };
+
+        const ensureCaptchaRendered = (form) => {
+            const container = captchaContainers.get(form);
+            if (!container) return null;
+
+            if (!window.TURNSTILE_SITE_KEY || window.TURNSTILE_SITE_KEY === "YOUR_TURNSTILE_SITE_KEY") {
+                throw new Error("CAPTCHA is not configured yet.");
+            }
+
+            if (!window.turnstile || typeof window.turnstile.render !== "function") {
+                throw new Error("CAPTCHA is still loading. Please wait a second and try again.");
+            }
+
+            if (!captchaWidgets.has(form)) {
+                captchaWidgets.set(form, window.turnstile.render(container, {
+                    sitekey: window.TURNSTILE_SITE_KEY
+                }));
+            }
+
+            return captchaWidgets.get(form);
+        };
+
+        const resetCaptcha = (form) => {
+            const widgetId = captchaWidgets.get(form);
+            if (widgetId !== undefined && window.turnstile) {
+                window.turnstile.reset(widgetId);
+            }
+        };
+
+        const getCaptchaToken = (form) => {
+            const widgetId = ensureCaptchaRendered(form);
+            if (widgetId === null) return "";
+            return window.turnstile.getResponse(widgetId);
+        };
+
+        const reserveAuthenticatedWaitlist = async (payload) => {
+            const { error } = await supabase
+                .from("waitlist")
+                .insert({
+                    email: payload.email,
+                    full_name: payload.name || null,
+                    referral_source: payload.referralSource || getReferralSource(),
+                    status: "pending",
+                    consent_to_updates: true
+                });
+
+            if (error && error.code !== duplicateWaitlistCode) {
+                throw error;
+            }
+
+            return { alreadyJoined: error?.code === duplicateWaitlistCode };
+        };
+
+        const requestWaitlistVerification = async (form) => {
+            const payload = saveFoundingInterest(form);
+            const consent = form.elements.foundingConsent ? form.elements.foundingConsent.checked : true;
+
+            if (!payload.email) {
+                throw new Error("Please enter your email address.");
+            }
+
+            if (!consent) {
+                throw new Error("Please confirm you want Syntrae launch updates before joining.");
+            }
+
+            const { data: sessionData } = await supabase.auth.getSession();
+            const authenticatedEmail = String(sessionData?.session?.user?.email || "").trim().toLowerCase();
+            if (authenticatedEmail && authenticatedEmail === payload.email) {
+                return { verifiedNow: true, ...(await reserveAuthenticatedWaitlist(payload)) };
+            }
+
+            const captchaToken = getCaptchaToken(form);
+            if (!captchaToken) {
+                throw new Error("Please complete the CAPTCHA before requesting your verification link.");
+            }
+
+            const { error } = await supabase.auth.signInWithOtp({
+                email: payload.email,
+                options: {
+                    emailRedirectTo: `${window.location.origin}/${welcomeUrl}`,
+                    shouldCreateUser: true,
+                    captchaToken,
+                    data: {
+                        full_name: payload.name || undefined,
+                        founding_member_interest: true,
+                        referral_source: payload.referralSource
+                    }
+                }
             });
-        }
+
+            if (error) {
+                throw error;
+            }
+
+            return { verificationSent: true };
+        };
+
+        const handleWaitlistSubmit = async (event) => {
+            event.preventDefault();
+            const form = event.currentTarget;
+            setSubmitState(form, true);
+            setFormStatus(form, "Preparing your email verification...");
+
+            try {
+                const result = await requestWaitlistVerification(form);
+                if (result.verifiedNow) {
+                    setFormStatus(form, result.alreadyJoined
+                        ? "You are already on the founding list. Taking you to the welcome page..."
+                        : "Your email is verified. Taking you to the welcome page...", "success");
+                    window.setTimeout(() => {
+                        window.location.href = welcomeUrl;
+                    }, 480);
+                    return;
+                }
+
+                setFormStatus(form, "Verification link sent. Open it from your email to finish joining the founding list.", "success");
+                resetCaptcha(form);
+                setSubmitState(form, false);
+            } catch (error) {
+                console.error("[Waitlist] signup failed:", error);
+                setFormStatus(form, error.message || "Could not send your verification link right now. Please try again.", "error");
+                resetCaptcha(form);
+                setSubmitState(form, false);
+            }
+        };
+
+        [heroSignupForm, foundingForm].forEach((form) => {
+            if (form) form.addEventListener("submit", handleWaitlistSubmit);
+        });
+
+        window.addEventListener("load", () => {
+            [heroSignupForm, foundingForm].forEach((form) => {
+                try {
+                    if (form) ensureCaptchaRendered(form);
+                } catch (_) {
+                    /* The submit handler shows a user-facing CAPTCHA error if needed. */
+                }
+            });
+        });
 
         const resetDemoTransition = () => {
             if (!dimensionTransition) return;
