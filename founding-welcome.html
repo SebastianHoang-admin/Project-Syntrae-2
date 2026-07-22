@@ -459,7 +459,7 @@
                     </a>
                     <p class="kicker"><i class="fas fa-star"></i> Reservation received</p>
                     <h1>Thank you for joining the founding circle.</h1>
-                    <p class="lede" id="welcomeMessage">Your founding access request is being verified. Please wait while we confirm your email for early access.</p>
+                    <p class="lede" id="welcomeMessage">Your founding access request is in. Please wait for Syntrae launch while we prepare the first experience for early members.</p>
                     <div class="launch-note">
                         <strong>What happens next?</strong>
                         <div class="survey-prompt">
@@ -481,7 +481,6 @@
         </section>
     </main>
 
-    <script src="js/supabase-config.js"></script>
     <script>
         const palette = ["#12968d", "#2d7d67", "#ef745f", "#f3c94f", "#2f6f9f"];
         const count = 34;
@@ -505,102 +504,6 @@
         } catch (_) {
             /* Keep the default message if local storage is unavailable. */
         }
-    </script>
-    <script type="module">
-        import { supabase } from './js/supabase-client.js';
-
-        const duplicateWaitlistCode = "23505";
-        const welcomeMessage = document.getElementById("welcomeMessage");
-
-        const getStoredInterest = () => {
-            try {
-                return JSON.parse(localStorage.getItem("syntrae:founding-member-interest") || "{}");
-            } catch (_) {
-                return {};
-            }
-        };
-
-        const saveVerifiedInterest = (payload) => {
-            try {
-                localStorage.setItem("syntrae:founding-member-interest", JSON.stringify({
-                    ...payload,
-                    emailVerified: true,
-                    verifiedAt: new Date().toISOString()
-                }));
-            } catch (_) {
-                /* Local storage is only used for immediate welcome personalization. */
-            }
-        };
-
-        const firstName = (value) => String(value || "").trim().split(/\s+/)[0] || "";
-
-        const setVerifiedMessage = (name) => {
-            const intro = firstName(name);
-            welcomeMessage.textContent = intro
-                ? `${intro}, your email is verified and your founding access request is in. Please wait for Syntrae launch while we prepare the first experience for early members.`
-                : "Your email is verified and your founding access request is in. Please wait for Syntrae launch while we prepare the first experience for early members.";
-        };
-
-        const showAuthErrorIfPresent = () => {
-            const hashParams = new URLSearchParams(window.location.hash.slice(1));
-            const errorDescription = hashParams.get("error_description") || hashParams.get("error");
-            if (!errorDescription) return false;
-            welcomeMessage.textContent = `We could not verify your email: ${errorDescription}. Please return to the landing page and request a new verification link.`;
-            return true;
-        };
-
-        const finalizeWaitlistReservation = async () => {
-            if (showAuthErrorIfPresent()) return;
-
-            const params = new URLSearchParams(window.location.search);
-            const isVerificationReturn = params.get("waitlist") === "verified";
-            const storedInterest = getStoredInterest();
-            const { data, error: sessionError } = await supabase.auth.getSession();
-
-            if (sessionError) {
-                welcomeMessage.textContent = "We could not confirm your authenticated session. Please return to the landing page and request a new verification link.";
-                return;
-            }
-
-            const user = data?.session?.user;
-            const email = String(user?.email || "").trim().toLowerCase();
-            if (!email) {
-                if (isVerificationReturn) {
-                    welcomeMessage.textContent = "The verification link opened, but no authenticated session was found. Please return to the landing page and request a new verification link.";
-                }
-                return;
-            }
-
-            const name = String(storedInterest.name || user?.user_metadata?.full_name || "").trim();
-            const referralSource = String(storedInterest.referralSource || document.referrer || "verified-email").trim();
-
-            const { error: waitlistError } = await supabase
-                .from("waitlist")
-                .insert({
-                    email,
-                    full_name: name || null,
-                    referral_source: referralSource || "verified-email",
-                    status: "pending",
-                    consent_to_updates: true
-                });
-
-            if (waitlistError && waitlistError.code !== duplicateWaitlistCode) {
-                console.error("[Waitlist] verified reservation failed:", waitlistError);
-                welcomeMessage.textContent = "Your email is verified, but we could not finish the founding access reservation. Please try joining again from the landing page.";
-                return;
-            }
-
-            saveVerifiedInterest({
-                ...storedInterest,
-                name,
-                email,
-                referralSource,
-                reservedPlan: "founding-member"
-            });
-            setVerifiedMessage(name);
-        };
-
-        finalizeWaitlistReservation();
     </script>
 </body>
 </html>
