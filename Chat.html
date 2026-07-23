@@ -1512,7 +1512,6 @@
             <div class="dropdown-menu" id="dropdownMenu">
                 <a href="./analyze.html" class="dropdown-item" data-destination="analyze"><i class="fas fa-user-pen"></i>Analyze and Edit Your Persona</a>
                 <a href="./profile.html" class="dropdown-item" data-destination="profile"><i class="fas fa-id-card"></i>Your Persona</a>
-                <a href="./insight-lab.html" class="dropdown-item" data-destination="lab"><i class="fas fa-desktop"></i>Insight Lab</a>
                 <a href="sign-out.html" class="dropdown-item sign-out" id="signOutLink"><i class="fas fa-sign-out-alt"></i>Sign Out</a>
             </div>
         </div>
@@ -2449,7 +2448,6 @@
             accountIndicator.dataset.state = 'signed-in';
             document.querySelector('[data-destination="analyze"]').setAttribute('href', demoUrl('analyze.html', { persona: 'daniel-smith-demo' }));
             document.querySelector('[data-destination="profile"]').setAttribute('href', demoUrl('profile.html'));
-            document.querySelector('[data-destination="lab"]').setAttribute('href', demoUrl('insight-lab.html'));
 
             const demoPersonas = {
                 daniel: {
@@ -3313,7 +3311,7 @@
                     {
                         selector: '#moreBtn',
                         title: 'More Pages',
-                        description: 'This menu is the jump point to the rest of the workflow: Analyze and Edit Your Persona, Your Persona, and Insight Lab.',
+                        description: 'This menu is the jump point to the rest of the workflow: Analyze and Edit Your Persona and Your Persona.',
                         placement: 'left',
                         highlightSelector: 'header',
                         highlight: 'soft'
@@ -3526,7 +3524,7 @@
                     {
                         selector: '#moreBtn',
                         title: 'Navigation',
-                        description: 'Use this menu to move to the rest of Syntrae: persona analysis, the account-level persona page, and Insight Lab.',
+                        description: 'Use this menu to move to the rest of Syntrae: persona analysis and the account-level persona page.',
                         placement: 'left',
                         highlightSelector: 'header',
                         highlight: 'soft'

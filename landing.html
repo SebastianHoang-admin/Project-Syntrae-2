@@ -539,6 +539,11 @@
             backdrop-filter: blur(12px);
         }
 
+        .hero-signup-field {
+            display: grid;
+            gap: 8px;
+        }
+
         .hero-signup input {
             min-height: 52px;
             border: 1px solid rgba(255, 255, 255, 0.3);
@@ -551,6 +556,21 @@
             padding-inline: 22px;
             font-size: 15px;
             white-space: nowrap;
+        }
+
+        .hero-signup .form-status {
+            grid-column: 1 / -1;
+            min-height: 20px;
+            color: rgba(255, 255, 255, 0.92);
+            font-size: 13px;
+            font-weight: 800;
+            line-height: 1.45;
+        }
+
+        .hero-captcha {
+            grid-column: 1 / -1;
+            display: grid;
+            min-height: 0;
         }
 
         .hero-actions {
@@ -1413,6 +1433,36 @@
             line-height: 1.5;
         }
 
+        .form-status.is-error {
+            color: #b54233;
+        }
+
+        .form-status.is-success {
+            color: var(--leaf);
+        }
+
+        .hero-signup .form-status.is-success {
+            color: rgba(255, 255, 255, 0.94);
+        }
+
+        .hero-signup .form-status.is-error {
+            color: #ffe4df;
+        }
+
+        .waitlist-captcha {
+            min-height: 65px;
+            display: grid;
+            align-items: center;
+        }
+
+        .captcha-note {
+            margin: 0;
+            color: var(--quiet);
+            font-size: 12px;
+            font-weight: 750;
+            line-height: 1.45;
+        }
+
         .account-switch {
             margin: 14px 0 0;
             text-align: center;
@@ -1967,6 +2017,10 @@
                 grid-template-columns: 1fr;
             }
 
+            .hero-signup .button {
+                width: 100%;
+            }
+
             .button {
                 width: 100%;
             }
@@ -2025,9 +2079,13 @@
                 <span class="eyebrow"><i class="fas fa-seedling"></i> Free founding access is open</span>
                 <h1>Predict the likely real-life consequence before you act.</h1>
                 <p>Syntrae uses real input from your situation to estimate the probability of real-life outcomes, so you can compare possible next moves before sending the message, invite, or request.</p>
-                <form class="hero-signup" action="founding-welcome.html" method="get" aria-label="Join Syntrae for free">
-                    <input type="email" name="email" autocomplete="email" placeholder="Enter your email" aria-label="Email address" required>
+                <form class="hero-signup" id="heroWaitlistForm" action="founding-welcome.html" method="get" aria-label="Join Syntrae for free" data-waitlist-source="landing-hero">
+                    <div class="hero-signup-field">
+                        <input type="email" name="email" autocomplete="email" placeholder="Enter your email" aria-label="Email address" required>
+                    </div>
                     <button class="button button-primary" type="submit"><i class="fas fa-user-plus"></i> Join for free</button>
+                    <div class="hero-captcha" data-turnstile-container></div>
+                    <div class="form-status" id="heroWaitlistStatus" role="status" aria-live="polite"></div>
                 </form>
             </div>
         </section>
@@ -2115,9 +2173,9 @@
                     <div class="mission-callout">Syntrae helps people estimate real-life consequences before they act.</div>
                 </div>
 
-                <form class="member-form" id="foundingForm" action="founding-welcome.html" method="get">
+                <form class="member-form" id="foundingForm" action="founding-welcome.html" method="get" data-waitlist-source="landing-founding-form">
                     <h3>Join for free</h3>
-                    <p>Enter your email to reserve founding access with Syntrae.</p>
+                    <p>Enter your email to reserve founding access with Syntrae. We will send a verification link before adding you to the list.</p>
                     <div class="field-grid">
                         <label>
                             Full name
@@ -2127,10 +2185,6 @@
                             Email
                             <input type="email" name="email" autocomplete="email" placeholder="you@example.com" required>
                         </label>
-                        <label>
-                            Password
-                            <input type="password" name="password" autocomplete="new-password" placeholder="Create a password" required>
-                        </label>
                         <label class="checkbox">
                             <input type="checkbox" name="foundingConsent" required>
                             <span>I understand joining is free and includes early updates plus optional feedback invitations during development.</span>
@@ -2138,6 +2192,8 @@
                     </div>
                     <div class="form-footer">
                         <div class="privacy-note"><i class="fas fa-shield-alt"></i><span>No spam. We will only send Syntrae launch updates, founding access details, and product feedback opportunities.</span></div>
+                        <div class="waitlist-captcha" data-turnstile-container></div>
+                        <p class="captcha-note">Verification protects the founding list from fake or automated signups.</p>
                         <button class="button button-primary" type="submit"><i class="fas fa-user-plus"></i> Join for free</button>
                         <div class="form-status" id="formStatus" role="status" aria-live="polite"></div>
                         <div class="account-switch">Have an account already? <a href="sign-in.html">Sign-in instead</a></div>
@@ -2210,9 +2266,17 @@
     </div>
 
     <script src="js/page-tour.js"></script>
-    <script>
-        const welcomeUrl = "founding-welcome.html";
-        const heroSignupForm = document.querySelector(".hero-signup");
+    <script src="js/supabase-config.js"></script>
+    <script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit" async defer></script>
+    <script type="module">
+        import { supabase } from "./js/supabase-client.js";
+
+        const pendingWaitlistKey = "syntrae:waitlist-pending-verification";
+        const foundingInterestKey = "syntrae:founding-member-interest";
+        const welcomeUrl = new URL("founding-welcome.html", window.location.href);
+        welcomeUrl.searchParams.set("waitlist", "verified");
+
+        const heroSignupForm = document.getElementById("heroWaitlistForm");
         const foundingForm = document.getElementById("foundingForm");
         const formStatus = document.getElementById("formStatus");
         const demoTransitionLink = document.querySelector("[data-demo-transition-link]");
@@ -2279,35 +2343,175 @@
             });
         }
 
+        const normalizeEmail = (value) => String(value || "").trim().toLowerCase();
+
+        const isEmailLike = (value) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+
+        const getReferralSource = (form) => {
+            const params = new URLSearchParams(window.location.search);
+            const source = params.get("utm_source") || params.get("ref") || form?.dataset.waitlistSource || "landing";
+            const campaign = params.get("utm_campaign");
+            return campaign ? `${source}:${campaign}` : source;
+        };
+
+        const getStatusEl = (form) => form?.querySelector(".form-status") || formStatus;
+
+        const setFormStatus = (form, message, type = "success") => {
+            const statusEl = getStatusEl(form);
+            if (!statusEl) return;
+            statusEl.textContent = message;
+            statusEl.classList.toggle("is-error", type === "error");
+            statusEl.classList.toggle("is-success", type !== "error");
+        };
+
+        const setButtonPending = (button, isPending) => {
+            if (!button) return;
+            if (isPending) {
+                button.dataset.originalText = button.innerHTML;
+                button.disabled = true;
+                button.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Sending verification...';
+                return;
+            }
+
+            button.disabled = false;
+            if (button.dataset.originalText) {
+                button.innerHTML = button.dataset.originalText;
+                delete button.dataset.originalText;
+            }
+        };
+
         const saveFoundingInterest = (form) => {
             const data = new FormData(form);
             const payload = {
                 name: String(data.get("name") || "").trim(),
-                email: String(data.get("email") || "").trim(),
+                email: normalizeEmail(data.get("email")),
                 reservedPlan: "founding-member",
+                referralSource: getReferralSource(form),
                 createdAt: new Date().toISOString()
             };
 
-            localStorage.setItem("syntrae:founding-member-interest", JSON.stringify(payload));
+            localStorage.setItem(foundingInterestKey, JSON.stringify(payload));
+            localStorage.setItem(pendingWaitlistKey, JSON.stringify(payload));
+            return payload;
         };
 
-        if (heroSignupForm) {
-            heroSignupForm.addEventListener("submit", () => {
-                saveFoundingInterest(heroSignupForm);
-            });
-        }
+        const getCaptchaToken = (form) => String(form?.dataset.captchaToken || "").trim();
 
-        if (foundingForm && formStatus) {
-            foundingForm.addEventListener("submit", (event) => {
+        const resetCaptcha = (form) => {
+            const widgetId = form?.dataset.captchaWidgetId;
+            if (window.turnstile && widgetId) {
+                window.turnstile.reset(widgetId);
+            }
+            if (form) delete form.dataset.captchaToken;
+        };
+
+        const isCaptchaConfigured = () => Boolean(
+            window.TURNSTILE_SITE_KEY &&
+            window.TURNSTILE_SITE_KEY !== "YOUR_TURNSTILE_SITE_KEY"
+        );
+
+        const renderCaptchaWidgets = (attempt = 0) => {
+            if (!isCaptchaConfigured()) {
+                [heroSignupForm, foundingForm].filter(Boolean).forEach((form) => {
+                    setFormStatus(form, "CAPTCHA is not configured yet. Set TURNSTILE_SITE_KEY before collecting waitlist emails.", "error");
+                });
+                return;
+            }
+
+            if (!window.turnstile) {
+                if (attempt < 50) {
+                    window.setTimeout(() => renderCaptchaWidgets(attempt + 1), 120);
+                    return;
+                }
+
+                [heroSignupForm, foundingForm].filter(Boolean).forEach((form) => {
+                    setFormStatus(form, "CAPTCHA failed to load. Refresh the page and try again.", "error");
+                });
+                return;
+            }
+
+            [heroSignupForm, foundingForm].filter(Boolean).forEach((form) => {
+                if (form.dataset.captchaWidgetId) return;
+                const container = form.querySelector("[data-turnstile-container]");
+                if (!container) return;
+
+                const widgetId = window.turnstile.render(container, {
+                    sitekey: window.TURNSTILE_SITE_KEY,
+                    callback: (token) => {
+                        form.dataset.captchaToken = token;
+                        setFormStatus(form, "");
+                    },
+                    "expired-callback": () => {
+                        delete form.dataset.captchaToken;
+                        setFormStatus(form, "Verification expired. Complete the check again.", "error");
+                    },
+                    "error-callback": () => {
+                        delete form.dataset.captchaToken;
+                        setFormStatus(form, "Verification check failed. Try again.", "error");
+                    }
+                });
+
+                form.dataset.captchaWidgetId = String(widgetId);
+            });
+        };
+
+        renderCaptchaWidgets();
+
+        const requestWaitlistVerification = async (form) => {
+            const payload = saveFoundingInterest(form);
+            const submitButton = form.querySelector('button[type="submit"]');
+
+            if (!isEmailLike(payload.email)) {
+                setFormStatus(form, "Enter a valid email address before joining.", "error");
+                return;
+            }
+
+            const captchaToken = getCaptchaToken(form);
+            if (!captchaToken) {
+                setFormStatus(form, "Complete the verification check before joining.", "error");
+                return;
+            }
+
+            setButtonPending(submitButton, true);
+            setFormStatus(form, "Sending your email verification link...");
+
+            try {
+                const { error } = await supabase.auth.signInWithOtp({
+                    email: payload.email,
+                    options: {
+                        emailRedirectTo: welcomeUrl.href,
+                        shouldCreateUser: true,
+                        captchaToken,
+                        data: {
+                            full_name: payload.name || null,
+                            founding_member_interest: true,
+                            waitlist_referral_source: payload.referralSource || "landing"
+                        }
+                    }
+                });
+
+                if (error) throw error;
+
+                window.gtag?.("event", "waitlist_verification_requested", {
+                    method: "magic_link",
+                    source: payload.referralSource || "landing"
+                });
+
+                setFormStatus(form, "Verification link sent. Open it from your email to finish joining the founding list.");
+            } catch (error) {
+                setFormStatus(form, error?.message || "Could not send verification right now. Try again shortly.", "error");
+            } finally {
+                resetCaptcha(form);
+                setButtonPending(submitButton, false);
+            }
+        };
+
+        [heroSignupForm, foundingForm].filter(Boolean).forEach((form) => {
+            form.addEventListener("submit", (event) => {
                 event.preventDefault();
-                saveFoundingInterest(foundingForm);
-
-                formStatus.textContent = "Creating your founding-member reservation...";
-                window.setTimeout(() => {
-                    window.location.href = welcomeUrl;
-                }, 480);
+                requestWaitlistVerification(form);
             });
-        }
+        });
 
         const resetDemoTransition = () => {
             if (!dimensionTransition) return;

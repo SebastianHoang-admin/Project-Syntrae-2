@@ -457,13 +457,13 @@
                         <img src="assets/syntrae-logo.svg" alt="Syntrae logo">
                         <span>Founding member</span>
                     </a>
-                    <p class="kicker"><i class="fas fa-star"></i> Reservation received</p>
-                    <h1>Thank you for joining the founding circle.</h1>
-                    <p class="lede" id="welcomeMessage">Your founding access request is in. Please wait for Syntrae launch while we prepare the first experience for early members.</p>
+                    <p class="kicker" id="welcomeKicker"><i class="fas fa-envelope-open-text"></i> Checking verification</p>
+                    <h1 id="welcomeTitle">Finishing your founding access request.</h1>
+                    <p class="lede" id="welcomeMessage">We are checking your verified email session before adding you to the founding list.</p>
                     <div class="launch-note">
                         <strong>What happens next?</strong>
                         <div class="survey-prompt">
-                            <span>You are on the founding member list. We will keep in touch with launch updates, early product notes, and optional feedback invitations while Syntrae gets ready. No action is needed right now.</span>
+                            <span id="welcomeNextSteps">Keep this page open for a moment. The database update happens after your email verification completes.</span>
                         </div>
                     </div>
                     <div class="actions">
@@ -475,35 +475,175 @@
                     <div class="ring"></div>
                     <div class="ring"></div>
                     <div class="ring"></div>
-                    <div class="badge"><i class="fas fa-check"></i></div>
+                    <div class="badge"><i class="fas fa-circle-notch fa-spin" id="welcomeBadgeIcon"></i></div>
                 </div>
             </div>
         </section>
     </main>
 
-    <script>
-        const palette = ["#12968d", "#2d7d67", "#ef745f", "#f3c94f", "#2f6f9f"];
-        const count = 34;
-        for (let i = 0; i < count; i += 1) {
-            const piece = document.createElement("span");
-            piece.className = "confetti";
-            piece.style.left = `${Math.random() * 100}%`;
-            piece.style.background = palette[i % palette.length];
-            piece.style.animationDuration = `${5 + Math.random() * 4}s`;
-            piece.style.animationDelay = `${Math.random() * 2.8}s`;
-            piece.style.transform = `rotate(${Math.random() * 180}deg)`;
-            document.body.appendChild(piece);
-        }
+    <script src="js/supabase-config.js"></script>
+    <script type="module">
+        import { supabase } from "./js/supabase-client.js";
 
-        try {
-            const payload = JSON.parse(localStorage.getItem("syntrae:founding-member-interest") || "{}");
-            const name = String(payload.name || "").trim().split(/\s+/)[0];
-            if (name) {
-                document.getElementById("welcomeMessage").textContent = `${name}, your founding access request is in. Please wait for Syntrae launch while we prepare the first experience for early members.`;
+        const pendingWaitlistKey = "syntrae:waitlist-pending-verification";
+        const foundingInterestKey = "syntrae:founding-member-interest";
+        const welcomeKicker = document.getElementById("welcomeKicker");
+        const welcomeTitle = document.getElementById("welcomeTitle");
+        const welcomeMessage = document.getElementById("welcomeMessage");
+        const welcomeNextSteps = document.getElementById("welcomeNextSteps");
+        const welcomeBadgeIcon = document.getElementById("welcomeBadgeIcon");
+        const palette = ["#12968d", "#2d7d67", "#ef745f", "#f3c94f", "#2f6f9f"];
+
+        const normalizeEmail = (value) => String(value || "").trim().toLowerCase();
+
+        const readStoredPayload = () => {
+            try {
+                return JSON.parse(localStorage.getItem(pendingWaitlistKey) || localStorage.getItem(foundingInterestKey) || "{}");
+            } catch (_) {
+                return {};
             }
-        } catch (_) {
-            /* Keep the default message if local storage is unavailable. */
-        }
+        };
+
+        const writeStoredPayload = (payload) => {
+            try {
+                localStorage.setItem(foundingInterestKey, JSON.stringify(payload));
+                localStorage.removeItem(pendingWaitlistKey);
+            } catch (_) {
+                /* Local storage is only a convenience for display context. */
+            }
+        };
+
+        const stripAuthHash = () => {
+            if (!window.location.hash) return;
+            const cleanUrl = new URL(window.location.href);
+            cleanUrl.hash = "";
+            window.history.replaceState({}, document.title, cleanUrl.toString());
+        };
+
+        const startConfetti = () => {
+            const count = 34;
+            for (let i = 0; i < count; i += 1) {
+                const piece = document.createElement("span");
+                piece.className = "confetti";
+                piece.style.left = `${Math.random() * 100}%`;
+                piece.style.background = palette[i % palette.length];
+                piece.style.animationDuration = `${5 + Math.random() * 4}s`;
+                piece.style.animationDelay = `${Math.random() * 2.8}s`;
+                piece.style.transform = `rotate(${Math.random() * 180}deg)`;
+                document.body.appendChild(piece);
+            }
+        };
+
+        const setWelcomeState = ({ kicker, icon, title, message, nextSteps }) => {
+            if (welcomeKicker) welcomeKicker.innerHTML = kicker;
+            if (welcomeBadgeIcon) welcomeBadgeIcon.className = icon;
+            if (welcomeTitle) welcomeTitle.textContent = title;
+            if (welcomeMessage) welcomeMessage.textContent = message;
+            if (welcomeNextSteps) welcomeNextSteps.textContent = nextSteps;
+        };
+
+        const waitForSession = async () => {
+            const { data } = await supabase.auth.getSession();
+            if (data?.session) return data.session;
+
+            return new Promise((resolve) => {
+                let settled = false;
+                let subscription;
+
+                const finish = (session) => {
+                    if (settled) return;
+                    settled = true;
+                    window.clearTimeout(timeoutId);
+                    subscription?.unsubscribe?.();
+                    resolve(session || null);
+                };
+
+                const timeoutId = window.setTimeout(() => finish(null), 2200);
+                const listener = supabase.auth.onAuthStateChange((_event, session) => {
+                    if (session) finish(session);
+                });
+                subscription = listener?.data?.subscription;
+            });
+        };
+
+        const finalizeWaitlistReservation = async () => {
+            const stored = readStoredPayload();
+            const session = await waitForSession();
+
+            if (!session) {
+                throw new Error("No verified session was found. Open the verification link from your email again.");
+            }
+
+            const { data: userData, error: userError } = await supabase.auth.getUser();
+            const user = userData?.user || session.user;
+            if (userError && !user) throw userError;
+
+            const email = normalizeEmail(user?.email);
+            if (!email) {
+                throw new Error("The verified session does not include an email address.");
+            }
+
+            if (stored.email && normalizeEmail(stored.email) !== email) {
+                throw new Error("This verification link belongs to a different email than the pending waitlist request.");
+            }
+
+            if (!user?.email_confirmed_at && !user?.confirmed_at) {
+                throw new Error("This email has not been confirmed yet. Use the latest verification link from your inbox.");
+            }
+
+            const userMetadata = user?.user_metadata || {};
+            const payload = {
+                name: String(stored.name || userMetadata.full_name || "").trim(),
+                email,
+                reservedPlan: "founding-member",
+                referralSource: stored.referralSource || userMetadata.waitlist_referral_source || "verified-email",
+                createdAt: stored.createdAt || new Date().toISOString(),
+                verifiedAt: new Date().toISOString()
+            };
+
+            const { error } = await supabase
+                .from("waitlist")
+                .insert({
+                    email: payload.email,
+                    full_name: payload.name || null,
+                    referral_source: payload.referralSource,
+                    status: "pending",
+                    consent_to_updates: true
+                });
+
+            if (error && error.code !== "23505") {
+                throw error;
+            }
+
+            writeStoredPayload(payload);
+            stripAuthHash();
+            window.gtag?.("event", "waitlist_joined", {
+                method: "verified_email",
+                source: payload.referralSource
+            });
+
+            const firstName = payload.name.split(/\s+/)[0];
+            setWelcomeState({
+                kicker: '<i class="fas fa-check"></i> Email verified',
+                icon: "fas fa-check",
+                title: "Thank you for joining the founding circle.",
+                message: firstName
+                    ? `${firstName}, your email is verified and your founding access request is in.`
+                    : "Your email is verified and your founding access request is in.",
+                nextSteps: "You are on the founding member list. We will keep in touch with launch updates, early product notes, and optional feedback invitations while Syntrae gets ready."
+            });
+            startConfetti();
+        };
+
+        finalizeWaitlistReservation().catch((error) => {
+            setWelcomeState({
+                kicker: '<i class="fas fa-triangle-exclamation"></i> Verification needed',
+                icon: "fas fa-triangle-exclamation",
+                title: "We could not finish the waitlist signup.",
+                message: error?.message || "Open the latest verification link from your email, or return to the landing page and request a new one.",
+                nextSteps: "Your email is added to the waitlist only after Supabase verifies the link and creates an authenticated session."
+            });
+        });
     </script>
 </body>
 </html>

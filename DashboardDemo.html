@@ -275,7 +275,7 @@
         }
 
         .dropdown-item.syntrae-tour-target {
-            background: linear-gradient(135deg, #fff9e5, #fff2b9);
+            background: rgba(255, 255, 255, 0.92);
         }
 
         body.menu-guide-lock .app-header {
@@ -300,12 +300,10 @@
         body.menu-guide-lock .dropdown-item.syntrae-tour-target {
             opacity: 1 !important;
             filter: none !important;
-            color: var(--ink);
-            background: linear-gradient(135deg, #fff6ad, #ffd24a);
-            box-shadow:
-                0 0 0 3px rgba(255, 255, 255, 0.96),
-                0 0 0 10px rgba(245, 199, 54, 0.26),
-                0 18px 42px rgba(201, 151, 8, 0.24) !important;
+            color: var(--ink) !important;
+            background: rgba(255, 255, 255, 0.92) !important;
+            box-shadow: none !important;
+            animation: none !important;
         }
 
         body.menu-guide-lock #dropdownProfileLink.syntrae-tour-target {
@@ -1437,7 +1435,6 @@
             <nav class="dropdown-menu" id="dropdownMenu" aria-label="Dashboard navigation">
                 <a class="dropdown-item" id="analyzeLink" href="analyze.html?demo=decision-tree&amp;persona=daniel-smith-demo"><i class="fas fa-pencil-alt"></i> Analyze and Edit Your Persona</a>
                 <a class="dropdown-item" id="dropdownProfileLink" href="profile.html?demo=decision-tree"><i class="fas fa-id-card"></i> Your Persona</a>
-                <a class="dropdown-item" href="insight-lab.html?demo=decision-tree"><i class="fas fa-desktop"></i> Insight Lab</a>
                 <button class="dropdown-item guide-menu-item" id="startUniversalGuide" type="button"><i class="fas fa-route"></i> How to use Syntrae</button>
                 <a class="dropdown-item sign-out" href="sign-out.html"><i class="fas fa-sign-out-alt"></i> Sign Out</a>
             </nav>
@@ -2433,7 +2430,8 @@
             setDropdownOpen(true);
         }
 
-        function closeDropdown() {
+        function closeDropdown({ force = false } = {}) {
+            if (!force && document.body.classList.contains('menu-guide-lock')) return;
             setDropdownOpen(false);
         }
 
@@ -2481,6 +2479,7 @@
         });
 
         const universalGuideSeenKey = 'syntrae-universal-guide-seen-dashboard-demo';
+        const legacyPageTourSeenKey = 'syntrae.pageTour.seen.dashboard-demo';
         const dashboardParams = new URLSearchParams(window.location.search);
         const shouldLaunchUniversalGuide = dashboardParams.get('tour') === '1' || dashboardParams.get('tour') === 'dashboard-demo';
         const universalGuideFlow = dashboardParams.get('flow') === 'universal' || shouldLaunchUniversalGuide;
@@ -2506,7 +2505,7 @@
         };
         const hasSeenUniversalGuide = () => {
             try {
-                return localStorage.getItem(universalGuideSeenKey) === '1';
+                return localStorage.getItem(universalGuideSeenKey) === '1' || localStorage.getItem(legacyPageTourSeenKey) === '1';
             } catch (_) {
                 return false;
             }
@@ -2514,6 +2513,7 @@
         const markUniversalGuideSeen = () => {
             try {
                 localStorage.setItem(universalGuideSeenKey, '1');
+                localStorage.setItem(legacyPageTourSeenKey, '1');
             } catch (_) {
                 // The tour should still finish when browser storage is unavailable.
             }
@@ -2532,6 +2532,7 @@
             if (isEmbeddedDashboardPreview) return;
             try {
                 localStorage.removeItem(universalGuideSeenKey);
+                localStorage.removeItem(legacyPageTourSeenKey);
             } catch (_) {
                 // Non-critical: explicit replay still works without storage.
             }
@@ -2544,7 +2545,11 @@
         };
 
         const isDashboardReturnGuideStage = universalGuideFlow && universalGuideStage === 'dashboard';
-        const shouldStartMenuGuide = !isEmbeddedDashboardPreview && !isDashboardReturnGuideStage && (universalGuideFlow || !hasSeenUniversalGuide());
+        const hasAlreadySeenUniversalGuide = hasSeenUniversalGuide();
+        const shouldStartMenuGuide = !isEmbeddedDashboardPreview && !isDashboardReturnGuideStage && universalGuideFlow && !hasAlreadySeenUniversalGuide;
+        if (!isEmbeddedDashboardPreview && !isDashboardReturnGuideStage && universalGuideFlow && hasAlreadySeenUniversalGuide) {
+            clearUniversalGuideParams();
+        }
         const defaultProfileHref = els.dropdownProfileLink?.getAttribute('href') || 'profile.html?demo=decision-tree';
 
         function setUniversalProfileMenuHref(active) {
@@ -2561,9 +2566,11 @@
                 placement: 'left',
                 allowHidden: true,
                 waitForTargetClick: true,
+                allowSkipWhileWaiting: true,
                 lockToTarget: true,
                 spotlightPadding: 8,
                 beforeShow: ({ element }) => {
+                    markUniversalGuideSeen();
                     setUniversalProfileMenuHref(true);
                     openDropdown();
                     document.body.classList.add('menu-guide-lock');
@@ -2608,7 +2615,7 @@
             },
             onFinish: ({ reason } = {}) => {
                 setUniversalProfileMenuHref(false);
-                closeDropdown();
+                closeDropdown({ force: true });
                 document.body.classList.remove('menu-guide-lock');
                 if (reason === 'skip') {
                     stopUniversalGuideFlow();
