@@ -275,7 +275,7 @@
         }
 
         .dropdown-item.syntrae-tour-target {
-            background: linear-gradient(135deg, #fff9e5, #fff2b9);
+            background: rgba(255, 255, 255, 0.92);
         }
 
         body.menu-guide-lock .app-header {
@@ -300,12 +300,10 @@
         body.menu-guide-lock .dropdown-item.syntrae-tour-target {
             opacity: 1 !important;
             filter: none !important;
-            color: var(--ink);
-            background: linear-gradient(135deg, #fff6ad, #ffd24a);
-            box-shadow:
-                0 0 0 3px rgba(255, 255, 255, 0.96),
-                0 0 0 10px rgba(245, 199, 54, 0.26),
-                0 18px 42px rgba(201, 151, 8, 0.24) !important;
+            color: var(--ink) !important;
+            background: rgba(255, 255, 255, 0.92) !important;
+            box-shadow: none !important;
+            animation: none !important;
         }
 
         body.menu-guide-lock #dropdownProfileLink.syntrae-tour-target {
@@ -321,6 +319,7 @@
         }
 
         .panel {
+            min-width: 0;
             border: 1px solid var(--line);
             border-radius: 12px;
             background: rgba(255, 255, 255, 0.94);
@@ -1009,8 +1008,32 @@
 
         .stage-grid {
             display: grid;
-            grid-template-columns: minmax(0, 1fr) 300px;
+            grid-template-columns: minmax(0, 1fr) minmax(320px, 0.58fr);
             gap: 22px;
+            align-items: start;
+        }
+
+        .stage-side-column {
+            display: grid;
+            gap: 22px;
+            align-content: start;
+        }
+
+        .stage-grid.syntrae-test-active .tree-root,
+        .stage-grid.syntrae-test-active .tree-grid,
+        .stage-grid.syntrae-test-active .detail-panel,
+        .stage-grid.syntrae-test-active .recommendation,
+        .stage-grid.syntrae-test-active .principle-strip {
+            display: none;
+        }
+
+        .stage-grid.syntrae-test-active .recurrence-section {
+            margin-top: 0;
+            padding: 24px;
+            border: 1px solid var(--line);
+            border-radius: 14px;
+            background: rgba(255, 255, 255, 0.96);
+            box-shadow: 0 16px 42px rgba(32, 50, 54, 0.08);
         }
 
         .best-way-card,
@@ -1099,9 +1122,175 @@
             font-weight: 700;
         }
 
+        .recurrence-section {
+            scroll-margin-top: 150px;
+            margin-top: 18px;
+            padding-top: 22px;
+            border-top: 1px solid rgba(32, 50, 54, 0.12);
+        }
+
+        .recurrence-head {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 18px;
+        }
+
+        .recurrence-head h2 {
+            margin: 8px 0 8px;
+            font-size: 28px;
+            line-height: 1.08;
+            letter-spacing: -0.04em;
+        }
+
+        .recurrence-head p {
+            margin: 0;
+            max-width: 720px;
+            color: var(--muted);
+            font-weight: 800;
+            line-height: 1.6;
+        }
+
+        .recurrence-run-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            min-width: 168px;
+            min-height: 46px;
+            border: 1px solid rgba(45, 132, 111, 0.24);
+            border-radius: 10px;
+            padding: 0 18px;
+            background: #fff;
+            color: var(--teal-dark);
+            font-weight: 900;
+            box-shadow: 0 12px 28px rgba(45, 132, 111, 0.1);
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+        }
+
+        .recurrence-run-btn:hover:not(:disabled) {
+            transform: translateY(-1px);
+            background: #f5fffb;
+            box-shadow: 0 16px 34px rgba(45, 132, 111, 0.14);
+        }
+
+        .recurrence-run-btn:disabled {
+            cursor: wait;
+            opacity: 0.72;
+        }
+
+        .recurrence-summary {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 12px;
+            margin-top: 18px;
+        }
+
+        .recurrence-metric {
+            min-height: 118px;
+            padding: 16px;
+            border: 1px solid var(--line);
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.9);
+        }
+
+        .recurrence-metric span {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            color: var(--muted);
+            font-size: 12px;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .recurrence-metric strong {
+            display: block;
+            margin-top: 8px;
+            font-size: 27px;
+            line-height: 1.05;
+            letter-spacing: -0.04em;
+        }
+
+        .recurrence-metric small,
+        .recurrence-bar-row p {
+            display: block;
+            margin: 8px 0 0;
+            color: var(--muted);
+            font-size: 13px;
+            font-weight: 800;
+            line-height: 1.5;
+        }
+
+        .recurrence-bars {
+            display: grid;
+            gap: 12px;
+            margin-top: 18px;
+        }
+
+        .recurrence-bar-row {
+            display: grid;
+            gap: 10px;
+            padding: 14px;
+            border: 1px solid rgba(32, 50, 54, 0.12);
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.78);
+        }
+
+        .recurrence-bar-label {
+            display: flex;
+            justify-content: space-between;
+            gap: 12px;
+            font-weight: 900;
+        }
+
+        .recurrence-bar-label strong {
+            color: var(--teal-dark);
+        }
+
+        .recurrence-track {
+            height: 10px;
+        }
+
+        .recurrence-test-explanation {
+            display: grid;
+            gap: 8px;
+            margin-top: 4px;
+            padding: 13px 14px;
+            border-left: 4px solid var(--teal);
+            border-radius: 10px;
+            background: rgba(238, 250, 245, 0.82);
+        }
+
+        .recurrence-test-explanation span {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            color: var(--teal-dark);
+            font-size: 12px;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .recurrence-test-explanation p {
+            margin: 0;
+            color: var(--muted);
+            font-size: 13px;
+            font-weight: 800;
+            line-height: 1.55;
+        }
+
+        .recurrence-test-explanation strong {
+            color: var(--ink);
+        }
+
         .tree-section {
             display: none;
             grid-column: 1 / -1;
+            scroll-margin-top: 150px;
             border-radius: 14px;
             animation: slideUp 0.36s ease both;
         }
@@ -1385,8 +1574,17 @@
             .chatspace-card,
             .stage-grid,
             .tree-grid,
-            .detail-panel {
+            .detail-panel,
+            .recurrence-summary {
                 grid-template-columns: 1fr;
+            }
+
+            .recurrence-head {
+                flex-direction: column;
+            }
+
+            .recurrence-run-btn {
+                width: 100%;
             }
 
             .persona-column {
@@ -1437,7 +1635,6 @@
             <nav class="dropdown-menu" id="dropdownMenu" aria-label="Dashboard navigation">
                 <a class="dropdown-item" id="analyzeLink" href="analyze.html?demo=decision-tree&amp;persona=daniel-smith-demo"><i class="fas fa-pencil-alt"></i> Analyze and Edit Your Persona</a>
                 <a class="dropdown-item" id="dropdownProfileLink" href="profile.html?demo=decision-tree"><i class="fas fa-id-card"></i> Your Persona</a>
-                <a class="dropdown-item" href="insight-lab.html?demo=decision-tree"><i class="fas fa-desktop"></i> Insight Lab</a>
                 <button class="dropdown-item guide-menu-item" id="startUniversalGuide" type="button"><i class="fas fa-route"></i> How to use Syntrae</button>
                 <a class="dropdown-item sign-out" href="sign-out.html"><i class="fas fa-sign-out-alt"></i> Sign Out</a>
             </nav>
@@ -1495,7 +1692,7 @@
                 </div>
             </section>
 
-            <section class="stage-grid" aria-label="Best Way simulation">
+            <section class="stage-grid" id="stageGrid" aria-label="Best Way simulation">
                 <article class="best-way-card" data-tour-step="bestway">
                     <span class="kicker"><i class="fas fa-route"></i> One real choice, clearer paths</span>
                     <h2 id="simulationTitle">Best Way</h2>
@@ -1504,21 +1701,23 @@
                     <div class="candidate-grid" id="candidateGrid"></div>
                 </article>
 
-                <aside class="settings-card" data-tour-step="settings">
-                    <span class="kicker"><i class="fas fa-sliders-h"></i> Syntrae Settings</span>
-                    <div class="setting-row">
-                        <span>Active persona</span>
-                        <strong id="settingsPersona">Daniel Smith</strong>
-                    </div>
-                    <button class="primary-btn" id="syntraeButton" type="button"><i class="fas fa-play"></i> Syntrae</button>
-                    <div class="settings-note">Choose with more context.</div>
-                </aside>
+                <div class="stage-side-column">
+                    <aside class="settings-card" data-tour-step="settings">
+                        <span class="kicker"><i class="fas fa-sliders-h"></i> Syntrae Settings</span>
+                        <div class="setting-row">
+                            <span>Active persona</span>
+                            <strong id="settingsPersona">Daniel Smith</strong>
+                        </div>
+                        <button class="primary-btn" id="syntraeButton" type="button"><i class="fas fa-play"></i> Syntrae Test</button>
+                        <div class="settings-note">Choose with more context.</div>
+                    </aside>
+                </div>
 
-                <section class="tree-section" id="treeSection" data-tour-step="tree" aria-label="Consequence tree">
+                <section class="tree-section" id="treeSection" data-tour-step="tree" aria-label="Best Way - Consequence Tree">
                     <div class="tree-root">
                         <div>
-                            <strong>Consequence Tree</strong>
-                            <div>Syntrae consequence map</div>
+                            <strong>Best Way - Consequence Tree</strong>
+                            <div>Syntrae recurring consequence pattern map</div>
                         </div>
                         <span>Probability totals</span>
                     </div>
@@ -1532,12 +1731,26 @@
                         </div>
                     </div>
                     <div class="principle-strip">Your action determines the outcome.</div>
+                    <div class="recurrence-section" id="recurrenceSection" data-tour-step="recurrence" role="group" aria-label="Syntrae Test demo">
+                        <div class="recurrence-head">
+                            <div>
+                                <span class="kicker"><i class="fas fa-sync-alt"></i> Syntrae Test</span>
+                                <h2>Consequence Tree.</h2>
+                                <p>Syntrae varies the assumptions and decision variables around this one choice, then looks for consequence patterns that keep coming back across plausible futures.</p>
+                            </div>
+                            <button class="recurrence-run-btn" id="recurrenceRunButton" type="button">
+                                <i class="fas fa-redo"></i> Run Syntrae Test
+                            </button>
+                        </div>
+                        <div class="recurrence-summary" id="recurrenceSummary"></div>
+                        <div class="recurrence-bars" id="recurrenceBars"></div>
+                    </div>
                 </section>
             </section>
         </section>
     </main>
 
-    <footer class="page-footer">&copy; 2026 Syntrae LLC. Predictive social science for considerate decisions.</footer>
+    <footer class="page-footer">&copy; 2026 Syntrae LLC. Decision rehearsal for considerate decisions.</footer>
 
     <div class="launch-soon-modal" id="launchSoonModal" aria-hidden="true">
         <div class="launch-soon-card" role="dialog" aria-modal="true" aria-labelledby="launchSoonTitle" aria-describedby="launchSoonCopy">
@@ -1684,6 +1897,13 @@
                         title: 'Path A',
                         action: 'Saturday afternoon',
                         probability: 0.48,
+                        syntraeTest: {
+                            variables: ['Daniel\'s weekend availability', 'deadline pressure', 'message clarity', 'emotional intensity', 'privacy of the moment'],
+                            favorableAssumptions: ['Daniel has a quiet Saturday window', 'Maya can ask in a calm, low-pressure way', 'the relationship topic is clear without feeling urgent'],
+                            riskAssumptions: ['Daniel already has weekend plans', 'the question sounds like an immediate label decision', 'the conversation becomes more serious than intended'],
+                            rewardLogic: 'This path maximizes the reward of a thoughtful answer and better relationship clarity because Daniel has time and attention available.',
+                            punishmentLogic: 'It minimizes the punishment risk of catching him during deadline pressure or making the ask feel rushed.'
+                        },
                         items: [
                             { label: 'Daniel has room to think and answer well', probability: 0.20, reason: 'Saturday gives Daniel more mental space than a school night, which fits his pattern of responding better when serious topics are not rushed.' },
                             { label: 'The tone feels mutual instead of urgent', probability: 0.16, reason: 'A planned weekend window signals care and patience, so the request is less likely to feel like an immediate demand.' },
@@ -1694,6 +1914,13 @@
                         title: 'Path B',
                         action: 'Weeknight text',
                         probability: 0.17,
+                        syntraeTest: {
+                            variables: ['Daniel\'s evening workload', 'reply speed', 'text-message clarity', 'emotional bandwidth', 'school deadlines'],
+                            favorableAssumptions: ['Daniel is already texting and available', 'the message stays short and easy to answer', 'Maya only needs a first scheduling signal'],
+                            riskAssumptions: ['Daniel is tired after deadlines', 'the topic needs more emotional attention than text can carry', 'the reply becomes practical instead of meaningful'],
+                            rewardLogic: 'This path can reward Maya with quick logistics when Daniel is available and the goal is only to open the door.',
+                            punishmentLogic: 'It carries more punishment risk because a weeknight text can compress an important conversation into tired timing and shallow context.'
+                        },
                         items: [
                             { label: 'Daniel gives a practical reply', probability: 0.07, reason: 'On a weeknight, Daniel is more likely to be task-focused, so he may answer logistics without fully engaging the emotional meaning.' },
                             { label: 'Response slows because of deadlines', probability: 0.06, reason: 'His current workload makes evening replies less reliable when the message asks for careful emotional attention.' },
@@ -1704,6 +1931,13 @@
                         title: 'Path C',
                         action: 'After a warm date',
                         probability: 0.35,
+                        syntraeTest: {
+                            variables: ['warmth after the date', 'privacy', 'Daniel\'s emotional openness', 'topic intensity', 'transition timing'],
+                            favorableAssumptions: ['the date ends with obvious warmth', 'Daniel is emotionally open and unhurried', 'Maya transitions gently into the question'],
+                            riskAssumptions: ['the shift feels sudden', 'Daniel reads the question as a high-stakes label decision', 'the good mood is interrupted by too much intensity'],
+                            rewardLogic: 'This path has strong reward potential because recent warmth can make the conversation feel natural and mutual.',
+                            punishmentLogic: 'It loses runs when the same warmth becomes fragile and the serious topic feels like too much too soon.'
+                        },
                         items: [
                             { label: 'Conversation opens naturally', probability: 0.15, reason: 'A warm date creates relational safety, which increases the chance Daniel can enter the topic with openness.' },
                             { label: 'The timing feels emotionally sudden', probability: 0.11, reason: 'If the mood was light, moving quickly into a defining conversation may feel abrupt despite the positive connection.' },
@@ -2014,6 +2248,13 @@
                         title: 'Option A',
                         action: 'Own it with fix',
                         probability: 0.50,
+                        syntraeTest: {
+                            variables: ['Naomi Brooks\' mood', 'report impact', 'fix readiness', 'manager need-to-know', 'client visibility', 'prior trust'],
+                            favorableAssumptions: ['Naomi Brooks is in a good mood', 'the correction plan is ready', 'the mistake is contained before it affects a client'],
+                            riskAssumptions: ['Naomi needs an answer before the fix is complete', 'the report mistake has already affected a decision', 'the apology sounds dramatic instead of practical'],
+                            rewardLogic: 'This path maximizes reward by pairing accountability with repair, which gives Maya the best chance to preserve trust and show professional maturity.',
+                            punishmentLogic: 'It minimizes punishment by reducing hidden-risk exposure before Naomi has to discover the mistake herself.'
+                        },
                         items: [
                             { label: 'Naomi trusts the accountability', probability: 0.22, reason: 'Naomi values early ownership, so a clear apology paired with a correction plan signals maturity and reliability.' },
                             { label: 'She focuses on preventing recurrence', probability: 0.16, reason: 'Once the issue is acknowledged, Naomi is likely to ask what checklist or review step will prevent the same mistake.' },
@@ -2024,6 +2265,13 @@
                         title: 'Option B',
                         action: 'Explain context first',
                         probability: 0.30,
+                        syntraeTest: {
+                            variables: ['Naomi Brooks\' questions', 'deadline pressure', 'missing context', 'shared responsibility', 'fix completeness', 'tone of ownership'],
+                            favorableAssumptions: ['Naomi Brooks calls Maya in for questions', 'deadline pressure materially caused the mistake', 'context changes how the error should be evaluated'],
+                            riskAssumptions: ['Naomi needs direct ownership before context', 'the explanation sounds defensive', 'the correction plan is not clear yet'],
+                            rewardLogic: 'This path rewards Maya when context helps Naomi understand the cause and choose the right repair process.',
+                            punishmentLogic: 'It adds punishment risk when explanation arrives before accountability and makes Maya look less direct.'
+                        },
                         items: [
                             { label: 'Naomi understands the pressure', probability: 0.12, reason: 'Context can help if workload or timeline contributed, especially when Maya avoids sounding defensive.' },
                             { label: 'The apology sounds less direct', probability: 0.10, reason: 'Starting with context can make Naomi wonder whether Maya is fully owning the mistake.' },
@@ -2034,6 +2282,13 @@
                         title: 'Option C',
                         action: 'Quietly correct first',
                         probability: 0.20,
+                        syntraeTest: {
+                            variables: ['Naomi Brooks\' availability', 'error severity', 'discovery risk', 'reversibility', 'deadline distance', 'stakeholder exposure'],
+                            favorableAssumptions: ['Naomi Brooks is busy', 'the error is minor and reversible', 'the correction can be completed before anyone relies on the report'],
+                            riskAssumptions: ['Naomi discovers the issue before Maya discloses it', 'the report already influenced a team decision', 'the delay looks like concealment'],
+                            rewardLogic: 'This path can reward Maya when a fast private correction prevents unnecessary disruption.',
+                            punishmentLogic: 'It carries the highest punishment risk when silence damages trust or turns a small report mistake into an accountability problem.'
+                        },
                         items: [
                             { label: 'The fix is ready when Naomi hears it', probability: 0.08, reason: 'Having a completed correction can show initiative if the delay is short and the risk is low.' },
                             { label: 'Naomi dislikes the delayed disclosure', probability: 0.07, reason: 'If the report affected decisions, Naomi may care more that she was not informed immediately.' },
@@ -2122,6 +2377,7 @@
             chatSpaceList: document.getElementById('chatSpaceList'),
             chatHeading: document.getElementById('chatHeading'),
             chatTranscript: document.getElementById('chatTranscript'),
+            stageGrid: document.getElementById('stageGrid'),
             simulationTitle: document.getElementById('simulationTitle'),
             simulationCopy: document.getElementById('simulationCopy'),
             promptBox: document.getElementById('promptBox'),
@@ -2133,6 +2389,10 @@
             outcomeDetail: document.getElementById('outcomeDetail'),
             recommendationTitle: document.getElementById('recommendationTitle'),
             recommendationText: document.getElementById('recommendationText'),
+            recurrenceSection: document.getElementById('recurrenceSection'),
+            recurrenceRunButton: document.getElementById('recurrenceRunButton'),
+            recurrenceSummary: document.getElementById('recurrenceSummary'),
+            recurrenceBars: document.getElementById('recurrenceBars'),
             visualChatForm: document.getElementById('visualChatForm'),
             visualChatInput: document.getElementById('visualChatInput'),
             launchSoonModal: document.getElementById('launchSoonModal'),
@@ -2144,6 +2404,8 @@
         let activeChatKey = 'main';
         let typingRun = 0;
         let syntraeRunTimer = null;
+        let recurrenceRunCount = 0;
+        const recurrenceIterations = 1000;
 
         function escapeHtml(value) {
             return String(value ?? '')
@@ -2166,6 +2428,173 @@
             return Math.max(0, Math.min(100, number <= 1 ? number * 100 : number));
         }
 
+        function hashString(value) {
+            let hash = 2166136261;
+            for (let i = 0; i < value.length; i += 1) {
+                hash ^= value.charCodeAt(i);
+                hash = Math.imul(hash, 16777619);
+            }
+            return hash >>> 0;
+        }
+
+        function createSeededRandom(seed) {
+            let state = seed >>> 0;
+            return () => {
+                state = Math.imul(state, 1664525) + 1013904223;
+                return (state >>> 0) / 4294967296;
+            };
+        }
+
+        function summarizeSyntraeTestResult(chat, counts, iterations) {
+            const rows = chat.outcomes.map((branch, index) => ({
+                index,
+                title: branch.title,
+                action: branch.action,
+                count: counts[index],
+                percent: Math.round((counts[index] / iterations) * 100)
+            })).sort((a, b) => b.count - a.count);
+
+            const top = rows[0] || { title: 'No outcome', action: 'No action', count: 0, percent: 0, index: 0 };
+            const second = rows[1] || top;
+            const spread = Math.abs(top.percent - second.percent);
+
+            return {
+                rows,
+                top,
+                second,
+                spread
+            };
+        }
+
+
+        function joinNaturalList(items) {
+            const values = (items || [])
+                .map((item) => String(item || '').trim())
+                .filter(Boolean);
+            if (values.length <= 1) return values[0] || '';
+            if (values.length === 2) return `${values[0]} and ${values[1]}`;
+            return `${values.slice(0, -1).join(', ')}, and ${values[values.length - 1]}`;
+        }
+
+        function lowerFirst(value) {
+            const text = String(value || '').trim();
+            if (!text) return '';
+            return `${text.charAt(0).toLowerCase()}${text.slice(1)}`;
+        }
+
+        function inferSyntraeTestVariables(chat) {
+            const context = `${chat?.title || ''} ${chat?.meta || ''} ${chat?.prompt || ''}`.toLowerCase();
+            if (chat?.personaKey === 'naomi' || context.includes('salary') || context.includes('report') || context.includes('business')) {
+                return ['manager mood', 'deadline pressure', 'evidence quality', 'team impact', 'visibility risk', 'prior trust'];
+            }
+            if (chat?.personaKey === 'aaron' || context.includes('dad') || context.includes('family')) {
+                return ['privacy', 'emotional readiness', 'cost pressure', 'timing', 'family attention', 'practical support'];
+            }
+            return ['timing', 'emotional pressure', 'message clarity', 'available attention', 'prior warmth', 'need for privacy'];
+        }
+
+        function buildSyntraeTestJustification(chat, branch, row) {
+            const custom = branch?.syntraeTest || {};
+            const items = Array.isArray(branch?.items) ? branch.items : [];
+            const rewardItem = items[0];
+            const supportItem = items[1] || rewardItem;
+            const riskItem = items[items.length - 1] || supportItem || rewardItem;
+            const action = branch?.action || row?.action || 'this path';
+            const percent = Number(row?.percent || 0);
+            const variables = custom.variables?.length ? custom.variables : inferSyntraeTestVariables(chat);
+            const favorableAssumptions = custom.favorableAssumptions?.length
+                ? custom.favorableAssumptions
+                : [
+                    rewardItem ? `${lowerFirst(rewardItem.label)} becomes likely` : `${action} creates a clearer next step`,
+                    supportItem ? `${lowerFirst(supportItem.label)} stays manageable` : 'the situation stays stable enough to act'
+                ];
+            const riskAssumptions = custom.riskAssumptions?.length
+                ? custom.riskAssumptions
+                : [
+                    riskItem ? `${lowerFirst(riskItem.label)} becomes the dominant condition` : 'the downside risk becomes more visible',
+                    percent < 25 ? 'the path creates more punishment risk than reward upside in most runs' : 'small changes in context reduce the advantage'
+                ];
+            const rewardLogic = custom.rewardLogic || (
+                rewardItem
+                    ? `This path gains weight when it helps Maya maximize the reward of ${lowerFirst(rewardItem.label)}.`
+                    : `This path gains weight when it gives Maya a clearer reward than the alternatives.`
+            );
+            const punishmentLogic = custom.punishmentLogic || (
+                riskItem
+                    ? `It loses weight when the sampled variables make ${lowerFirst(riskItem.label)} the more likely punishment.`
+                    : `It loses weight when the sampled variables make the downside harder to contain.`
+            );
+
+            return {
+                variables,
+                favorableAssumptions,
+                riskAssumptions,
+                rewardLogic,
+                punishmentLogic
+            };
+        }
+
+        function runSyntraeTestDemo(iterations = recurrenceIterations) {
+            const chat = getActiveChat();
+            const counts = chat.outcomes.map(() => 0);
+            const seed = hashString(`${activePersonaKey}:${activeChatKey}:${recurrenceRunCount}:${chat.prompt}`);
+            const random = createSeededRandom(seed);
+
+            for (let run = 0; run < iterations; run += 1) {
+                const weights = chat.outcomes.map((outcome) => {
+                    const base = Math.max(0.01, Number(outcome.probability || 0));
+                    const assumptionDrift = 0.78 + random() * 0.44;
+                    const contextDrift = 0.92 + random() * 0.16;
+                    return base * assumptionDrift * contextDrift;
+                });
+                const total = weights.reduce((sum, weight) => sum + weight, 0);
+                let cursor = random() * total;
+                let selected = weights.length - 1;
+                for (let index = 0; index < weights.length; index += 1) {
+                    cursor -= weights[index];
+                    if (cursor <= 0) {
+                        selected = index;
+                        break;
+                    }
+                }
+                counts[selected] += 1;
+            }
+
+            return {
+                chat,
+                iterations,
+                counts,
+                ...summarizeSyntraeTestResult(chat, counts, iterations)
+            };
+        }
+
+        function renderSyntraeTestDemo(result = runSyntraeTestDemo(recurrenceIterations)) {
+            if (!els.recurrenceSummary || !els.recurrenceBars) return;
+            const rowsByOriginalOrder = result.rows.slice().sort((a, b) => a.index - b.index);
+            els.recurrenceSummary.innerHTML = `
+                <article class="recurrence-metric">
+                    <span><i class="fas fa-route"></i> Most recurring path</span>
+                    <strong>${escapeHtml(result.top.title)}</strong>
+                    <small>${escapeHtml(result.top.action)} appeared ${result.top.count} times in Syntrae Test.</small>
+                </article>
+                <article class="recurrence-metric">
+                    <span><i class="fas fa-sliders-h"></i> Sensitivity gap</span>
+                    <strong>${result.spread} pts</strong>
+                    <small>Distance between the two most frequent futures.</small>
+                </article>
+            `;
+            els.recurrenceBars.innerHTML = rowsByOriginalOrder.map((row) => `
+                <article class="recurrence-bar-row">
+                    <div class="recurrence-bar-label">
+                        <span>${escapeHtml(row.title)}: ${escapeHtml(row.action)}</span>
+                        <strong>${row.percent}%</strong>
+                    </div>
+                    <div class="probability-track recurrence-track"><div class="probability-fill" style="width:${row.percent}%;"></div></div>
+                    <p>${row.count} of ${result.iterations} Syntrae Test runs returned this path.</p>
+                </article>
+            `).join('');
+        }
+
         function clearSyntraeRunTimer() {
             if (!syntraeRunTimer) return;
             window.clearTimeout(syntraeRunTimer);
@@ -2176,14 +2605,14 @@
             clearSyntraeRunTimer();
             els.syntraeButton.classList.remove('is-loading');
             els.syntraeButton.removeAttribute('aria-busy');
-            els.syntraeButton.innerHTML = '<i class="fas fa-play"></i> Syntrae';
+            els.syntraeButton.innerHTML = '<i class="fas fa-play"></i> Syntrae Test';
             els.syntraeButton.disabled = false;
         }
 
         function setSyntraeButtonLoading() {
             els.syntraeButton.classList.add('is-loading');
             els.syntraeButton.setAttribute('aria-busy', 'true');
-            els.syntraeButton.innerHTML = '<span class="syntrae-spinner" aria-hidden="true"></span> Loading consequence tree...';
+            els.syntraeButton.innerHTML = '<span class="syntrae-spinner" aria-hidden="true"></span> Loading Syntrae Test map...';
             els.syntraeButton.disabled = true;
         }
 
@@ -2191,8 +2620,12 @@
             clearSyntraeRunTimer();
             els.syntraeButton.classList.remove('is-loading');
             els.syntraeButton.removeAttribute('aria-busy');
-            els.syntraeButton.innerHTML = '<i class="fas fa-check"></i> Syntrae complete';
+            els.syntraeButton.innerHTML = '<i class="fas fa-check"></i> Syntrae Test complete';
             els.syntraeButton.disabled = true;
+        }
+
+        function setSyntraeTestOnlyMode(active) {
+            els.stageGrid?.classList.toggle('syntrae-test-active', Boolean(active));
         }
 
         function demoUrl(path, params = {}) {
@@ -2332,6 +2765,7 @@
 
         function renderSimulation({ resetTree = false } = {}) {
             const chat = getActiveChat();
+            if (resetTree) recurrenceRunCount = 0;
             els.chatHeading.textContent = chat.title;
             els.simulationTitle.textContent = chat.introTitle;
             els.simulationCopy.textContent = chat.introCopy;
@@ -2361,10 +2795,12 @@
             `).join('');
             els.recommendationTitle.textContent = chat.recommendation.title;
             els.recommendationText.textContent = chat.recommendation.text;
+            renderSyntraeTestDemo(runSyntraeTestDemo(recurrenceIterations));
             els.treeGrid.querySelectorAll('.outcome-btn').forEach((button) => {
                 button.addEventListener('click', () => showOutcomeDetail(Number(button.dataset.branch), Number(button.dataset.item)));
             });
             if (resetTree) {
+                setSyntraeTestOnlyMode(false);
                 els.treeSection.classList.remove('visible');
                 els.outcomeDetail.classList.remove('visible');
                 els.outcomeDetail.innerHTML = '';
@@ -2433,7 +2869,8 @@
             setDropdownOpen(true);
         }
 
-        function closeDropdown() {
+        function closeDropdown({ force = false } = {}) {
+            if (!force && document.body.classList.contains('menu-guide-lock')) return;
             setDropdownOpen(false);
         }
 
@@ -2458,9 +2895,21 @@
             syntraeRunTimer = window.setTimeout(() => {
                 syntraeRunTimer = null;
                 els.treeSection.classList.add('visible');
+                setSyntraeTestOnlyMode(true);
                 setSyntraeButtonComplete();
                 els.treeSection.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
             }, 2000);
+        });
+
+        els.recurrenceRunButton?.addEventListener('click', () => {
+            recurrenceRunCount += 1;
+            els.recurrenceRunButton.disabled = true;
+            els.recurrenceRunButton.innerHTML = '<span class="syntrae-spinner" aria-hidden="true"></span> Running Syntrae Test...';
+            window.setTimeout(() => {
+                renderSyntraeTestDemo(runSyntraeTestDemo(recurrenceIterations));
+                els.recurrenceRunButton.disabled = false;
+                els.recurrenceRunButton.innerHTML = '<i class="fas fa-redo"></i> Run Syntrae Test';
+            }, 420);
         });
 
         els.visualChatForm.addEventListener('submit', (event) => {
@@ -2481,6 +2930,7 @@
         });
 
         const universalGuideSeenKey = 'syntrae-universal-guide-seen-dashboard-demo';
+        const legacyPageTourSeenKey = 'syntrae.pageTour.seen.dashboard-demo';
         const dashboardParams = new URLSearchParams(window.location.search);
         const shouldLaunchUniversalGuide = dashboardParams.get('tour') === '1' || dashboardParams.get('tour') === 'dashboard-demo';
         const universalGuideFlow = dashboardParams.get('flow') === 'universal' || shouldLaunchUniversalGuide;
@@ -2506,7 +2956,7 @@
         };
         const hasSeenUniversalGuide = () => {
             try {
-                return localStorage.getItem(universalGuideSeenKey) === '1';
+                return localStorage.getItem(universalGuideSeenKey) === '1' || localStorage.getItem(legacyPageTourSeenKey) === '1';
             } catch (_) {
                 return false;
             }
@@ -2514,6 +2964,7 @@
         const markUniversalGuideSeen = () => {
             try {
                 localStorage.setItem(universalGuideSeenKey, '1');
+                localStorage.setItem(legacyPageTourSeenKey, '1');
             } catch (_) {
                 // The tour should still finish when browser storage is unavailable.
             }
@@ -2532,6 +2983,7 @@
             if (isEmbeddedDashboardPreview) return;
             try {
                 localStorage.removeItem(universalGuideSeenKey);
+                localStorage.removeItem(legacyPageTourSeenKey);
             } catch (_) {
                 // Non-critical: explicit replay still works without storage.
             }
@@ -2544,7 +2996,11 @@
         };
 
         const isDashboardReturnGuideStage = universalGuideFlow && universalGuideStage === 'dashboard';
-        const shouldStartMenuGuide = !isEmbeddedDashboardPreview && !isDashboardReturnGuideStage && (universalGuideFlow || !hasSeenUniversalGuide());
+        const hasAlreadySeenUniversalGuide = hasSeenUniversalGuide();
+        const shouldStartMenuGuide = !isEmbeddedDashboardPreview && !isDashboardReturnGuideStage && universalGuideFlow && !hasAlreadySeenUniversalGuide;
+        if (!isEmbeddedDashboardPreview && !isDashboardReturnGuideStage && universalGuideFlow && hasAlreadySeenUniversalGuide) {
+            clearUniversalGuideParams();
+        }
         const defaultProfileHref = els.dropdownProfileLink?.getAttribute('href') || 'profile.html?demo=decision-tree';
 
         function setUniversalProfileMenuHref(active) {
@@ -2561,9 +3017,11 @@
                 placement: 'left',
                 allowHidden: true,
                 waitForTargetClick: true,
+                allowSkipWhileWaiting: true,
                 lockToTarget: true,
                 spotlightPadding: 8,
                 beforeShow: ({ element }) => {
+                    markUniversalGuideSeen();
                     setUniversalProfileMenuHref(true);
                     openDropdown();
                     document.body.classList.add('menu-guide-lock');
@@ -2588,10 +3046,23 @@
             },
             {
                 selector: '[data-tour-step="settings"]',
-                title: 'Run Syntrae, then keep agency',
-                description: 'Use the Syntrae button to generate the consequence map. The dashboard informs the decision; you still choose what to do in real life.',
+                title: 'Run Syntrae Test, then keep agency',
+                description: 'Use the Syntrae Test button to generate the consequence tree. The dashboard informs the decision; you still choose what to do in real life.',
                 placement: 'left',
                 highlight: 'soft'
+            },
+            {
+                selector: '[data-tour-step="recurrence"]',
+                title: 'Read the Syntrae Test',
+                description: 'Syntrae Test runs the same decision under slightly different variables, then shows which consequence patterns return most often.',
+                placement: 'top',
+                highlight: 'soft',
+                beforeShow: () => {
+                    els.treeSection.classList.add('visible');
+                    setSyntraeTestOnlyMode(true);
+                    setSyntraeButtonComplete();
+                    renderSyntraeTestDemo(runSyntraeTestDemo(recurrenceIterations));
+                }
             }
         ];
 
@@ -2608,7 +3079,7 @@
             },
             onFinish: ({ reason } = {}) => {
                 setUniversalProfileMenuHref(false);
-                closeDropdown();
+                closeDropdown({ force: true });
                 document.body.classList.remove('menu-guide-lock');
                 if (reason === 'skip') {
                     stopUniversalGuideFlow();
@@ -2631,6 +3102,7 @@
         renderAll({ resetTree: true, animateChat: true });
         if (dashboardParams.get('state') === 'end') {
             els.treeSection.classList.add('visible');
+            setSyntraeTestOnlyMode(true);
             setSyntraeButtonComplete();
         }
     </script>

@@ -656,8 +656,9 @@
       this.copy.textContent = description;
       this.copy.hidden = !description;
       const waitForTargetClick = step.waitForTargetClick === true;
+      const allowSkipWhileWaiting = step.allowSkipWhileWaiting === true;
       this.backButton.hidden = waitForTargetClick || index === 0;
-      this.skipButton.hidden = waitForTargetClick || step.hideSkip === true;
+      this.skipButton.hidden = (waitForTargetClick && !allowSkipWhileWaiting) || step.hideSkip === true;
       this.nextButton.hidden = waitForTargetClick || step.hideNext === true;
       this.nextButton.textContent = step.nextLabel || (index === this.steps.length - 1 ? 'Finish' : 'Next');
       const actionsHidden = this.skipButton.hidden && this.backButton.hidden && this.nextButton.hidden;

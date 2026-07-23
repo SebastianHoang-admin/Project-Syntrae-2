@@ -450,7 +450,7 @@
     <nav class="site-nav" aria-label="Primary">
         <a class="brand" href="landing.html" aria-label="Syntrae home">
             <img src="assets/syntrae-logo.svg" alt="Syntrae logo">
-            <span>Predictive social science</span>
+            <span>Improve decision quality</span>
         </a>
         <div class="nav-links">
             <div class="subpage-menu">
@@ -462,7 +462,7 @@
                     <a href="privacy-principles.html" target="_blank" rel="noopener noreferrer" role="menuitem"><i class="fas fa-lock"></i> Privacy</a>
                 </div>
             </div>
-            <a class="button button-primary" href="landing.html#founding"><i class="fas fa-star"></i> Join for free</a>
+            <a class="button button-primary" href="landing.html#founding"><i class="fas fa-star"></i> Join at no cost</a>
         </div>
     </nav>
 
@@ -471,14 +471,14 @@
             <div class="page-grid">
                 <div>
                     <p class="kicker"><i class="fas fa-poll"></i> Founding member survey</p>
-                    <h1>Tell us where uncertainty gets difficult.</h1>
-                    <p class="lede">This short survey helps us understand real moments when people feel unsure what to say or do with someone they care about.</p>
+                    <h1>Tell us where decision quality gets difficult.</h1>
+                    <p class="lede">This short survey helps us understand real moments when people need clearer inputs, better option comparison, and Syntrae Test decision support.</p>
                 </div>
                 <figure class="image-frame">
                     <img src="assets/founding-survey-signal.svg" alt="Abstract survey feedback signal">
                     <figcaption class="image-caption">
                         <strong>Your experience becomes signal.</strong>
-                        <span>General examples help Syntrae stay useful, private, and human.</span>
+                        <span>General examples help Syntrae stay useful, private, and data-centered.</span>
                     </figcaption>
                 </figure>
             </div>
@@ -492,9 +492,9 @@
                     <span class="signal-dot"></span>
                 </div>
                 <div class="survey-intro-copy">
-                    <p class="kicker"><i class="fas fa-shield-alt"></i> Gentle feedback</p>
+                    <p class="kicker"><i class="fas fa-shield-alt"></i> Focused feedback</p>
                     <h2>Short and helpful.</h2>
-                    <p>Answer what you can. The goal is to learn how people handle uncertainty before speaking or acting, not to collect unnecessary personal details.</p>
+                    <p>Answer what you can. The goal is to learn how people evaluate uncertainty before acting, not to collect unnecessary personal details.</p>
                     <div class="survey-promise">
                         <div class="promise-item"><i class="fas fa-seedling"></i><span>Your answers help shape product direction, language, and early use cases.</span></div>
                     </div>
@@ -503,38 +503,38 @@
 
             <form class="survey-form" id="surveyForm">
                 <div class="question-block">
-                    <h3>1. Tell me about the last time you felt uncertain about what to say or do with someone you care about.</h3>
+                    <h3>1. Tell me about the last time you felt uncertain about an important decision.</h3>
                     <p>Use a general example. Please avoid names or identifying details.</p>
                     <label class="field">
                         Your answer
-                        <textarea name="uncertainMoment" placeholder="Example: I wanted to check in with someone important to me but could not tell whether another message would feel welcome."></textarea>
+                        <textarea name="uncertainMoment" placeholder="Example: I had to choose whether to disclose a mistake, delay a plan, change direction, or ask for help."></textarea>
                     </label>
                 </div>
 
                 <div class="question-block">
-                    <h3>2. Who was this person to you, in general terms?</h3>
-                    <p>Keep it broad, such as close friend, parent, partner, crush, sibling, coworker, or someone else you care about.</p>
+                    <h3>2. What area of life did the decision involve?</h3>
+                    <p>Keep it broad, such as work, family, school, finances, health, planning, communication, or a major life choice.</p>
                     <label class="field">
                         Your answer
-                        <input type="text" name="personRelationship" placeholder="Example: A close friend, a parent, a romantic partner, a crush, or a best friend.">
+                        <input type="text" name="decisionArea" placeholder="Example: Work, family planning, school, a personal goal, or a major life choice.">
                     </label>
                 </div>
 
                 <div class="question-block">
-                    <h3>3. What happened, and what made the situation hard to read?</h3>
-                    <p>Share the context, the decision point, and what made the next step difficult to judge.</p>
+                    <h3>3. What happened, and what made the decision hard to evaluate?</h3>
+                    <p>Share the context, the decision point, and which variables made the next step difficult to judge.</p>
                     <label class="field">
                         Your answer
-                        <textarea name="situationDetails" placeholder="Example: Their reply was short, and I could not tell if they were busy, upset, or quietly pulling away."></textarea>
+                        <textarea name="situationDetails" placeholder="Example: I had incomplete information, time pressure, competing priorities, and no clear way to compare the consequences."></textarea>
                     </label>
                 </div>
 
                 <div class="question-block">
                     <h3>4. What choices were you considering?</h3>
-                    <p>List the possible actions, including waiting, sending a message, asking directly, apologizing, or doing nothing.</p>
+                    <p>List the possible actions, including waiting, asking for more information, disclosing the issue, changing timing, or doing nothing.</p>
                     <label class="field">
                         Your answer
-                        <textarea name="possibleActions" placeholder="Example: I could ask what was wrong, send a lighter message, wait until tomorrow, or leave it alone."></textarea>
+                        <textarea name="possibleActions" placeholder="Example: I could act immediately, wait for more data, ask someone for context, choose the safer plan, or take the higher-upside option."></textarea>
                     </label>
                 </div>
 
@@ -543,16 +543,16 @@
                     <p>Tell us what you feared could happen if you chose the wrong next step.</p>
                     <label class="field">
                         Your answer
-                        <textarea name="fearedConsequences" placeholder="Example: I worried they would feel pressured, become distant, misunderstand me, or think I did not care."></textarea>
+                        <textarea name="fearedConsequences" placeholder="Example: I worried the decision would create avoidable risk, damage trust, waste time, or make the problem harder to fix later."></textarea>
                     </label>
                 </div>
 
                 <div class="question-block">
                     <h3>6. What outcome were you hoping for?</h3>
-                    <p>Describe the practical or emotional result you wanted.</p>
+                    <p>Describe the practical result you wanted and any tradeoffs you hoped to balance.</p>
                     <label class="field">
                         Your answer
-                        <textarea name="hopedOutcome" placeholder="Example: I wanted to be honest, keep the connection safe, and understand what they needed from me."></textarea>
+                        <textarea name="hopedOutcome" placeholder="Example: I wanted a clear, responsible outcome with lower downside risk and a path I could explain later."></textarea>
                     </label>
                 </div>
 
@@ -576,16 +576,16 @@
 
                 <div class="question-block">
                     <h3>9. What would have made Syntrae useful in that moment?</h3>
-                    <p>Tell us what kind of consequence forecast, context check, or next-step comparison would have helped.</p>
+                    <p>Tell us what kind of decision-quality score, Syntrae Test map, context check, or next-step comparison would have helped.</p>
                     <label class="field">
                         Your answer
-                        <textarea name="syntraeUsefulness" placeholder="Example: I wanted to compare what might happen if I asked directly, waited, or sent a warmer message."></textarea>
+                        <textarea name="syntraeUsefulness" placeholder="Example: I wanted to see which option kept producing better outcomes after the assumptions were varied many times."></textarea>
                     </label>
                 </div>
 
                 <div class="question-block share-question">
-                    <h3>10. If you know somebody with uncertainty anxiety, please share Syntrae with them. You will be helping us a lot.</h3>
-                    <p>A small share can help someone feel less alone before a hard message, conversation, or decision.</p>
+                    <h3>10. If you know somebody who struggles with decision uncertainty, please share Syntrae with them. It helps us a lot.</h3>
+                    <p>A small share can help someone evaluate an important decision with more structure and less guesswork.</p>
                     <div class="share-card">
                         <span class="share-emoji" aria-hidden="true">🥰</span>
                         <div class="share-copy">
@@ -611,7 +611,7 @@
         <div class="footer-inner">
             <span>&copy; 2026 Syntrae LLC</span>
             <div class="footer-links">
-                <a href="landing.html#founding">Join for free</a>
+                <a href="landing.html#founding">Join at no cost</a>
                 <a href="privacy-principles.html" target="_blank" rel="noopener noreferrer">Privacy principles</a>
             </div>
         </div>
@@ -632,7 +632,7 @@
 
         shareSyntraeButton?.addEventListener("click", async () => {
             const shareUrl = shareSyntraeButton.dataset.shareUrl || "https://Syntrae.app";
-            const shareText = "Syntrae helps quantify the likelihood of real-life consequences from real situations.";
+            const shareText = "Syntrae helps replay important choices across plausible futures before real-life decisions are made.";
 
             try {
                 if (navigator.share) {
@@ -661,7 +661,7 @@
             const data = new FormData(surveyForm);
             const payload = {
                 uncertainMoment: String(data.get("uncertainMoment") || "").trim(),
-                personRelationship: String(data.get("personRelationship") || "").trim(),
+                decisionArea: String(data.get("decisionArea") || "").trim(),
                 situationDetails: String(data.get("situationDetails") || "").trim(),
                 possibleActions: String(data.get("possibleActions") || "").trim(),
                 fearedConsequences: String(data.get("fearedConsequences") || "").trim(),

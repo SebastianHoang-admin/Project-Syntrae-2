@@ -459,7 +459,7 @@
                     </a>
                     <p class="kicker"><i class="fas fa-star"></i> Reservation received</p>
                     <h1>Thank you for joining the founding circle.</h1>
-                    <p class="lede" id="welcomeMessage">Your founding access request is in. Please wait for Syntrae launch while we prepare the first experience for early members.</p>
+                    <p class="lede" id="welcomeMessage">Your founding access request is in. Please wait for Syntrae launch while we prepare the first decision-quality experience for early members.</p>
                     <div class="launch-note">
                         <strong>What happens next?</strong>
                         <div class="survey-prompt">
@@ -499,7 +499,7 @@
             const payload = JSON.parse(localStorage.getItem("syntrae:founding-member-interest") || "{}");
             const name = String(payload.name || "").trim().split(/\s+/)[0];
             if (name) {
-                document.getElementById("welcomeMessage").textContent = `${name}, your founding access request is in. Please wait for Syntrae launch while we prepare the first experience for early members.`;
+                document.getElementById("welcomeMessage").textContent = `${name}, your founding access request is in. Please wait for Syntrae launch while we prepare the first decision-quality experience for early members.`;
             }
         } catch (_) {
             /* Keep the default message if local storage is unavailable. */
