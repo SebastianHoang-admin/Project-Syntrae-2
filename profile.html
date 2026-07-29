@@ -672,12 +672,12 @@
             }
         };
 
-        if (!isDecisionTreeProfileDemo || isUniversalGuideFlow) {
+        if (!isDecisionTreeProfileDemo || isUniversalGuideFlow || profileGuideParams.get('tour') === '1') {
             const universalProfileSteps = [
                 {
                     selector: '.persona-pdf-space',
                     title: 'Step 1: Add your own persona',
-                    description: 'Start here. Upload a PDF that summarizes you, and Syntrae will turn that document into private context for future decisions.',
+                    description: 'Start here. You can use the LLM you rely on most to summarize yourself, save that summary as a PDF, then upload it to the Syntrae portal as private context for future decisions.',
                     placement: 'bottom'
                 },
                 {
@@ -745,9 +745,9 @@
             window.SyntraePageTour?.init({
                 pageKey: isUniversalGuideFlow ? 'universal-profile' : 'profile',
                 title: isUniversalGuideFlow ? 'Step 1: Your Persona' : 'Profile guide',
-                triggerText: 'Page guide',
+                triggerText: 'Persona guide',
                 showTrigger: !isUniversalGuideFlow,
-                autoStartOnce: !isUniversalGuideFlow,
+                autoStartOnce: false,
                 autoStart: () => {
                     if (isUniversalGuideFlow) return profileGuideParams.get('stage') === 'profile';
                     return profileGuideParams.get('tour') === '1';

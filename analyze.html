@@ -2776,7 +2776,7 @@ Authority figure</div>
                 }
             };
 
-            if (isDecisionTreeDemo() && !isUniversalGuideFlow) return;
+            if (isDecisionTreeDemo() && !isUniversalGuideFlow && analyzeGuideParams.get('tour') !== '1') return;
 
             const universalAnalyzeSteps = [
                 {
@@ -2851,9 +2851,9 @@ Authority figure</div>
             window.SyntraePageTour?.init({
                 pageKey: isUniversalGuideFlow ? 'universal-analyze' : 'analyze',
                 title: isUniversalGuideFlow ? 'Step 2: Build Persona' : 'Analyze guide',
-                triggerText: 'Page guide',
+                triggerText: 'Analyze guide',
                 showTrigger: !isUniversalGuideFlow,
-                autoStartOnce: !isUniversalGuideFlow,
+                autoStartOnce: false,
                 autoStart: () => {
                     if (isUniversalGuideFlow) return analyzeGuideParams.get('stage') === 'analyze';
                     return analyzeGuideParams.get('tour') === '1';

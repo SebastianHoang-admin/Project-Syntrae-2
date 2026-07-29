@@ -266,16 +266,12 @@
             border-bottom: 0;
         }
 
-        .dropdown-item.sign-out {
-            color: #d36b6b;
-        }
-
         .dropdown-item.guide-menu-item {
             background: rgba(255, 249, 229, 0.72);
         }
 
         .dropdown-item.syntrae-tour-target {
-            background: rgba(255, 255, 255, 0.92);
+            background: linear-gradient(135deg, #fff9e5, #fff2b9);
         }
 
         body.menu-guide-lock .app-header {
@@ -300,10 +296,12 @@
         body.menu-guide-lock .dropdown-item.syntrae-tour-target {
             opacity: 1 !important;
             filter: none !important;
-            color: var(--ink) !important;
-            background: rgba(255, 255, 255, 0.92) !important;
-            box-shadow: none !important;
-            animation: none !important;
+            color: var(--ink);
+            background: linear-gradient(135deg, #fff6ad, #ffd24a);
+            box-shadow:
+                0 0 0 3px rgba(255, 255, 255, 0.96),
+                0 0 0 10px rgba(245, 199, 54, 0.26),
+                0 18px 42px rgba(201, 151, 8, 0.24) !important;
         }
 
         body.menu-guide-lock #dropdownProfileLink.syntrae-tour-target {
@@ -1182,9 +1180,14 @@
 
         .recurrence-summary {
             display: grid;
-            grid-template-columns: repeat(2, minmax(0, 1fr));
+            grid-template-columns: minmax(0, 1fr);
             gap: 12px;
             margin-top: 18px;
+        }
+
+        .recurrence-section.is-loading .recurrence-summary,
+        .recurrence-section.is-loading .recurrence-bars {
+            opacity: 0.92;
         }
 
         .recurrence-metric {
@@ -1224,6 +1227,10 @@
             line-height: 1.5;
         }
 
+        .recurrence-metric small {
+            font-size: 14px;
+        }
+
         .recurrence-bars {
             display: grid;
             gap: 12px;
@@ -1254,10 +1261,55 @@
             height: 10px;
         }
 
+        .recurrence-loading-card {
+            display: grid;
+            gap: 12px;
+            padding: 16px;
+            border: 1px solid rgba(45, 132, 111, 0.16);
+            border-radius: 12px;
+            background: rgba(238, 250, 245, 0.78);
+            color: var(--muted);
+            font-size: 13px;
+            font-weight: 900;
+            line-height: 1.5;
+        }
+
+        .recurrence-loading-card strong {
+            color: var(--ink);
+            font-size: 16px;
+        }
+
+        .recurrence-loading-track {
+            position: relative;
+            height: 10px;
+            overflow: hidden;
+            border-radius: 999px;
+            background: rgba(32, 50, 54, 0.08);
+        }
+
+        .recurrence-loading-track::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            width: 42%;
+            border-radius: inherit;
+            background: linear-gradient(90deg, var(--teal), #ef745f);
+            animation: recurrenceLoadingSweep 1.1s ease-in-out infinite;
+        }
+
+        @keyframes recurrenceLoadingSweep {
+            0% {
+                transform: translateX(-100%);
+            }
+            100% {
+                transform: translateX(240%);
+            }
+        }
+
         .recurrence-test-explanation {
             display: grid;
             gap: 8px;
-            margin-top: 4px;
+            margin-top: 2px;
             padding: 13px 14px;
             border-left: 4px solid var(--teal);
             border-radius: 10px;
@@ -1285,6 +1337,59 @@
 
         .recurrence-test-explanation strong {
             color: var(--ink);
+        }
+
+        .consequence-outcome-list {
+            display: grid;
+            gap: 8px;
+            margin: 2px 0 0;
+            padding: 0;
+            list-style: none;
+        }
+
+        .consequence-outcome {
+            display: grid;
+            grid-template-columns: 30px minmax(0, 1fr);
+            gap: 10px;
+            align-items: flex-start;
+            padding: 10px;
+            border: 1px solid rgba(45, 132, 111, 0.14);
+            border-radius: 9px;
+            background: rgba(255, 255, 255, 0.7);
+        }
+
+        .consequence-outcome-index {
+            display: inline-grid;
+            width: 30px;
+            height: 30px;
+            place-items: center;
+            border-radius: 8px;
+            color: #fff;
+            background: var(--teal);
+            font-size: 12px;
+            font-weight: 900;
+        }
+
+        .consequence-outcome-copy {
+            display: grid;
+            gap: 4px;
+        }
+
+        .consequence-outcome-copy strong {
+            font-size: 13px;
+            line-height: 1.35;
+        }
+
+        .consequence-outcome-copy p {
+            margin: 0;
+            font-size: 12px;
+            line-height: 1.45;
+        }
+
+        .consequence-outcome-copy em {
+            color: var(--ink);
+            font-style: normal;
+            font-weight: 900;
         }
 
         .tree-section {
@@ -1633,10 +1738,10 @@
                 <span class="line"></span>
             </button>
             <nav class="dropdown-menu" id="dropdownMenu" aria-label="Dashboard navigation">
+                <a class="dropdown-item" href="landing.html"><i class="fas fa-arrow-left"></i> Back to landing page</a>
                 <a class="dropdown-item" id="analyzeLink" href="analyze.html?demo=decision-tree&amp;persona=daniel-smith-demo"><i class="fas fa-pencil-alt"></i> Analyze and Edit Your Persona</a>
                 <a class="dropdown-item" id="dropdownProfileLink" href="profile.html?demo=decision-tree"><i class="fas fa-id-card"></i> Your Persona</a>
                 <button class="dropdown-item guide-menu-item" id="startUniversalGuide" type="button"><i class="fas fa-route"></i> How to use Syntrae</button>
-                <a class="dropdown-item sign-out" href="sign-out.html"><i class="fas fa-sign-out-alt"></i> Sign Out</a>
             </nav>
         </div>
     </header>
@@ -1717,9 +1822,9 @@
                     <div class="tree-root">
                         <div>
                             <strong>Best Way - Consequence Tree</strong>
-                            <div>Syntrae recurring consequence pattern map</div>
+                            <div>Option-to-outcome map from the demo inputs</div>
                         </div>
-                        <span>Probability totals</span>
+                        <span>Five branches each</span>
                     </div>
                     <div class="tree-grid" id="treeGrid"></div>
                     <aside class="detail-panel" id="outcomeDetail" aria-live="polite"></aside>
@@ -1736,7 +1841,7 @@
                             <div>
                                 <span class="kicker"><i class="fas fa-sync-alt"></i> Syntrae Test</span>
                                 <h2>Consequence Tree.</h2>
-                                <p>Syntrae varies the assumptions and decision variables around this one choice, then looks for consequence patterns that keep coming back across plausible futures.</p>
+                                <p>Syntrae compares the available options, then lists five possible outcomes for each option using the demo inputs.</p>
                             </div>
                             <button class="recurrence-run-btn" id="recurrenceRunButton" type="button">
                                 <i class="fas fa-redo"></i> Run Syntrae Test
@@ -2404,8 +2509,284 @@
         let activeChatKey = 'main';
         let typingRun = 0;
         let syntraeRunTimer = null;
+        let recurrenceRenderTimer = null;
         let recurrenceRunCount = 0;
         const recurrenceIterations = 1000;
+        const syntraeTestLoadMs = 3000;
+        const demoPromptInputs = {
+            main: [
+                { text: "Daniel prefers private, low-pressure conversations.", effect: "a gentle approach helps him answer honestly" },
+                { text: "Maya wants clarity without making the message feel heavy.", effect: "direct words need warmth to land well" },
+                { text: "Daniel has school deadlines this week.", effect: "timing can make even a good message feel rushed" },
+                { text: "Daniel values sincerity over dramatic wording.", effect: "simple honesty works better than a long emotional speech" },
+                { text: "Maya can follow up with one clear question.", effect: "a clear next step keeps the talk from becoming vague" }
+            ],
+            timing: [
+                { text: "Daniel usually has more room on Saturday afternoon.", effect: "he can stay present for a deeper conversation" },
+                { text: "Daniel may be working overtime on deadlines.", effect: "he may not have energy for a serious talk" },
+                { text: "Daniel might be out of town until next week.", effect: "an in-person plan may need a backup" },
+                { text: "Daniel prefers private talks over rushed texts.", effect: "the setting affects whether he opens up" },
+                { text: "Maya wants the topic to feel calm, not urgent.", effect: "the first moment should not sound like a demand" }
+            ],
+            followup: [
+                { text: "Daniel already replied warmly.", effect: "Maya can keep the next reply short and steady" },
+                { text: "Daniel needs room before serious conversations.", effect: "too much detail can make him pause" },
+                { text: "Maya wants to avoid overexplaining.", effect: "one grounded sentence is safer than a long message" },
+                { text: "The topic still needs a clear next step.", effect: "warmth works best when it points to a simple plan" },
+                { text: "Daniel responds best when he feels respected.", effect: "appreciation lowers pressure before the follow-up question" }
+            ],
+            dadBirthday: [
+                { text: "Aaron likes family time more than expensive gifts.", effect: "simple plans can feel more loving than big spending" },
+                { text: "Aaron gets uncomfortable with too much public attention.", effect: "smaller settings protect his comfort" },
+                { text: "Maya wants the surprise to feel personal.", effect: "specific memories make the gesture feel sincere" },
+                { text: "The family has limited planning time.", effect: "easy plans are more likely to happen smoothly" },
+                { text: "Aaron worries when things look costly.", effect: "a modest plan keeps the focus on love, not expense" }
+            ],
+            dadHardNews: [
+                { text: "Aaron worries quickly when school plans change.", effect: "a prepared plan lowers the first shock" },
+                { text: "Maya is overwhelmed but wants to stay responsible.", effect: "honesty needs to be paired with next steps" },
+                { text: "Money and timing are Aaron's first concerns.", effect: "practical details help him calm down" },
+                { text: "Maya wants support, not permission to give up.", effect: "the wording should show effort and direction" },
+                { text: "Aaron needs time to process big news.", effect: "the first talk may need a follow-up" }
+            ],
+            dadGoodNews: [
+                { text: "Aaron wants to feel included in family milestones.", effect: "telling him personally protects trust" },
+                { text: "He can feel joy and worry at the same time.", effect: "a calm setting gives both reactions room" },
+                { text: "Maya wants the news to feel warm, not shocking.", effect: "privacy helps the moment stay steady" },
+                { text: "Aaron may ask practical questions right away.", effect: "context prevents the questions from sounding negative" },
+                { text: "The family may want to celebrate together later.", effect: "a private first talk can lead into a shared celebration" }
+            ],
+            bossSalary: [
+                { text: "Naomi expects compensation talks to include evidence.", effect: "clear examples make the request easier to evaluate" },
+                { text: "The team budget may be tight this quarter.", effect: "timing can limit an immediate yes" },
+                { text: "Maya has recent wins she can point to.", effect: "specific results make confidence sound earned" },
+                { text: "Naomi supports growth when expectations are clear.", effect: "a path conversation can turn into next steps" },
+                { text: "Maya does not want to sound entitled.", effect: "tone matters as much as the ask itself" }
+            ],
+            bossReportMistake: [
+                { text: "Naomi values early ownership.", effect: "admitting the mistake quickly protects trust" },
+                { text: "The report may affect a client decision.", effect: "visibility makes delay riskier" },
+                { text: "Maya has a correction plan ready.", effect: "a fix gives Naomi something practical to approve" },
+                { text: "Naomi may call Maya in for questions.", effect: "context can help after ownership is clear" },
+                { text: "Naomi is busy today.", effect: "the message must be short, useful, and direct" }
+            ],
+            bossDayOff: [
+                { text: "Naomi is coverage-sensitive on busy days.", effect: "a staffing plan answers her first concern" },
+                { text: "Maya's reason for the day off is real.", effect: "honesty can earn empathy" },
+                { text: "Client work still needs a handoff.", effect: "approval depends on protecting the work" },
+                { text: "Maya can shift some tasks before leaving.", effect: "flexibility makes the request easier to accept" },
+                { text: "Naomi has little time to sort out details.", effect: "a clear request works better than many loose options" }
+            ]
+        };
+        const consequenceOutcomeLabels = {
+            main: {
+                "Warm and direct": [
+                    "Daniel appreciates the honesty and agrees to talk.",
+                    "Daniel says yes but needs time to think first.",
+                    "Daniel feels the topic is serious and answers carefully.",
+                    "Daniel is busy and asks to talk later.",
+                    "Maya has to soften the wording after sending it."
+                ],
+                "Light and open-ended": [
+                    "Daniel feels safe saying yes.",
+                    "Daniel replies warmly but keeps the pace slow.",
+                    "Daniel likes the tone but needs a clearer question.",
+                    "The message fits a busy week without adding pressure.",
+                    "Maya follows up later with the real topic."
+                ],
+                "Reflective and intentional": [
+                    "Daniel sees the sincerity.",
+                    "Daniel feels the message is heavier than expected.",
+                    "Daniel waits before replying.",
+                    "The depth helps if he is already emotionally open.",
+                    "Maya may need to shorten the message before sending."
+                ]
+            },
+            timing: {
+                "Saturday afternoon": [
+                    "Daniel has the afternoon free and opens up.",
+                    "Daniel works overtime and cannot focus on a deep talk.",
+                    "Daniel goes out of town and cannot meet until next week.",
+                    "The private setting helps the conversation feel safe.",
+                    "Maya keeps the invitation calm instead of urgent."
+                ],
+                "Weeknight text": [
+                    "Daniel answers quickly but keeps it practical.",
+                    "Daniel is too tired from deadlines to engage deeply.",
+                    "The conversation moves to next week because meeting is hard.",
+                    "Text feels less private than the topic needs.",
+                    "Maya has to clarify that there is no immediate pressure."
+                ],
+                "After a warm date": [
+                    "The good mood helps Daniel open up naturally.",
+                    "Daniel is tired and wants to end the night lightly.",
+                    "A next-week plan is better if the date runs late.",
+                    "The private ending makes the topic easier to raise.",
+                    "Maya keeps the transition gentle so it does not feel sudden."
+                ]
+            },
+            followup: {
+                "Short and clear": [
+                    "Daniel understands the next step right away.",
+                    "Daniel appreciates the space but wants a little warmth.",
+                    "Maya avoids overexplaining.",
+                    "The reply still needs one concrete time or question.",
+                    "Daniel feels respected because the message stays simple."
+                ],
+                "Affirming and grounded": [
+                    "Daniel feels appreciated before the serious topic continues.",
+                    "Daniel has room to answer without feeling pushed.",
+                    "Maya says enough without turning it into a speech.",
+                    "The next step is clear and easy to accept.",
+                    "Daniel stays engaged because the tone feels respectful."
+                ],
+                "Detailed context": [
+                    "Daniel understands why the topic matters.",
+                    "Daniel may slow down because the message feels large.",
+                    "Maya explains more than she needs to.",
+                    "The next step gets buried under too much background.",
+                    "Daniel still sees the care behind the message."
+                ]
+            },
+            dadBirthday: {
+                "Handwritten memory gift": [
+                    "Aaron feels deeply seen by the memory.",
+                    "He enjoys the gift because it avoids public attention.",
+                    "The personal details make the surprise feel sincere.",
+                    "The plan is easy to finish on time.",
+                    "Aaron focuses on love instead of cost."
+                ],
+                "Small family dinner": [
+                    "Aaron relaxes into a simple family moment.",
+                    "The smaller setting keeps attention comfortable.",
+                    "Maya adds a personal toast or note.",
+                    "The plan stays realistic for the family.",
+                    "Aaron enjoys the night without worrying about expense."
+                ],
+                "Big surprise party": [
+                    "Aaron sees the effort behind the party.",
+                    "The attention may make him uncomfortable.",
+                    "The personal meaning can get lost in the crowd.",
+                    "The planning may become rushed or stressful.",
+                    "Aaron may worry about how much the party costs."
+                ]
+            },
+            dadHardNews: {
+                "Prepared plan first": [
+                    "Aaron worries less because Maya has a plan.",
+                    "Maya sounds honest and responsible.",
+                    "Aaron asks about money, timing, and school impact.",
+                    "The talk becomes support-focused instead of panic-focused.",
+                    "Aaron needs time but stays constructive."
+                ],
+                "Emotional confession": [
+                    "Aaron sees how much stress Maya is carrying.",
+                    "The emotion may scare him before he hears the plan.",
+                    "He asks practical questions after the first reaction.",
+                    "Maya feels supported but still needs to explain next steps.",
+                    "A second conversation becomes likely."
+                ],
+                "Casual mention": [
+                    "Aaron stays calm at first.",
+                    "Maya's seriousness may not come through.",
+                    "Aaron asks for details because the plan sounds incomplete.",
+                    "The talk may need to restart more honestly later.",
+                    "Aaron processes the news after the casual moment passes."
+                ]
+            },
+            dadGoodNews: {
+                "Private calm conversation": [
+                    "Aaron feels trusted because he hears it one-on-one.",
+                    "He can be happy and worried without performing for others.",
+                    "The news feels warm instead of shocking.",
+                    "Maya can answer practical questions right away.",
+                    "The family can celebrate together after Aaron has space."
+                ],
+                "Family gathering reveal": [
+                    "The room becomes joyful quickly.",
+                    "Aaron hides some questions because others are watching.",
+                    "The surprise feels big and emotional.",
+                    "Maya may need to explain details later.",
+                    "The reveal can become a shared celebration."
+                ],
+                "Text first, call after": [
+                    "Aaron has time to absorb the news.",
+                    "The text may feel too distant for a major family moment.",
+                    "Maya can make the call warm and steady.",
+                    "Aaron asks practical questions once they speak.",
+                    "The family celebration can be planned after the call."
+                ]
+            },
+            bossSalary: {
+                "Evidence-based ask": [
+                    "Naomi takes the request seriously.",
+                    "Budget timing may delay the answer.",
+                    "Maya's recent wins make the case stronger.",
+                    "The talk turns into a clear next step.",
+                    "The tone feels confident without sounding entitled."
+                ],
+                "Growth-path discussion": [
+                    "Naomi responds like a coach.",
+                    "The raise may become a future milestone.",
+                    "Maya gets clearer expectations.",
+                    "The conversation opens a development plan.",
+                    "The ask feels respectful but less immediate."
+                ],
+                "Direct raise request": [
+                    "Naomi appreciates the clarity.",
+                    "Budget timing can make the ask feel abrupt.",
+                    "Maya may need to bring stronger examples.",
+                    "Naomi redirects the conversation to criteria.",
+                    "The tone works only if it stays calm and respectful."
+                ]
+            },
+            bossReportMistake: {
+                "Own it with fix": [
+                    "Naomi trusts Maya's ownership.",
+                    "The client risk is handled before it grows.",
+                    "The correction plan gives Naomi a clear next step.",
+                    "Naomi asks follow-up questions after hearing the fix.",
+                    "A short direct message respects Naomi's time."
+                ],
+                "Explain context first": [
+                    "Naomi understands what led to the mistake.",
+                    "Delay becomes risky if the report affects a client.",
+                    "The explanation works better after the fix is named.",
+                    "Naomi may ask questions before judging the issue.",
+                    "The message must stay short so it does not sound defensive."
+                ],
+                "Quietly correct first": [
+                    "The file may be fixed before anyone notices.",
+                    "Trust drops if Naomi discovers the mistake first.",
+                    "A ready fix helps only if the issue is small.",
+                    "Naomi may still ask why she was not told earlier.",
+                    "The quiet path is weakest when Naomi is busy and needs facts."
+                ]
+            },
+            bossDayOff: {
+                "Coverage-first ask": [
+                    "Naomi sees that Maya protected the team.",
+                    "Naomi understands the personal need after coverage is clear.",
+                    "The client handoff makes approval easier.",
+                    "Maya's task shift reduces disruption.",
+                    "A clear request saves Naomi time."
+                ],
+                "Personal need first": [
+                    "Naomi responds with empathy.",
+                    "She still needs coverage details before approving.",
+                    "Client work may slow the yes.",
+                    "Maya can improve the ask by offering a handoff.",
+                    "Too little structure makes the decision harder."
+                ],
+                "Flexible tradeoff offer": [
+                    "Naomi appreciates that Maya is trying to help.",
+                    "The personal need can still be heard clearly.",
+                    "A handoff plus flexible hours creates a compromise.",
+                    "Maya can shift tasks before taking time off.",
+                    "Too many options may make the request unclear."
+                ]
+            }
+        };
 
         function escapeHtml(value) {
             return String(value ?? '')
@@ -2445,24 +2826,62 @@
             };
         }
 
-        function summarizeSyntraeTestResult(chat, counts, iterations) {
+        function normalizeSyntraePercentages(outcomes) {
+            const rawValues = outcomes.map((outcome) => {
+                const probability = Math.max(0, Number(outcome?.probability || 0));
+                return probability <= 1 ? probability * 100 : probability;
+            });
+            const total = rawValues.reduce((sum, value) => sum + value, 0) || 1;
+            const scaled = rawValues.map((value) => (value / total) * 100);
+            const floors = scaled.map(Math.floor);
+            let remaining = 100 - floors.reduce((sum, value) => sum + value, 0);
+            const order = scaled
+                .map((value, index) => ({ index, remainder: value - Math.floor(value) }))
+                .sort((a, b) => b.remainder - a.remainder);
+
+            for (let i = 0; i < remaining; i += 1) {
+                floors[order[i % order.length].index] += 1;
+            }
+
+            return floors;
+        }
+
+        function createBoundedRunOffsets(basePercents, random) {
+            const length = basePercents.length;
+            const offsets = Array.from({ length }, () => 0);
+            const subtractableIndexes = basePercents
+                .map((percent, index) => ({ percent, index }))
+                .filter(({ percent }) => percent > 0)
+                .map(({ index }) => index);
+            if (length < 2 || subtractableIndexes.length < 1 || random() < 0.18) return offsets;
+
+            const plusIndex = Math.floor(random() * length);
+            let minusIndex = subtractableIndexes[Math.floor(random() * subtractableIndexes.length)];
+            if (minusIndex === plusIndex) {
+                const fallbackIndexes = subtractableIndexes.filter((index) => index !== plusIndex);
+                if (!fallbackIndexes.length) return offsets;
+                minusIndex = fallbackIndexes[Math.floor(random() * fallbackIndexes.length)];
+            }
+
+            offsets[plusIndex] = 1;
+            offsets[minusIndex] = -1;
+            return offsets;
+        }
+
+        function summarizeSyntraeTestResult(chat, percents, iterations) {
             const rows = chat.outcomes.map((branch, index) => ({
                 index,
                 title: branch.title,
                 action: branch.action,
-                count: counts[index],
-                percent: Math.round((counts[index] / iterations) * 100)
-            })).sort((a, b) => b.count - a.count);
+                count: Math.round((Number(percents[index] || 0) / 100) * iterations),
+                percent: Number(percents[index] || 0)
+            })).sort((a, b) => b.percent - a.percent);
 
             const top = rows[0] || { title: 'No outcome', action: 'No action', count: 0, percent: 0, index: 0 };
-            const second = rows[1] || top;
-            const spread = Math.abs(top.percent - second.percent);
 
             return {
                 rows,
-                top,
-                second,
-                spread
+                top
             };
         }
 
@@ -2505,14 +2924,14 @@
             const favorableAssumptions = custom.favorableAssumptions?.length
                 ? custom.favorableAssumptions
                 : [
-                    rewardItem ? `${lowerFirst(rewardItem.label)} becomes likely` : `${action} creates a clearer next step`,
-                    supportItem ? `${lowerFirst(supportItem.label)} stays manageable` : 'the situation stays stable enough to act'
+                    rewardItem ? `the result "${rewardItem.label}" became more likely` : `${action} created a clearer next step`,
+                    supportItem ? `the result "${supportItem.label}" stayed manageable` : 'the situation stayed stable enough to act'
                 ];
             const riskAssumptions = custom.riskAssumptions?.length
                 ? custom.riskAssumptions
                 : [
-                    riskItem ? `${lowerFirst(riskItem.label)} becomes the dominant condition` : 'the downside risk becomes more visible',
-                    percent < 25 ? 'the path creates more punishment risk than reward upside in most runs' : 'small changes in context reduce the advantage'
+                    riskItem ? `the result "${riskItem.label}" became more likely` : 'the downside became more visible',
+                    percent < 25 ? 'the downside became larger than the benefit' : 'small context changes reduced the advantage'
                 ];
             const rewardLogic = custom.rewardLogic || (
                 rewardItem
@@ -2534,53 +2953,146 @@
             };
         }
 
+        function sentenceFromList(items) {
+            return lowerFirst(joinNaturalList(items));
+        }
+
+        function shortSyntraeList(items, maxItems = 3) {
+            return joinNaturalList((items || []).slice(0, maxItems));
+        }
+
+        function plainCondition(value) {
+            return String(value || '').trim().replace(/[.。]+$/, '');
+        }
+
+        function buildSyntraeTestExplanation(chat, branch, row) {
+            const justification = buildSyntraeTestJustification(chat, branch, row);
+            const favorable = plainCondition(justification.favorableAssumptions?.[0] || sentenceFromList(justification.favorableAssumptions));
+            const risks = plainCondition(justification.riskAssumptions?.[0] || sentenceFromList(justification.riskAssumptions));
+            const variables = shortSyntraeList(justification.variables);
+            return [
+                `Syntrae changed ${variables} to test this option in different situations.`,
+                `It reached ${row.percent}% because ${favorable}, but dropped when ${risks}.`
+            ].join(' ');
+        }
+
+        function getDemoPromptInputs(chat) {
+            const scenarioInputs = demoPromptInputs[activeChatKey];
+            if (Array.isArray(scenarioInputs) && scenarioInputs.length >= 5) return scenarioInputs;
+
+            return inferSyntraeTestVariables(chat).slice(0, 5).map((variable) => ({
+                text: `${variable} can change before Maya acts.`,
+                effect: `it changes how the option may land`
+            }));
+        }
+
+        function buildDefaultConsequenceLabels(chat, branch) {
+            const items = Array.isArray(branch?.items) ? branch.items : [];
+            const labels = items.map((item) => item.label).filter(Boolean);
+            const action = branch?.action || 'This option';
+            const personaName = personas[chat?.personaKey]?.name || 'the other person';
+            const fallbackLabels = [
+                `${personaName} responds well to ${lowerFirst(action)}.`,
+                `${personaName} needs more time before answering.`,
+                `The situation changes and ${lowerFirst(action)} needs a backup.`,
+                `Maya adjusts the wording before taking action.`,
+                `The option becomes weaker if the timing feels wrong.`
+            ];
+
+            return labels.concat(fallbackLabels).slice(0, 5);
+        }
+
+        function buildConsequenceTreeOutcomes(chat, branch) {
+            const inputs = getDemoPromptInputs(chat);
+            const labels = consequenceOutcomeLabels[activeChatKey]?.[branch?.action] || buildDefaultConsequenceLabels(chat, branch);
+            const completedLabels = labels.concat(buildDefaultConsequenceLabels(chat, branch)).slice(0, 5);
+            const fallbackWeights = [0.3, 0.24, 0.19, 0.15, 0.12];
+
+            return completedLabels.map((label, index) => {
+                const input = inputs[index % inputs.length] || inputs[0] || {};
+                const existingProbability = Number(branch?.items?.[index]?.probability);
+                const fallbackProbability = Math.max(0.01, Number(branch?.probability || 0) * fallbackWeights[index]);
+                return {
+                    label,
+                    input: input.text || 'The situation may change before Maya acts.',
+                    reason: input.effect || 'that changes how the option may land',
+                    probability: Number.isFinite(existingProbability) && existingProbability > 0 ? existingProbability : fallbackProbability
+                };
+            });
+        }
+
+        function renderConsequenceTreeOutcomes(chat, branch) {
+            return buildConsequenceTreeOutcomes(chat, branch).map((outcome, index) => `
+                <li class="consequence-outcome">
+                    <span class="consequence-outcome-index">${index + 1}</span>
+                    <div class="consequence-outcome-copy">
+                        <strong>${escapeHtml(outcome.label)}</strong>
+                        <p><em>Input used:</em> ${escapeHtml(outcome.input)} This matters because ${escapeHtml(outcome.reason)}.</p>
+                    </div>
+                </li>
+            `).join('');
+        }
+
         function runSyntraeTestDemo(iterations = recurrenceIterations) {
             const chat = getActiveChat();
-            const counts = chat.outcomes.map(() => 0);
             const seed = hashString(`${activePersonaKey}:${activeChatKey}:${recurrenceRunCount}:${chat.prompt}`);
             const random = createSeededRandom(seed);
-
-            for (let run = 0; run < iterations; run += 1) {
-                const weights = chat.outcomes.map((outcome) => {
-                    const base = Math.max(0.01, Number(outcome.probability || 0));
-                    const assumptionDrift = 0.78 + random() * 0.44;
-                    const contextDrift = 0.92 + random() * 0.16;
-                    return base * assumptionDrift * contextDrift;
-                });
-                const total = weights.reduce((sum, weight) => sum + weight, 0);
-                let cursor = random() * total;
-                let selected = weights.length - 1;
-                for (let index = 0; index < weights.length; index += 1) {
-                    cursor -= weights[index];
-                    if (cursor <= 0) {
-                        selected = index;
-                        break;
-                    }
-                }
-                counts[selected] += 1;
-            }
+            const basePercents = normalizeSyntraePercentages(chat.outcomes);
+            const offsets = createBoundedRunOffsets(basePercents, random);
+            const percents = basePercents.map((percent, index) => percent + offsets[index]);
 
             return {
                 chat,
                 iterations,
-                counts,
-                ...summarizeSyntraeTestResult(chat, counts, iterations)
+                percents,
+                counts: percents.map((percent) => Math.round((percent / 100) * iterations)),
+                ...summarizeSyntraeTestResult(chat, percents, iterations)
             };
+        }
+
+        function clearRecurrenceRenderTimer() {
+            if (!recurrenceRenderTimer) return;
+            window.clearTimeout(recurrenceRenderTimer);
+            recurrenceRenderTimer = null;
+        }
+
+        function setRecurrenceRunButtonReady() {
+            clearRecurrenceRenderTimer();
+            els.recurrenceSection?.classList.remove('is-loading');
+            if (!els.recurrenceRunButton) return;
+            els.recurrenceRunButton.disabled = false;
+            els.recurrenceRunButton.removeAttribute('aria-busy');
+            els.recurrenceRunButton.innerHTML = '<i class="fas fa-redo"></i> Run Syntrae Test';
+        }
+
+        function renderSyntraeTestLoading() {
+            if (!els.recurrenceSummary || !els.recurrenceBars) return;
+            els.recurrenceSection?.classList.add('is-loading');
+            els.recurrenceSummary.innerHTML = `
+                <article class="recurrence-metric">
+                    <span><i class="fas fa-sync-alt"></i> Running Syntrae Test</span>
+                    <strong>Testing alternatives...</strong>
+                    <small>Reading the demo inputs and building five possible outcomes for each option.</small>
+                </article>
+            `;
+            els.recurrenceBars.innerHTML = `
+                <div class="recurrence-loading-card" role="status" aria-live="polite">
+                    <strong>Calculating recurring moves</strong>
+                    <div class="recurrence-loading-track" aria-hidden="true"></div>
+                    <span>Checking which move gives the clearest upside with the least downside.</span>
+                </div>
+            `;
         }
 
         function renderSyntraeTestDemo(result = runSyntraeTestDemo(recurrenceIterations)) {
             if (!els.recurrenceSummary || !els.recurrenceBars) return;
+            els.recurrenceSection?.classList.remove('is-loading');
             const rowsByOriginalOrder = result.rows.slice().sort((a, b) => a.index - b.index);
             els.recurrenceSummary.innerHTML = `
                 <article class="recurrence-metric">
                     <span><i class="fas fa-route"></i> Most recurring path</span>
                     <strong>${escapeHtml(result.top.title)}</strong>
-                    <small>${escapeHtml(result.top.action)} appeared ${result.top.count} times in Syntrae Test.</small>
-                </article>
-                <article class="recurrence-metric">
-                    <span><i class="fas fa-sliders-h"></i> Sensitivity gap</span>
-                    <strong>${result.spread} pts</strong>
-                    <small>Distance between the two most frequent futures.</small>
+                    <small>${escapeHtml(result.top.action)} was the strongest recurring move at ${result.top.percent}%.</small>
                 </article>
             `;
             els.recurrenceBars.innerHTML = rowsByOriginalOrder.map((row) => `
@@ -2590,7 +3102,13 @@
                         <strong>${row.percent}%</strong>
                     </div>
                     <div class="probability-track recurrence-track"><div class="probability-fill" style="width:${row.percent}%;"></div></div>
-                    <p>${row.count} of ${result.iterations} Syntrae Test runs returned this path.</p>
+                    <div class="recurrence-test-explanation">
+                        <span><i class="fas fa-code-branch"></i> 5 possible outcomes</span>
+                        <p>${escapeHtml(buildSyntraeTestExplanation(result.chat, result.chat.outcomes[row.index], row))}</p>
+                        <ol class="consequence-outcome-list">
+                            ${renderConsequenceTreeOutcomes(result.chat, result.chat.outcomes[row.index])}
+                        </ol>
+                    </div>
                 </article>
             `).join('');
         }
@@ -2765,7 +3283,11 @@
 
         function renderSimulation({ resetTree = false } = {}) {
             const chat = getActiveChat();
-            if (resetTree) recurrenceRunCount = 0;
+            if (resetTree) {
+                recurrenceRunCount = 0;
+                clearRecurrenceRenderTimer();
+                els.recurrenceSection?.classList.remove('is-loading');
+            }
             els.chatHeading.textContent = chat.title;
             els.simulationTitle.textContent = chat.introTitle;
             els.simulationCopy.textContent = chat.introCopy;
@@ -2779,7 +3301,7 @@
                     </div>
                     <h3>${escapeHtml(branch.action)}</h3>
                     <ul class="outcome-list">
-                        ${branch.items.map((item, itemIndex) => `
+                        ${buildConsequenceTreeOutcomes(chat, branch).map((item, itemIndex) => `
                             <li>
                                 <button class="outcome-btn" type="button" data-branch="${branchIndex}" data-item="${itemIndex}" aria-expanded="false">
                                     <div class="outcome-head">
@@ -2805,14 +3327,14 @@
                 els.outcomeDetail.classList.remove('visible');
                 els.outcomeDetail.innerHTML = '';
                 setSyntraeButtonReady();
+                setRecurrenceRunButtonReady();
             }
         }
 
         function showOutcomeDetail(branchIndex, itemIndex) {
             const chat = getActiveChat();
-            const persona = personas[chat.personaKey] || personas[activePersonaKey];
             const branch = chat.outcomes[branchIndex];
-            const item = branch?.items[itemIndex];
+            const item = branch ? buildConsequenceTreeOutcomes(chat, branch)[itemIndex] : null;
             if (!branch || !item) return;
 
             els.treeGrid.querySelectorAll('.outcome-btn').forEach((button) => button.setAttribute('aria-expanded', 'false'));
@@ -2826,8 +3348,8 @@
                 <div class="detail-copy">
                     <div class="detail-meta"><span>${escapeHtml(branch.title)}</span><span>${escapeHtml(branch.action)}</span></div>
                     <h3>${escapeHtml(item.label)}</h3>
-                    <p><strong>Why this chance:</strong> ${escapeHtml(item.reason)}</p>
-                    <p>This estimate is shaped by ${escapeHtml(persona.name)}'s saved communication pattern, the emotional pressure of this path, and the timing implied by the current scenario.</p>
+                    <p><strong>Input used:</strong> ${escapeHtml(item.input)}</p>
+                    <p>This outcome is possible because ${escapeHtml(item.reason)}.</p>
                 </div>
             `;
             els.outcomeDetail.classList.add('visible');
@@ -2888,28 +3410,34 @@
 
         els.syntraeButton.addEventListener('click', () => {
             if (els.syntraeButton.disabled) return;
+            clearRecurrenceRenderTimer();
             els.treeSection.classList.remove('visible');
             els.outcomeDetail.classList.remove('visible');
             els.outcomeDetail.innerHTML = '';
             setSyntraeButtonLoading();
+            renderSyntraeTestLoading();
             syntraeRunTimer = window.setTimeout(() => {
                 syntraeRunTimer = null;
+                renderSyntraeTestDemo(runSyntraeTestDemo(recurrenceIterations));
                 els.treeSection.classList.add('visible');
                 setSyntraeTestOnlyMode(true);
                 setSyntraeButtonComplete();
                 els.treeSection.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-            }, 2000);
+            }, syntraeTestLoadMs);
         });
 
         els.recurrenceRunButton?.addEventListener('click', () => {
+            clearRecurrenceRenderTimer();
             recurrenceRunCount += 1;
             els.recurrenceRunButton.disabled = true;
+            els.recurrenceRunButton.setAttribute('aria-busy', 'true');
             els.recurrenceRunButton.innerHTML = '<span class="syntrae-spinner" aria-hidden="true"></span> Running Syntrae Test...';
-            window.setTimeout(() => {
+            renderSyntraeTestLoading();
+            recurrenceRenderTimer = window.setTimeout(() => {
+                recurrenceRenderTimer = null;
                 renderSyntraeTestDemo(runSyntraeTestDemo(recurrenceIterations));
-                els.recurrenceRunButton.disabled = false;
-                els.recurrenceRunButton.innerHTML = '<i class="fas fa-redo"></i> Run Syntrae Test';
-            }, 420);
+                setRecurrenceRunButtonReady();
+            }, syntraeTestLoadMs);
         });
 
         els.visualChatForm.addEventListener('submit', (event) => {
@@ -3093,6 +3621,20 @@
                 }
             },
             steps: isDashboardReturnGuideStage ? dashboardWorkflowTourSteps : dashboardMenuTourSteps
+        });
+
+        window.SyntraePageTour?.init({
+            pageKey: 'dashboard-page-guide',
+            title: 'Dashboard page guide',
+            triggerText: 'Dashboard guide',
+            showTrigger: !isEmbeddedDashboardPreview && !universalGuideFlow,
+            autoStartOnce: false,
+            autoStart: () => {
+                if (isEmbeddedDashboardPreview || universalGuideFlow) return false;
+                const requestedTour = dashboardParams.get('tour');
+                return requestedTour === '1' || requestedTour === 'dashboard';
+            },
+            steps: dashboardWorkflowTourSteps
         });
 
         els.startUniversalGuide?.addEventListener('click', () => {

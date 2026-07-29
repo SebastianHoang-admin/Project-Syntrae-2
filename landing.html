@@ -101,32 +101,43 @@
 
         @keyframes demoPreviewRadiate {
             0% {
-                clip-path: circle(0 at 42px calc(100% - 42px));
-                filter: saturate(0.9) brightness(1.08);
-                transform: translateZ(0) scale(1.012);
+                clip-path: circle(0 at var(--transition-x, 42px) var(--transition-y, calc(100% - 42px)));
+                filter: saturate(0.98) brightness(1.035);
+                transform: translate3d(0, 0, 0) scale(1.012);
             }
-            24% {
-                clip-path: circle(22vmax at 42px calc(100% - 42px));
-                filter: saturate(0.94) brightness(1.06);
+            26% {
+                clip-path: circle(28vmax at var(--transition-x, 42px) var(--transition-y, calc(100% - 42px)));
+                filter: saturate(1) brightness(1.025);
             }
-            58% {
-                clip-path: circle(86vmax at 42px calc(100% - 42px));
-                filter: saturate(0.98) brightness(1.03);
+            66% {
+                clip-path: circle(104vmax at var(--transition-x, 42px) var(--transition-y, calc(100% - 42px)));
+                filter: saturate(1) brightness(1.015);
             }
-            82% {
-                clip-path: circle(128vmax at 42px calc(100% - 42px));
+            88% {
+                clip-path: circle(150vmax at var(--transition-x, 42px) var(--transition-y, calc(100% - 42px)));
             }
             100% {
-                clip-path: circle(155vmax at 42px calc(100% - 42px));
+                clip-path: circle(190vmax at var(--transition-x, 42px) var(--transition-y, calc(100% - 42px)));
                 filter: saturate(1) brightness(1);
-                transform: translateZ(0) scale(1);
+                transform: translate3d(0, 0, 0) scale(1);
             }
         }
 
         @keyframes demoPreviewPulse {
-            0% { opacity: 0.72; transform: scale(0.84); }
-            58% { opacity: 0.18; transform: scale(1.95); }
-            100% { opacity: 0; transform: scale(2.65); }
+            0% { opacity: 0.62; transform: translate(-50%, -50%) scale(0.7); }
+            60% { opacity: 0.18; transform: translate(-50%, -50%) scale(1.85); }
+            100% { opacity: 0; transform: translate(-50%, -50%) scale(2.55); }
+        }
+
+        @keyframes demoTransitionContentIn {
+            0% {
+                opacity: 0;
+                transform: translate3d(0, 16px, 0) scale(0.988);
+            }
+            100% {
+                opacity: 1;
+                transform: translate3d(0, 0, 0) scale(1);
+            }
         }
 
         .reveal {
@@ -326,7 +337,7 @@
             box-shadow: none;
         }
 
-        .nav-links .vision-link {
+        .vision-link {
             position: relative;
             min-height: 44px;
             padding: 11px 16px;
@@ -344,7 +355,7 @@
             transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
         }
 
-        .nav-links .vision-link::before {
+        .vision-link::before {
             content: "";
             position: absolute;
             inset: -70% auto auto -30%;
@@ -356,18 +367,18 @@
             transition: transform 0.24s ease;
         }
 
-        .nav-links .vision-link i {
+        .vision-link i {
             color: var(--leaf);
             font-size: 13px;
         }
 
-        .nav-links .vision-link:hover {
+        .vision-link:hover {
             transform: translateY(-1px);
             border-color: rgba(18, 150, 141, 0.48);
             box-shadow: 0 14px 30px rgba(18, 150, 141, 0.2);
         }
 
-        .nav-links .vision-link:hover::before {
+        .vision-link:hover::before {
             transform: translate(16px, 10px) scale(1.18);
         }
 
@@ -473,15 +484,18 @@
             display: inline-flex;
             width: fit-content;
             align-items: center;
-            gap: 8px;
-            padding: 8px 10px;
-            border: 1px solid rgba(255, 255, 255, 0.18);
+            gap: 10px;
+            min-height: 44px;
+            min-width: min(360px, 100%);
+            justify-content: center;
+            padding: 12px 18px;
+            border: 1px solid rgba(255, 255, 255, 0.24);
             border-radius: 8px;
             color: #fff;
             background: #2d7d67;
             box-shadow: 0 14px 28px rgba(12, 77, 62, 0.26);
-            font-size: 13px;
-            font-weight: 800;
+            font-size: 15px;
+            font-weight: 900;
         }
 
         .hero h1 {
@@ -527,6 +541,19 @@
             padding-inline: 22px;
             font-size: 15px;
             white-space: nowrap;
+        }
+
+        .hero-form-status {
+            grid-column: 1 / -1;
+            min-height: 20px;
+            color: rgba(255, 255, 255, 0.94);
+            font-size: 13px;
+            font-weight: 800;
+            line-height: 1.45;
+        }
+
+        .hero-form-status[data-type="error"] {
+            color: #ffdad4;
         }
 
         .hero-actions {
@@ -709,7 +736,6 @@
 
         .demo-launch-btn {
             width: fit-content;
-            box-shadow: 0 16px 34px rgba(243, 201, 79, 0.34);
         }
 
         .demo-launch-note {
@@ -730,8 +756,11 @@
             pointer-events: none;
             opacity: 0;
             visibility: hidden;
-            background: #effaf4;
-            transition: opacity 0.22s ease-out, visibility 0s linear 0.22s;
+            --transition-x: 42px;
+            --transition-y: calc(100% - 42px);
+            background: rgba(239, 250, 244, 0.24);
+            transition: opacity 0.26s ease-out, visibility 0s linear 0.26s;
+            contain: paint;
         }
 
         .dimension-transition.is-active {
@@ -742,25 +771,24 @@
 
         .demo-preview {
             position: absolute;
-            inset: 0;
+            inset: -2px;
             overflow: hidden;
-            clip-path: circle(0 at 42px calc(100% - 42px));
-            transform: translateZ(0);
-            will-change: clip-path, filter;
-        }
-
-        .demo-preview iframe {
-            width: 100%;
-            height: 100%;
-            border: 0;
-            background: #effaf4;
+            clip-path: circle(0 at var(--transition-x) var(--transition-y));
+            transform: translate3d(0, 0, 0) scale(1.012);
+            will-change: clip-path, filter, transform;
+            background:
+                radial-gradient(circle at var(--transition-x) var(--transition-y), rgba(255, 255, 255, 0.94), rgba(238, 250, 244, 0.94) 42%, rgba(255, 252, 239, 0.98) 100%),
+                linear-gradient(135deg, rgba(238, 250, 244, 0.99), rgba(255, 252, 239, 0.99)),
+                #effaf4;
+            backface-visibility: hidden;
+            contain: paint;
         }
 
         .demo-preview::after {
             content: "";
             position: absolute;
-            left: 42px;
-            bottom: 42px;
+            left: var(--transition-x);
+            top: var(--transition-y);
             width: 80px;
             height: 80px;
             border: 1px solid rgba(45, 125, 103, 0.48);
@@ -768,15 +796,71 @@
             box-shadow: 0 0 0 12px rgba(223, 244, 237, 0.68), 0 0 46px rgba(18, 150, 141, 0.32);
             opacity: 0;
             pointer-events: none;
-            transform: translate(50%, 50%);
+            transform: translate(-50%, -50%);
         }
 
         .dimension-transition.is-active .demo-preview {
-            animation: demoPreviewRadiate 2s cubic-bezier(0.22, 0.72, 0.18, 1) forwards;
+            animation: demoPreviewRadiate 1.86s cubic-bezier(0.2, 0.76, 0.16, 1) forwards;
         }
 
         .dimension-transition.is-active .demo-preview::after {
-            animation: demoPreviewPulse 1.55s cubic-bezier(0.2, 0.72, 0.22, 1) 0.08s 1;
+            animation: demoPreviewPulse 1.42s cubic-bezier(0.2, 0.72, 0.22, 1) 0.04s 1;
+        }
+
+        .dimension-transition.is-settled .demo-preview {
+            clip-path: circle(190vmax at var(--transition-x) var(--transition-y));
+            filter: saturate(1) brightness(1);
+            transform: translate3d(0, 0, 0) scale(1);
+        }
+
+        .demo-transition-content {
+            position: absolute;
+            inset: 0;
+            display: grid;
+            place-items: center;
+            padding: 28px;
+            opacity: 0;
+            transform: translate3d(0, 18px, 0) scale(0.985);
+            pointer-events: none;
+        }
+
+        .dimension-transition.is-active .demo-transition-content {
+            animation: demoTransitionContentIn 0.62s cubic-bezier(0.2, 0.72, 0.22, 1) 0.58s both;
+        }
+
+        .dimension-transition.is-settled .demo-transition-content {
+            opacity: 1;
+            transform: translate3d(0, 0, 0) scale(1);
+        }
+
+        .demo-transition-lockup {
+            display: grid;
+            gap: 16px;
+            justify-items: center;
+            color: var(--ink);
+            text-align: center;
+        }
+
+        .demo-transition-lockup img {
+            width: 132px;
+            border-radius: 18px;
+            box-shadow: 0 20px 56px rgba(32, 50, 54, 0.16);
+        }
+
+        .demo-transition-lockup span {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            min-height: 42px;
+            padding: 10px 16px;
+            border-radius: 999px;
+            border: 1px solid rgba(45, 125, 103, 0.2);
+            background: rgba(255, 255, 255, 0.72);
+            box-shadow: 0 14px 34px rgba(32, 50, 54, 0.08);
+            font-size: 14px;
+            font-weight: 900;
+            color: var(--teal-dark);
         }
 
         .video-points {
@@ -894,6 +978,10 @@
             color: var(--quiet);
             line-height: 1.65;
             font-weight: 600;
+        }
+
+        .point.keep-agency p {
+            white-space: nowrap;
         }
 
         .works-band {
@@ -1149,7 +1237,7 @@
             display: flex;
             align-items: center;
             justify-content: flex-end;
-            gap: 18px;
+            gap: 10px;
         }
 
         .recurrence-window-dots {
@@ -1179,6 +1267,29 @@
         .recurrence-window-dot.is-active {
             width: 36px;
             background: var(--teal);
+        }
+
+        .recurrence-window-arrow {
+            width: 34px;
+            height: 34px;
+            display: inline-grid;
+            place-items: center;
+            padding: 0;
+            border: 1px solid rgba(18, 150, 141, 0.24);
+            border-radius: 8px;
+            color: var(--leaf);
+            background: rgba(255, 255, 255, 0.92);
+            box-shadow: 0 10px 22px rgba(32, 50, 54, 0.08);
+            cursor: pointer;
+            transition: transform 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease;
+        }
+
+        .recurrence-window-arrow:hover,
+        .recurrence-window-arrow:focus-visible {
+            transform: translateY(-1px);
+            border-color: rgba(18, 150, 141, 0.44);
+            box-shadow: 0 14px 28px rgba(18, 150, 141, 0.14);
+            outline: none;
         }
 
         .recurrence-window-content {
@@ -1517,8 +1628,7 @@
         .join-lockup {
             margin-top: 30px;
             display: grid;
-            grid-template-columns: auto 1fr;
-            gap: 20px;
+            grid-template-columns: minmax(0, 1fr);
             align-items: center;
         }
 
@@ -1528,8 +1638,9 @@
             grid-template-columns: 42px 1fr;
             align-items: center;
             gap: 14px;
-            min-width: 218px;
-            padding: 15px 17px;
+            width: 100%;
+            min-width: 0;
+            padding: 18px 20px;
             border-radius: 8px;
             color: var(--ink);
             background:
@@ -1576,15 +1687,9 @@
 
         .join-access-copy strong {
             display: block;
-            font-size: 26px;
+            font-size: 30px;
             line-height: 1;
             font-weight: 900;
-        }
-
-        .join-note {
-            color: var(--quiet);
-            line-height: 1.65;
-            font-weight: 700;
         }
 
         .mission-callout {
@@ -1593,7 +1698,7 @@
             border-radius: 8px;
             color: var(--ink);
             background: var(--mint);
-            border-left: 4px solid var(--coral);
+            border-left: 4px solid var(--teal);
             font-size: 20px;
             line-height: 1.45;
             font-weight: 900;
@@ -1714,6 +1819,10 @@
             font-size: 13px;
             font-weight: 800;
             line-height: 1.5;
+        }
+
+        .form-status[data-type="error"] {
+            color: #b94a3a;
         }
 
         .account-switch {
@@ -2294,6 +2403,10 @@
                 font-size: 22px;
             }
 
+            .point.keep-agency p {
+                white-space: normal;
+            }
+
             .hero-actions,
             .hero-signup {
                 align-items: stretch;
@@ -2352,7 +2465,7 @@
                 </div>
             </div>
             <a class="button vision-link" href="#vision"><i class="fas fa-play"></i> Feel the vision</a>
-            <a href="#founding" class="button button-primary"><i class="fas fa-star"></i> Join at no cost</a>
+            <a href="#founding" class="button button-primary"><i class="fas fa-star"></i> Join for free</a>
         </div>
     </nav>
 
@@ -2362,9 +2475,10 @@
                 <span class="eyebrow"><i class="fas fa-seedling"></i> Founding access is available at no cost</span>
                 <h1>Replay the decision before you live with it.</h1>
                 <p>Syntrae uses real inputs from your situation to simulate many plausible futures, so you can see which consequences keep returning before choosing a work, family, planning, or personal next step.</p>
-                <form class="hero-signup" action="founding-welcome.html" method="get" aria-label="Join Syntrae at no cost">
+                <form class="hero-signup" action="founding-welcome.html" method="get" aria-label="Join Syntrae for free">
                     <input type="email" name="email" autocomplete="email" placeholder="Enter your email" aria-label="Email address" required>
-                    <button class="button button-primary" type="submit"><i class="fas fa-user-plus"></i> Join at no cost</button>
+                    <button class="button button-primary" type="submit"><i class="fas fa-user-plus"></i> Join for free</button>
+                    <div class="hero-form-status" id="heroFormStatus" role="status" aria-live="polite"></div>
                 </form>
             </div>
         </section>
@@ -2375,7 +2489,7 @@
                     <p class="section-kicker">Feel the vision</p>
                     <h2>Try the Syntrae Test demo.</h2>
                     <p>Open the Syntrae demo to watch one decision tested across many plausible futures.</p>
-                    <a class="button button-primary demo-launch-btn" href="DashboardDemo.html?demo=decision-tree&amp;state=start&amp;tour=1&amp;flow=universal&amp;stage=start" data-demo-transition-link><i class="fas fa-play"></i> Open demo</a>
+                    <a class="button vision-link demo-launch-btn" href="DashboardDemo.html?demo=decision-tree&amp;state=start&amp;tour=1&amp;flow=universal&amp;stage=start" data-demo-transition-link><i class="fas fa-play"></i> Feel the vision</a>
                 </div>
                 <div>
                     <p class="section-kicker">Demo preview</p>
@@ -2396,7 +2510,7 @@
                                 <p>Run the same decision repeatedly to see which consequences return most often.</p>
                             </div>
                         </article>
-                        <article class="point">
+                        <article class="point keep-agency">
                             <span class="point-icon" aria-hidden="true"><i class="fas fa-hand-holding-heart"></i></span>
                             <div>
                                 <h3>Keep agency</h3>
@@ -2440,7 +2554,7 @@
             <div class="section-inner recurrence-layout">
                 <div>
                     <p class="section-kicker">Syntrae Test</p>
-                    <h2>The same decision, tested across 1000 possible futures.</h2>
+                    <h2>The same decision, tested across alternative outcomes.</h2>
                     <p class="lede">A single pros-and-cons list can miss how life unfolds. Syntrae Test turns an important choice into a repeatable decision-quality check: run it again, vary the assumptions and variables, and study the outcomes that keep coming back.</p>
                     <div class="recurrence-steps">
                         <article class="recurrence-step">
@@ -2468,7 +2582,9 @@
                 </div>
                 <div class="recurrence-panel" aria-label="Example Syntrae Test simulation" data-syntrae-test-preview>
                     <div class="recurrence-window-status">
+                        <button class="recurrence-window-arrow" type="button" data-syntrae-preview-prev aria-label="Show previous Syntrae Test result window"><i class="fas fa-arrow-left"></i></button>
                         <div class="recurrence-window-dots" data-syntrae-preview-dots aria-label="Syntrae Test result windows"></div>
+                        <button class="recurrence-window-arrow" type="button" data-syntrae-preview-next aria-label="Show next Syntrae Test result window"><i class="fas fa-arrow-right"></i></button>
                     </div>
                     <div class="recurrence-window-content" data-syntrae-preview-content aria-live="polite"></div>
                 </div>
@@ -2489,13 +2605,12 @@
                                 <strong>No Cost</strong>
                             </span>
                         </div>
-                        <p class="join-note">Founding access is available at no cost. No paid commitment is required.</p>
                     </div>
                     <div class="mission-callout">Syntrae helps people replay important choices and identify the consequence patterns that keep coming back.</div>
                 </div>
 
                 <form class="member-form" id="foundingForm" action="founding-welcome.html" method="get">
-                    <h3>Join at no cost</h3>
+                    <h3>Join for free</h3>
                     <p>Enter your email to reserve founding access with Syntrae.</p>
                     <div class="field-grid">
                         <label>
@@ -2517,7 +2632,7 @@
                     </div>
                     <div class="form-footer">
                         <div class="privacy-note"><i class="fas fa-shield-alt"></i><span>No spam. We will only send Syntrae launch updates, founding access details, and product feedback opportunities.</span></div>
-                        <button class="button button-primary" type="submit"><i class="fas fa-user-plus"></i> Join at no cost</button>
+                        <button class="button button-primary" type="submit"><i class="fas fa-user-plus"></i> Join for free</button>
                         <div class="form-status" id="formStatus" role="status" aria-live="polite"></div>
                         <div class="account-switch">Have an account already? <a href="sign-in.html">Sign-in instead</a></div>
                         <div class="disclaimer">Founding members receive early access updates and optional feedback invitations. Joining does not require a paid commitment.</div>
@@ -2563,8 +2678,8 @@
                         <p>Hi, I&rsquo;m Sebastian, the founder of Syntrae.</p>
                         <p>Like everyone, I have lived a life filled with highs and lows&mdash;moments of success and failure, happiness and heartbreak, choices I am proud of and mistakes I still carry. Yet, it often feels as though regret has occupied more space in my heart than joy.</p>
                         <p>There were moments when one different decision, a few kinder words, or a little more courage might have changed everything. In the silence that followed, I often wished for a chance to turn back, undo the pain, correct my mistakes, and finally make things right. But that chance never came, and the more tightly I held on to the past, the more incomplete I felt.</p>
-                        <p>Eventually, I began to understand that while we cannot change yesterday, we can determine tomorrow. Our actions now shape the people we become. Time does not move backward because life is asking us to move forward, and I wish there were a better way to advance rather than learning from past mistakes, which implies that mistakes have already happened.</p>
-                        <p class="landing-founder-emphasis"><strong>This is why I founded Syntrae: to help people replay important decisions across plausible futures, notice which consequences repeat, and turn the odds toward a better decision before the real action is taken.</strong></p>
+                        <p>Eventually, I began to understand that while we cannot change yesterday, we can determine tomorrow. Our actions now shape the people we become. Time does not move backward because life is asking us to move forward, and I wish there were a better way to advance with reduced frequency of mistakes.</p>
+                        <p class="landing-founder-emphasis"><strong>This is why I founded Syntrae: to help people replay important decisions across the alternative outcomes, notice which repeat, and turn the odds toward a better outcome before the real action is taken.</strong></p>
                     </div>
                 </div>
             </div>
@@ -2583,8 +2698,13 @@
     </footer>
 
     <div class="dimension-transition" data-dimension-transition aria-hidden="true">
-        <div class="demo-preview">
-            <iframe title="Syntrae dashboard preview" data-demo-preview tabindex="-1"></iframe>
+        <div class="demo-preview" data-demo-preview>
+            <div class="demo-transition-content">
+                <div class="demo-transition-lockup">
+                    <img src="assets/syntrae-logo.svg" alt="">
+                    <span><i class="fas fa-play"></i> Opening the Syntrae Test demo</span>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -2592,19 +2712,23 @@
     <script>
         const welcomeUrl = "founding-welcome.html";
         const heroSignupForm = document.querySelector(".hero-signup");
+        const heroFormStatus = document.getElementById("heroFormStatus");
         const foundingForm = document.getElementById("foundingForm");
         const formStatus = document.getElementById("formStatus");
         const demoTransitionLink = document.querySelector("[data-demo-transition-link]");
         const dimensionTransition = document.querySelector("[data-dimension-transition]");
         const demoPreview = document.querySelector("[data-demo-preview]");
-        const demoTransitionDurationMs = 2000;
+        const demoTransitionDurationMs = 2050;
+        const demoTransitionSettleMs = 260;
+        let demoTransitionTimer = null;
         const founderBookLayout = document.querySelector("[data-founder-book]");
         const founderBookOpenButton = document.querySelector("[data-open-founder-book]");
         const founderStoryPage = document.getElementById("founder-story-page");
         const syntraeTestPreview = document.querySelector("[data-syntrae-test-preview]");
         const syntraePreviewContent = document.querySelector("[data-syntrae-preview-content]");
         const syntraePreviewDots = document.querySelector("[data-syntrae-preview-dots]");
-        const syntraePreviewWindowMs = 10000;
+        const syntraePreviewPrev = document.querySelector("[data-syntrae-preview-prev]");
+        const syntraePreviewNext = document.querySelector("[data-syntrae-preview-next]");
 
         const syntraeTestResultWindows = [
             {
@@ -2739,7 +2863,6 @@
 
         if (syntraeTestPreview && syntraePreviewContent && syntraePreviewDots) {
             let syntraePreviewIndex = 0;
-            let syntraePreviewTimer = null;
             let syntraePreviewShuffleTimer = null;
             const prefersReducedPreviewMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
@@ -2766,7 +2889,7 @@
 
                 syntraePreviewDots.querySelectorAll("[data-syntrae-preview-index]").forEach((button) => {
                     button.addEventListener("click", () => {
-                        setSyntraePreviewWindow(Number(button.dataset.syntraePreviewIndex), { restart: true });
+                        setSyntraePreviewWindow(Number(button.dataset.syntraePreviewIndex));
                     });
                 });
             };
@@ -2809,7 +2932,7 @@
                 updateSyntraePreviewDots();
             };
 
-            function setSyntraePreviewWindow(index, { restart = false, animate = true } = {}) {
+            function setSyntraePreviewWindow(index, { animate = true } = {}) {
                 if (syntraePreviewShuffleTimer) {
                     window.clearTimeout(syntraePreviewShuffleTimer);
                     syntraePreviewShuffleTimer = null;
@@ -2820,20 +2943,18 @@
                 const previousIndex = syntraePreviewIndex;
                 syntraePreviewIndex = ((index % syntraeTestResultWindows.length) + syntraeTestResultWindows.length) % syntraeTestResultWindows.length;
                 updateSyntraePreviewCards({ previousIndex, animate });
-
-                if (restart) startSyntraePreviewRotation();
             }
 
-            function startSyntraePreviewRotation() {
-                if (syntraePreviewTimer) window.clearInterval(syntraePreviewTimer);
-                syntraePreviewTimer = window.setInterval(() => {
-                    setSyntraePreviewWindow(syntraePreviewIndex + 1, { animate: true });
-                }, syntraePreviewWindowMs);
-            }
+            syntraePreviewPrev?.addEventListener("click", () => {
+                setSyntraePreviewWindow(syntraePreviewIndex - 1);
+            });
+
+            syntraePreviewNext?.addEventListener("click", () => {
+                setSyntraePreviewWindow(syntraePreviewIndex + 1);
+            });
 
             renderSyntraePreviewDeck();
             setSyntraePreviewWindow(0, { animate: false });
-            startSyntraePreviewRotation();
         }
 
         if ("IntersectionObserver" in window) {
@@ -2900,37 +3021,127 @@
             localStorage.setItem("syntrae:founding-member-interest", JSON.stringify(payload));
         };
 
+        const setWaitlistStatus = (element, message, type = "info") => {
+            if (!element) return;
+            element.textContent = message;
+            element.dataset.type = type;
+        };
+
+        const withLandingButtonState = async (button, label, task) => {
+            const originalHtml = button?.innerHTML || "";
+            if (button) {
+                button.disabled = true;
+                button.setAttribute("aria-busy", "true");
+                button.innerHTML = `<i class="fas fa-circle-notch fa-spin"></i> ${label}`;
+            }
+
+            try {
+                return await task();
+            } finally {
+                if (button) {
+                    button.disabled = false;
+                    button.removeAttribute("aria-busy");
+                    button.innerHTML = originalHtml;
+                }
+            }
+        };
+
+        const submitWaitlistSignup = async (form, { referralSource, statusElement }) => {
+            const data = new FormData(form);
+            const email = String(data.get("email") || "").trim().toLowerCase();
+            const fullName = String(data.get("name") || "").trim();
+            const password = String(data.get("password") || "");
+            const consentInput = form.querySelector('[name="foundingConsent"]');
+            const consentToUpdates = consentInput ? consentInput.checked : true;
+
+            if (!email) {
+                throw new Error("Please enter your email address.");
+            }
+            if (!consentToUpdates) {
+                throw new Error("Please confirm the founding access note before joining.");
+            }
+
+            const response = await fetch("/api/register", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    waitlist: true,
+                    referralSource,
+                    fullName,
+                    email,
+                    password,
+                    consentToUpdates,
+                    website: ""
+                })
+            });
+            const body = await response.json().catch(() => ({}));
+            if (!response.ok) {
+                throw new Error(body.error || "Could not send the verification email. Please try again.");
+            }
+
+            saveFoundingInterest(form);
+            setWaitlistStatus(statusElement, "Check your email for the verification link. The thank-you page opens after you confirm.", "success");
+            return body;
+        };
+
         if (heroSignupForm) {
-            heroSignupForm.addEventListener("submit", () => {
-                saveFoundingInterest(heroSignupForm);
+            heroSignupForm.addEventListener("submit", async (event) => {
+                event.preventDefault();
+                setWaitlistStatus(heroFormStatus, "");
+                const submitButton = heroSignupForm.querySelector('button[type="submit"]');
+                try {
+                    await withLandingButtonState(submitButton, "Sending link...", () => submitWaitlistSignup(heroSignupForm, {
+                        referralSource: "landing_hero",
+                        statusElement: heroFormStatus
+                    }));
+                } catch (error) {
+                    setWaitlistStatus(heroFormStatus, error.message || "Could not send the verification email. Please try again.", "error");
+                }
             });
         }
 
         if (foundingForm && formStatus) {
-            foundingForm.addEventListener("submit", (event) => {
+            foundingForm.addEventListener("submit", async (event) => {
                 event.preventDefault();
-                saveFoundingInterest(foundingForm);
-
-                formStatus.textContent = "Creating your founding-member reservation...";
-                window.setTimeout(() => {
-                    window.location.href = welcomeUrl;
-                }, 480);
+                setWaitlistStatus(formStatus, "");
+                const submitButton = foundingForm.querySelector('button[type="submit"]');
+                try {
+                    await withLandingButtonState(submitButton, "Sending link...", () => submitWaitlistSignup(foundingForm, {
+                        referralSource: "founding_form",
+                        statusElement: formStatus
+                    }));
+                } catch (error) {
+                    setWaitlistStatus(formStatus, error.message || "Could not send the verification email. Please try again.", "error");
+                }
             });
         }
 
         const resetDemoTransition = () => {
             if (!dimensionTransition) return;
 
+            if (demoTransitionTimer) {
+                window.clearTimeout(demoTransitionTimer);
+                demoTransitionTimer = null;
+            }
             document.body.classList.remove("demo-transitioning");
-            dimensionTransition.classList.remove("is-active");
+            dimensionTransition.classList.remove("is-active", "is-settled");
+            dimensionTransition.style.removeProperty("--transition-x");
+            dimensionTransition.style.removeProperty("--transition-y");
             dimensionTransition.setAttribute("aria-hidden", "true");
             demoTransitionLink?.removeAttribute("aria-busy");
-            if (demoPreview) demoPreview.removeAttribute("src");
         };
 
         window.addEventListener("pageshow", resetDemoTransition);
 
         if (demoTransitionLink && dimensionTransition) {
+            const setDemoTransitionOrigin = () => {
+                const rect = demoTransitionLink.getBoundingClientRect();
+                const x = Math.round(rect.left + rect.width / 2);
+                const y = Math.round(rect.top + rect.height / 2);
+                dimensionTransition.style.setProperty("--transition-x", `${x}px`);
+                dimensionTransition.style.setProperty("--transition-y", `${y}px`);
+            };
+
             demoTransitionLink.addEventListener("click", (event) => {
                 const wantsNewTab = event.metaKey || event.ctrlKey || event.shiftKey || event.altKey || event.button !== 0;
                 if (event.defaultPrevented || wantsNewTab) return;
@@ -2946,15 +3157,45 @@
 
                 if (document.body.classList.contains("demo-transitioning")) return;
 
+                setDemoTransitionOrigin();
                 demoTransitionLink.setAttribute("aria-busy", "true");
-                if (demoPreview) demoPreview.src = destination;
                 dimensionTransition.setAttribute("aria-hidden", "false");
                 document.body.classList.add("demo-transitioning");
-                dimensionTransition.classList.add("is-active");
+                dimensionTransition.classList.remove("is-active", "is-settled");
 
-                window.setTimeout(() => {
-                    window.location.assign(destination);
-                }, demoTransitionDurationMs);
+                let hasNavigated = false;
+                let animationEndHandler = null;
+                const navigateAfterSettle = () => {
+                    if (hasNavigated) return;
+                    hasNavigated = true;
+                    if (animationEndHandler && demoPreview) {
+                        demoPreview.removeEventListener("animationend", animationEndHandler);
+                    }
+                    if (demoTransitionTimer) {
+                        window.clearTimeout(demoTransitionTimer);
+                        demoTransitionTimer = null;
+                    }
+                    dimensionTransition.classList.add("is-settled");
+                    demoTransitionTimer = window.setTimeout(() => {
+                        window.location.assign(destination);
+                    }, demoTransitionSettleMs);
+                };
+
+                if (demoPreview) {
+                    animationEndHandler = (animationEvent) => {
+                        if (animationEvent.target !== demoPreview || animationEvent.animationName !== "demoPreviewRadiate") return;
+                        navigateAfterSettle();
+                    };
+                    demoPreview.addEventListener("animationend", animationEndHandler);
+                }
+
+                window.requestAnimationFrame(() => {
+                    window.requestAnimationFrame(() => {
+                        dimensionTransition.classList.add("is-active");
+                    });
+                });
+
+                demoTransitionTimer = window.setTimeout(navigateAfterSettle, demoTransitionDurationMs);
             });
         }
 

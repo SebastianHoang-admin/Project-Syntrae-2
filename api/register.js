@@ -6,6 +6,7 @@ const IP_LIMIT = 20;
 const EMAIL_LIMIT = 3;
 const DOMAIN_LIMIT = 10;
 const ADMIN_PAGE_SIZE = 200;
+const WAITLIST_REFERRAL_RE = /^[a-z0-9_-]{1,64}$/i;
 const ipHits = new Map();
 const emailHits = new Map();
 const domainHits = new Map();
@@ -83,6 +84,89 @@ async function emailExists(supabaseUrl, serviceRoleKey, email) {
   }
 }
 
+function isTruthy(value) {
+  if (value === true) return true;
+  if (typeof value !== 'string') return false;
+  return ['1', 'true', 'yes', 'on'].includes(value.trim().toLowerCase());
+}
+
+function sanitizeReferralSource(value, fallback = 'founding_waitlist') {
+  const text = String(value || '').trim();
+  if (!text || !WAITLIST_REFERRAL_RE.test(text)) return fallback;
+  return text.toLowerCase();
+}
+
+function compactMetadata(metadata) {
+  return Object.fromEntries(
+    Object.entries(metadata).filter(([, value]) => value !== undefined && value !== null && value !== '')
+  );
+}
+
+async function upsertWaitlistEntry(supabaseUrl, serviceRoleKey, entry) {
+  const url = `${supabaseUrl}/rest/v1/waitlist?on_conflict=email`;
+  const row = {
+    email: entry.email,
+    referral_source: entry.referralSource,
+    status: entry.status || 'pending',
+    consent_to_updates: true,
+    updated_at: new Date().toISOString()
+  };
+  if (entry.fullName) row.full_name = entry.fullName;
+
+  const response = await fetch(url, {
+    method: 'POST',
+    headers: {
+      apikey: serviceRoleKey,
+      Authorization: `Bearer ${serviceRoleKey}`,
+      'Content-Type': 'application/json',
+      Prefer: 'resolution=merge-duplicates,return=minimal'
+    },
+    body: JSON.stringify(row)
+  });
+
+  if (!response.ok) {
+    const txt = await response.text().catch(() => '');
+    throw new Error(`Waitlist upsert failed (${response.status}): ${txt}`);
+  }
+}
+
+async function sendWaitlistMagicLink(supabaseUrl, anonKey, entry, redirectTo, captchaToken = '') {
+  const url = `${supabaseUrl}/auth/v1/otp?redirect_to=${encodeURIComponent(redirectTo)}`;
+  const body = {
+    email: entry.email,
+    create_user: true,
+    data: compactMetadata({
+      full_name: entry.fullName,
+      waitlist: true,
+      referral_source: entry.referralSource,
+      profile_completed: false
+    })
+  };
+  if (captchaToken) {
+    body.gotrue_meta_security = { captcha_token: String(captchaToken) };
+  }
+
+  const response = await fetch(url, {
+    method: 'POST',
+    headers: {
+      apikey: anonKey,
+      Authorization: `Bearer ${anonKey}`,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(body)
+  });
+
+  const payload = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    const message = payload?.msg || payload?.error_description || payload?.error || 'Verification email could not be sent';
+    const err = new Error(message);
+    err.status = response.status;
+    throw err;
+  }
+
+  return payload;
+}
+
 function isDnsMissingError(err) {
   return ['ENOTFOUND', 'ENODATA', 'NODATA', 'ENONAME', 'NOTFOUND', 'NXDOMAIN'].includes(err?.code);
 }
@@ -150,37 +234,49 @@ async function classifyEmailDomain(domain) {
 module.exports = async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'POST only' });
 
+  const { fullName, email, password, website, captchaToken, waitlist, referralSource, consentToUpdates } = req.body || {};
+  const isWaitlistSignup = isTruthy(waitlist) || sanitizeReferralSource(referralSource, '') !== '';
   const supabaseUrl = process.env.SUPABASE_URL;
   const anonKey = process.env.SUPABASE_ANON_KEY || process.env.SUPABASE_ANON_KEY_LOCAL;
   const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY_LOCAL;
   const missing = [];
   if (!supabaseUrl) missing.push('SUPABASE_URL');
-  if (!serviceRoleKey) missing.push('SUPABASE_SERVICE_ROLE_KEY');
   if (!anonKey) missing.push('SUPABASE_ANON_KEY');
-  if (!supabaseUrl || !serviceRoleKey) {
+  if (!isWaitlistSignup && !serviceRoleKey) missing.push('SUPABASE_SERVICE_ROLE_KEY');
+  if (!supabaseUrl || !anonKey || (!isWaitlistSignup && !serviceRoleKey)) {
     return res.status(500).json({
       error: 'Server auth configuration missing',
       missing
     });
   }
 
-  const { fullName, email, password, website, captchaToken } = req.body || {};
   if (website) {
     // Honeypot field for simple bot traffic.
     return res.status(400).json({ error: 'Invalid request' });
   }
-  if (!fullName || !email || !password || !captchaToken) {
+  if (!email) {
+    return res.status(400).json({ error: 'Email is required' });
+  }
+  if (!isWaitlistSignup && (!fullName || !password || !captchaToken)) {
     return res.status(400).json({ error: 'fullName, email, password, and captchaToken are required' });
+  }
+  if (isWaitlistSignup && consentToUpdates === false) {
+    return res.status(400).json({ error: 'Consent to updates is required to join the waitlist.' });
   }
 
   const normalizedEmail = String(email).trim().toLowerCase();
-  const normalizedName = String(fullName).trim();
-  const trimmedPassword = String(password);
+  const normalizedName = String(fullName || '').trim();
+  const trimmedPassword = password === undefined || password === null ? '' : String(password);
+  const hasPassword = trimmedPassword.length > 0;
+  const normalizedReferralSource = sanitizeReferralSource(referralSource, 'founding_waitlist');
   if (!isPlausibleEmail(normalizedEmail)) {
     return res.status(400).json({ error: 'Please enter a valid email address.' });
   }
-  if (trimmedPassword.length < 8) {
+  if (hasPassword && trimmedPassword.length < 8) {
     return res.status(400).json({ error: 'Password must be at least 8 characters.' });
+  }
+  if (!isWaitlistSignup && !hasPassword) {
+    return res.status(400).json({ error: 'Password is required' });
   }
 
   const ip = getIp(req);
@@ -206,21 +302,67 @@ module.exports = async function handler(req, res) {
     return res.status(503).json({ error: 'Email domain could not be verified right now. Please try again.' });
   }
 
-  try {
-    const exists = await emailExists(supabaseUrl, serviceRoleKey, normalizedEmail);
-    if (exists) {
-      return res.status(409).json({ code: 'email_exists', error: 'This account already exists.' });
+  let exists = false;
+  if (serviceRoleKey) {
+    try {
+      exists = await emailExists(supabaseUrl, serviceRoleKey, normalizedEmail);
+      if (exists && !isWaitlistSignup) {
+        return res.status(409).json({ code: 'email_exists', error: 'This account already exists.' });
+      }
+    } catch (err) {
+      console.error('register email lookup failed:', err);
+      return res.status(500).json({ error: 'Could not verify email right now.' });
     }
-  } catch (err) {
-    console.error('register email lookup failed:', err);
-    return res.status(500).json({ error: 'Could not verify email right now.' });
   }
 
-  const emailRedirectTo = `${getOrigin(req)}/sign-in.html?verified=true`;
+  const emailRedirectTo = isWaitlistSignup
+    ? `${getOrigin(req)}/founding-welcome.html?verified=true`
+    : `${getOrigin(req)}/sign-in.html?verified=true`;
+
+  const waitlistEntry = {
+    email: normalizedEmail,
+    fullName: normalizedName,
+    referralSource: normalizedReferralSource,
+    status: 'pending'
+  };
 
   try {
-    const signupKey = anonKey || serviceRoleKey;
+    const signupKey = anonKey;
+    if (isWaitlistSignup && (!hasPassword || exists)) {
+      await sendWaitlistMagicLink(supabaseUrl, signupKey, waitlistEntry, emailRedirectTo, captchaToken);
+      if (serviceRoleKey) {
+        await upsertWaitlistEntry(supabaseUrl, serviceRoleKey, waitlistEntry);
+      }
+      return res.status(200).json({
+        ok: true,
+        waitlist: true,
+        passwordless: true,
+        requiresEmailConfirmation: true
+      });
+    }
+
     const signupUrl = `${supabaseUrl}/auth/v1/signup?redirect_to=${encodeURIComponent(emailRedirectTo)}`;
+    const userMetadata = compactMetadata({
+      full_name: normalizedName,
+      profile_completed: false,
+      waitlist: isWaitlistSignup,
+      referral_source: isWaitlistSignup ? normalizedReferralSource : undefined
+    });
+    const signupBody = {
+      email: normalizedEmail,
+      password: trimmedPassword,
+      data: userMetadata,
+      options: {
+        data: userMetadata
+      }
+    };
+    if (captchaToken) {
+      signupBody.gotrue_meta_security = {
+        captcha_token: String(captchaToken)
+      };
+      signupBody.options.captchaToken = String(captchaToken);
+    }
+
     const signupRes = await fetch(signupUrl, {
       method: 'POST',
       headers: {
@@ -228,17 +370,7 @@ module.exports = async function handler(req, res) {
         Authorization: `Bearer ${signupKey}`,
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify({
-        email: normalizedEmail,
-        password: trimmedPassword,
-        gotrue_meta_security: {
-          captcha_token: String(captchaToken)
-        },
-        options: {
-          data: { full_name: normalizedName, profile_completed: false },
-          captchaToken: String(captchaToken)
-        }
-      })
+      body: JSON.stringify(signupBody)
     });
 
     const payload = await signupRes.json().catch(() => ({}));
@@ -247,8 +379,15 @@ module.exports = async function handler(req, res) {
       return res.status(signupRes.status).json({ error: message });
     }
 
+    if (isWaitlistSignup) {
+      if (serviceRoleKey) {
+        await upsertWaitlistEntry(supabaseUrl, serviceRoleKey, waitlistEntry);
+      }
+    }
+
     return res.status(200).json({
       ok: true,
+      waitlist: isWaitlistSignup,
       requiresEmailConfirmation: !payload?.session
     });
   } catch (err) {
