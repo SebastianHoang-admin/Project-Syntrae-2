@@ -1419,88 +1419,191 @@
             line-height: 1.05;
         }
 
-        .recurrence-runs {
-            margin-top: 20px;
-            display: grid;
-            gap: 14px;
-        }
-
-        .recurrence-run-row {
+        .recurrence-context {
             display: grid;
             gap: 8px;
+            margin-top: 16px;
+            padding: 14px;
+            border: 1px solid rgba(32, 50, 54, 0.1);
+            border-radius: 8px;
+            background: #f6fbf8;
         }
 
-        .recurrence-run-label {
-            display: flex;
-            justify-content: space-between;
-            gap: 12px;
-            color: var(--ink);
-            font-weight: 900;
-        }
-
-        .recurrence-track {
-            height: 10px;
-            overflow: hidden;
-            border-radius: 999px;
-            background: #edf3ee;
-        }
-
-        .recurrence-fill {
-            height: 100%;
-            border-radius: inherit;
-            background: linear-gradient(90deg, var(--leaf), var(--teal), var(--coral));
-        }
-
-        .recurrence-analysis {
-            margin: 20px 0 0;
-            padding: 16px;
-            border-left: 4px solid var(--teal);
-            background: #f4fbf7;
-            display: grid;
-            gap: 12px;
-        }
-
-        .recurrence-analysis-item {
-            display: grid;
-            gap: 4px;
-            padding-top: 12px;
-            border-top: 1px solid rgba(32, 50, 54, 0.1);
-        }
-
-        .recurrence-analysis-item:first-child {
-            padding-top: 0;
-            border-top: 0;
-        }
-
-        .recurrence-analysis-heading {
-            display: flex;
-            align-items: baseline;
-            justify-content: space-between;
-            gap: 14px;
-        }
-
-        .recurrence-analysis-heading span {
-            color: var(--ink);
-            font-weight: 900;
-        }
-
-        .recurrence-analysis-heading strong {
-            color: var(--leaf);
-            font-size: 18px;
-            font-weight: 900;
-            white-space: nowrap;
-        }
-
-        .recurrence-analysis-item p {
+        .recurrence-context p {
             margin: 0;
             color: var(--quiet);
-            font-weight: 750;
+            font-size: 13px;
+            font-weight: 760;
             line-height: 1.55;
         }
 
-        .recurrence-analysis-item p strong {
+        .recurrence-context strong {
             color: var(--ink);
             font-weight: 900;
+        }
+
+        .recurrence-report-options {
+            display: grid;
+            gap: 12px;
+            margin-top: 16px;
+        }
+
+        .recurrence-report-option {
+            display: grid;
+            gap: 10px;
+            padding: 14px;
+            border: 1px solid rgba(32, 50, 54, 0.12);
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.9);
+        }
+
+        .recurrence-report-option.is-best {
+            border-color: rgba(20, 149, 139, 0.36);
+            background: #effbf7;
+            box-shadow: inset 4px 0 0 rgba(20, 149, 139, 0.82);
+        }
+
+        .recurrence-option-title {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 10px;
+        }
+
+        .recurrence-option-title h3 {
+            margin: 0;
+            color: var(--ink);
+            font-size: 15px;
+            line-height: 1.25;
+        }
+
+        .recurrence-option-title p {
+            flex-basis: 100%;
+            margin: 0;
+            color: var(--quiet);
+            font-size: 12px;
+            font-weight: 800;
+            line-height: 1.45;
+        }
+
+        .recurrence-best-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            width: fit-content;
+            padding: 5px 8px;
+            border-radius: 999px;
+            background: #d9f6ec;
+            color: var(--leaf);
+            font-size: 9px;
+            font-weight: 950;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+        }
+
+        .recurrence-response-columns {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 8px;
+        }
+
+        .recurrence-response-group {
+            display: grid;
+            align-content: start;
+            gap: 7px;
+            padding: 10px;
+            border: 1px solid rgba(32, 50, 54, 0.1);
+            border-radius: 8px;
+            background: #fff;
+        }
+
+        .recurrence-response-group.positive {
+            border-color: #bde9dd;
+            background: #f1fbf8;
+        }
+
+        .recurrence-response-group.negative {
+            border-color: #f3c6bd;
+            background: #fff6f3;
+        }
+
+        .recurrence-response-group.unclear {
+            border-color: #efd98f;
+            background: #fffaf0;
+        }
+
+        .recurrence-response-group h4 {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            margin: 0;
+            font-size: 10px;
+            font-weight: 950;
+            line-height: 1.3;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .recurrence-response-group.positive h4 {
+            color: #247b66;
+        }
+
+        .recurrence-response-group.negative h4 {
+            color: #b45143;
+        }
+
+        .recurrence-response-group.unclear h4 {
+            color: #8c6a12;
+        }
+
+        .recurrence-response-group ul {
+            display: grid;
+            gap: 6px;
+            margin: 0;
+            padding-left: 16px;
+        }
+
+        .recurrence-response-group li {
+            color: var(--quiet);
+            font-size: 11px;
+            font-weight: 820;
+            line-height: 1.4;
+        }
+
+        .recurrence-final-move {
+            display: grid;
+            gap: 7px;
+            margin-top: 16px;
+            padding: 15px;
+            border: 1px solid #efd98f;
+            border-radius: 8px;
+            background: #fff8e6;
+        }
+
+        .recurrence-final-move span {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            color: #8c6a12;
+            font-size: 11px;
+            font-weight: 950;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+        }
+
+        .recurrence-final-move strong {
+            color: var(--ink);
+            font-size: 18px;
+            line-height: 1.25;
+        }
+
+        .recurrence-final-move p {
+            margin: 0;
+            color: var(--quiet);
+            font-size: 13px;
+            font-weight: 820;
+            line-height: 1.55;
         }
 
         .science-band {
@@ -2392,6 +2495,10 @@
                 font-size: 22px;
             }
 
+            .recurrence-response-columns {
+                grid-template-columns: 1fr;
+            }
+
             .point.keep-agency p {
                 white-space: normal;
             }
@@ -2544,7 +2651,7 @@
                 <div>
                     <p class="section-kicker">Syntrae Test</p>
                     <h2>The same decision, tested across alternative outcomes.</h2>
-                    <p class="lede">A single pros-and-cons list can miss how life unfolds. Syntrae Test turns an important choice into a repeatable decision-quality check: run it again, vary the assumptions and variables, and study the outcomes that keep coming back.</p>
+                    <p class="lede">A single pros-and-cons list can miss how life unfolds. Syntrae Test handles the repeated outcome checks in the background, then shows decision context, response examples, and the best first move.</p>
                     <div class="recurrence-steps">
                         <article class="recurrence-step">
                             <span aria-hidden="true"><i class="fas fa-sync-alt"></i></span>
@@ -2557,14 +2664,14 @@
                             <span aria-hidden="true"><i class="fas fa-sliders-h"></i></span>
                             <div>
                                 <h3>The algorithm varies assumptions and variables</h3>
-                                <p>Syntrae shifts timing, pressure, stakeholder needs, prior context, and missing facts between runs, then shows what different results could have happened.</p>
+                                <p>Syntrae shifts timing, pressure, stakeholder needs, prior context, and missing facts behind the scenes.</p>
                             </div>
                         </article>
                         <article class="recurrence-step">
                             <span aria-hidden="true"><i class="fas fa-chart-bar"></i></span>
                             <div>
-                                <h3>Read the Syntrae Test</h3>
-                                <p>Look for the options that keep performing well, plus the variables that can change the path.</p>
+                                <h3>Read the computation report</h3>
+                                <p>Review response examples and a clear best first move without sorting through raw probability numbers.</p>
                             </div>
                         </article>
                     </div>
@@ -2715,90 +2822,134 @@
         const syntraePreviewPrev = document.querySelector("[data-syntrae-preview-prev]");
         const syntraePreviewNext = document.querySelector("[data-syntrae-preview-next]");
 
+        const syntraeResponseCategories = [
+            { key: "positive", label: "Positive responses", icon: "fa-check-circle" },
+            { key: "negative", label: "Negative responses", icon: "fa-exclamation-circle" },
+            { key: "unclear", label: "Unclear responses", icon: "fa-hourglass-half" }
+        ];
+
         const syntraeTestResultWindows = [
             {
-                decision: "Come clean about a report mistake",
-                runs: 1000,
-                results: [
+                chatSpace: "Invite Daniel to talk",
+                context: "Maya wants to invite Daniel to talk about where they are going, but she does not want the message to feel heavy.",
+                persona: "Daniel Smith responds best when the message feels warm, light, and private instead of formal.",
+                options: [
                     {
-                        label: "Own it with a fix",
-                        percent: 52,
-                        analysis: "Syntrae Test varied mistake severity, deadline urgency, manager need-to-know, repair-plan readiness, prior trust, and audit visibility. This option stayed strongest when urgency or visibility increased because accountability plus a concrete fix gave the manager a clear next step."
+                        label: "Option A: Warm and direct",
+                        message: "For example: I've really enjoyed spending time with you, and I'd love to see you again. Are you free this weekend?",
+                        responses: {
+                            positive: [
+                                "I've enjoyed spending time with you too. Yeah, let's talk this weekend.",
+                                "I'm glad you said this directly. I've been wondering how you felt too."
+                            ],
+                            negative: [
+                                "Oh, I didn't realize we were talking about it like that already.",
+                                "Can we not get into this right now? I'm not really ready."
+                            ],
+                            unclear: [
+                                "I care about you, but I need a little time to think before I answer."
+                            ]
+                        }
                     },
                     {
-                        label: "Explain context first",
-                        percent: 31,
-                        analysis: "Syntrae Test varied missing information, shared process responsibility, manager patience, time pressure, and how complete the fix was. This path improved when context genuinely changed the interpretation, but dropped when the manager needed fast ownership before explanation."
+                        label: "Option B: Light and open-ended",
+                        message: "For example: I had a lot of fun with you. What kind of adventure should we plan next?",
+                        best: true,
+                        responses: {
+                            positive: [
+                                "Haha I had fun too. Maybe coffee and a walk next time?",
+                                "I'm down. Let's plan something for Saturday afternoon."
+                            ],
+                            negative: [
+                                "Yeah, that was fun. We should invite the others next time too."
+                            ],
+                            unclear: [
+                                "Adventure sounds dramatic, but I'm interested.",
+                                "I liked spending time with you too. What did you have in mind?"
+                            ]
+                        }
                     },
                     {
-                        label: "Quietly correct it",
-                        percent: 17,
-                        analysis: "Syntrae Test varied discovery risk, report impact, reversibility, stakeholder exposure, deadline distance, and prior trust. This option only held up when the mistake was low-impact and easy to reverse; it weakened when hidden correction created future trust or audit risk."
+                        label: "Option C: Reflective and intentional",
+                        message: "For example: I've been thinking about the time we've spent together, and I really appreciate how comfortable and genuine things feel between us. How have you been feeling about us?",
+                        responses: {
+                            positive: [
+                                "That means a lot. I've felt comfortable with you too."
+                            ],
+                            negative: [
+                                "I don't know how to answer that right now.",
+                                "This feels like a big conversation suddenly."
+                            ],
+                            unclear: [
+                                "Are you asking if I see this becoming something more serious?",
+                                "I want to answer honestly, but I need time to think."
+                            ]
+                        }
                     }
-                ]
+                ],
+                bestMove: "Best first move: Light and open-ended.",
+                advice: "Start with the light invitation, then use Daniel's real reply to decide whether the next message should stay playful or become clearer."
             },
             {
-                decision: "Ask for a salary increase",
-                runs: 1000,
-                results: [
+                chatSpace: "Choose the right timing",
+                context: "Maya wants to find a good time for a deeper conversation with Daniel without springing the topic on him.",
+                persona: "Daniel is more receptive when he has time, privacy, and a calm afternoon window.",
+                options: [
                     {
-                        label: "Evidence-based ask",
-                        percent: 42,
-                        analysis: "Syntrae Test varied recent wins, measurable impact, compensation timing, market comparison, budget pressure, and Naomi's available attention. This option kept recurring because evidence gives the manager a fair business reason to evaluate the request."
+                        label: "Option A: Saturday afternoon",
+                        message: "For example: Would Saturday afternoon be a better time than a weeknight to talk about us?",
+                        best: true,
+                        responses: {
+                            positive: [
+                                "Saturday works. I have the afternoon free, so we can talk without rushing.",
+                                "I appreciate you asking gently. Let's go for a walk and talk."
+                            ],
+                            negative: [
+                                "I just got pulled into a project deadline, so I can't focus today.",
+                                "This feels like a lot for today. Can we not turn Saturday into a serious talk?"
+                            ],
+                            unclear: [
+                                "I can meet for a little bit, but I may need to continue next week."
+                            ]
+                        }
                     },
                     {
-                        label: "Growth-path discussion",
-                        percent: 35,
-                        analysis: "Syntrae Test varied role-scope clarity, promotion readiness, manager coaching style, budget flexibility, and Maya's patience for a delayed result. This path performed well when the reward was clearer expectations, but weakened when Maya needed an immediate compensation answer."
+                        label: "Option B: Weeknight text",
+                        message: "For example: Could we text tonight about where things are going?",
+                        responses: {
+                            positive: [
+                                "I can text for a bit tonight. What did you want to talk about?",
+                                "Thanks for keeping it simple. I can answer one question now."
+                            ],
+                            negative: [
+                                "I'm exhausted from class. Can we not do this tonight?",
+                                "This is not a good time to start that conversation over text."
+                            ],
+                            unclear: [
+                                "Can we talk about this on the weekend instead?"
+                            ]
+                        }
                     },
                     {
-                        label: "Direct raise request",
-                        percent: 23,
-                        analysis: "Syntrae Test varied review-cycle distance, proof quality, team budget strain, and how abruptly the request arrived. The path worked when directness was paired with strong evidence, but became riskier when the ask sounded disconnected from timing or performance context."
+                        label: "Option C: After a warm date",
+                        message: "For example: Tonight felt really good. Could we walk a little longer and talk?",
+                        responses: {
+                            positive: [
+                                "Tonight felt really good. Yeah, let's talk while we walk.",
+                                "I'm glad you brought it up now. I was feeling close to you too."
+                            ],
+                            negative: [
+                                "I don't want to end a nice night with a heavy conversation.",
+                                "This shift feels sudden. I was not expecting this tonight."
+                            ],
+                            unclear: [
+                                "I want to talk, but maybe next time when we are not at the end of the night."
+                            ]
+                        }
                     }
-                ]
-            },
-            {
-                decision: "Plan Dad's birthday surprise",
-                runs: 1000,
-                results: [
-                    {
-                        label: "Small family dinner",
-                        percent: 44,
-                        analysis: "Syntrae Test varied Aaron's mood, attention comfort, family availability, cost sensitivity, privacy, and whether the gesture felt personal. This option led because it maximized warmth while minimizing the punishment risk of making him feel exposed or financially worried."
-                    },
-                    {
-                        label: "Handwritten memory gift",
-                        percent: 40,
-                        analysis: "Syntrae Test varied emotional openness, gift specificity, timing, and whether Maya paired the note with a shared moment. This path stayed close because Aaron values sincerity, but it sometimes needed a small celebration to make the day feel complete."
-                    },
-                    {
-                        label: "Big surprise party",
-                        percent: 16,
-                        analysis: "Syntrae Test varied crowd size, cost, sudden attention, and Aaron's modesty. It returned less often because the possible reward of a dramatic celebration was outweighed by the punishment risk of discomfort, expense concern, or public pressure."
-                    }
-                ]
-            },
-            {
-                decision: "Ask for a day off on a busy business day",
-                runs: 1000,
-                results: [
-                    {
-                        label: "Coverage-first ask",
-                        percent: 45,
-                        analysis: "Syntrae Test varied client commitments, team coverage, handoff clarity, deadline pressure, and Naomi's planning load. This option performed best because Maya protects the business impact first, which maximizes trust while lowering disruption risk."
-                    },
-                    {
-                        label: "Personal need first",
-                        percent: 32,
-                        analysis: "Syntrae Test varied urgency, manager empathy, workload intensity, and whether coverage details followed quickly. This path gained when the need was unavoidable, but lost runs when Naomi still had to ask how the team would be protected."
-                    },
-                    {
-                        label: "Flexible tradeoff offer",
-                        percent: 23,
-                        analysis: "Syntrae Test varied remote availability, partial-day options, workload flexibility, and request clarity. It helped when compromise was useful, but became weaker when too many alternatives made the actual ask harder to evaluate."
-                    }
-                ]
+                ],
+                bestMove: "Best first move: Saturday afternoon.",
+                advice: "Ask for a calm Saturday window first because it gives Daniel more room to respond thoughtfully before the conversation becomes emotional."
             }
         ];
 
@@ -2813,35 +2964,52 @@
             .replace(/"/g, "&quot;")
             .replace(/'/g, "&#39;");
 
+        const renderSyntraeResponseGroup = (responses, category) => {
+            const examples = responses?.[category.key] || [];
+            return `
+                <section class="recurrence-response-group ${category.key}">
+                    <h4><i class="fas ${category.icon}" aria-hidden="true"></i> ${escapeHtml(category.label)}</h4>
+                    <ul>
+                        ${examples.length
+                            ? examples.map((example) => `<li>${escapeHtml(example)}</li>`).join("")
+                            : "<li>No clear example in this demo path.</li>"}
+                    </ul>
+                </section>
+            `;
+        };
+
+        const renderSyntraeReportOption = (option) => `
+            <article class="recurrence-report-option${option.best ? " is-best" : ""}">
+                <div class="recurrence-option-title">
+                    <h3>${escapeHtml(option.label)}</h3>
+                    ${option.best ? '<span class="recurrence-best-chip"><i class="fas fa-check-circle" aria-hidden="true"></i> Best first move</span>' : ""}
+                    <p>${escapeHtml(option.message)}</p>
+                </div>
+                <div class="recurrence-response-columns">
+                    ${syntraeResponseCategories.map((category) => renderSyntraeResponseGroup(option.responses, category)).join("")}
+                </div>
+            </article>
+        `;
+
         const renderSyntraeTestWindowMarkup = (windowData, index) => `
             <article class="recurrence-result-card" data-syntrae-preview-card="${index}" aria-hidden="true">
                 <div class="recurrence-panel-top">
                     <div>
-                        <span>Example decision</span>
-                        <strong>${escapeHtml(windowData.decision)}</strong>
+                        <span>Computation report</span>
+                        <strong>${escapeHtml(windowData.chatSpace)}</strong>
                     </div>
                 </div>
-                <div class="recurrence-runs">
-                    ${windowData.results.map((result) => `
-                        <div class="recurrence-run-row">
-                            <div class="recurrence-run-label">
-                                <span>${escapeHtml(result.label)}</span>
-                                <strong>${escapeHtml(result.percent)}%</strong>
-                            </div>
-                            <div class="recurrence-track"><div class="recurrence-fill" style="width:${Number(result.percent) || 0}%"></div></div>
-                        </div>
-                    `).join("")}
+                <div class="recurrence-context">
+                    <p><strong>Decision context:</strong> ${escapeHtml(windowData.context)}</p>
+                    <p><strong>Active persona:</strong> ${escapeHtml(windowData.persona)}</p>
                 </div>
-                <div class="recurrence-analysis" aria-label="Syntrae Test option analysis">
-                    ${windowData.results.map((result) => `
-                        <article class="recurrence-analysis-item">
-                            <div class="recurrence-analysis-heading">
-                                <span>${escapeHtml(result.label)}</span>
-                                <strong>${escapeHtml(result.percent)}%</strong>
-                            </div>
-                            <p><strong>Why this probability:</strong> ${escapeHtml(result.analysis)}</p>
-                        </article>
-                    `).join("")}
+                <div class="recurrence-report-options" aria-label="Syntrae Test response examples">
+                    ${windowData.options.map((option) => renderSyntraeReportOption(option)).join("")}
+                </div>
+                <div class="recurrence-final-move">
+                    <span><i class="fas fa-lightbulb" aria-hidden="true"></i> Best first move</span>
+                    <strong>${escapeHtml(windowData.bestMove)}</strong>
+                    <p>${escapeHtml(windowData.advice)}</p>
                 </div>
             </article>
         `;

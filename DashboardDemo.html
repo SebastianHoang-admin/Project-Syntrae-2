@@ -865,7 +865,7 @@
             border: 1px solid #aee8dc;
         }
 
-        .actual-bubble.daniel {
+        .actual-bubble.target {
             background: #fffdf5;
             border: 1px solid #efd98f;
         }
@@ -3048,7 +3048,7 @@
                     <h2 id="simulationTitle">Best First Move</h2>
                     <p id="simulationCopy">Compare message styles before choosing the one action that goes out in real life.</p>
                     <div class="outcome-request-block">
-                        <span class="outcome-request-label"><i class="fas fa-bullseye"></i> Outcome Request</span>
+                        <span class="outcome-request-label"><i class="fas fa-bullseye"></i> Decision Context</span>
                         <div class="prompt-box" id="promptBox"></div>
                     </div>
                     <div class="candidate-grid" id="candidateGrid"></div>
@@ -4122,6 +4122,490 @@
             }
         };
 
+        function applyExpandedPersonaDemoData() {
+            const candidate = (title, content) => ({ title, content });
+            const outcome = (classification, recurrencePercent, label, example, explanation) => ({
+                classification,
+                recurrencePercent,
+                label,
+                example,
+                explanation
+            });
+            const branch = (title, action, content, generatedOutcomes) => ({ title, action, content, generatedOutcomes });
+            const reason = (type, text) => ({ type, text });
+            const detailOption = (title, reply, best, outcomes) => ({ title, reply, best, outcomes });
+            const turn = (label, maya, target, syntrae, reasonText, detailSummary, detailTree) => ({
+                label,
+                maya,
+                target,
+                syntrae,
+                reason: reasonText,
+                detailSummary,
+                detailTree
+            });
+
+            Object.assign(chats.dadBirthday, {
+                prompt: 'I want to surprise Dad for his birthday, but I do not want the gift to feel too expensive or overwhelming. What are some different ways to make him feel loved?',
+                candidates: [
+                    candidate('Option A: Handwritten memory gift', 'For example: Write Aaron a short letter with three specific memories and give it to him before dinner.'),
+                    candidate('Option B: Small family dinner', 'For example: Cook his favorite meal at home, invite only close family, and read one short birthday note.'),
+                    candidate('Option C: Big surprise party', 'For example: Invite relatives and friends for a surprise party with decorations, speeches, and a larger gift.')
+                ],
+                conversationLoop: {
+                    openingPrompt: 'I want to surprise Dad for his birthday, but I do not want the gift to feel too expensive or overwhelming. What are some different ways to make him feel loved?',
+                    openingResponse: 'Syntrae picked a small family dinner as the best first move. The live conversation below shows how Maya can keep updating the plan after each real Aaron reply.',
+                    loadingCopy: 'Using Maya\'s birthday goal, Aaron\'s latest reply, and the need to keep the surprise warm without making it feel expensive or overwhelming.',
+                    turns: [
+                        turn(
+                            'Turn 1',
+                            'I was thinking of doing a small family dinner for your birthday instead of something big. Would that feel nice to you?',
+                            'That sounds perfect. I do not need anything fancy, just everyone together.',
+                            'Best Way: "Then I will keep it simple. I want it to feel like a relaxed family night, not a big production."',
+                            'Aaron clearly preferred simple family time. Maya should confirm that she heard him and keep the plan modest.',
+                            'Keep the dinner small and make the care feel personal.',
+                            [
+                                detailOption('Option A: Confirm the modest dinner', 'Then I will keep it simple. I want it to feel like a relaxed family night, not a big production.', true, [
+                                    reason('positive', 'Aaron feels understood because Maya respects his modest preference.'),
+                                    reason('positive', 'The plan keeps attention comfortable and family-centered.')
+                                ]),
+                                detailOption('Option B: Add more guests anyway', 'I still might invite a few more people so it feels special.', false, [
+                                    reason('negative', 'Aaron may feel Maya heard the opposite of what he said.'),
+                                    reason('unclear', 'A larger guest list could still work only if he truly wants it.')
+                                ]),
+                                detailOption('Option C: Drop the surprise completely', 'Okay, maybe we will not do anything then.', false, [
+                                    reason('negative', 'Aaron may feel his modesty was treated as rejection.'),
+                                    reason('unclear', 'Maya loses the chance to make the day feel meaningful.')
+                                ])
+                            ]
+                        ),
+                        turn(
+                            'Turn 2',
+                            'Then I will keep it simple. I want it to feel like a relaxed family night, not a big production.',
+                            'I like that. Maybe just dinner and no big speeches, okay?',
+                            'Best Way: "Absolutely. We can skip speeches. I may write you a short note instead, just between us."',
+                            'Aaron set a clear comfort boundary around public attention. Maya can still make the moment meaningful through a private note.',
+                            'Respect the no-speech boundary and move the emotion into a private note.',
+                            [
+                                detailOption('Option A: Private note instead of speech', 'Absolutely. We can skip speeches. I may write you a short note instead, just between us.', true, [
+                                    reason('positive', 'Aaron gets the sincerity without public pressure.'),
+                                    reason('positive', 'Maya still creates a memorable birthday moment.')
+                                ]),
+                                detailOption('Option B: Push for a toast', 'Could I at least make a small toast?', false, [
+                                    reason('negative', 'Aaron may feel Maya is negotiating against his comfort.'),
+                                    reason('unclear', 'A tiny toast may be okay, but only if he volunteers that.')
+                                ]),
+                                detailOption('Option C: Keep it only practical', 'Sure, no speeches. I will just order food.', false, [
+                                    reason('positive', 'The plan stays easy and low pressure.'),
+                                    reason('unclear', 'The emotional meaning may become too quiet.')
+                                ])
+                            ]
+                        ),
+                        turn(
+                            'Turn 3',
+                            'Absolutely. We can skip speeches. I may write you a short note instead, just between us.',
+                            'That would mean a lot. You know I keep those things.',
+                            'Best Way: write the note and keep the dinner simple.',
+                            'Aaron confirmed that the private note matters to him. Maya does not need to add a bigger surprise now.',
+                            'Follow through on the note and avoid expanding the plan.',
+                            [
+                                detailOption('Option A: Follow through quietly', 'I will. I am glad it would mean something to you.', true, [
+                                    reason('positive', 'Aaron feels loved without being put on display.'),
+                                    reason('positive', 'The plan stays aligned with his actual preference.')
+                                ]),
+                                detailOption('Option B: Make the note public', 'Maybe I can read it during dinner.', false, [
+                                    reason('negative', 'Reading it aloud changes the private meaning he just valued.'),
+                                    reason('unclear', 'It could be sweet only if he asks for that kind of moment.')
+                                ]),
+                                detailOption('Option C: Add an expensive gift', 'I still want to get you something big too.', false, [
+                                    reason('negative', 'Aaron may start worrying about cost.'),
+                                    reason('unclear', 'A gift could help only if it is practical and modest.')
+                                ])
+                            ]
+                        )
+                    ]
+                },
+                outcomes: [
+                    branch('Option A', 'Handwritten memory gift', 'For example: Write Aaron a short letter with three specific memories and give it to him before dinner.', [
+                        outcome('positive', 21, 'Aaron feels deeply seen by the memories.', 'This reminds me of why I am proud to be your dad.', 'Specific memories make the gift feel sincere and personal.'),
+                        outcome('positive', 26, 'He keeps the note because it feels private.', 'I am going to keep this somewhere safe.', 'Aaron values private family meaning more than public attention.'),
+                        outcome('negative', 14, 'The emotion feels too intense without a shared moment.', 'This is beautiful, but I do not know what to say right now.', 'A note alone may make him emotional before he has time to respond.'),
+                        outcome('unclear', 20, 'He appreciates it but still wants family time.', 'This means a lot. Are we still eating together later?', 'The note is strong, but the day may still need a simple shared activity.'),
+                        outcome('unclear', 19, 'He responds warmly but quietly.', 'Thank you. That really means a lot to me.', 'Aaron may feel loved while keeping the reaction modest.')
+                    ]),
+                    branch('Option B', 'Small family dinner', 'For example: Cook his favorite meal at home, invite only close family, and read one short birthday note.', [
+                        outcome('positive', 28, 'Aaron relaxes into the family dinner.', 'This is exactly what I wanted: everyone together and nothing too fancy.', 'The plan matches his family-centered and modest style.'),
+                        outcome('positive', 27, 'He feels included without pressure.', 'I like that it is just us. This feels comfortable.', 'The smaller setting makes the attention feel loving instead of performative.'),
+                        outcome('negative', 12, 'He worries Maya did too much work.', 'You did not have to go through all this trouble for me.', 'Even a smaller plan can trigger his practical worry if it looks stressful.'),
+                        outcome('unclear', 18, 'He asks to keep the night simple.', 'Can we keep it casual and not make a big deal out of me?', 'He likes the dinner but still wants control over attention.'),
+                        outcome('unclear', 15, 'The dinner feels warm but needs one personal detail.', 'This is nice. I am glad we are doing this together.', 'The dinner lands well, but the note or memory makes it more meaningful.')
+                    ]),
+                    branch('Option C', 'Big surprise party', 'For example: Invite relatives and friends for a surprise party with decorations, speeches, and a larger gift.', [
+                        outcome('positive', 16, 'Aaron appreciates the effort behind the party.', 'I can see how much work you put into this.', 'He recognizes the love even if the format is not his favorite.'),
+                        outcome('positive', 8, 'He enjoys seeing extended family.', 'It is good to see everyone together.', 'The party can create warmth if the guest list feels familiar.'),
+                        outcome('negative', 22, 'The attention makes him uncomfortable.', 'This is a lot of attention. I wish I had known.', 'Aaron is modest and may dislike being surprised publicly.'),
+                        outcome('negative', 21, 'He worries about the cost.', 'Maya, this must have cost too much.', 'A big party can shift his focus from love to expense.'),
+                        outcome('unclear', 33, 'He needs a quiet moment after the party.', 'I appreciate it, but let me step outside for a minute.', 'The gesture may be loving but overstimulating.')
+                    ]),
+                ],
+                recommendation: {
+                    title: 'Best first move: Small family dinner.',
+                    text: 'Plan the small dinner, keep the guest list close, and add one private note so Aaron feels loved without feeling displayed.',
+                    actions: [
+                        'Start with: "I was thinking of doing a small family dinner for your birthday instead of something big. Would that feel nice to you?"',
+                        'If Aaron says he wants no speeches, write a private note instead.',
+                        'Keep the cost modest and make the personal memory the center of the surprise.'
+                    ]
+                }
+            });
+
+            Object.assign(chats.dadHardNews, {
+                prompt: 'I need to tell Dad I am considering taking a semester away from school because I feel overwhelmed. What are some different ways to share this without making him panic?',
+                candidates: [
+                    candidate('Option A: Prepared plan first', 'For example: "Dad, I am overwhelmed and considering a semester away, but I have already listed the advisor, financial, and timeline steps I need to check."'),
+                    candidate('Option B: Emotional confession', 'For example: "Dad, I am not okay, and I think I might need to step away from school for a semester."'),
+                    candidate('Option C: Casual mention', 'For example: "I might take next semester off. I am still figuring it out."')
+                ],
+                conversationLoop: {
+                    openingPrompt: 'I need to tell Dad I am considering taking a semester away from school because I feel overwhelmed. What are some different ways to share this without making him panic?',
+                    openingResponse: 'Syntrae picked the prepared-plan message as the first move. The live conversation below shows how Maya can keep updating Syntrae as Aaron asks practical questions.',
+                    loadingCopy: 'Using Maya\'s school concern, Aaron\'s latest reply, and the need to reduce panic with clear next steps.',
+                    turns: [
+                        turn('Turn 1', 'Dad, I am overwhelmed and considering a semester away, but I have already listed the advisor, financial, and timeline steps I need to check.', 'I am worried, but I am glad you are not just deciding overnight. What have you checked so far?', 'Best Way: "I have not finalized anything. I want to meet my advisor first, check financial aid, and then talk with you again before deciding."', 'Aaron is worried but open because Maya led with preparation. Maya should show that this is a process, not a sudden escape.', 'Name the next checks and reassure him he is included before the final decision.', [
+                            detailOption('Option A: Show the decision process', 'I have not finalized anything. I want to meet my advisor first, check financial aid, and then talk with you again before deciding.', true, [reason('positive', 'Aaron sees Maya is being responsible.'), reason('positive', 'He has a clear support role instead of only panic.')]),
+                            detailOption('Option B: Ask him to just trust her', 'I need you to trust me on this.', false, [reason('negative', 'Aaron may feel pushed away from a major decision.'), reason('unclear', 'He may support her emotionally but still need details.')]),
+                            detailOption('Option C: Give every detail at once', 'Here is everything that has been going wrong this semester...', false, [reason('negative', 'Too much information can make his worry spike.'), reason('unclear', 'The core next step may get buried.')])
+                        ]),
+                        turn('Turn 2', 'I have not finalized anything. I want to meet my advisor first, check financial aid, and then talk with you again before deciding.', 'Okay. I need to know you are safe and that this will not close doors for you.', 'Best Way: "I hear that. My first step is to make sure the option keeps doors open, not close them. I can send you what the advisor says."', 'Aaron named safety and future consequences. Maya should answer those directly instead of defending the idea abstractly.', 'Show that the goal is protection and ask him to review the advisor information later.', [
+                            detailOption('Option A: Answer the safety concern', 'I hear that. My first step is to make sure the option keeps doors open, not close them. I can send you what the advisor says.', true, [reason('positive', 'Aaron hears that Maya is protecting her future.'), reason('positive', 'The advisor step gives him concrete information to wait for.')]),
+                            detailOption('Option B: Emphasize exhaustion only', 'I am just too tired to keep going.', false, [reason('negative', 'Aaron may become more scared if he only hears distress.'), reason('unclear', 'It explains the feeling but not the plan.')]),
+                            detailOption('Option C: Promise everything will be fine', 'It will be fine. Do not worry.', false, [reason('negative', 'The reassurance can sound unsupported.'), reason('unclear', 'Aaron may ask even more questions to fill the gap.')])
+                        ]),
+                        turn('Turn 3', 'I hear that. My first step is to make sure the option keeps doors open, not close them. I can send you what the advisor says.', 'Send it to me. I may still worry, but I want to help you think clearly.', 'Best Way: send the advisor summary and schedule a calm second conversation.', 'Aaron is ready to help if the next information is concrete. Maya should move the conversation into a planned follow-up.', 'Use the advisor summary as the next shared decision point.', [
+                            detailOption('Option A: Schedule a follow-up', 'I will send it after the meeting, then maybe we can talk Sunday when we both have time.', true, [reason('positive', 'Aaron gets time to process instead of reacting immediately.'), reason('positive', 'Maya keeps the decision collaborative.')]),
+                            detailOption('Option B: Decide before the meeting', 'I think I already know what I want to do.', false, [reason('negative', 'Aaron may feel the process was only for show.'), reason('unclear', 'He may still listen, but trust drops.')]),
+                            detailOption('Option C: Avoid the follow-up', 'Okay, I will figure it out.', false, [reason('negative', 'Aaron loses the clear support role he asked for.'), reason('unclear', 'Maya may feel less pressure but more alone.')])
+                        ])
+                    ]
+                },
+                outcomes: [
+                    branch('Option A', 'Prepared plan first', 'For example: "Dad, I am overwhelmed and considering a semester away, but I have already listed the advisor, financial, and timeline steps I need to check."', [
+                        outcome('positive', 29, 'Aaron listens past the first worry.', 'I am worried, but I am glad you have thought through next steps.', 'A plan gives his protective instinct something practical to respond to.'),
+                        outcome('positive', 25, 'The conversation becomes a planning talk.', 'Let us look at the advisor and financial aid pieces together.', 'Preparation shifts the talk from panic into support.'),
+                        outcome('negative', 10, 'Aaron still reacts strongly at first.', 'A semester away sounds serious. I need a minute.', 'The headline is big even when the delivery is careful.'),
+                        outcome('negative', 8, 'He questions whether Maya has checked enough.', 'I need to know this will not hurt your future.', 'His concern may focus on consequences before reassurance lands.'),
+                        outcome('unclear', 28, 'He needs a second conversation after details.', 'Send me what the advisor says, then we can talk again.', 'The first talk opens the door but does not settle the decision.')
+                    ]),
+                    branch('Option B', 'Emotional confession', 'For example: "Dad, I am not okay, and I think I might need to step away from school for a semester."', [
+                        outcome('positive', 20, 'Aaron softens when he sees the stress.', 'I did not know it was this heavy. Come sit with me and tell me what is going on.', 'His care for Maya can override the first shock.'),
+                        outcome('positive', 15, 'He offers emotional support first.', 'We will figure this out. I am not mad at you.', 'Honest distress makes the need for support clear.'),
+                        outcome('negative', 20, 'His worry rises before he hears a plan.', 'What happened? Are you dropping out?', 'Without structure, he may imagine worst-case outcomes.'),
+                        outcome('negative', 14, 'He pushes for immediate answers.', 'Tell me exactly what you are going to do.', 'Emotion alone can make him reach for control.'),
+                        outcome('unclear', 31, 'The talk requires a practical follow-up.', 'I understand you are overwhelmed, but we need to talk through the details.', 'The confession opens the issue but leaves the decision unresolved.')
+                    ]),
+                    branch('Option C', 'Casual mention', 'For example: "I might take next semester off. I am still figuring it out."', [
+                        outcome('positive', 14, 'Aaron stays calm at first.', 'Okay, tell me more about what you are thinking.', 'A casual tone can prevent immediate escalation.'),
+                        outcome('positive', 8, 'He asks for context without anger.', 'What brought this up?', 'He may stay curious if the tone is not alarming.'),
+                        outcome('negative', 20, 'He feels Maya minimized the stakes.', 'That is not something to just mention casually.', 'A major school decision can sound irresponsible if introduced lightly.'),
+                        outcome('negative', 19, 'Trust drops because the plan sounds incomplete.', 'Do you actually have a plan for this?', 'Aaron needs evidence that Maya understands consequences.'),
+                        outcome('unclear', 39, 'The conversation has to restart more seriously.', 'We need to sit down and talk about this properly.', 'The casual opening delays the real decision conversation.')
+                    ])
+                ],
+                recommendation: {
+                    title: 'Best first move: Prepared plan first.',
+                    text: 'Tell Aaron honestly, then immediately name the advisor, financial, and timeline checks so he can support the process instead of panic.',
+                    actions: [
+                        'Start with: "Dad, I am overwhelmed and considering a semester away, but I have already listed the advisor, financial, and timeline steps I need to check."',
+                        'Tell him no final decision is made yet.',
+                        'Offer a second conversation after the advisor meeting.'
+                    ]
+                }
+            });
+
+            Object.assign(chats.dadGoodNews, {
+                prompt: 'I have big good news about a pregnancy in the family and want Dad to feel included instead of shocked. What are some different ways to tell him?',
+                candidates: [
+                    candidate('Option A: Private calm conversation', 'For example: "Dad, I have happy family news, and I wanted to tell you privately first because your support matters to me."'),
+                    candidate('Option B: Family gathering reveal', 'For example: Announce the news during dinner with the whole family present.'),
+                    candidate('Option C: Text first, call after', 'For example: Send a short message first, then call him after he has had a few minutes to absorb it.')
+                ],
+                conversationLoop: {
+                    openingPrompt: 'I have big good news about a pregnancy in the family and want Dad to feel included instead of shocked. What are some different ways to tell him?',
+                    openingResponse: 'Syntrae picked a private calm conversation as the first move. The live conversation below shows how Maya can include Aaron while giving him room for joy and practical questions.',
+                    loadingCopy: 'Using Maya\'s family-news goal, Aaron\'s latest reply, and the need to make the moment warm instead of shocking.',
+                    turns: [
+                        turn('Turn 1', 'Dad, I have happy family news, and I wanted to tell you privately first because your support matters to me.', 'You are making me nervous and happy at the same time. Tell me.', 'Best Way: "It is good news. I wanted you to hear it from me first, and I am okay. I just want you with me in it."', 'Aaron is emotionally ready but protective. Maya should reassure him before sharing the full news.', 'Reassure him that the news is good and that Maya wants support, not alarm.', [
+                            detailOption('Option A: Reassure before details', 'It is good news. I wanted you to hear it from me first, and I am okay. I just want you with me in it.', true, [reason('positive', 'Aaron hears safety and inclusion before details.'), reason('positive', 'The private tone respects his role as her dad.')]),
+                            detailOption('Option B: Announce quickly', 'I am pregnant.', false, [reason('unclear', 'The truth is clear, but the emotional landing may be abrupt.'), reason('negative', 'Aaron may jump into worry before hearing reassurance.')]),
+                            detailOption('Option C: Make it a joke', 'Guess who has the biggest surprise?', false, [reason('negative', 'A joke can make serious happy news feel confusing.'), reason('unclear', 'He may smile, but still need direct clarity.')])
+                        ]),
+                        turn('Turn 2', 'It is good news. I wanted you to hear it from me first, and I am okay. I just want you with me in it.', 'I am glad you told me first. Are you feeling okay? What do you need from me?', 'Best Way: "I am feeling okay. Mostly I need you to listen first, then help me think through the next few practical steps."', 'Aaron asked how to support rather than taking over. Maya should give him a clear role that starts with listening.', 'Give him a support role that is loving and practical.',
+                            [
+                                detailOption('Option A: Name the support role', 'I am feeling okay. Mostly I need you to listen first, then help me think through the next few practical steps.', true, [reason('positive', 'Aaron knows how to help without overwhelming Maya.'), reason('positive', 'The practical frame uses his protective energy well.')]),
+                                detailOption('Option B: Ask for no questions', 'Please do not ask me anything yet.', false, [reason('negative', 'Aaron may feel shut out after being told his support matters.'), reason('unclear', 'A pause may help Maya, but it needs a follow-up time.')]),
+                                detailOption('Option C: Move to a group reveal now', 'Can we tell everyone tonight?', false, [reason('unclear', 'A family reveal can be joyful later.'), reason('negative', 'Aaron may not have had enough time to process privately.')])
+                            ]
+                        ),
+                        turn('Turn 3', 'I am feeling okay. Mostly I need you to listen first, then help me think through the next few practical steps.', 'I can do that. I am happy for you, and I will try not to overwhelm you.', 'Best Way: thank him and agree on when the rest of the family should know.', 'Aaron is supportive and aware of his worry. Maya should turn that into one clear boundary and next step.', 'Thank him, then set the privacy boundary before a wider reveal.', [
+                            detailOption('Option A: Set the privacy boundary', 'Thank you. Can we keep it between us for now and talk later about when to tell everyone else?', true, [reason('positive', 'Aaron feels trusted and knows the boundary.'), reason('positive', 'Maya keeps control over the timing of the wider reveal.')]),
+                            detailOption('Option B: Tell everyone immediately', 'Yes, let us tell everyone now.', false, [reason('unclear', 'The celebration may be joyful.'), reason('negative', 'The news may spread before Maya feels ready.')]),
+                            detailOption('Option C: End the conversation fast', 'Thanks, I will talk to you later.', false, [reason('negative', 'Aaron may feel the support role ended suddenly.'), reason('unclear', 'A later talk still becomes necessary.')])
+                        ])
+                    ]
+                },
+                outcomes: [
+                    branch('Option A', 'Private calm conversation', 'For example: "Dad, I have happy family news, and I wanted to tell you privately first because your support matters to me."', [
+                        outcome('positive', 30, 'Aaron feels trusted because he hears it one-on-one.', 'Thank you for telling me first. I am really glad you trusted me.', 'A private setting protects his role and dignity.'),
+                        outcome('positive', 28, 'Joy arrives with manageable concern.', 'I am happy for you. Tell me how you are feeling.', 'He can feel joy and ask caring questions without performing for others.'),
+                        outcome('negative', 10, 'He briefly panics before settling.', 'I am happy, but I need a second because this is big.', 'Major family news can still trigger protective worry.'),
+                        outcome('unclear', 17, 'He asks practical questions right away.', 'What happens next? Have you talked to a doctor?', 'The questions are caring but may need pacing.'),
+                        outcome('unclear', 15, 'He wants to know when others can be told.', 'Do you want me to keep this private for now?', 'The news lands well, but the disclosure plan needs agreement.')
+                    ]),
+                    branch('Option B', 'Family gathering reveal', 'For example: Announce the news during dinner with the whole family present.', [
+                        outcome('positive', 22, 'The room becomes joyful quickly.', 'This is wonderful news. Everyone is so happy for you.', 'A group reveal can create immediate celebration.'),
+                        outcome('positive', 17, 'Aaron enjoys seeing the family celebrate.', 'I am glad we are all here for this.', 'Shared joy can matter if he feels prepared enough.'),
+                        outcome('negative', 15, 'Aaron hides his questions in public.', 'I am happy, but we should talk later.', 'He may avoid asking practical questions in front of others.'),
+                        outcome('negative', 13, 'The public surprise overwhelms him.', 'I wish I had known before everyone else heard.', 'He may feel his father role was skipped.'),
+                        outcome('unclear', 33, 'A private follow-up becomes necessary.', 'Can you and I talk alone after dinner?', 'The reveal can be sweet but incomplete.')
+                    ]),
+                    branch('Option C', 'Text first, call after', 'For example: Send a short message first, then call him after he has had a few minutes to absorb it.', [
+                        outcome('positive', 17, 'Aaron has time to absorb the news.', 'I saw your message. I took a minute, and I am ready to talk.', 'Text gives him a pause before speaking.'),
+                        outcome('positive', 16, 'The call restores warmth.', 'I am glad you called. I wanted to hear your voice.', 'A quick follow-up can repair the distance of text.'),
+                        outcome('negative', 15, 'The text feels too distant.', 'This feels too important to learn by message.', 'Major family news may need voice or face-to-face warmth.'),
+                        outcome('negative', 14, 'He worries alone before the call.', 'I have been sitting here imagining everything.', 'The pause can create anxiety if the text is too brief.'),
+                        outcome('unclear', 38, 'The final reaction depends on the call.', 'Call me when you can. I want to understand.', 'The text opens the door but does not finish the emotional moment.')
+                    ])
+                ],
+                recommendation: {
+                    title: 'Best first move: Private calm conversation.',
+                    text: 'Tell Aaron privately, reassure him that the news is good, and give him one clear support role before anyone else is included.',
+                    actions: [
+                        'Start with: "Dad, I have happy family news, and I wanted to tell you privately first because your support matters to me."',
+                        'Say clearly that Maya is okay before sharing the full news.',
+                        'Ask him to keep it private until Maya is ready for the wider family to know.'
+                    ]
+                }
+            });
+
+            Object.assign(chats.bossSalary, {
+                prompt: 'I want to ask Naomi about a salary increase, but I do not want the conversation to sound entitled. What are some different ways to frame the ask?',
+                candidates: [
+                    candidate('Option A: Evidence-based ask', 'For example: "Could we set aside 20 minutes to review my recent impact and discuss whether my compensation is aligned with the role?"'),
+                    candidate('Option B: Growth-path discussion', 'For example: "Could we talk about what growth path would put me in range for a compensation review?"'),
+                    candidate('Option C: Direct raise request', 'For example: "I would like to discuss a salary increase based on the work I have been doing."')
+                ],
+                conversationLoop: {
+                    openingPrompt: 'I want to ask Naomi about a salary increase, but I do not want the conversation to sound entitled. What are some different ways to frame the ask?',
+                    openingResponse: 'Syntrae picked the evidence-based ask as the first move. The live conversation below shows how Maya can continue after Naomi asks for details.',
+                    loadingCopy: 'Using Maya\'s compensation goal, Naomi\'s latest reply, and the need to sound prepared instead of entitled.',
+                    turns: [
+                        turn('Turn 1', 'Could we set aside 20 minutes to review my recent impact and discuss whether my compensation is aligned with the role?', 'That is fair. Send me the main points you want to cover, and we can look at timing.', 'Best Way: "Absolutely. I will send three recent wins, the measurable impact, and the specific compensation question I want to discuss."', 'Naomi accepted the conversation but asked for structure. Maya should send evidence, not emotion.', 'Send a concise evidence preview and make the ask easy to evaluate.', [
+                            detailOption('Option A: Send evidence preview', 'Absolutely. I will send three recent wins, the measurable impact, and the specific compensation question I want to discuss.', true, [reason('positive', 'Naomi receives the information she asked for.'), reason('positive', 'The tone stays professional and prepared.')]),
+                            detailOption('Option B: Ask for a number immediately', 'Great. I am hoping for a specific raise amount.', false, [reason('negative', 'Naomi may feel Maya skipped the evidence step.'), reason('unclear', 'The number can come later after the case is clear.')]),
+                            detailOption('Option C: Apologize for asking', 'Sorry if this is awkward. I just wanted to ask.', false, [reason('negative', 'The apology weakens Maya\'s professional confidence.'), reason('unclear', 'Naomi may still proceed, but the frame is less strong.')])
+                        ]),
+                        turn('Turn 2', 'Absolutely. I will send three recent wins, the measurable impact, and the specific compensation question I want to discuss.', 'Good. Include anything that shows scope change or measurable business impact.', 'Best Way: "I will include the campaign metrics, the client handoff work, and the extra reporting responsibilities I have taken on."', 'Naomi is telling Maya exactly what evidence matters. Maya should mirror those criteria with concrete examples.', 'Answer with the three evidence categories Naomi requested.', [
+                            detailOption('Option A: Name the evidence categories', 'I will include the campaign metrics, the client handoff work, and the extra reporting responsibilities I have taken on.', true, [reason('positive', 'Naomi can see the business case quickly.'), reason('positive', 'Maya sounds confident without exaggerating.')]),
+                            detailOption('Option B: Keep it general', 'I will send over my contributions.', false, [reason('unclear', 'The reply agrees but lacks useful specifics.'), reason('negative', 'Naomi may have to ask for more detail later.')]),
+                            detailOption('Option C: Focus on personal need', 'I also need the increase because my expenses are higher.', false, [reason('negative', 'The frame shifts away from business impact.'), reason('unclear', 'Personal context may matter, but not as the main case.')])
+                        ]),
+                        turn('Turn 3', 'I will include the campaign metrics, the client handoff work, and the extra reporting responsibilities I have taken on.', 'That works. Once I review it, we can talk through what is possible and what timeline makes sense.', 'Best Way: thank Naomi and ask for the review timeline.',
+                            'Naomi is open but tied to timing and process. Maya should confirm the next step instead of pushing for an immediate answer.',
+                            'Secure the next step and keep the tone collaborative.',
+                            [
+                                detailOption('Option A: Ask for timeline', 'Thank you. What timeline would be realistic for reviewing it and deciding next steps?', true, [reason('positive', 'Naomi can give a process-based answer.'), reason('positive', 'Maya keeps momentum without demanding an instant yes.')]),
+                                detailOption('Option B: Push for an answer now', 'Do you think it will be approved?', false, [reason('negative', 'Naomi may not have enough information yet.'), reason('unclear', 'She may answer generally but not commit.')]),
+                                detailOption('Option C: Stop following up', 'Sounds good, thanks.', false, [reason('unclear', 'The tone is polite but may lose momentum.'), reason('negative', 'Maya may not know when the review will happen.')])
+                            ]
+                        )
+                    ]
+                },
+                outcomes: [
+                    branch('Option A', 'Evidence-based ask', 'For example: "Could we set aside 20 minutes to review my recent impact and discuss whether my compensation is aligned with the role?"', [
+                        outcome('positive', 24, 'Naomi takes the request seriously.', 'That is a reasonable conversation to have. Send me the points you want to cover.', 'Evidence makes the request easier to evaluate.'),
+                        outcome('positive', 22, 'The conversation becomes a structured review.', 'Let us look at your recent scope and impact together.', 'The wording turns the ask into a business discussion.'),
+                        outcome('negative', 19, 'Budget timing limits the immediate answer.', 'The timing may be difficult this quarter.', 'Even a strong case can run into budget constraints.'),
+                        outcome('unclear', 18, 'Naomi asks for more data first.', 'Can you send me examples of measurable impact?', 'The ask is credible but needs documentation.'),
+                        outcome('unclear', 17, 'A follow-up meeting is scheduled.', 'Let us put time on the calendar after I review it.', 'The path moves forward but does not resolve immediately.')
+                    ]),
+                    branch('Option B', 'Growth-path discussion', 'For example: "Could we talk about what growth path would put me in range for a compensation review?"', [
+                        outcome('positive', 22, 'Naomi responds like a coach.', 'Yes, we can talk about what growth would justify that review.', 'The frame fits Naomi\'s development-oriented management style.'),
+                        outcome('positive', 18, 'Maya gets clearer expectations.', 'Here are the responsibilities I would need to see consistently.', 'The ask can become a practical growth plan.'),
+                        outcome('negative', 14, 'The raise becomes less immediate.', 'This may be more of a next-cycle conversation.', 'The growth frame can delay the compensation decision.'),
+                        outcome('unclear', 24, 'Naomi defines criteria before discussing money.', 'Let us first align on what the next level requires.', 'The path is useful but not a direct answer.'),
+                        outcome('unclear', 22, 'The conversation becomes career planning.', 'This is a good development topic for our one-on-one.', 'Maya may get guidance before compensation clarity.')
+                    ]),
+                    branch('Option C', 'Direct raise request', 'For example: "I would like to discuss a salary increase based on the work I have been doing."', [
+                        outcome('positive', 15, 'Naomi appreciates the clarity.', 'I appreciate you being direct. Let us look at the case.', 'Naomi can respect concise professional directness.'),
+                        outcome('positive', 10, 'The conversation starts quickly.', 'Okay, tell me what you are basing the request on.', 'The ask is unambiguous.'),
+                        outcome('negative', 19, 'The timing feels abrupt.', 'I wish I had more context before this request.', 'Without evidence first, the ask can feel sudden.'),
+                        outcome('negative', 17, 'Naomi redirects Maya to prepare a case.', 'Put together the impact examples first, then we can talk.', 'The direct ask lacks the supporting material Naomi needs.'),
+                        outcome('unclear', 39, 'Naomi asks for a later review.', 'Let us revisit this after the current cycle closes.', 'The request stays open but not decided.')
+                    ])
+                ],
+                recommendation: {
+                    title: 'Best first move: Evidence-based ask.',
+                    text: 'Ask for a short compensation conversation built around recent impact, measurable results, and a clear review question.',
+                    actions: [
+                        'Start with: "Could we set aside 20 minutes to review my recent impact and discuss whether my compensation is aligned with the role?"',
+                        'Prepare three recent wins and one measurable result for each.',
+                        'Ask Naomi what timeline is realistic after she reviews the evidence.'
+                    ]
+                }
+            });
+
+            Object.assign(chats.bossReportMistake, {
+                prompt: 'I found a mistake in a report I submitted last week. What are some different ways to apologize to Naomi while showing I am already fixing it?',
+                candidates: [
+                    candidate('Option A: Own it with fix', 'For example: "Naomi, I found an error in last week\'s report. I am correcting it now, and here is the exact section affected and the fix timeline."'),
+                    candidate('Option B: Explain context first', 'For example: "Naomi, last week\'s deadline was compressed, and I think that contributed to a mistake I found in the report."'),
+                    candidate('Option C: Quietly correct first', 'For example: Correct the file quietly, then tell Naomi only if the issue comes up later.')
+                ],
+                conversationLoop: {
+                    openingPrompt: 'I found a mistake in a report I submitted last week. What are some different ways to apologize to Naomi while showing I am already fixing it?',
+                    openingResponse: 'Syntrae picked ownership plus fix as the first move. The live conversation below shows how Maya can update the plan after Naomi asks about impact.',
+                    loadingCopy: 'Using Maya\'s report mistake, Naomi\'s latest reply, and the need to protect trust with a clear fix.',
+                    turns: [
+                        turn('Turn 1', 'Naomi, I found an error in last week\'s report. I am correcting it now, and here is the exact section affected and the fix timeline.', 'Thanks for flagging it. Is the client-facing version affected?', 'Best Way: "The client-facing version may include the same number, so I am checking that first and will send you the corrected line before anything else moves."', 'Naomi went straight to business impact. Maya should answer impact first, then describe the correction sequence.', 'Prioritize client impact and make the fix sequence clear.', [
+                            detailOption('Option A: Address client impact first', 'The client-facing version may include the same number, so I am checking that first and will send you the corrected line before anything else moves.', true, [reason('positive', 'Naomi sees Maya is protecting the highest-risk surface.'), reason('positive', 'The reply gives a clear next action.')]),
+                            detailOption('Option B: Explain why it happened', 'It happened because I was rushing near the deadline.', false, [reason('negative', 'Naomi asked about impact, not cause.'), reason('unclear', 'Context can come later after the risk is contained.')]),
+                            detailOption('Option C: Say it is probably fine', 'I do not think it is a big deal.', false, [reason('negative', 'Naomi may feel Maya is minimizing the risk.'), reason('unclear', 'The true impact still needs checking.')])
+                        ]),
+                        turn('Turn 2', 'The client-facing version may include the same number, so I am checking that first and will send you the corrected line before anything else moves.', 'Good. I need the corrected version and a note on how we prevent this next time.', 'Best Way: "I will send both: the corrected version and a two-step review checklist I will use before submitting reports."', 'Naomi wants repair and prevention. Maya should not over-apologize; she should deliver both requested items.',
+                            'Give Naomi the corrected file plus a prevention checklist.',
+                            [
+                                detailOption('Option A: Commit to correction and checklist', 'I will send both: the corrected version and a two-step review checklist I will use before submitting reports.', true, [reason('positive', 'Naomi gets the fix and recurrence prevention.'), reason('positive', 'Maya sounds accountable without spiraling.')]),
+                                detailOption('Option B: Apologize repeatedly', 'I am really sorry. I feel terrible about this.', false, [reason('negative', 'The apology does not answer the prevention request.'), reason('unclear', 'Naomi may appreciate remorse but still need action.')]),
+                                detailOption('Option C: Ask Naomi what to do', 'What do you want me to do next?', false, [reason('negative', 'Maya passes the repair planning back to Naomi.'), reason('unclear', 'Naomi may give direction but trust improves less.')])
+                            ]
+                        ),
+                        turn('Turn 3', 'I will send both: the corrected version and a two-step review checklist I will use before submitting reports.', 'That is the right approach. Send it by 2, and we will decide whether the client needs a note.', 'Best Way: confirm the deadline and prepare the client-note option.',
+                            'Naomi gave a deadline and a conditional next step. Maya should confirm both and avoid adding unnecessary explanation.',
+                            'Confirm the 2 PM deadline and prepare the client note if needed.',
+                            [
+                                detailOption('Option A: Confirm and prepare', 'Understood. I will send the corrected version by 2 and draft a short client note in case we need it.', true, [reason('positive', 'Naomi sees Maya can execute under direction.'), reason('positive', 'The client communication is ready but not over-sent.')]),
+                                detailOption('Option B: Argue the client note is unnecessary', 'I do not think the client needs a note.', false, [reason('negative', 'Naomi may feel Maya is resisting the risk decision.'), reason('unclear', 'It may be true, but Naomi asked to decide after review.')]),
+                                detailOption('Option C: Add a long cause explanation', 'I want to explain exactly how this happened.', false, [reason('negative', 'The conversation shifts away from fixing the issue.'), reason('unclear', 'Cause review can happen after the urgent correction.')])
+                            ]
+                        )
+                    ]
+                },
+                outcomes: [
+                    branch('Option A', 'Own it with fix', 'For example: "Naomi, I found an error in last week\'s report. I am correcting it now, and here is the exact section affected and the fix timeline."', [
+                        outcome('positive', 29, 'Naomi trusts Maya\'s ownership.', 'Thank you for flagging it directly. Show me the affected section.', 'Early ownership protects trust.'),
+                        outcome('positive', 26, 'The correction plan gives Naomi a next step.', 'Send me the corrected version and the impact note.', 'A concrete fix makes the mistake manageable.'),
+                        outcome('negative', 14, 'Naomi is firm about the quality miss.', 'This should have been caught before submission.', 'Accountability does not erase the seriousness of the error.'),
+                        outcome('unclear', 17, 'Naomi asks about client visibility.', 'Did the client already see this number?', 'The final outcome depends on whether the mistake traveled outside the team.'),
+                        outcome('unclear', 14, 'The issue requires prevention follow-up.', 'Add a review step so this does not repeat.', 'The mistake can be repaired, but process trust still needs rebuilding.')
+                    ]),
+                    branch('Option B', 'Explain context first', 'For example: "Naomi, last week\'s deadline was compressed, and I think that contributed to a mistake I found in the report."', [
+                        outcome('positive', 19, 'Naomi understands the deadline pressure.', 'That context helps. What exactly is wrong in the report?', 'Context can matter when it leads into the fix quickly.'),
+                        outcome('positive', 15, 'The conversation identifies a process issue.', 'We may need to change the review process on compressed timelines.', 'Explanation can expose a preventable cause.'),
+                        outcome('negative', 18, 'The explanation sounds defensive.', 'I need ownership first, then context.', 'Naomi may dislike context before accountability.'),
+                        outcome('negative', 14, 'The fix feels delayed.', 'What is the correction plan?', 'Starting with cause can postpone the action Naomi needs.'),
+                        outcome('unclear', 34, 'Naomi asks for facts before judging.', 'Tell me the impact, then we can discuss how it happened.', 'The path remains open but reroutes to ownership.')
+                    ]),
+                    branch('Option C', 'Quietly correct first', 'For example: Correct the file quietly, then tell Naomi only if the issue comes up later.', [
+                        outcome('positive', 14, 'The file is fixed before anyone relies on it.', 'I corrected the draft before it went further.', 'A quick correction can help if the issue is contained.'),
+                        outcome('positive', 10, 'The correction prevents immediate disruption.', 'The number is now accurate in the working file.', 'Speed has some value when risk is very low.'),
+                        outcome('negative', 25, 'Naomi dislikes delayed disclosure.', 'Why am I only hearing about this now?', 'Hidden mistakes create trust risk.'),
+                        outcome('negative', 24, 'The issue looks like concealment.', 'It is harder to trust the fix if I did not know there was a problem.', 'Silence can make a small error feel larger.'),
+                        outcome('unclear', 27, 'Trust depends on whether the report was used.', 'Did anyone make a decision from the old version?', 'The outcome depends on downstream exposure.')
+                    ])
+                ],
+                recommendation: {
+                    title: 'Best first move: Own it with fix.',
+                    text: 'Tell Naomi promptly, identify the affected section, and give the correction timeline before explaining the background.',
+                    actions: [
+                        'Start with: "Naomi, I found an error in last week\'s report. I am correcting it now, and here is the exact section affected and the fix timeline."',
+                        'Answer client-impact questions before explaining the cause.',
+                        'Send a prevention checklist with the corrected file.'
+                    ]
+                }
+            });
+
+            Object.assign(chats.bossDayOff, {
+                prompt: 'I need to ask Naomi for a day off on a busy business day. What are some different ways to ask without sounding careless about the team?',
+                candidates: [
+                    candidate('Option A: Coverage-first ask', 'For example: "I need to request Friday off. I prepared coverage for the client updates, moved the draft earlier, and can be reachable for urgent questions."'),
+                    candidate('Option B: Personal need first', 'For example: "I have a personal situation and need to take Friday off if possible."'),
+                    candidate('Option C: Flexible tradeoff offer', 'For example: "I need Friday off, but I can work late Thursday, prep the handoff, or take a half-day if that protects the team better."')
+                ],
+                conversationLoop: {
+                    openingPrompt: 'I need to ask Naomi for a day off on a busy business day. What are some different ways to ask without sounding careless about the team?',
+                    openingResponse: 'Syntrae picked the coverage-first request as the first move. The live conversation below shows how Maya can update the request after Naomi checks business coverage.',
+                    loadingCopy: 'Using Maya\'s time-off need, Naomi\'s latest reply, and the need to protect the team while asking clearly.',
+                    turns: [
+                        turn('Turn 1', 'I need to request Friday off. I prepared coverage for the client updates, moved the draft earlier, and can be reachable for urgent questions.', 'Thanks for thinking about coverage. Who is handling the client update if something changes?', 'Best Way: "Priya can cover the client update, and I will leave her the draft, status notes, and escalation points by Thursday afternoon."', 'Naomi accepted the premise but needs a named handoff. Maya should answer with the person, materials, and timing.', 'Name the coverage owner and the handoff package.',
+                            [
+                                detailOption('Option A: Name the coverage owner', 'Priya can cover the client update, and I will leave her the draft, status notes, and escalation points by Thursday afternoon.', true, [reason('positive', 'Naomi sees the work has a clear owner.'), reason('positive', 'The handoff timing reduces last-minute risk.')]),
+                                detailOption('Option B: Repeat the personal need', 'I really do need the day off.', false, [reason('negative', 'Naomi asked about coverage, not whether the need is real.'), reason('unclear', 'The request may still be valid but lacks the missing detail.')]),
+                                detailOption('Option C: Offer too many choices', 'I can do whatever you prefer: half-day, remote, late work, or swap days.', false, [reason('unclear', 'Flexibility helps but may make the request harder to decide.'), reason('negative', 'Naomi still needs one proposed coverage plan.')])
+                            ]
+                        ),
+                        turn('Turn 2', 'Priya can cover the client update, and I will leave her the draft, status notes, and escalation points by Thursday afternoon.', 'That could work. I need Priya to confirm she has bandwidth.', 'Best Way: "I will check with Priya now and send you the confirmed handoff plan before end of day."',
+                            'Naomi is open but needs confirmation. Maya should take the next action instead of making Naomi coordinate it.',
+                            'Get the coverage confirmation and send Naomi one clean update.',
+                            [
+                                detailOption('Option A: Own the confirmation', 'I will check with Priya now and send you the confirmed handoff plan before end of day.', true, [reason('positive', 'Maya keeps the coordination work off Naomi.'), reason('positive', 'The request becomes easier to approve.')]),
+                                detailOption('Option B: Ask Naomi to check', 'Can you ask Priya if she can do it?', false, [reason('negative', 'Maya gives Naomi extra work while asking for time off.'), reason('unclear', 'It may still work but feels less prepared.')]),
+                                detailOption('Option C: Change to a half-day immediately', 'I can just take a half-day if that is easier.', false, [reason('unclear', 'A half-day may help but could be unnecessary.'), reason('negative', 'It avoids solving the coverage question.')])
+                            ]
+                        ),
+                        turn('Turn 3', 'I will check with Priya now and send you the confirmed handoff plan before end of day.', 'If Priya confirms, I am comfortable approving Friday off.', 'Best Way: thank Naomi, confirm the condition, and send the handoff.',
+                            'Naomi gave a clear approval condition. Maya should confirm it and follow through, not renegotiate.',
+                            'Treat the coverage confirmation as the final step before approval.',
+                            [
+                                detailOption('Option A: Confirm the condition', 'Thank you. I will confirm with Priya and send the handoff plan today.', true, [reason('positive', 'Naomi gets the exact next step she requested.'), reason('positive', 'Maya keeps trust while asking for time off.')]),
+                                detailOption('Option B: Celebrate before confirming', 'Great, thanks for approving it.', false, [reason('negative', 'Naomi has not approved it until Priya confirms.'), reason('unclear', 'The request is close, but the condition matters.')]),
+                                detailOption('Option C: Add new constraints', 'Actually I may also need Monday morning.', false, [reason('negative', 'Adding a new request can reopen the coverage concern.'), reason('unclear', 'It may be necessary but needs its own plan.')])
+                            ]
+                        )
+                    ]
+                },
+                outcomes: [
+                    branch('Option A', 'Coverage-first ask', 'For example: "I need to request Friday off. I prepared coverage for the client updates, moved the draft earlier, and can be reachable for urgent questions."', [
+                        outcome('positive', 27, 'Naomi sees Maya as responsible.', 'Thank you for thinking through coverage before asking.', 'Leading with coverage answers Naomi\'s first concern.'),
+                        outcome('positive', 24, 'She approves once the handoff is confirmed.', 'If Priya confirms, I am comfortable approving Friday off.', 'A named handoff makes the request workable.'),
+                        outcome('negative', 15, 'The busy day still creates hesitation.', 'Friday is tight, so I need to be careful here.', 'Coverage reduces risk but does not erase business pressure.'),
+                        outcome('unclear', 18, 'Naomi asks for more handoff detail.', 'Who owns the client update if something changes?', 'The request is promising but needs proof.'),
+                        outcome('unclear', 16, 'Approval depends on teammate bandwidth.', 'Let me know if Priya has room to cover it.', 'The outcome depends on whether the coverage plan holds.')
+                    ]),
+                    branch('Option B', 'Personal need first', 'For example: "I have a personal situation and need to take Friday off if possible."', [
+                        outcome('positive', 22, 'Naomi responds with empathy.', 'I understand. I hope everything is okay.', 'A clear personal need can invite care.'),
+                        outcome('positive', 15, 'She tries to find a way to support it.', 'Let us see what we can do.', 'Naomi wants to support people when possible.'),
+                        outcome('negative', 14, 'She worries about team coverage.', 'I need to understand how the busy day will be covered.', 'The request does not yet answer the business constraint.'),
+                        outcome('negative', 12, 'The ask sounds incomplete.', 'Can you send me a plan for the client work?', 'Without coverage, Naomi has to ask for missing information.'),
+                        outcome('unclear', 37, 'Approval depends on urgency and handoff details.', 'I may be able to approve it, but I need more context.', 'The need is real, but the decision stays unresolved.')
+                    ]),
+                    branch('Option C', 'Flexible tradeoff offer', 'For example: "I need Friday off, but I can work late Thursday, prep the handoff, or take a half-day if that protects the team better."', [
+                        outcome('positive', 23, 'Naomi appreciates the flexibility.', 'I appreciate you offering options instead of just leaving the gap.', 'The offer shows respect for team needs.'),
+                        outcome('positive', 17, 'A compromise becomes available.', 'A half-day may work if the client update is covered.', 'Flexible terms can create a workable middle path.'),
+                        outcome('negative', 18, 'The request feels less clear.', 'What exactly are you asking for?', 'Too many alternatives can obscure the real need.'),
+                        outcome('unclear', 22, 'Naomi asks for one recommended plan.', 'Send me the cleanest option and your preferred handoff.', 'The flexibility needs to become a concrete proposal.'),
+                        outcome('unclear', 20, 'Approval depends on which tradeoff protects the team.', 'Let us compare the coverage options.', 'The path is useful but requires another decision step.')
+                    ])
+                ],
+                recommendation: {
+                    title: 'Best first move: Coverage-first ask.',
+                    text: 'Lead with the coverage plan, name the handoff owner, and then make the day-off request clearly.',
+                    actions: [
+                        'Start with: "I need to request Friday off. I prepared coverage for the client updates, moved the draft earlier, and can be reachable for urgent questions."',
+                        'Name the teammate covering the client update.',
+                        'Send Naomi one confirmed handoff plan before the end of day.'
+                    ]
+                }
+            });
+        }
+
+        applyExpandedPersonaDemoData();
+        Object.values(chats).forEach((chat) => {
+            chat.conversationLoop?.turns?.forEach((turn) => {
+                if (turn.target === undefined && turn.daniel !== undefined) {
+                    turn.target = turn.daniel;
+                }
+            });
+        });
+
         const els = {
             moreBtn: document.getElementById('moreBtn'),
             dropdown: document.getElementById('dropdownMenu'),
@@ -4160,6 +4644,7 @@
             visualChatInput: document.getElementById('visualChatInput'),
             visualChatSubmit: document.getElementById('visualChatSubmit'),
             launchSoonModal: document.getElementById('launchSoonModal'),
+            launchSoonCopy: document.getElementById('launchSoonCopy'),
             launchSoonClose: document.getElementById('launchSoonClose'),
             launchSoonOk: document.getElementById('launchSoonOk'),
             computationReportButton: document.getElementById('computationReportButton'),
@@ -4765,7 +5250,6 @@
                         <article class="recurrence-metric metric-${meta.className}">
                             <span><i class="fas ${meta.icon}"></i> ${getOutcomeMetricLabel(key)}</span>
                             <strong>${top.totals[key]}%</strong>
-                            <small>${escapeHtml(explainOutcomeMetric(top, key))}</small>
                         </article>
                     `;
                 }).join('')}
@@ -4849,6 +5333,24 @@
                     { label: 'Message clarity', weight: 68, note: 'Clear wording helps Maya avoid vague signals, but too much clarity too early can feel heavy.' },
                     { label: 'Privacy match', weight: 63, note: 'Private one-to-one wording performs better than anything that feels public or performative.' },
                     { label: 'Follow-up room', weight: 58, note: 'Open-ended messages preserve space for Daniel to answer before Maya asks for more clarity.' }
+                ];
+            }
+            if (chat?.personaKey === 'aaron') {
+                return [
+                    { label: 'Practical plan clarity', weight: 82, note: 'Aaron calms down when Maya gives him a specific plan instead of only the emotional headline.' },
+                    { label: 'Family privacy fit', weight: 77, note: 'Private family settings help him respond honestly without feeling watched.' },
+                    { label: 'Cost and effort pressure', weight: 69, note: 'Overly expensive or dramatic choices can shift his attention from love to worry.' },
+                    { label: 'Respectful timing', weight: 63, note: 'He responds better when big news is shared with enough time to absorb it.' },
+                    { label: 'Support role clarity', weight: 58, note: 'Aaron stays constructive when he understands what Maya needs from him next.' }
+                ];
+            }
+            if (chat?.personaKey === 'naomi') {
+                return [
+                    { label: 'Business impact clarity', weight: 86, note: 'Naomi responds best when Maya shows how the decision affects clients, deadlines, or team coverage.' },
+                    { label: 'Evidence quality', weight: 79, note: 'Specific facts and recent examples make the request easier for Naomi to evaluate.' },
+                    { label: 'Ownership level', weight: 73, note: 'Direct accountability lowers trust risk when the situation involves a mistake or tradeoff.' },
+                    { label: 'Coverage readiness', weight: 66, note: 'A prepared handoff or next step makes approval more likely on busy workdays.' },
+                    { label: 'Tone control', weight: 61, note: 'Concise professional wording keeps the conversation from sounding defensive or entitled.' }
                 ];
             }
             return [
@@ -5133,6 +5635,8 @@
             const rows = result.rows.slice().sort((a, b) => a.index - b.index);
             const iterations = result.iterations || recurrenceIterations;
             const totalRuns = rows.length * iterations;
+            const persona = personas[result.chat?.personaKey] || personas[activePersonaKey] || personas.daniel;
+            const contextFacts = (result.chat?.personaContext?.facts || persona.facts || []).join('; ');
             return `
                 <header class="computation-header">
                     <div>
@@ -5176,7 +5680,7 @@
                     <div class="computation-table-wrap">
                         <table class="computation-table">
                             <tbody>
-                                <tr><th>Persona context used</th><td>${escapeHtml(getResponseContextName(result.chat))}; afternoon receptive; shy with love; private context.</td></tr>
+                                <tr><th>Persona context used</th><td>${escapeHtml(`${getResponseContextName(result.chat)}${contextFacts ? `; ${contextFacts}` : ''}.`)}</td></tr>
                                 <tr><th>Decision request</th><td>${escapeHtml(result.chat.prompt)}</td></tr>
                                 <tr><th>Classification rule</th><td>Responses are grouped as positive when they move Maya toward clarity, negative when they raise pressure or rejection risk, and unclear when they keep the conversation open but unresolved.</td></tr>
                                 <tr><th>Decision score formula</th><td>Positive likelihood minus negative likelihood. Unclear likelihood is reported separately because it may become useful after another real reply.</td></tr>
@@ -5480,9 +5984,12 @@
             if (!Array.isArray(loop?.turns)) return;
             loop.turns.forEach((turn, index) => {
                 const mayaValue = document.getElementById(`mayaTurn${index}`)?.value;
-                const danielValue = document.getElementById(`danielTurn${index}`)?.value;
+                const targetValue = document.getElementById(`targetTurn${index}`)?.value ?? document.getElementById(`danielTurn${index}`)?.value;
                 if (mayaValue !== undefined) turn.maya = mayaValue;
-                if (danielValue !== undefined) turn.daniel = danielValue;
+                if (targetValue !== undefined) {
+                    turn.target = targetValue;
+                    if ('daniel' in turn) turn.daniel = targetValue;
+                }
             });
         }
 
@@ -5584,8 +6091,9 @@
         }
 
         function renderTurnResult(turn, index) {
+            const targetName = getResponseContextName(getActiveChat());
             const detailOpen = Boolean(conversationLoopState.openDetails?.[index]);
-            const detailSummary = getOneSentenceSummary(turn.detailSummary || turn.reason || 'Syntrae keeps the reply aligned with the starting goal and Daniel\'s latest response.');
+            const detailSummary = getOneSentenceSummary(turn.detailSummary || turn.reason || `Syntrae keeps the reply aligned with the starting goal and ${targetName}'s latest response.`);
             return `
                 <div class="syntrae-loop-card">
                     <strong><i class="fas fa-route"></i> Next Best Way</strong>
@@ -5603,16 +6111,18 @@
         }
 
         function renderTurnWaiting(turn, index) {
+            const targetName = getResponseContextName(getActiveChat());
             return `
                 <div class="syntrae-loop-card is-waiting">
-                    <strong><i class="fas fa-reply"></i> Daniel reply captured</strong>
-                    <span>Click <em>Recur next reply</em> to generate Maya's next best response from the starting request and Daniel's latest reply.</span>
+                    <strong><i class="fas fa-reply"></i> ${escapeHtml(targetName)} reply captured</strong>
+                    <span>Click <em>Recur next reply</em> to generate Maya's next best response from the starting request and ${escapeHtml(targetName)}'s latest reply.</span>
                 </div>
             `;
         }
 
         function renderTurnLoading(loop = {}) {
-            const loadingCopy = loop.loadingCopy || 'Using Maya\'s original goal, Daniel\'s latest reply, and the need to keep the message clear without making it feel heavy.';
+            const targetName = getResponseContextName(getActiveChat());
+            const loadingCopy = loop.loadingCopy || `Using Maya's original goal, ${targetName}'s latest reply, and the need to keep the message clear without making it feel heavy.`;
             return `
                 <div class="syntrae-loop-card is-loading" role="status" aria-live="polite">
                     <strong><span class="syntrae-spinner" aria-hidden="true"></span> Syntrae is recurring the next reply</strong>
@@ -5651,10 +6161,11 @@
             const turns = Array.isArray(loop.turns) ? loop.turns : [];
             const visibleTurns = turns.slice(0, conversationLoopState.visibleTurns);
             const totalTurns = turns.length;
+            const targetName = getResponseContextName(chat);
             els.chatTranscript.innerHTML = `
                 <div class="conversation-flow">
                     <section class="consultation-summary">
-                        <span class="bubble-speaker">Outcome Request</span>
+                        <span class="bubble-speaker">Decision Context</span>
                         <h3>${escapeHtml(loop.openingPrompt)}</h3>
                         <p>${escapeHtml(loop.openingResponse)}</p>
                     </section>
@@ -5673,9 +6184,9 @@
                                     <label for="mayaTurn${index}"><span>Maya actual message</span><i class="fas fa-user-edit"></i></label>
                                     <textarea id="mayaTurn${index}" aria-label="Maya actual message for ${escapeHtml(turn.label || `turn ${index + 1}`)}">${escapeHtml(turn.maya || '')}</textarea>
                                 </div>
-                                <div class="actual-bubble daniel">
-                                    <label for="danielTurn${index}"><span>Daniel actual reply</span><i class="fas fa-reply"></i></label>
-                                    <textarea id="danielTurn${index}" aria-label="Daniel actual reply for ${escapeHtml(turn.label || `turn ${index + 1}`)}" placeholder="Leave blank until Daniel replies in real life.">${escapeHtml(turn.daniel || '')}</textarea>
+                                <div class="actual-bubble target">
+                                    <label for="targetTurn${index}"><span>${escapeHtml(targetName)} actual reply</span><i class="fas fa-reply"></i></label>
+                                    <textarea id="targetTurn${index}" aria-label="${escapeHtml(targetName)} actual reply for ${escapeHtml(turn.label || `turn ${index + 1}`)}" placeholder="Leave blank until ${escapeHtml(targetName)} replies in real life.">${escapeHtml(turn.target ?? turn.daniel ?? '')}</textarea>
                                 </div>
                             </div>
                             ${isComplete ? renderTurnResult(turn, index) : isLoading ? renderTurnLoading(loop) : renderTurnWaiting(turn, index)}
@@ -5791,6 +6302,10 @@
 
         function openLaunchSoonNotice() {
             if (!els.launchSoonModal) return;
+            const targetName = getResponseContextName(getActiveChat());
+            if (els.launchSoonCopy) {
+                els.launchSoonCopy.textContent = `You are at the point where Syntrae would normally open another private decision space for ${targetName}. Join the waitlist to get launch access when the full chat-space experience is ready. If you already joined, thank you. Please wait for our launch.`;
+            }
             els.launchSoonModal.classList.add('visible');
             els.launchSoonModal.setAttribute('aria-hidden', 'false');
             els.visualChatInput.blur();
