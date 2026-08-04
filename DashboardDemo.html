@@ -980,71 +980,42 @@
             outline: none;
         }
 
-        .best-way-detail-hint {
-            position: relative;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            width: 30px;
-            height: 30px;
-            border: 1px solid rgba(231, 184, 57, 0.55);
-            border-radius: 50%;
-            color: #967118;
-            background: #fff8df;
-            cursor: help;
-        }
-
-        .best-way-tooltip {
-            position: absolute;
-            left: 50%;
-            bottom: calc(100% + 9px);
-            z-index: 5;
-            width: min(260px, 68vw);
+        .best-way-summary-line {
+            margin-top: 2px;
             padding: 10px 12px;
-            border: 1px solid rgba(231, 184, 57, 0.5);
+            border: 1px solid rgba(20, 149, 139, 0.2);
             border-radius: 12px;
-            background: #fffdf5;
-            color: #5e501f;
-            font-size: 12px;
-            font-weight: 900;
-            line-height: 1.45;
-            box-shadow: 0 14px 32px rgba(45, 132, 111, 0.16);
-            opacity: 0;
-            pointer-events: none;
-            transform: translate(-50%, 6px);
-            transition: opacity 0.16s ease, transform 0.16s ease;
+            background: rgba(255, 255, 255, 0.72);
+            color: var(--muted);
+            font-size: 13px;
+            font-weight: 850;
+            line-height: 1.5;
         }
 
-        .best-way-tooltip::after {
-            content: "";
-            position: absolute;
-            left: 50%;
-            top: 100%;
-            width: 10px;
-            height: 10px;
-            background: #fffdf5;
-            border-right: 1px solid rgba(231, 184, 57, 0.5);
-            border-bottom: 1px solid rgba(231, 184, 57, 0.5);
-            transform: translate(-50%, -5px) rotate(45deg);
+        .best-way-summary-line strong {
+            display: inline;
+            color: var(--ink);
+            font-size: inherit;
         }
 
-        .best-way-detail-hint:hover .best-way-tooltip,
-        .best-way-detail-hint:focus-visible .best-way-tooltip {
-            opacity: 1;
-            transform: translate(-50%, 0);
-        }
-
-        .turn-detail-tree {
+        .best-way-options-panel {
             display: grid;
             gap: 10px;
-            margin-top: 2px;
+            margin-top: 4px;
             padding: 12px;
             border: 1px solid rgba(151, 217, 205, 0.68);
             border-radius: 14px;
             background: rgba(255, 255, 255, 0.78);
         }
 
-        .turn-detail-tree h4 {
+        .best-way-options-head {
+            display: flex;
+            justify-content: flex-start;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .best-way-options-head h4 {
             display: inline-flex;
             align-items: center;
             gap: 8px;
@@ -1054,42 +1025,71 @@
             letter-spacing: -0.02em;
         }
 
-        .turn-detail-grid {
+        .best-way-options-grid {
             display: grid;
-            grid-template-columns: repeat(3, minmax(0, 1fr));
+            grid-template-columns: 1fr;
             gap: 10px;
         }
 
-        .turn-detail-option {
+        .best-way-option-card {
             display: grid;
-            gap: 8px;
-            padding: 11px;
+            grid-template-columns: minmax(150px, 0.42fr) minmax(190px, 0.72fr) minmax(220px, 1fr);
+            align-content: start;
+            align-items: start;
+            gap: 9px;
+            min-height: 0;
+            padding: 12px;
             border: 1px solid rgba(32, 50, 54, 0.11);
             border-radius: 12px;
-            background: #fff;
+            background: rgba(255, 255, 255, 0.92);
         }
 
-        .turn-detail-option.is-best {
-            border-color: rgba(20, 149, 139, 0.38);
-            background: #f1fbf8;
-            box-shadow: inset 4px 0 0 rgba(20, 149, 139, 0.86);
+        .best-way-option-card.is-best {
+            border-color: rgba(20, 149, 139, 0.42);
+            background: #effbf7;
+            box-shadow: inset 4px 0 0 rgba(20, 149, 139, 0.9);
         }
 
-        .turn-detail-option strong {
+        .best-way-option-title {
+            display: flex;
+            align-items: flex-start;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            gap: 8px;
             color: var(--ink);
             font-size: 12px;
+            font-weight: 950;
             line-height: 1.35;
         }
 
-        .turn-detail-option p {
+        .next-best-chip {
+            flex: 0 0 auto;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            border-radius: 999px;
+            padding: 4px 7px;
+            background: #d9f6ec;
+            color: var(--teal-dark);
+            font-size: 9px;
+            font-weight: 950;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+        }
+
+        .best-way-option-reply {
             margin: 0;
             color: var(--muted);
             font-size: 12px;
-            font-weight: 800;
+            font-weight: 850;
             line-height: 1.45;
         }
 
-        .turn-detail-outcomes {
+        .best-way-option-card.is-best .best-way-option-reply {
+            color: #276f60;
+        }
+
+        .best-way-option-reasons {
             display: grid;
             gap: 6px;
             margin: 0;
@@ -1097,25 +1097,25 @@
             list-style: none;
         }
 
-        .turn-detail-outcomes li {
+        .best-way-option-reasons li {
             display: grid;
             grid-template-columns: auto 1fr;
             gap: 7px;
             color: var(--muted);
             font-size: 11px;
-            font-weight: 800;
+            font-weight: 820;
             line-height: 1.4;
         }
 
-        .turn-detail-outcomes i.positive {
+        .best-way-option-reasons i.positive {
             color: #208575;
         }
 
-        .turn-detail-outcomes i.negative {
+        .best-way-option-reasons i.negative {
             color: #bd5548;
         }
 
-        .turn-detail-outcomes i.unclear {
+        .best-way-option-reasons i.unclear {
             color: #967118;
         }
 
@@ -1377,6 +1377,446 @@
             gap: 10px;
         }
 
+        .computation-modal {
+            position: fixed;
+            inset: 0;
+            z-index: 1600;
+            display: grid;
+            place-items: center;
+            padding: 24px;
+            background: rgba(20, 37, 38, 0.42);
+            backdrop-filter: blur(8px);
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.22s ease, visibility 0.22s ease;
+        }
+
+        .computation-modal.visible {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .computation-dialog {
+            position: relative;
+            width: min(1120px, 100%);
+            max-height: min(88vh, 920px);
+            overflow: auto;
+            border: 1px solid rgba(151, 217, 205, 0.72);
+            border-radius: 24px;
+            background:
+                radial-gradient(circle at 12% 0%, rgba(229, 251, 244, 0.92), transparent 28%),
+                radial-gradient(circle at 92% 4%, rgba(255, 244, 190, 0.52), transparent 24%),
+                #fbfff8;
+            box-shadow: 0 30px 90px rgba(20, 37, 38, 0.28);
+            transform: translateY(18px) scale(0.97);
+            transition: transform 0.24s ease;
+        }
+
+        .computation-modal.visible .computation-dialog {
+            transform: translateY(0) scale(1);
+        }
+
+        .computation-content {
+            display: grid;
+            gap: 18px;
+            padding: 30px;
+        }
+
+        .computation-header {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) auto;
+            gap: 18px;
+            padding-right: 42px;
+            align-items: start;
+        }
+
+        .computation-header h2 {
+            margin: 8px 0 8px;
+            font-family: "Fraunces", Georgia, serif;
+            font-size: clamp(34px, 4vw, 54px);
+            line-height: 0.98;
+            letter-spacing: -0.045em;
+        }
+
+        .computation-header p {
+            margin: 0;
+            max-width: 660px;
+            color: var(--muted);
+            font-size: 15px;
+            font-weight: 800;
+            line-height: 1.55;
+        }
+
+        .computation-run-id {
+            display: grid;
+            gap: 7px;
+            min-width: 210px;
+            padding: 14px;
+            border: 1px solid rgba(32, 50, 54, 0.12);
+            border-radius: 14px;
+            background: rgba(255, 255, 255, 0.86);
+            color: var(--muted);
+            font-size: 12px;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .computation-run-id strong {
+            color: var(--ink);
+            font-size: 24px;
+            letter-spacing: -0.03em;
+            text-transform: none;
+        }
+
+        .computation-stat-grid {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 12px;
+        }
+
+        .computation-chart-grid {
+            display: grid;
+            grid-template-columns: minmax(0, 1.2fr) minmax(0, 0.8fr);
+            gap: 12px;
+            align-items: stretch;
+        }
+
+        .computation-card {
+            display: grid;
+            gap: 10px;
+            padding: 16px;
+            border: 1px solid rgba(32, 50, 54, 0.12);
+            border-radius: 16px;
+            background: rgba(255, 255, 255, 0.88);
+        }
+
+        .computation-card h3,
+        .computation-card h4 {
+            margin: 0;
+            color: var(--ink);
+            font-size: 16px;
+            letter-spacing: -0.025em;
+        }
+
+        .computation-card span {
+            color: var(--muted);
+            font-size: 11px;
+            font-weight: 950;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+        }
+
+        .computation-card strong {
+            color: var(--ink);
+            font-size: 28px;
+            line-height: 1;
+            letter-spacing: -0.045em;
+        }
+
+        .computation-card p {
+            margin: 0;
+            color: var(--muted);
+            font-size: 13px;
+            font-weight: 800;
+            line-height: 1.5;
+        }
+
+        .computation-card.full-span {
+            grid-column: 1 / -1;
+        }
+
+        .distribution-list,
+        .sensitivity-list,
+        .frequency-list {
+            display: grid;
+            gap: 12px;
+        }
+
+        .distribution-row,
+        .sensitivity-row,
+        .frequency-row {
+            display: grid;
+            gap: 8px;
+        }
+
+        .distribution-label,
+        .sensitivity-label,
+        .frequency-label {
+            display: flex;
+            justify-content: space-between;
+            gap: 12px;
+            color: var(--ink);
+            font-size: 13px;
+            font-weight: 900;
+        }
+
+        .distribution-bar {
+            display: grid;
+            grid-template-columns: var(--positive) var(--negative) var(--unclear);
+            height: 18px;
+            overflow: hidden;
+            border-radius: 999px;
+            background: rgba(32, 50, 54, 0.08);
+        }
+
+        .distribution-bar span:nth-child(1),
+        .frequency-fill.positive {
+            background: linear-gradient(90deg, #159b8f, #7adfca);
+        }
+
+        .distribution-bar span:nth-child(2),
+        .frequency-fill.negative {
+            background: linear-gradient(90deg, #d45d50, #f2a094);
+        }
+
+        .distribution-bar span:nth-child(3),
+        .frequency-fill.unclear {
+            background: linear-gradient(90deg, #dba72d, #f6db85);
+        }
+
+        .distribution-legend {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            color: var(--muted);
+            font-size: 12px;
+            font-weight: 900;
+        }
+
+        .legend-dot {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .legend-dot::before {
+            content: "";
+            width: 9px;
+            height: 9px;
+            border-radius: 50%;
+            background: var(--dot);
+        }
+
+        .sensitivity-track,
+        .frequency-track {
+            height: 12px;
+            overflow: hidden;
+            border-radius: 999px;
+            background: rgba(32, 50, 54, 0.08);
+        }
+
+        .sensitivity-fill,
+        .frequency-fill {
+            display: block;
+            width: var(--width);
+            height: 100%;
+            border-radius: inherit;
+            background: linear-gradient(90deg, #159b8f, #f07061);
+        }
+
+        .computation-table-wrap {
+            overflow-x: auto;
+            border: 1px solid rgba(32, 50, 54, 0.1);
+            border-radius: 16px;
+            background: rgba(255, 255, 255, 0.86);
+        }
+
+        .computation-table {
+            width: 100%;
+            min-width: 720px;
+            border-collapse: collapse;
+        }
+
+        .computation-table th,
+        .computation-table td {
+            padding: 12px 14px;
+            border-bottom: 1px solid rgba(32, 50, 54, 0.09);
+            text-align: left;
+            color: var(--muted);
+            font-size: 12px;
+            font-weight: 850;
+            line-height: 1.4;
+        }
+
+        .computation-table th {
+            color: var(--teal-dark);
+            background: rgba(234, 249, 244, 0.72);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            font-weight: 950;
+        }
+
+        .computation-table td strong {
+            display: block;
+            color: var(--ink);
+            font-size: 13px;
+            letter-spacing: 0;
+        }
+
+        .computation-table tr:last-child td {
+            border-bottom: 0;
+        }
+
+        .computation-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            width: fit-content;
+            padding: 6px 9px;
+            border-radius: 999px;
+            font-size: 11px;
+            font-weight: 950;
+            white-space: nowrap;
+        }
+
+        .computation-pill.positive {
+            color: #247b66;
+            background: #e5f8f2;
+        }
+
+        .computation-pill.negative {
+            color: #b45143;
+            background: #fff1ed;
+        }
+
+        .computation-pill.unclear {
+            color: #8c6a12;
+            background: #fff8df;
+        }
+
+        .options-summary-grid {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 12px;
+        }
+
+        .options-summary-item {
+            display: grid;
+            gap: 12px;
+            padding: 15px;
+            border: 1px solid rgba(32, 50, 54, 0.11);
+            border-radius: 15px;
+            background: linear-gradient(145deg, rgba(255, 255, 255, 0.94), rgba(242, 251, 247, 0.82));
+        }
+
+        .options-summary-item.is-best {
+            border-color: rgba(30, 159, 140, 0.46);
+            box-shadow: inset 4px 0 0 rgba(30, 159, 140, 0.82);
+        }
+
+        .options-summary-head {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 10px;
+        }
+
+        .options-summary-head strong {
+            color: var(--ink);
+            font-size: 14px;
+            line-height: 1.25;
+        }
+
+        .options-summary-head span {
+            color: var(--muted);
+            font-size: 11px;
+            font-weight: 950;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .options-summary-metrics {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 7px;
+        }
+
+        .options-summary-item p {
+            margin: 0;
+            color: var(--muted);
+            font-size: 12px;
+            font-weight: 850;
+            line-height: 1.45;
+        }
+
+        .bell-curve-section {
+            gap: 14px;
+        }
+
+        .bell-curve-grid {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 12px;
+        }
+
+        .bell-curve-card {
+            display: grid;
+            gap: 10px;
+            padding: 14px;
+            border: 1px solid rgba(32, 50, 54, 0.11);
+            border-radius: 15px;
+            background: linear-gradient(145deg, rgba(255, 255, 255, 0.94), rgba(242, 251, 247, 0.82));
+        }
+
+        .bell-curve-card.is-best {
+            border-color: rgba(30, 159, 140, 0.48);
+            box-shadow: inset 4px 0 0 rgba(30, 159, 140, 0.84);
+        }
+
+        .bell-curve-head {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 10px;
+        }
+
+        .bell-curve-head strong {
+            display: block;
+            margin-top: 3px;
+            color: var(--ink);
+            font-size: 15px;
+            line-height: 1.25;
+            letter-spacing: -0.02em;
+        }
+
+        .bell-curve-score {
+            flex: 0 0 auto;
+            padding: 6px 9px;
+            border-radius: 999px;
+            color: var(--teal-dark);
+            background: rgba(226, 248, 242, 0.94);
+        }
+
+        .bell-curve-svg {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+
+        .bell-curve-axis {
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+            margin-top: -5px;
+            color: var(--muted);
+            font-size: 10px;
+            font-weight: 950;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .bell-curve-metrics {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+
+        .bell-curve-card p {
+            font-size: 12px;
+            line-height: 1.45;
+        }
+
         .already-joined-note {
             display: grid;
             gap: 5px;
@@ -1543,6 +1983,28 @@
             font-weight: 700;
         }
 
+        .outcome-request-block {
+            display: grid;
+            gap: 9px;
+            margin-bottom: 14px;
+        }
+
+        .outcome-request-label {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            width: fit-content;
+            padding: 6px 10px;
+            border: 1px solid rgba(20, 149, 139, 0.22);
+            border-radius: 999px;
+            background: #eaf9f4;
+            color: var(--teal-dark);
+            font-size: 11px;
+            font-weight: 950;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+        }
+
         .prompt-box {
             padding: 18px;
             border: 1px solid var(--line);
@@ -1550,7 +2012,6 @@
             background: var(--soft);
             font-size: 17px;
             line-height: 1.55;
-            margin-bottom: 14px;
         }
 
         .candidate-grid {
@@ -1644,6 +2105,32 @@
             color: var(--muted);
             font-weight: 800;
             line-height: 1.6;
+        }
+
+        .computation-report-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 9px;
+            min-height: 44px;
+            padding: 0 16px;
+            border: 1px solid rgba(20, 149, 139, 0.26);
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.9);
+            color: var(--teal-dark);
+            font-size: 13px;
+            font-weight: 950;
+            white-space: nowrap;
+            box-shadow: 0 14px 28px rgba(45, 132, 111, 0.08);
+            transition: transform 0.18s ease, border-color 0.18s ease, background 0.18s ease;
+        }
+
+        .computation-report-btn:hover,
+        .computation-report-btn:focus-visible {
+            transform: translateY(-1px);
+            border-color: rgba(20, 149, 139, 0.48);
+            background: #eaf9f4;
+            outline: none;
         }
 
         .recurrence-summary {
@@ -1789,9 +2276,39 @@
             background: rgba(255, 255, 255, 0.78);
         }
 
+        .recurrence-bar-row.is-best {
+            border-color: rgba(20, 149, 139, 0.38);
+            background:
+                linear-gradient(135deg, rgba(239, 251, 247, 0.98), rgba(255, 255, 255, 0.9)),
+                rgba(255, 255, 255, 0.96);
+            box-shadow: inset 5px 0 0 rgba(20, 149, 139, 0.88);
+        }
+
         .recurrence-option-head {
             display: grid;
             gap: 8px;
+        }
+
+        .recurrence-option-title {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 9px;
+        }
+
+        .response-option-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            width: fit-content;
+            border-radius: 999px;
+            padding: 6px 9px;
+            background: #d9f6ec;
+            color: var(--teal-dark);
+            font-size: 10px;
+            font-weight: 950;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
         }
 
         .recurrence-option-head p {
@@ -1802,179 +2319,103 @@
             line-height: 1.55;
         }
 
-        .category-pill-row {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-        }
-
-        .category-pill {
-            display: inline-flex;
-            align-items: center;
-            gap: 7px;
-            padding: 7px 10px;
-            border-radius: 999px;
-            border: 1px solid rgba(32, 50, 54, 0.12);
-            background: #fff;
-            color: var(--muted);
+        .recurrence-option-head .response-context-note {
+            width: fit-content;
+            padding: 8px 10px;
+            border: 1px solid rgba(20, 149, 139, 0.18);
+            border-radius: 10px;
+            background: rgba(234, 249, 244, 0.72);
+            color: #2f756b;
             font-size: 12px;
             font-weight: 900;
         }
 
-        .category-pill.positive {
-            color: #247b66;
-            background: #eaf9f4;
-            border-color: #bde9dd;
-        }
-
-        .category-pill.negative {
-            color: #b45143;
-            background: #fff1ed;
-            border-color: #f3c6bd;
-        }
-
-        .category-pill.unclear {
-            color: #8c6a12;
-            background: #fff8df;
-            border-color: #efd98f;
-        }
-
-        .generated-outcome-grid {
+        .response-example-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            grid-template-columns: repeat(3, minmax(0, 1fr));
             gap: 10px;
         }
 
-        .generated-outcome-card {
+        .response-example-group {
             display: grid;
-            gap: 8px;
-            padding: 12px;
-            border: 1px solid rgba(32, 50, 54, 0.12);
-            border-radius: 10px;
-            background: #fff;
+            align-content: start;
+            gap: 10px;
+            padding: 13px;
+            border: 1px solid rgba(32, 50, 54, 0.1);
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.88);
         }
 
-        .generated-outcome-card strong {
-            font-size: 13px;
-            line-height: 1.35;
+        .response-example-group.positive {
+            border-color: #bde9dd;
+            background: #eefbf7;
         }
 
-        .generated-outcome-card p,
-        .generated-outcome-card blockquote {
+        .response-example-group.negative {
+            border-color: #f3c6bd;
+            background: #fff5f2;
+        }
+
+        .response-example-group.unclear {
+            border-color: #f0d88a;
+            background: #fffaf0;
+        }
+
+        .response-example-group h4 {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
             margin: 0;
+            font-size: 12px;
+            font-weight: 950;
+            line-height: 1.35;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .response-example-group.positive h4 {
+            color: #247b66;
+        }
+
+        .response-example-group.negative h4 {
+            color: #b45143;
+        }
+
+        .response-example-group.unclear h4 {
+            color: #8c6a12;
+        }
+
+        .response-example-group ul {
+            display: grid;
+            gap: 9px;
+            margin: 0;
+            padding: 0;
+            list-style: none;
+        }
+
+        .response-example-group li {
+            display: grid;
+            gap: 4px;
             color: var(--muted);
             font-size: 12px;
+            font-weight: 820;
+            line-height: 1.45;
+        }
+
+        .response-example-group blockquote {
+            margin: 0;
+            color: var(--ink);
+            font-weight: 950;
+        }
+
+        .response-example-group p {
+            margin: 0;
+            color: var(--muted);
+            font-size: 11px;
             font-weight: 800;
             line-height: 1.45;
         }
 
-        .generated-outcome-card blockquote {
-            color: var(--ink);
-            font-weight: 900;
-        }
-
-        .option-summary-panel {
-            position: relative;
-            display: grid;
-            gap: 10px;
-            margin-top: 2px;
-            padding: 14px;
-            overflow: hidden;
-            border: 1px solid rgba(45, 132, 111, 0.18);
-            border-radius: 14px;
-            background:
-                radial-gradient(circle at 16% 0%, rgba(255, 255, 255, 0.94), rgba(255, 255, 255, 0) 34%),
-                linear-gradient(135deg, rgba(238, 250, 245, 0.95), rgba(32, 50, 54, 0.055));
-            box-shadow:
-                inset 0 0 0 999px rgba(32, 50, 54, 0.018),
-                0 16px 34px rgba(32, 50, 54, 0.08);
-        }
-
-        .option-summary-panel::before {
-            content: "";
-            position: absolute;
-            inset: 0;
-            pointer-events: none;
-            background: linear-gradient(90deg, rgba(32, 50, 54, 0.045), rgba(255, 255, 255, 0.18) 24%, rgba(32, 50, 54, 0.035));
-            mix-blend-mode: multiply;
-        }
-
-        .summary-column-label {
-            position: relative;
-            z-index: 1;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            width: fit-content;
-            padding: 7px 11px;
-            border: 1px solid rgba(45, 132, 111, 0.28);
-            border-radius: 999px;
-            background: rgba(255, 255, 255, 0.84);
-            color: var(--teal-dark);
-            font-size: 12px;
-            font-weight: 900;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            box-shadow: 0 10px 24px rgba(45, 132, 111, 0.09);
-        }
-
-        .classified-summary {
-            position: relative;
-            z-index: 1;
-            display: grid;
-            grid-template-columns: repeat(3, minmax(0, 1fr));
-            gap: 10px;
-            padding: 0;
-            border-radius: 12px;
-            background: transparent;
-        }
-
-        .classified-summary-group {
-            display: grid;
-            gap: 8px;
-            align-content: start;
-            padding: 10px;
-            border-radius: 10px;
-            border: 1px solid rgba(32, 50, 54, 0.1);
-            background: rgba(255, 255, 255, 0.76);
-        }
-
-        .classified-summary-group h4 {
-            margin: 0;
-            font-size: 12px;
-            font-weight: 900;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-        }
-
-        .classified-summary-group.positive {
-            border-color: #bde9dd;
-            background: #f1fbf8;
-        }
-
-        .classified-summary-group.positive h4 {
-            color: #247b66;
-        }
-
-        .classified-summary-group.negative {
-            border-color: #f3c6bd;
-            background: #fff6f3;
-        }
-
-        .classified-summary-group.negative h4 {
-            color: #b45143;
-        }
-
-        .classified-summary-group.unclear {
-            border-color: #efd98f;
-            background: #fffaf0;
-        }
-
-        .classified-summary-group.unclear h4 {
-            color: #8c6a12;
-        }
-
-        .classified-summary-group ul,
         .final-action-list {
             display: grid;
             gap: 6px;
@@ -1982,7 +2423,6 @@
             padding-left: 17px;
         }
 
-        .classified-summary-group li,
         .final-action-list li {
             color: var(--muted);
             font-size: 12px;
@@ -1990,90 +2430,10 @@
             line-height: 1.45;
         }
 
-        .decision-comparison {
-            grid-column: 1 / -1;
-            overflow-x: auto;
-            padding: 14px;
-            border-radius: 12px;
-            background: rgba(255, 255, 255, 0.88);
-            border: 1px solid rgba(32, 50, 54, 0.1);
-        }
-
-        .decision-comparison h3,
         .final-recommendation h3 {
             margin: 0 0 10px;
             font-size: 17px;
             letter-spacing: -0.03em;
-        }
-
-        .decision-comparison table {
-            width: 100%;
-            border-collapse: collapse;
-            min-width: 540px;
-        }
-
-        .decision-comparison th,
-        .decision-comparison td {
-            padding: 10px 8px;
-            border-bottom: 1px solid rgba(32, 50, 54, 0.1);
-            text-align: right;
-            font-size: 13px;
-            font-weight: 900;
-        }
-
-        .decision-comparison th:first-child,
-        .decision-comparison td:first-child {
-            text-align: left;
-        }
-
-        .decision-comparison tr:last-child td {
-            border-bottom: 0;
-        }
-
-        .comparison-heading {
-            display: inline-flex;
-            align-items: center;
-            justify-content: flex-end;
-            gap: 7px;
-        }
-
-        .comparison-heading.positive {
-            color: #247b66;
-        }
-
-        .comparison-heading.negative {
-            color: #b45143;
-        }
-
-        .comparison-heading.unclear {
-            color: #8c6a12;
-        }
-
-        .comparison-value {
-            display: inline-flex;
-            align-items: center;
-            justify-content: flex-end;
-            gap: 7px;
-            padding: 7px 9px;
-            border-radius: 999px;
-            font-size: 12px;
-            font-weight: 900;
-            white-space: nowrap;
-        }
-
-        .comparison-value.positive {
-            color: #247b66;
-            background: #eaf9f4;
-        }
-
-        .comparison-value.negative {
-            color: #b45143;
-            background: #fff1ed;
-        }
-
-        .comparison-value.unclear {
-            color: #8c6a12;
-            background: #fff8df;
         }
 
         .final-recommendation {
@@ -2527,15 +2887,30 @@
             .tree-grid,
             .detail-panel,
             .recurrence-summary,
-            .generated-outcome-grid,
-            .classified-summary,
-            .turn-detail-grid,
+            .response-example-grid,
+            .best-way-options-grid,
+            .best-way-option-card,
             .actual-bubble-row {
                 grid-template-columns: 1fr;
             }
 
             .recurrence-head {
                 flex-direction: column;
+            }
+
+            .computation-report-btn {
+                width: 100%;
+            }
+
+            .computation-header,
+            .computation-stat-grid,
+            .computation-chart-grid,
+            .bell-curve-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .computation-header {
+                padding-right: 0;
             }
 
             .persona-column {
@@ -2667,12 +3042,15 @@
                 </div>
             </section>
 
-            <section class="stage-grid" id="stageGrid" aria-label="Best Way simulation">
+            <section class="stage-grid" id="stageGrid" aria-label="Best First Move simulation">
                 <article class="best-way-card" data-tour-step="bestway">
                     <span class="kicker"><i class="fas fa-route"></i> One real choice, clearer paths</span>
-                    <h2 id="simulationTitle">Best Way</h2>
+                    <h2 id="simulationTitle">Best First Move</h2>
                     <p id="simulationCopy">Compare message styles before choosing the one action that goes out in real life.</p>
-                    <div class="prompt-box" id="promptBox"></div>
+                    <div class="outcome-request-block">
+                        <span class="outcome-request-label"><i class="fas fa-bullseye"></i> Outcome Request</span>
+                        <div class="prompt-box" id="promptBox"></div>
+                    </div>
                     <div class="candidate-grid" id="candidateGrid"></div>
                 </article>
 
@@ -2708,12 +3086,12 @@
                     <div class="principle-strip">Your action determines the outcome.</div>
                     <div class="recurrence-section" id="recurrenceSection" data-tour-step="recurrence" role="group" aria-label="Syntrae Test demo">
                         <div class="recurrence-head">
-                            <div>
-                                <span class="kicker"><i class="fas fa-sync-alt"></i> Syntrae Test</span>
-                                <h2>Consequence Tree.</h2>
-                                <p>Syntrae compares the available options, then lists five most likely outcomes.</p>
-                            </div>
+                        <div>
+                            <span class="kicker"><i class="fas fa-sync-alt"></i> Syntrae Test</span>
+                            <h2>Consequence Tree.</h2>
                         </div>
+                        <button class="computation-report-btn" type="button" id="computationReportButton"><i class="fas fa-chart-line"></i> Computation Report</button>
+                    </div>
                         <div class="recurrence-summary" id="recurrenceSummary"></div>
                         <div class="recurrence-bars" id="recurrenceBars"></div>
                     </div>
@@ -2743,6 +3121,13 @@
                     <a class="primary-btn" href="landing.html#founding"><i class="fas fa-user-plus"></i> Join waitlist</a>
                 </div>
             </div>
+        </div>
+    </div>
+
+    <div class="computation-modal" id="computationReportModal" aria-hidden="true">
+        <div class="computation-dialog" role="dialog" aria-modal="true" aria-labelledby="computationReportTitle">
+            <button class="launch-close" type="button" id="computationReportClose" aria-label="Close computation report">×</button>
+            <div class="computation-content" id="computationReportBody"></div>
         </div>
     </div>
 
@@ -2796,7 +3181,7 @@
                     logic: 'Syntrae Test should favor candidate actions that give Daniel warmth, privacy, and choice while still helping Maya move toward clarity.'
                 },
                 prompt: "I want to invite Daniel to talk about where we're going, but I don't want the message to feel heavy. What are some different ways to ask?",
-                introTitle: 'Best Way',
+                introTitle: 'Best First Move',
                 introCopy: 'Compare the exact messages before choosing the one action that goes out in real life.',
                 candidates: [
                     {
@@ -2995,7 +3380,7 @@
                     logic: 'Best Way should favor a calm planned window, because the same message can land better when Daniel has time and attention available.'
                 },
                 prompt: 'Would Saturday afternoon be a better time than a weeknight to ask Daniel for a deeper conversation?',
-                introTitle: 'Best Way',
+                introTitle: 'Best First Move',
                 introCopy: 'Compare the exact timing choices before choosing when to bring up the conversation.',
                 candidates: [
                     {
@@ -3195,7 +3580,7 @@
                     logic: 'Best Way should favor a short affirming follow-up that preserves warmth while keeping space for Daniel to answer naturally.'
                 },
                 prompt: 'If Daniel says yes warmly, what should the next reply say without overexplaining?',
-                introTitle: 'Best Way',
+                introTitle: 'Best First Move',
                 introCopy: 'Compare exact follow-up replies after Daniel has already answered warmly.',
                 candidates: [
                     {
@@ -3395,7 +3780,7 @@
                     logic: 'Best Way should favor a grounded birthday plan that makes him feel seen without putting him at the center of too much attention.'
                 },
                 prompt: 'I want to surprise Dad for his birthday, but I do not want the gift to feel too expensive or overwhelming. What are the possible ways to make him feel loved?',
-                introTitle: 'Best Way',
+                introTitle: 'Best First Move',
                 introCopy: 'Compare caring family gestures before choosing the one celebration Maya will actually arrange.',
                 candidates: ['Handwritten memory gift', 'Small family dinner', 'Big surprise party'],
                 messages: [
@@ -3450,7 +3835,7 @@
                     logic: 'Best Way should lower shock by leading with honesty, then quickly giving him a plan he can respond to as a caring parent.'
                 },
                 prompt: 'I need to tell Dad I am considering taking a semester away from school because I feel overwhelmed. How can I share this without making him panic?',
-                introTitle: 'Best Way',
+                introTitle: 'Best First Move',
                 introCopy: 'Compare ways to deliver difficult family news while keeping care, respect, and practical next steps in view.',
                 candidates: ['Prepared plan first', 'Emotional confession', 'Casual mention'],
                 messages: [
@@ -3505,7 +3890,7 @@
                     logic: 'Best Way should make the moment feel safe and loving while giving him enough context to understand what support Maya wants from him.'
                 },
                 prompt: 'I have big good news about a pregnancy in the family and want Dad to feel included instead of shocked. What is the best way to tell him?',
-                introTitle: 'Best Way',
+                introTitle: 'Best First Move',
                 introCopy: 'Compare ways to share a major family milestone so the moment feels loving, private, and steady.',
                 candidates: ['Private calm conversation', 'Family gathering reveal', 'Text first, call after'],
                 messages: [
@@ -3560,7 +3945,7 @@
                     logic: 'Best Way should help Maya make a respectful business case, acknowledge timing constraints, and invite a concrete next step.'
                 },
                 prompt: 'I want to ask Naomi about a salary increase, but I do not want the conversation to sound entitled. What are the possible ways to frame the ask?',
-                introTitle: 'Best Way',
+                introTitle: 'Best First Move',
                 introCopy: 'Compare professional approaches before choosing the one conversation Maya will actually start.',
                 candidates: ['Evidence-based ask', 'Growth-path discussion', 'Direct raise request'],
                 messages: [
@@ -3615,7 +4000,7 @@
                     logic: 'Best Way should help Maya apologize without overexplaining: own the mistake, state the fix, and show how she will reduce future risk.'
                 },
                 prompt: 'I found a mistake in a report I submitted last week. How should I apologize to Naomi while showing I am already fixing it?',
-                introTitle: 'Best Way',
+                introTitle: 'Best First Move',
                 introCopy: 'Compare accountability approaches before choosing how Maya should tell Naomi about the report error.',
                 candidates: ['Own it with fix', 'Explain context first', 'Quietly correct first'],
                 messages: [
@@ -3691,7 +4076,7 @@
                     logic: 'Best Way should help Maya make the request respectfully while naming coverage, deadlines, and a backup plan.'
                 },
                 prompt: 'I need to ask Naomi for a day off on a busy business day. How can I ask without sounding careless about the team?',
-                introTitle: 'Best Way',
+                introTitle: 'Best First Move',
                 introCopy: 'Compare time-off request styles before choosing the one message Maya should send.',
                 candidates: ['Coverage-first ask', 'Personal need first', 'Flexible tradeoff offer'],
                 messages: [
@@ -3776,7 +4161,11 @@
             visualChatSubmit: document.getElementById('visualChatSubmit'),
             launchSoonModal: document.getElementById('launchSoonModal'),
             launchSoonClose: document.getElementById('launchSoonClose'),
-            launchSoonOk: document.getElementById('launchSoonOk')
+            launchSoonOk: document.getElementById('launchSoonOk'),
+            computationReportButton: document.getElementById('computationReportButton'),
+            computationReportModal: document.getElementById('computationReportModal'),
+            computationReportClose: document.getElementById('computationReportClose'),
+            computationReportBody: document.getElementById('computationReportBody')
         };
 
         let activePersonaKey = 'daniel';
@@ -4094,19 +4483,16 @@
         const classificationMeta = {
             positive: {
                 label: 'Positive',
-                metricLabel: 'Positive outcomes',
                 className: 'positive',
                 icon: 'fa-check-circle'
             },
             negative: {
                 label: 'Negative',
-                metricLabel: 'Negative outcomes',
                 className: 'negative',
                 icon: 'fa-exclamation-circle'
             },
             unclear: {
                 label: 'Unclear / delayed',
-                metricLabel: 'Unclear / delayed outcomes',
                 className: 'unclear',
                 icon: 'fa-hourglass-half'
             }
@@ -4347,92 +4733,78 @@
             })[0] || rows[0];
         }
 
-        function renderCategoryPills(totals) {
-            return classificationOrder.map((key) => {
-                const meta = classificationMeta[key];
-                return `<span class="category-pill ${meta.className}"><i class="fas ${meta.icon}"></i>${meta.label}: ${totals[key]}% likelihood</span>`;
-            }).join('');
-        }
-
         function quoteExample(value) {
             return `"${String(value || '').trim()}"`;
         }
 
-        function explainCategoryPercent(row, key) {
-            const meta = classificationMeta[key];
+        function getOutcomeMetricLabel(key) {
+            if (key === 'positive') return 'Positive likelihood';
+            if (key === 'negative') return 'Negative likelihood';
+            return 'Unclear / delayed likelihood';
+        }
+
+        function explainOutcomeMetric(row, key) {
             const examples = row.outcomes.filter((outcome) => normalizeClassification(outcome.classification) === key);
             const exampleText = examples.slice(0, 2).map((outcome) => quoteExample(outcome.example)).join(' and ');
-            if (!examples.length) {
-                return `${meta.label} reactions occur ${row.totals[key]}% of the time in this option.`;
-            }
-            const reactionLabel = key === 'unclear' ? 'Unclear or delayed reactions' : `${meta.label} reactions`;
+            if (!examples.length) return `${getOutcomeMetricLabel(key)} is ${row.totals[key]}%.`;
+            const reactionLabel = key === 'unclear' ? 'Unclear or delayed reactions' : `${classificationMeta[key].label} reactions`;
             return `${reactionLabel} such as ${exampleText} occur ${row.totals[key]}% of the time.`;
         }
 
-        function renderGeneratedOutcomeCards(outcomes) {
-            return outcomes.map((outcome, index) => {
-                const key = normalizeClassification(outcome.classification);
-                const meta = classificationMeta[key];
-                return `
-                    <article class="generated-outcome-card">
-                        <span class="category-pill ${meta.className}"><i class="fas ${meta.icon}"></i>${meta.label} · ${outcome.recurrencePercent}% likelihood</span>
-                        <strong>${index + 1}. ${escapeHtml(outcome.label)}</strong>
-                        <blockquote>${escapeHtml(quoteExample(outcome.example))}</blockquote>
-                        <p>${escapeHtml(outcome.explanation || outcome.reason || 'This outcome appears under one plausible version of the situation.')}</p>
-                    </article>
-                `;
-            }).join('');
-        }
-
-        function renderClassifiedExampleSummary(row) {
+        function renderBestFirstMoveMetrics(result) {
+            const top = result.top;
             return `
-                <section class="option-summary-panel" aria-label="${escapeHtml(row.title)} summary">
-                    <span class="summary-column-label"><i class="fas fa-list-check"></i> Summary</span>
-                    <div class="classified-summary">
-                        ${classificationOrder.map((key) => {
-                            const meta = classificationMeta[key];
-                            const examples = row.outcomes.filter((outcome) => normalizeClassification(outcome.classification) === key);
-                            return `
-                                <section class="classified-summary-group ${meta.className}">
-                                    <h4><i class="fas ${meta.icon}"></i> ${escapeHtml(meta.label)} · ${row.totals[key]}% likelihood</h4>
-                                    <ul>
-                                        ${examples.length
-                                            ? examples.map((outcome) => `<li>${escapeHtml(quoteExample(outcome.example))}</li>`).join('')
-                                            : '<li>No examples in this run.</li>'}
-                                    </ul>
-                                </section>
-                            `;
-                        }).join('')}
-                    </div>
-                </section>
+                <article class="recurrence-metric metric-top">
+                    <span><i class="fas fa-route"></i> Best First Move</span>
+                    <strong>${escapeHtml(top.title)}</strong>
+                    <small>Recommended option for highest positive likelihood.</small>
+                </article>
+                ${classificationOrder.map((key) => {
+                    const meta = classificationMeta[key];
+                    return `
+                        <article class="recurrence-metric metric-${meta.className}">
+                            <span><i class="fas ${meta.icon}"></i> ${getOutcomeMetricLabel(key)}</span>
+                            <strong>${top.totals[key]}%</strong>
+                            <small>${escapeHtml(explainOutcomeMetric(top, key))}</small>
+                        </article>
+                    `;
+                }).join('')}
             `;
         }
 
-        function renderDecisionComparison(rows) {
+        function getResponseContextName(chat) {
+            const persona = personas[chat?.personaKey] || personas[activePersonaKey] || personas.daniel;
+            return persona?.name || 'the other person';
+        }
+
+        function renderResponseContextNote(chat) {
+            return `<p class="response-context-note">Report shows that <strong>responses from ${escapeHtml(getResponseContextName(chat))} could be:</strong></p>`;
+        }
+
+        function renderResponseExampleGroups(row) {
             return `
-                <section class="decision-comparison">
-                    <h3>Decision comparison</h3>
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Option</th>
-                                <th><span class="comparison-heading positive"><i class="fas ${classificationMeta.positive.icon}"></i> Positive</span></th>
-                                <th><span class="comparison-heading negative"><i class="fas ${classificationMeta.negative.icon}"></i> Negative</span></th>
-                                <th><span class="comparison-heading unclear"><i class="fas ${classificationMeta.unclear.icon}"></i> Unclear</span></th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            ${rows.map((row) => `
-                                <tr>
-                                    <td>${escapeHtml(`${row.title}: ${row.action}`)}</td>
-                                    <td><span class="comparison-value positive"><i class="fas ${classificationMeta.positive.icon}"></i>${row.totals.positive}% likelihood</span></td>
-                                    <td><span class="comparison-value negative"><i class="fas ${classificationMeta.negative.icon}"></i>${row.totals.negative}% likelihood</span></td>
-                                    <td><span class="comparison-value unclear"><i class="fas ${classificationMeta.unclear.icon}"></i>${row.totals.unclear}% likelihood</span></td>
-                                </tr>
-                            `).join('')}
-                        </tbody>
-                    </table>
-                </section>
+                <div class="response-example-grid">
+                    ${classificationOrder.map((key) => {
+                        const meta = classificationMeta[key];
+                        const examples = row.outcomes.filter((outcome) => normalizeClassification(outcome.classification) === key);
+                        const title = key === 'unclear' ? 'Unclear response examples' : `${meta.label} response examples`;
+                        return `
+                            <section class="response-example-group ${meta.className}">
+                                <h4><i class="fas ${meta.icon}"></i> ${escapeHtml(title)}</h4>
+                                <ul>
+                                    ${examples.length
+                                        ? examples.map((outcome) => `
+                                            <li>
+                                                <blockquote>${escapeHtml(quoteExample(outcome.example))}</blockquote>
+                                                <p>${escapeHtml(outcome.explanation || outcome.label || 'This can happen when the same option lands under a different condition.')}</p>
+                                            </li>
+                                        `).join('')
+                                        : '<li><blockquote>No clear examples in this demo path.</blockquote><p>Syntrae would keep watching for this type of response after the real message is sent.</p></li>'}
+                                </ul>
+                            </section>
+                        `;
+                    }).join('')}
+                </div>
             `;
         }
 
@@ -4440,9 +4812,377 @@
             const actions = Array.isArray(chat.recommendation?.actions) ? chat.recommendation.actions : [];
             return `
                 <section class="final-recommendation">
-                    <h3>${escapeHtml(chat.recommendation?.title || 'Best first move')}</h3>
-                    <p>${escapeHtml(chat.recommendation?.text || 'Use the option with the most positive outcomes and the most manageable downside.')}</p>
+                    <h3>Actions to take now</h3>
+                    <p>${escapeHtml(chat.recommendation?.text || 'Use the option with the highest positive likelihood and the most manageable downside.')}</p>
                     ${actions.length ? `<ul class="final-action-list">${actions.map((action) => `<li>${escapeHtml(action)}</li>`).join('')}</ul>` : ''}
+                </section>
+            `;
+        }
+
+        function getOutcomeCount(percent, iterations = recurrenceIterations) {
+            return Math.round((Number(percent || 0) / 100) * iterations);
+        }
+
+        function getDecisionScore(row) {
+            return row.totals.positive - row.totals.negative;
+        }
+
+        function getReportRunId(chat, iterations) {
+            const alphabet = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+            let state = hashString([chat?.personaKey, activeChatKey, chat?.prompt, iterations].join('|'));
+            const blocks = Array.from({ length: 4 }, () => {
+                let block = '';
+                for (let i = 0; i < 4; i += 1) {
+                    state = (Math.imul(state ^ 0x9e3779b9, 1664525) + 1013904223) >>> 0;
+                    block += alphabet[state % alphabet.length];
+                }
+                return block;
+            });
+            return `SYN-${blocks.join('-')}`;
+        }
+
+        function getSensitivityFactors(chat) {
+            if (chat?.personaKey === 'daniel') {
+                return [
+                    { label: 'Afternoon timing fit', weight: 84, note: 'Daniel is more open when serious topics start in a private afternoon window.' },
+                    { label: 'Emotional pressure penalty', weight: 72, note: 'Direct romantic wording can make him shy or guarded if it arrives too suddenly.' },
+                    { label: 'Message clarity', weight: 68, note: 'Clear wording helps Maya avoid vague signals, but too much clarity too early can feel heavy.' },
+                    { label: 'Privacy match', weight: 63, note: 'Private one-to-one wording performs better than anything that feels public or performative.' },
+                    { label: 'Follow-up room', weight: 58, note: 'Open-ended messages preserve space for Daniel to answer before Maya asks for more clarity.' }
+                ];
+            }
+            return [
+                { label: 'Timing fit', weight: 78, note: 'The option improves when the other person has attention available.' },
+                { label: 'Pressure level', weight: 70, note: 'Lower pressure makes the first reply easier to give.' },
+                { label: 'Clarity', weight: 64, note: 'Clear next steps reduce avoidable confusion.' },
+                    { label: 'Context match', weight: 60, note: 'Better fit with the persona context raises positive likelihood.' }
+            ];
+        }
+
+        function renderDistributionChart(rows, iterations) {
+            return `
+                <section class="computation-card">
+                    <h3>Outcome Distribution</h3>
+                    <p>Each candidate action is grouped into positive, negative, and unclear outcome percentages.</p>
+                    <div class="distribution-legend">
+                        <span class="legend-dot" style="--dot:#159b8f;">Positive</span>
+                        <span class="legend-dot" style="--dot:#d45d50;">Negative</span>
+                        <span class="legend-dot" style="--dot:#dba72d;">Unclear</span>
+                    </div>
+                    <div class="distribution-list">
+                        ${rows.map((row) => `
+                            <div class="distribution-row">
+                                <div class="distribution-label">
+                                    <span>${escapeHtml(row.title)}: ${escapeHtml(row.action)}</span>
+                                    <span>${row.totals.positive}% / ${row.totals.negative}% / ${row.totals.unclear}%</span>
+                                </div>
+                                <div class="distribution-bar" style="--positive:${row.totals.positive}fr;--negative:${row.totals.negative}fr;--unclear:${row.totals.unclear}fr;" aria-label="${escapeHtml(row.action)} outcome distribution">
+                                    <span></span><span></span><span></span>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </section>
+            `;
+        }
+
+        function renderSensitivityChart(chat) {
+            return `
+                <section class="computation-card">
+                    <h3>Variable Sensitivity</h3>
+                    <p>Demo weights show which user-provided context changed the result most often.</p>
+                    <div class="sensitivity-list">
+                        ${getSensitivityFactors(chat).map((factor) => `
+                            <div class="sensitivity-row">
+                                <div class="sensitivity-label">
+                                    <span>${escapeHtml(factor.label)}</span>
+                                    <span>${factor.weight}/100</span>
+                                </div>
+                                <div class="sensitivity-track"><span class="sensitivity-fill" style="--width:${factor.weight}%;"></span></div>
+                                <p>${escapeHtml(factor.note)}</p>
+                            </div>
+                        `).join('')}
+                    </div>
+                </section>
+            `;
+        }
+
+        function getBellCurveGeometry(score, spread) {
+            const width = 300;
+            const height = 118;
+            const left = 18;
+            const right = width - 18;
+            const base = height - 28;
+            const peak = 18;
+            const sigma = Math.max(20, Math.min(48, spread));
+            const center = Math.max(left, Math.min(right, left + ((score + 50) / 100) * (right - left)));
+            const points = Array.from({ length: 72 }, (_, index) => {
+                const x = left + (index / 71) * (right - left);
+                const distance = (x - center) / sigma;
+                const y = base - Math.exp(-0.5 * distance * distance) * (base - peak);
+                return `${x.toFixed(1)},${y.toFixed(1)}`;
+            }).join(' ');
+
+            return { width, height, left, right, base, center, points };
+        }
+
+        function describeBellCurve(row, top) {
+            const score = getDecisionScore(row);
+            if (row.index === top.index) {
+                return `${row.action} has the strongest upside center because positive likelihood is highest and downside stays comparatively low.`;
+            }
+            if (score >= 0) {
+                return `${row.action} still leans positive, but its curve is closer to the middle because upside and downside are less separated.`;
+            }
+            return `${row.action} leans less favorably because negative likelihood is higher than positive likelihood in this report.`;
+        }
+
+        function renderBellCurveSection(rows) {
+            const top = getBestDecisionRow(rows);
+            return `
+                <section class="computation-card full-span bell-curve-section">
+                    <h3>Option Bell Curves</h3>
+                    <p>Each curve shows how an option leans across possible outcomes. A curve farther right means stronger upside, while a wider curve means the result is less settled.</p>
+                    <div class="bell-curve-grid">
+                        ${rows.map((row) => {
+                            const score = getDecisionScore(row);
+                            const spread = 24 + (row.totals.unclear * 0.38) + (row.totals.negative * 0.12);
+                            const curve = getBellCurveGeometry(score, spread);
+                            const gradientId = `bellCurveGradient${row.index}`;
+                            return `
+                                <article class="bell-curve-card${row.index === top.index ? ' is-best' : ''}">
+                                    <div class="bell-curve-head">
+                                        <div>
+                                            <span>${escapeHtml(row.title)}</span>
+                                            <strong>${escapeHtml(row.action)}</strong>
+                                        </div>
+                                        <span class="bell-curve-score">${score > 0 ? '+' : ''}${score} score</span>
+                                    </div>
+                                    <svg class="bell-curve-svg" viewBox="0 0 ${curve.width} ${curve.height}" role="img" aria-label="${escapeHtml(`${row.action} bell curve with ${score > 0 ? 'positive' : 'negative'} decision score`)}">
+                                        <defs>
+                                            <linearGradient id="${gradientId}" x1="0%" y1="0%" x2="100%" y2="0%">
+                                                <stop offset="0%" stop-color="#d45d50"></stop>
+                                                <stop offset="47%" stop-color="#dba72d"></stop>
+                                                <stop offset="100%" stop-color="#159b8f"></stop>
+                                            </linearGradient>
+                                        </defs>
+                                        <line x1="${curve.left}" y1="${curve.base}" x2="${curve.right}" y2="${curve.base}" stroke="rgba(32, 50, 54, 0.12)" stroke-width="3" stroke-linecap="round"></line>
+                                        <line x1="150" y1="20" x2="150" y2="${curve.base}" stroke="rgba(32, 50, 54, 0.1)" stroke-width="1" stroke-dasharray="4 6"></line>
+                                        <polyline points="${curve.points}" fill="none" stroke="url(#${gradientId})" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"></polyline>
+                                        <line x1="${curve.center.toFixed(1)}" y1="22" x2="${curve.center.toFixed(1)}" y2="${curve.base}" stroke="rgba(30, 159, 140, 0.74)" stroke-width="2" stroke-dasharray="5 5"></line>
+                                        <circle cx="${curve.center.toFixed(1)}" cy="${curve.base}" r="5" fill="#159b8f"></circle>
+                                    </svg>
+                                    <div class="bell-curve-axis">
+                                        <span>More downside</span>
+                                        <span>More upside</span>
+                                    </div>
+                                    <div class="bell-curve-metrics">
+                                        <span class="computation-pill positive"><i class="fas fa-check-circle"></i>${row.totals.positive}% positive likelihood</span>
+                                        <span class="computation-pill negative"><i class="fas fa-exclamation-circle"></i>${row.totals.negative}% negative likelihood</span>
+                                        <span class="computation-pill unclear"><i class="fas fa-hourglass-half"></i>${row.totals.unclear}% unclear likelihood</span>
+                                    </div>
+                                    <p>${escapeHtml(describeBellCurve(row, top))}</p>
+                                </article>
+                            `;
+                        }).join('')}
+                    </div>
+                </section>
+            `;
+        }
+
+        function renderFrequencyTable(rows, iterations) {
+            return `
+                <section class="computation-card full-span">
+                    <h3>Five Most Likely Outcomes By Option</h3>
+                    <div class="computation-table-wrap">
+                        <table class="computation-table">
+                            <thead>
+                                <tr>
+                                    <th>Option</th>
+                                    <th>Outcome</th>
+                                    <th>Class</th>
+                                    <th>Likelihood</th>
+                                    <th>Example response</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${rows.map((row) => row.outcomes.map((outcome) => {
+                                    const key = normalizeClassification(outcome.classification);
+                                    const meta = classificationMeta[key];
+                                    return `
+                                        <tr>
+                                            <td><strong>${escapeHtml(row.title)}</strong>${escapeHtml(row.action)}</td>
+                                            <td>${escapeHtml(outcome.label)}</td>
+                                            <td><span class="computation-pill ${meta.className}"><i class="fas ${meta.icon}"></i>${escapeHtml(meta.label)}</span></td>
+                                            <td><strong>${outcome.recurrencePercent}%</strong></td>
+                                            <td>${escapeHtml(quoteExample(outcome.example))}</td>
+                                        </tr>
+                                    `;
+                                }).join('')).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+            `;
+        }
+
+        function summarizeOption(row, top) {
+            const score = getDecisionScore(row);
+            if (row.index === top.index) {
+                return `${row.action} is the best first move because its positive likelihood is highest while the negative likelihood stays manageable.`;
+            }
+            if (score >= 0) {
+                return `${row.action} is usable, but its upside is less separated from its downside than the best first move.`;
+            }
+            return `${row.action} is riskier in this test because negative likelihood is higher than positive likelihood.`;
+        }
+
+        function renderOptionsSummarySection(rows, top) {
+            return `
+                <section class="computation-card full-span options-summary-card">
+                    <h3>Options Summary</h3>
+                    <div class="options-summary-grid">
+                        ${rows.map((row) => `
+                            <article class="options-summary-item${row.index === top.index ? ' is-best' : ''}">
+                                <div class="options-summary-head">
+                                    <div>
+                                        <span>${escapeHtml(row.title)}</span>
+                                        <strong>${escapeHtml(row.action)}</strong>
+                                    </div>
+                                    ${row.index === top.index ? '<span class="computation-pill positive"><i class="fas fa-check-circle"></i>Best First Move</span>' : ''}
+                                </div>
+                                <div class="options-summary-metrics">
+                                    <span class="computation-pill positive"><i class="fas fa-check-circle"></i>${row.totals.positive}% positive likelihood</span>
+                                    <span class="computation-pill negative"><i class="fas fa-exclamation-circle"></i>${row.totals.negative}% negative likelihood</span>
+                                    <span class="computation-pill unclear"><i class="fas fa-hourglass-half"></i>${row.totals.unclear}% unclear likelihood</span>
+                                </div>
+                                <p>${escapeHtml(summarizeOption(row, top))}</p>
+                            </article>
+                        `).join('')}
+                    </div>
+                </section>
+            `;
+        }
+
+        function renderTopFrequencyChart(rows, iterations) {
+            const topOutcomes = rows.flatMap((row) => row.outcomes.map((outcome) => ({
+                row,
+                outcome,
+                key: normalizeClassification(outcome.classification)
+            }))).sort((a, b) => b.outcome.recurrencePercent - a.outcome.recurrencePercent).slice(0, 8);
+
+            return `
+                <section class="computation-card full-span">
+                    <h3>Highest Frequency Outcome Signals</h3>
+                    <div class="frequency-list">
+                        ${topOutcomes.map(({ row, outcome, key }) => {
+                            const meta = classificationMeta[key];
+                            return `
+                                <div class="frequency-row">
+                                    <div class="frequency-label">
+                                        <span>${escapeHtml(row.action)} - ${escapeHtml(outcome.label)}</span>
+                                        <span>${outcome.recurrencePercent}%</span>
+                                    </div>
+                                    <div class="frequency-track"><span class="frequency-fill ${meta.className}" style="--width:${outcome.recurrencePercent}%;"></span></div>
+                                </div>
+                            `;
+                        }).join('')}
+                    </div>
+                </section>
+            `;
+        }
+
+        function renderCandidateScoreTable(rows, iterations) {
+            return `
+                <section class="computation-card full-span">
+                    <h3>Candidate Action Scorecard</h3>
+                    <div class="computation-table-wrap">
+                        <table class="computation-table">
+                            <thead>
+                                <tr>
+                                    <th>Candidate action</th>
+                                    <th>Positive</th>
+                                    <th>Negative</th>
+                                    <th>Unclear</th>
+                                    <th>Decision score</th>
+                                    <th>Interpretation</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${rows.map((row) => {
+                                    const score = getDecisionScore(row);
+                                    return `
+                                        <tr>
+                                            <td><strong>${escapeHtml(row.title)}: ${escapeHtml(row.action)}</strong>${escapeHtml(row.content)}</td>
+                                            <td><span class="computation-pill positive"><i class="fas fa-check-circle"></i>${row.totals.positive}%</span></td>
+                                            <td><span class="computation-pill negative"><i class="fas fa-exclamation-circle"></i>${row.totals.negative}%</span></td>
+                                            <td><span class="computation-pill unclear"><i class="fas fa-hourglass-half"></i>${row.totals.unclear}%</span></td>
+                                            <td><strong>${score > 0 ? '+' : ''}${score}</strong>positive minus negative</td>
+                                            <td>${score >= 15 ? 'Strongest first move in this demo because positive likelihood exceeds pressure risk.' : score >= 0 ? 'Usable but less stable because upside and downside stay close.' : 'Lower-ranked because downside appears more often than clear upside.'}</td>
+                                        </tr>
+                                    `;
+                                }).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+            `;
+        }
+
+        function renderComputationReport(result = runSyntraeTestDemo(recurrenceIterations)) {
+            const rows = result.rows.slice().sort((a, b) => a.index - b.index);
+            const iterations = result.iterations || recurrenceIterations;
+            const totalRuns = rows.length * iterations;
+            return `
+                <header class="computation-header">
+                    <div>
+                        <span class="kicker"><i class="fas fa-chart-line"></i> Computation Report</span>
+                        <h2 id="computationReportTitle">Syntrae Test analytics.</h2>
+                        <p>Detailed projection for ${escapeHtml(getResponseContextName(result.chat))}. The report shows how the current demo turns each candidate message into outcome percentages, score interpretation, and sensitivity signals.</p>
+                    </div>
+                    <div class="computation-run-id">
+                        <span>Run ID</span>
+                        <strong>${escapeHtml(getReportRunId(result.chat, iterations))}</strong>
+                    </div>
+                </header>
+                <section class="computation-stat-grid">
+                    <article class="computation-card">
+                        <span>Candidate actions</span>
+                        <strong>${rows.length}</strong>
+                        <p>Each action keeps Maya's exact message attached to the outcome pool.</p>
+                    </article>
+                    <article class="computation-card">
+                        <span>Runs per action</span>
+                        <strong>${iterations.toLocaleString()}</strong>
+                        <p>Every candidate action is run multiple times with slightly varied conditions.</p>
+                    </article>
+                    <article class="computation-card">
+                        <span>Total projected runs</span>
+                        <strong>${totalRuns.toLocaleString()}</strong>
+                        <p>Total runs for this report.</p>
+                    </article>
+                </section>
+                <section class="computation-chart-grid">
+                    ${renderDistributionChart(rows, iterations)}
+                    ${renderSensitivityChart(result.chat)}
+                </section>
+                ${renderBellCurveSection(rows)}
+                ${renderTopFrequencyChart(rows, iterations)}
+                ${renderCandidateScoreTable(rows, iterations)}
+                ${renderFrequencyTable(rows, iterations)}
+                ${renderOptionsSummarySection(rows, result.top)}
+                <section class="computation-card full-span">
+                    <h3>Configuration</h3>
+                    <div class="computation-table-wrap">
+                        <table class="computation-table">
+                            <tbody>
+                                <tr><th>Persona context used</th><td>${escapeHtml(getResponseContextName(result.chat))}; afternoon receptive; shy with love; private context.</td></tr>
+                                <tr><th>Decision request</th><td>${escapeHtml(result.chat.prompt)}</td></tr>
+                                <tr><th>Classification rule</th><td>Responses are grouped as positive when they move Maya toward clarity, negative when they raise pressure or rejection risk, and unclear when they keep the conversation open but unresolved.</td></tr>
+                                <tr><th>Decision score formula</th><td>Positive likelihood minus negative likelihood. Unclear likelihood is reported separately because it may become useful after another real reply.</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
                 </section>
             `;
         }
@@ -4496,36 +5236,20 @@
             els.recurrenceSection?.classList.remove('is-loading');
             const rowsByOriginalOrder = result.rows.slice().sort((a, b) => a.index - b.index);
             els.recurrenceSummary.innerHTML = `
-                <article class="recurrence-metric metric-top">
-                    <span><i class="fas fa-route"></i> Most recurring path</span>
-                    <strong>${escapeHtml(result.top.title)}</strong>
-                    <small>Recommended option for most positive outcomes.</small>
-                </article>
-                ${classificationOrder.map((key) => {
-                    const meta = classificationMeta[key];
-                    return `
-                        <article class="recurrence-metric metric-${meta.className}">
-                            <span><i class="fas ${meta.icon}"></i> ${meta.metricLabel}</span>
-                            <strong>${result.top.totals[key]}%</strong>
-                            <small>${escapeHtml(explainCategoryPercent(result.top, key))}</small>
-                        </article>
-                    `;
-                }).join('')}
-                ${renderDecisionComparison(rowsByOriginalOrder)}
+                ${renderBestFirstMoveMetrics(result)}
                 ${renderFinalRecommendation(result.chat)}
             `;
             els.recurrenceBars.innerHTML = rowsByOriginalOrder.map((row) => `
-                <article class="recurrence-bar-row">
+                <article class="recurrence-bar-row${row.index === result.top.index ? ' is-best' : ''}">
                     <div class="recurrence-option-head">
-                        <div class="recurrence-bar-label">
-                            <span>${escapeHtml(row.title)}: ${escapeHtml(row.action)}</span>
-                            <strong>${row.totals.positive}% positive likelihood</strong>
+                        <div class="recurrence-option-title">
+                            <strong>${escapeHtml(row.title)}: ${escapeHtml(row.action)}</strong>
+                            ${row.index === result.top.index ? '<span class="response-option-badge"><i class="fas fa-check-circle" aria-hidden="true"></i> Best first move</span>' : ''}
                         </div>
                         ${row.content ? `<p>${escapeHtml(row.content)}</p>` : ''}
-                        <div class="category-pill-row">${renderCategoryPills(row.totals)}</div>
+                        ${renderResponseContextNote(result.chat)}
                     </div>
-                    <div class="generated-outcome-grid">${renderGeneratedOutcomeCards(row.outcomes)}</div>
-                    ${renderClassifiedExampleSummary(row)}
+                    ${renderResponseExampleGroups(row)}
                 </article>
             `).join('');
         }
@@ -4795,38 +5519,65 @@
             els.visualChatInput.placeholder = 'Optional note for this rerun...';
         }
 
-        function getDetailOutcomeIcon(type) {
+        function getOneSentenceSummary(value) {
+            const text = String(value || '').trim();
+            if (!text) return 'Syntrae chose this because it keeps the next step clear while reducing pressure.';
+            const match = text.match(/^.*?[.!?](?=\s|$)/);
+            return match ? match[0] : text;
+        }
+
+        function getAlternativeReasonIcon(type) {
             const normalized = normalizeClassification(type);
             if (normalized === 'positive') return 'fa-check-circle';
             if (normalized === 'negative') return 'fa-exclamation-circle';
             return 'fa-hourglass-half';
         }
 
-        function renderTurnDetailTree(turn) {
-            const detailTree = Array.isArray(turn.detailTree) ? turn.detailTree : [];
-            if (!detailTree.length) return '';
+        function renderAlternativeReasons(option) {
+            const reasons = Array.isArray(option?.outcomes) ? option.outcomes.slice(0, 2) : [];
+            if (!reasons.length) {
+                return '<p class="best-way-option-reply">Syntrae considers this option as a possible next move, then compares how well it keeps the conversation clear and low-pressure.</p>';
+            }
 
             return `
-                <section class="turn-detail-tree">
-                    <h4><i class="fas fa-code-branch"></i> Detailed consequence tree</h4>
-                    <div class="turn-detail-grid">
-                        ${detailTree.map((option) => `
-                            <article class="turn-detail-option${option.best ? ' is-best' : ''}">
-                                <strong>${escapeHtml(option.title || 'Candidate reply')}</strong>
-                                ${option.reply ? `<p><em>${escapeHtml(option.reply)}</em></p>` : ''}
-                                <ul class="turn-detail-outcomes">
-                                    ${(option.outcomes || []).map((outcome) => {
-                                        const type = normalizeClassification(outcome.type);
-                                        return `
-                                            <li>
-                                                <i class="fas ${getDetailOutcomeIcon(type)} ${type}" aria-hidden="true"></i>
-                                                <span>${escapeHtml(outcome.text || '')}</span>
-                                            </li>
-                                        `;
-                                    }).join('')}
-                                </ul>
-                            </article>
-                        `).join('')}
+                <ul class="best-way-option-reasons">
+                    ${reasons.map((reason) => {
+                        const type = normalizeClassification(reason.type);
+                        return `
+                            <li>
+                                <i class="fas ${getAlternativeReasonIcon(type)} ${type}" aria-hidden="true"></i>
+                                <span>${escapeHtml(reason.text || '')}</span>
+                            </li>
+                        `;
+                    }).join('')}
+                </ul>
+            `;
+        }
+
+        function renderTurnAlternativeOptions(turn) {
+            const alternatives = Array.isArray(turn.detailTree) ? turn.detailTree : [];
+            if (!alternatives.length) return '';
+            const bestIndex = Math.max(0, alternatives.findIndex((option) => option.best));
+
+            return `
+                <section class="best-way-options-panel">
+                    <div class="best-way-options-head">
+                        <h4><i class="fas fa-code-branch"></i> Alternative options</h4>
+                    </div>
+                    <div class="best-way-options-grid">
+                        ${alternatives.map((option, optionIndex) => {
+                            const isBest = optionIndex === bestIndex;
+                            return `
+                                <article class="best-way-option-card${isBest ? ' is-best' : ''}">
+                                    <div class="best-way-option-title">
+                                        <span>${escapeHtml(option.title || `Option ${optionIndex + 1}`)}</span>
+                                        ${isBest ? '<span class="next-best-chip"><i class="fas fa-check-circle" aria-hidden="true"></i> Next Best Way</span>' : ''}
+                                    </div>
+                                    ${option.reply ? `<p class="best-way-option-reply">${escapeHtml(option.reply)}</p>` : '<span></span>'}
+                                    ${renderAlternativeReasons(option)}
+                                </article>
+                            `;
+                        }).join('')}
                     </div>
                 </section>
             `;
@@ -4834,7 +5585,7 @@
 
         function renderTurnResult(turn, index) {
             const detailOpen = Boolean(conversationLoopState.openDetails?.[index]);
-            const detailSummary = turn.detailSummary || turn.reason || 'Syntrae keeps the reply aligned with the starting goal and Daniel\'s latest response.';
+            const detailSummary = getOneSentenceSummary(turn.detailSummary || turn.reason || 'Syntrae keeps the reply aligned with the starting goal and Daniel\'s latest response.');
             return `
                 <div class="syntrae-loop-card">
                     <strong><i class="fas fa-route"></i> Next Best Way</strong>
@@ -4844,13 +5595,10 @@
                         <button class="best-way-detail-toggle" type="button" data-loop-detail="${index}" aria-expanded="${detailOpen ? 'true' : 'false'}">
                             <i class="fas ${detailOpen ? 'fa-eye-slash' : 'fa-eye'}"></i> ${detailOpen ? 'Hide details' : 'Show details'}
                         </button>
-                        <span class="best-way-detail-hint" tabindex="0" aria-label="${escapeHtml(detailSummary)}">
-                            <i class="fas fa-exclamation-circle" aria-hidden="true"></i>
-                            <span class="best-way-tooltip">${escapeHtml(detailSummary)}</span>
-                        </span>
                     </div>
+                    ${detailOpen ? `<div class="best-way-summary-line"><strong>Why this way:</strong> ${escapeHtml(detailSummary)}</div>` : ''}
+                    ${detailOpen ? renderTurnAlternativeOptions(turn) : ''}
                 </div>
-                ${detailOpen ? renderTurnDetailTree(turn) : ''}
             `;
         }
 
@@ -4906,7 +5654,7 @@
             els.chatTranscript.innerHTML = `
                 <div class="conversation-flow">
                     <section class="consultation-summary">
-                        <span class="bubble-speaker">Maya asks Syntrae</span>
+                        <span class="bubble-speaker">Outcome Request</span>
                         <h3>${escapeHtml(loop.openingPrompt)}</h3>
                         <p>${escapeHtml(loop.openingResponse)}</p>
                     </section>
@@ -5054,6 +5802,20 @@
             els.launchSoonModal.setAttribute('aria-hidden', 'true');
         }
 
+        function openComputationReport() {
+            if (!els.computationReportModal || !els.computationReportBody) return;
+            els.computationReportBody.innerHTML = renderComputationReport(runSyntraeTestDemo(recurrenceIterations));
+            els.computationReportModal.classList.add('visible');
+            els.computationReportModal.setAttribute('aria-hidden', 'false');
+            els.computationReportClose?.focus();
+        }
+
+        function closeComputationReport() {
+            if (!els.computationReportModal) return;
+            els.computationReportModal.classList.remove('visible');
+            els.computationReportModal.setAttribute('aria-hidden', 'true');
+        }
+
         function setDropdownOpen(open) {
             els.dropdown.classList.toggle('active', open);
             els.moreBtn.setAttribute('aria-expanded', String(open));
@@ -5146,8 +5908,16 @@
         els.launchSoonModal?.addEventListener('click', (event) => {
             if (event.target === els.launchSoonModal) closeLaunchSoonNotice();
         });
+        els.computationReportButton?.addEventListener('click', openComputationReport);
+        els.computationReportClose?.addEventListener('click', closeComputationReport);
+        els.computationReportModal?.addEventListener('click', (event) => {
+            if (event.target === els.computationReportModal) closeComputationReport();
+        });
         document.addEventListener('keydown', (event) => {
-            if (event.key === 'Escape') closeLaunchSoonNotice();
+            if (event.key === 'Escape') {
+                closeLaunchSoonNotice();
+                closeComputationReport();
+            }
         });
 
         const universalGuideSeenKey = 'syntrae-universal-guide-seen-dashboard-demo';
