@@ -101,6 +101,38 @@
             color: var(--muted);
         }
 
+        .landing-back-link {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 9px;
+            min-height: 42px;
+            padding: 10px 14px;
+            border: 1px solid rgba(216, 231, 223, 0.96);
+            border-radius: 999px;
+            color: var(--ink);
+            background: rgba(255, 255, 255, 0.88);
+            text-decoration: none;
+            font-size: 13px;
+            font-weight: 900;
+            box-shadow: 0 10px 24px rgba(28, 50, 50, 0.06);
+            white-space: nowrap;
+            transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease, background 0.2s ease;
+        }
+
+        .landing-back-link:hover,
+        .landing-back-link:focus-visible {
+            transform: translateY(-1px);
+            border-color: rgba(20, 149, 139, 0.35);
+            background: #fff;
+            box-shadow: 0 14px 30px rgba(20, 149, 139, 0.13);
+            outline: none;
+        }
+
+        .landing-back-link i {
+            color: var(--teal-dark);
+        }
+
         .dashboard-nav {
             display: flex;
             align-items: center;
@@ -309,10 +341,10 @@
         }
 
         .dashboard-shell {
-            width: min(1160px, calc(100vw - 42px));
+            width: min(1380px, calc(100vw - 28px));
             margin: 26px auto 42px;
             display: grid;
-            grid-template-columns: 320px minmax(0, 1fr);
+            grid-template-columns: 280px minmax(0, 1fr);
             gap: 24px;
         }
 
@@ -636,6 +668,22 @@
             transform: translateY(-1px);
         }
 
+        .chat-space-row.create-chat-space {
+            grid-template-columns: 1fr;
+            border-color: rgba(20, 149, 139, 0.32);
+            border-style: dashed;
+            background:
+                linear-gradient(135deg, rgba(241, 251, 248, 0.95), rgba(255, 250, 230, 0.86)),
+                #fff;
+        }
+
+        .chat-space-row.create-chat-space:hover {
+            border-color: rgba(20, 149, 139, 0.58);
+            background:
+                linear-gradient(135deg, rgba(229, 249, 244, 0.98), rgba(255, 247, 218, 0.92)),
+                #fff;
+        }
+
         .chat-space-btn {
             min-width: 0;
             border: 0;
@@ -643,6 +691,29 @@
             color: inherit;
             padding: 0;
             text-align: left;
+        }
+
+        .chat-space-row.create-chat-space .chat-space-btn {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            gap: 11px;
+        }
+
+        .chat-space-btn .create-chat-icon {
+            flex: 0 0 auto;
+            display: grid;
+            place-items: center;
+            width: 38px;
+            height: 38px;
+            border-radius: 12px;
+            color: #fff;
+            background: linear-gradient(135deg, var(--teal-dark), var(--teal));
+            box-shadow: 0 12px 24px rgba(45, 132, 111, 0.18);
+        }
+
+        .create-chat-copy {
+            min-width: 0;
         }
 
         .embedded-chat {
@@ -700,6 +771,377 @@
             align-self: flex-start;
             background: #fff;
             border: 1px solid #edf1ed;
+        }
+
+        .conversation-flow {
+            display: grid;
+            gap: 14px;
+        }
+
+        .consultation-summary {
+            display: grid;
+            gap: 10px;
+            padding: 14px;
+            border: 1px solid rgba(151, 217, 205, 0.7);
+            border-radius: 14px;
+            background: rgba(255, 255, 255, 0.9);
+            box-shadow: 0 10px 26px rgba(35, 63, 58, 0.06);
+        }
+
+        .consultation-summary h3,
+        .actual-turn h3 {
+            margin: 0;
+            color: var(--ink);
+            font-size: 14px;
+            line-height: 1.3;
+        }
+
+        .consultation-summary p {
+            margin: 0;
+            color: var(--muted);
+            font-size: 13px;
+            font-weight: 800;
+            line-height: 1.55;
+        }
+
+        .actual-turn {
+            display: grid;
+            gap: 12px;
+            padding: 14px;
+            border: 1px solid rgba(32, 50, 54, 0.12);
+            border-radius: 14px;
+            background: rgba(255, 255, 255, 0.82);
+        }
+
+        .actual-turn.is-current {
+            border-color: rgba(20, 149, 139, 0.34);
+            background: linear-gradient(135deg, rgba(241, 251, 248, 0.95), rgba(255, 255, 255, 0.86));
+            box-shadow: 0 16px 34px rgba(45, 132, 111, 0.09);
+        }
+
+        .actual-turn.is-complete {
+            border-color: rgba(151, 217, 205, 0.62);
+        }
+
+        .actual-turn.is-loading {
+            border-color: rgba(242, 204, 93, 0.72);
+            background: linear-gradient(135deg, rgba(255, 250, 230, 0.94), rgba(241, 251, 248, 0.88));
+        }
+
+        .turn-heading {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+        }
+
+        .turn-heading span {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            color: var(--teal-dark);
+            font-size: 11px;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .actual-bubble-row {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 12px;
+        }
+
+        .actual-bubble {
+            display: grid;
+            gap: 8px;
+            padding: 12px;
+            border-radius: 14px;
+            box-shadow: 0 10px 24px rgba(35, 63, 58, 0.06);
+        }
+
+        .actual-bubble.maya {
+            background: #dff7ef;
+            border: 1px solid #aee8dc;
+        }
+
+        .actual-bubble.daniel {
+            background: #fffdf5;
+            border: 1px solid #efd98f;
+        }
+
+        .actual-bubble label {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            color: var(--teal-dark);
+            font-size: 11px;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .actual-bubble textarea {
+            width: 100%;
+            min-height: 94px;
+            resize: vertical;
+            border: 1px solid rgba(32, 50, 54, 0.12);
+            border-radius: 11px;
+            padding: 11px;
+            color: var(--ink);
+            background: rgba(255, 255, 255, 0.72);
+            font: inherit;
+            font-size: 13px;
+            font-weight: 800;
+            line-height: 1.5;
+            outline: none;
+        }
+
+        .actual-bubble textarea:focus {
+            border-color: #8ed9cc;
+            box-shadow: 0 0 0 4px rgba(155, 222, 210, 0.22);
+        }
+
+        .syntrae-loop-card {
+            display: grid;
+            gap: 8px;
+            padding: 12px 14px;
+            border-left: 4px solid var(--teal);
+            border-radius: 12px;
+            background: #f1fbf8;
+            color: var(--muted);
+            font-size: 13px;
+            font-weight: 800;
+            line-height: 1.5;
+        }
+
+        .syntrae-loop-card.is-waiting {
+            border-left-color: #f2cc5d;
+            background: #fffaf0;
+            color: #776127;
+        }
+
+        .syntrae-loop-card.is-loading {
+            border-left-color: #f2cc5d;
+            background: linear-gradient(135deg, #fff8df, #f1fbf8);
+            color: #776127;
+        }
+
+        .syntrae-loop-card strong {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--ink);
+            font-size: 14px;
+        }
+
+        .syntrae-loop-card .syntrae-spinner {
+            border-color: rgba(45, 132, 111, 0.22);
+            border-top-color: var(--teal-dark);
+        }
+
+        .syntrae-loop-card em {
+            color: var(--teal-dark);
+            font-style: normal;
+            font-weight: 900;
+        }
+
+        .best-way-detail-actions {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 9px;
+            margin-top: 2px;
+        }
+
+        .best-way-detail-toggle {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 7px;
+            min-height: 34px;
+            border: 1px solid rgba(20, 149, 139, 0.24);
+            border-radius: 999px;
+            padding: 0 12px;
+            background: #fff;
+            color: var(--teal-dark);
+            font: inherit;
+            font-size: 12px;
+            font-weight: 900;
+            cursor: pointer;
+            box-shadow: 0 10px 20px rgba(45, 132, 111, 0.08);
+        }
+
+        .best-way-detail-toggle:hover,
+        .best-way-detail-toggle:focus-visible {
+            border-color: rgba(20, 149, 139, 0.46);
+            background: #f8fffc;
+            outline: none;
+        }
+
+        .best-way-detail-hint {
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 30px;
+            height: 30px;
+            border: 1px solid rgba(231, 184, 57, 0.55);
+            border-radius: 50%;
+            color: #967118;
+            background: #fff8df;
+            cursor: help;
+        }
+
+        .best-way-tooltip {
+            position: absolute;
+            left: 50%;
+            bottom: calc(100% + 9px);
+            z-index: 5;
+            width: min(260px, 68vw);
+            padding: 10px 12px;
+            border: 1px solid rgba(231, 184, 57, 0.5);
+            border-radius: 12px;
+            background: #fffdf5;
+            color: #5e501f;
+            font-size: 12px;
+            font-weight: 900;
+            line-height: 1.45;
+            box-shadow: 0 14px 32px rgba(45, 132, 111, 0.16);
+            opacity: 0;
+            pointer-events: none;
+            transform: translate(-50%, 6px);
+            transition: opacity 0.16s ease, transform 0.16s ease;
+        }
+
+        .best-way-tooltip::after {
+            content: "";
+            position: absolute;
+            left: 50%;
+            top: 100%;
+            width: 10px;
+            height: 10px;
+            background: #fffdf5;
+            border-right: 1px solid rgba(231, 184, 57, 0.5);
+            border-bottom: 1px solid rgba(231, 184, 57, 0.5);
+            transform: translate(-50%, -5px) rotate(45deg);
+        }
+
+        .best-way-detail-hint:hover .best-way-tooltip,
+        .best-way-detail-hint:focus-visible .best-way-tooltip {
+            opacity: 1;
+            transform: translate(-50%, 0);
+        }
+
+        .turn-detail-tree {
+            display: grid;
+            gap: 10px;
+            margin-top: 2px;
+            padding: 12px;
+            border: 1px solid rgba(151, 217, 205, 0.68);
+            border-radius: 14px;
+            background: rgba(255, 255, 255, 0.78);
+        }
+
+        .turn-detail-tree h4 {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            margin: 0;
+            color: var(--ink);
+            font-size: 14px;
+            letter-spacing: -0.02em;
+        }
+
+        .turn-detail-grid {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 10px;
+        }
+
+        .turn-detail-option {
+            display: grid;
+            gap: 8px;
+            padding: 11px;
+            border: 1px solid rgba(32, 50, 54, 0.11);
+            border-radius: 12px;
+            background: #fff;
+        }
+
+        .turn-detail-option.is-best {
+            border-color: rgba(20, 149, 139, 0.38);
+            background: #f1fbf8;
+            box-shadow: inset 4px 0 0 rgba(20, 149, 139, 0.86);
+        }
+
+        .turn-detail-option strong {
+            color: var(--ink);
+            font-size: 12px;
+            line-height: 1.35;
+        }
+
+        .turn-detail-option p {
+            margin: 0;
+            color: var(--muted);
+            font-size: 12px;
+            font-weight: 800;
+            line-height: 1.45;
+        }
+
+        .turn-detail-outcomes {
+            display: grid;
+            gap: 6px;
+            margin: 0;
+            padding: 0;
+            list-style: none;
+        }
+
+        .turn-detail-outcomes li {
+            display: grid;
+            grid-template-columns: auto 1fr;
+            gap: 7px;
+            color: var(--muted);
+            font-size: 11px;
+            font-weight: 800;
+            line-height: 1.4;
+        }
+
+        .turn-detail-outcomes i.positive {
+            color: #208575;
+        }
+
+        .turn-detail-outcomes i.negative {
+            color: #bd5548;
+        }
+
+        .turn-detail-outcomes i.unclear {
+            color: #967118;
+        }
+
+        .conversation-complete-note {
+            display: grid;
+            gap: 6px;
+            padding: 12px 14px;
+            border: 1px solid rgba(20, 149, 139, 0.28);
+            border-radius: 14px;
+            background: #eaf9f4;
+            color: #247b66;
+            font-size: 13px;
+            font-weight: 900;
+            line-height: 1.45;
+        }
+
+        .chat-status-note {
+            display: grid;
+            gap: 4px;
+            margin-top: 2px;
+            padding: 11px 12px;
+            border-radius: 12px;
+            background: #fff8df;
+            color: #6f5717;
+            font-size: 12px;
+            font-weight: 900;
         }
 
         .bubble-speaker {
@@ -930,7 +1372,27 @@
 
         .launch-soon-actions {
             display: flex;
+            flex-wrap: wrap;
             justify-content: flex-end;
+            gap: 10px;
+        }
+
+        .already-joined-note {
+            display: grid;
+            gap: 5px;
+            padding: 14px;
+            border: 1px solid rgba(151, 217, 205, 0.72);
+            border-radius: 14px;
+            background: #f1fbf8;
+            color: var(--muted);
+            font-size: 13px;
+            font-weight: 800;
+            line-height: 1.5;
+        }
+
+        .already-joined-note strong {
+            color: var(--ink);
+            font-size: 14px;
         }
 
         @keyframes smileFloat {
@@ -970,8 +1432,25 @@
             background: var(--teal-dark);
             color: #fff;
             font-weight: 900;
+            text-decoration: none;
             box-shadow: 0 14px 32px rgba(45, 132, 111, 0.18);
             transition: transform 0.2s ease, box-shadow 0.2s ease;
+            cursor: pointer;
+        }
+
+        .secondary-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            min-height: 46px;
+            border: 1px solid rgba(45, 132, 111, 0.2);
+            border-radius: 10px;
+            padding: 0 18px;
+            background: #fff;
+            color: var(--teal-dark);
+            font: inherit;
+            font-weight: 900;
             cursor: pointer;
         }
 
@@ -1006,12 +1485,13 @@
 
         .stage-grid {
             display: grid;
-            grid-template-columns: minmax(0, 1fr) minmax(320px, 0.58fr);
+            grid-template-columns: minmax(0, 1fr) minmax(240px, 0.38fr);
             gap: 22px;
             align-items: start;
         }
 
         .stage-side-column {
+            min-width: 0;
             display: grid;
             gap: 22px;
             align-content: start;
@@ -1089,6 +1569,20 @@
             font-weight: 900;
         }
 
+        .candidate strong {
+            display: block;
+            font-size: 15px;
+            line-height: 1.25;
+        }
+
+        .candidate p {
+            margin: 8px 0 0;
+            color: var(--muted);
+            font-size: 12px;
+            font-weight: 800;
+            line-height: 1.45;
+        }
+
         .setting-row {
             display: flex;
             justify-content: space-between;
@@ -1121,6 +1615,8 @@
         }
 
         .recurrence-section {
+            display: flex;
+            flex-direction: column;
             scroll-margin-top: 150px;
             margin-top: 18px;
             padding-top: 22px;
@@ -1128,6 +1624,7 @@
         }
 
         .recurrence-head {
+            order: 0;
             display: flex;
             align-items: flex-start;
             justify-content: space-between;
@@ -1149,45 +1646,25 @@
             line-height: 1.6;
         }
 
-        .recurrence-run-btn {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            min-width: 168px;
-            min-height: 46px;
-            border: 1px solid rgba(45, 132, 111, 0.24);
-            border-radius: 10px;
-            padding: 0 18px;
-            background: #fff;
-            color: var(--teal-dark);
-            font-weight: 900;
-            box-shadow: 0 12px 28px rgba(45, 132, 111, 0.1);
-            cursor: pointer;
-            transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
-        }
-
-        .recurrence-run-btn:hover:not(:disabled) {
-            transform: translateY(-1px);
-            background: #f5fffb;
-            box-shadow: 0 16px 34px rgba(45, 132, 111, 0.14);
-        }
-
-        .recurrence-run-btn:disabled {
-            cursor: wait;
-            opacity: 0.72;
-        }
-
         .recurrence-summary {
+            order: 2;
             display: grid;
-            grid-template-columns: minmax(0, 1fr);
+            grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
             gap: 12px;
             margin-top: 18px;
+        }
+
+        .recurrence-section.is-loading .recurrence-summary {
+            order: 1;
         }
 
         .recurrence-section.is-loading .recurrence-summary,
         .recurrence-section.is-loading .recurrence-bars {
             opacity: 0.92;
+        }
+
+        .recurrence-section.is-loading .recurrence-summary {
+            grid-template-columns: minmax(0, 1fr);
         }
 
         .recurrence-metric {
@@ -1231,19 +1708,388 @@
             font-size: 14px;
         }
 
+        .recurrence-metric.metric-top {
+            border-color: rgba(45, 132, 111, 0.34);
+            background:
+                linear-gradient(135deg, rgba(231, 249, 244, 0.96), rgba(255, 248, 221, 0.72)),
+                rgba(255, 255, 255, 0.96);
+            box-shadow:
+                inset 5px 0 0 rgba(31, 151, 139, 0.88),
+                0 14px 28px rgba(45, 132, 111, 0.1);
+        }
+
+        .recurrence-metric.metric-positive {
+            border-color: rgba(20, 149, 139, 0.28);
+            background:
+                linear-gradient(135deg, rgba(232, 250, 245, 0.98), rgba(255, 255, 255, 0.94)),
+                rgba(255, 255, 255, 0.96);
+            box-shadow: inset 5px 0 0 rgba(20, 149, 139, 0.86);
+        }
+
+        .recurrence-metric.metric-negative {
+            border-color: rgba(240, 112, 97, 0.32);
+            background:
+                linear-gradient(135deg, rgba(255, 242, 238, 0.98), rgba(255, 255, 255, 0.94)),
+                rgba(255, 255, 255, 0.96);
+            box-shadow: inset 5px 0 0 rgba(240, 112, 97, 0.84);
+        }
+
+        .recurrence-metric.metric-unclear {
+            border-color: rgba(231, 184, 57, 0.38);
+            background:
+                linear-gradient(135deg, rgba(255, 249, 225, 0.98), rgba(255, 255, 255, 0.94)),
+                rgba(255, 255, 255, 0.96);
+            box-shadow: inset 5px 0 0 rgba(242, 204, 93, 0.92);
+        }
+
+        .recurrence-metric.metric-top span,
+        .recurrence-metric.metric-top strong {
+            color: #1f766d;
+        }
+
+        .recurrence-metric.metric-positive span,
+        .recurrence-metric.metric-positive strong {
+            color: #208575;
+        }
+
+        .recurrence-metric.metric-negative span,
+        .recurrence-metric.metric-negative strong {
+            color: #bd5548;
+        }
+
+        .recurrence-metric.metric-unclear span,
+        .recurrence-metric.metric-unclear strong {
+            color: #967118;
+        }
+
+        .recurrence-metric.metric-top small,
+        .recurrence-metric.metric-positive small,
+        .recurrence-metric.metric-negative small,
+        .recurrence-metric.metric-unclear small {
+            color: rgba(32, 50, 54, 0.74);
+        }
+
         .recurrence-bars {
+            order: 1;
             display: grid;
             gap: 12px;
             margin-top: 18px;
         }
 
+        .recurrence-section.is-loading .recurrence-bars {
+            order: 2;
+        }
+
         .recurrence-bar-row {
             display: grid;
             gap: 10px;
-            padding: 14px;
+            padding: 18px;
             border: 1px solid rgba(32, 50, 54, 0.12);
             border-radius: 12px;
             background: rgba(255, 255, 255, 0.78);
+        }
+
+        .recurrence-option-head {
+            display: grid;
+            gap: 8px;
+        }
+
+        .recurrence-option-head p {
+            margin: 0;
+            color: var(--muted);
+            font-size: 13px;
+            font-weight: 800;
+            line-height: 1.55;
+        }
+
+        .category-pill-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .category-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            padding: 7px 10px;
+            border-radius: 999px;
+            border: 1px solid rgba(32, 50, 54, 0.12);
+            background: #fff;
+            color: var(--muted);
+            font-size: 12px;
+            font-weight: 900;
+        }
+
+        .category-pill.positive {
+            color: #247b66;
+            background: #eaf9f4;
+            border-color: #bde9dd;
+        }
+
+        .category-pill.negative {
+            color: #b45143;
+            background: #fff1ed;
+            border-color: #f3c6bd;
+        }
+
+        .category-pill.unclear {
+            color: #8c6a12;
+            background: #fff8df;
+            border-color: #efd98f;
+        }
+
+        .generated-outcome-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 10px;
+        }
+
+        .generated-outcome-card {
+            display: grid;
+            gap: 8px;
+            padding: 12px;
+            border: 1px solid rgba(32, 50, 54, 0.12);
+            border-radius: 10px;
+            background: #fff;
+        }
+
+        .generated-outcome-card strong {
+            font-size: 13px;
+            line-height: 1.35;
+        }
+
+        .generated-outcome-card p,
+        .generated-outcome-card blockquote {
+            margin: 0;
+            color: var(--muted);
+            font-size: 12px;
+            font-weight: 800;
+            line-height: 1.45;
+        }
+
+        .generated-outcome-card blockquote {
+            color: var(--ink);
+            font-weight: 900;
+        }
+
+        .option-summary-panel {
+            position: relative;
+            display: grid;
+            gap: 10px;
+            margin-top: 2px;
+            padding: 14px;
+            overflow: hidden;
+            border: 1px solid rgba(45, 132, 111, 0.18);
+            border-radius: 14px;
+            background:
+                radial-gradient(circle at 16% 0%, rgba(255, 255, 255, 0.94), rgba(255, 255, 255, 0) 34%),
+                linear-gradient(135deg, rgba(238, 250, 245, 0.95), rgba(32, 50, 54, 0.055));
+            box-shadow:
+                inset 0 0 0 999px rgba(32, 50, 54, 0.018),
+                0 16px 34px rgba(32, 50, 54, 0.08);
+        }
+
+        .option-summary-panel::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            background: linear-gradient(90deg, rgba(32, 50, 54, 0.045), rgba(255, 255, 255, 0.18) 24%, rgba(32, 50, 54, 0.035));
+            mix-blend-mode: multiply;
+        }
+
+        .summary-column-label {
+            position: relative;
+            z-index: 1;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            width: fit-content;
+            padding: 7px 11px;
+            border: 1px solid rgba(45, 132, 111, 0.28);
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.84);
+            color: var(--teal-dark);
+            font-size: 12px;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            box-shadow: 0 10px 24px rgba(45, 132, 111, 0.09);
+        }
+
+        .classified-summary {
+            position: relative;
+            z-index: 1;
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 10px;
+            padding: 0;
+            border-radius: 12px;
+            background: transparent;
+        }
+
+        .classified-summary-group {
+            display: grid;
+            gap: 8px;
+            align-content: start;
+            padding: 10px;
+            border-radius: 10px;
+            border: 1px solid rgba(32, 50, 54, 0.1);
+            background: rgba(255, 255, 255, 0.76);
+        }
+
+        .classified-summary-group h4 {
+            margin: 0;
+            font-size: 12px;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .classified-summary-group.positive {
+            border-color: #bde9dd;
+            background: #f1fbf8;
+        }
+
+        .classified-summary-group.positive h4 {
+            color: #247b66;
+        }
+
+        .classified-summary-group.negative {
+            border-color: #f3c6bd;
+            background: #fff6f3;
+        }
+
+        .classified-summary-group.negative h4 {
+            color: #b45143;
+        }
+
+        .classified-summary-group.unclear {
+            border-color: #efd98f;
+            background: #fffaf0;
+        }
+
+        .classified-summary-group.unclear h4 {
+            color: #8c6a12;
+        }
+
+        .classified-summary-group ul,
+        .final-action-list {
+            display: grid;
+            gap: 6px;
+            margin: 0;
+            padding-left: 17px;
+        }
+
+        .classified-summary-group li,
+        .final-action-list li {
+            color: var(--muted);
+            font-size: 12px;
+            font-weight: 800;
+            line-height: 1.45;
+        }
+
+        .decision-comparison {
+            grid-column: 1 / -1;
+            overflow-x: auto;
+            padding: 14px;
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.88);
+            border: 1px solid rgba(32, 50, 54, 0.1);
+        }
+
+        .decision-comparison h3,
+        .final-recommendation h3 {
+            margin: 0 0 10px;
+            font-size: 17px;
+            letter-spacing: -0.03em;
+        }
+
+        .decision-comparison table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 540px;
+        }
+
+        .decision-comparison th,
+        .decision-comparison td {
+            padding: 10px 8px;
+            border-bottom: 1px solid rgba(32, 50, 54, 0.1);
+            text-align: right;
+            font-size: 13px;
+            font-weight: 900;
+        }
+
+        .decision-comparison th:first-child,
+        .decision-comparison td:first-child {
+            text-align: left;
+        }
+
+        .decision-comparison tr:last-child td {
+            border-bottom: 0;
+        }
+
+        .comparison-heading {
+            display: inline-flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 7px;
+        }
+
+        .comparison-heading.positive {
+            color: #247b66;
+        }
+
+        .comparison-heading.negative {
+            color: #b45143;
+        }
+
+        .comparison-heading.unclear {
+            color: #8c6a12;
+        }
+
+        .comparison-value {
+            display: inline-flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 7px;
+            padding: 7px 9px;
+            border-radius: 999px;
+            font-size: 12px;
+            font-weight: 900;
+            white-space: nowrap;
+        }
+
+        .comparison-value.positive {
+            color: #247b66;
+            background: #eaf9f4;
+        }
+
+        .comparison-value.negative {
+            color: #b45143;
+            background: #fff1ed;
+        }
+
+        .comparison-value.unclear {
+            color: #8c6a12;
+            background: #fff8df;
+        }
+
+        .final-recommendation {
+            grid-column: 1 / -1;
+            padding: 16px;
+            border-radius: 12px;
+            border: 1px solid #f0d88a;
+            background: #fff8e6;
+        }
+
+        .final-recommendation p {
+            margin: 0 0 10px;
+            color: var(--muted);
+            font-size: 13px;
+            font-weight: 800;
+            line-height: 1.55;
         }
 
         .recurrence-bar-label {
@@ -1680,16 +2526,16 @@
             .stage-grid,
             .tree-grid,
             .detail-panel,
-            .recurrence-summary {
+            .recurrence-summary,
+            .generated-outcome-grid,
+            .classified-summary,
+            .turn-detail-grid,
+            .actual-bubble-row {
                 grid-template-columns: 1fr;
             }
 
             .recurrence-head {
                 flex-direction: column;
-            }
-
-            .recurrence-run-btn {
-                width: 100%;
             }
 
             .persona-column {
@@ -1703,7 +2549,27 @@
                 padding: 14px 18px;
             }
 
+            .brand-cluster {
+                gap: 12px;
+            }
+
+            .brand img {
+                width: 78px;
+                height: 62px;
+                border-radius: 12px;
+            }
+
             .brand span {
+                display: none;
+            }
+
+            .landing-back-link {
+                width: 42px;
+                min-width: 42px;
+                padding: 10px 12px;
+            }
+
+            .landing-back-link span {
                 display: none;
             }
 
@@ -1713,6 +2579,10 @@
             }
 
             .candidate-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .recurrence-summary {
                 grid-template-columns: 1fr;
             }
 
@@ -1729,6 +2599,7 @@
                 <img src="assets/syntrae-logo.svg" alt="Syntrae logo">
                 <span>Dashboard</span>
             </a>
+            <a class="landing-back-link" href="landing.html" aria-label="Back to landing page"><i class="fas fa-arrow-left"></i> <span>Back to landing page</span></a>
         </div>
         <div class="account-indicator" id="accountIndicator">Daniel Smith</div>
         <div class="more-menu">
@@ -1738,7 +2609,6 @@
                 <span class="line"></span>
             </button>
             <nav class="dropdown-menu" id="dropdownMenu" aria-label="Dashboard navigation">
-                <a class="dropdown-item" href="landing.html"><i class="fas fa-arrow-left"></i> Back to landing page</a>
                 <a class="dropdown-item" id="analyzeLink" href="analyze.html?demo=decision-tree&amp;persona=daniel-smith-demo"><i class="fas fa-pencil-alt"></i> Analyze and Edit Your Persona</a>
                 <a class="dropdown-item" id="dropdownProfileLink" href="profile.html?demo=decision-tree"><i class="fas fa-id-card"></i> Your Persona</a>
                 <button class="dropdown-item guide-menu-item" id="startUniversalGuide" type="button"><i class="fas fa-route"></i> How to use Syntrae</button>
@@ -1791,8 +2661,8 @@
                     </div>
                     <div class="chat-transcript" id="chatTranscript" aria-live="polite"></div>
                     <form class="chat-input-bar" id="visualChatForm">
-                        <input id="visualChatInput" type="text" placeholder="Type your message here..." autocomplete="off">
-                        <button class="primary-btn" type="submit"><i class="fas fa-paper-plane"></i> Send</button>
+                        <input id="visualChatInput" type="text" placeholder="Edit the bubbles above, then add a note for the next rerun..." autocomplete="off">
+                        <button class="primary-btn" id="visualChatSubmit" type="submit"><i class="fas fa-sync-alt"></i> Recur next reply</button>
                     </form>
                 </div>
             </section>
@@ -1841,11 +2711,8 @@
                             <div>
                                 <span class="kicker"><i class="fas fa-sync-alt"></i> Syntrae Test</span>
                                 <h2>Consequence Tree.</h2>
-                                <p>Syntrae compares the available options, then lists five possible outcomes for each option using the demo inputs.</p>
+                                <p>Syntrae compares the available options, then lists five most likely outcomes.</p>
                             </div>
-                            <button class="recurrence-run-btn" id="recurrenceRunButton" type="button">
-                                <i class="fas fa-redo"></i> Run Syntrae Test
-                            </button>
                         </div>
                         <div class="recurrence-summary" id="recurrenceSummary"></div>
                         <div class="recurrence-bars" id="recurrenceBars"></div>
@@ -1865,26 +2732,15 @@
                     <img src="assets/happy-3d-smile.svg" alt="">
                 </div>
                 <span class="kicker">Thank you for trying Syntrae</span>
-                <h2 id="launchSoonTitle">Syntrae is launching soon, please come back later.</h2>
-                <p id="launchSoonCopy">This dashboard is a visual preview for the demo. We appreciate your interest and are preparing the full private chat experience with care.</p>
-                <table class="launch-soon-table" aria-label="Syntrae launch status">
-                    <tbody>
-                        <tr>
-                            <th scope="row">Status</th>
-                            <td>Preview open, live messaging coming soon.</td>
-                        </tr>
-                        <tr>
-                            <th scope="row">Thanks</th>
-                            <td>Your curiosity helps shape a more thoughtful product.</td>
-                        </tr>
-                        <tr>
-                            <th scope="row">Next</th>
-                            <td>Come back for launch updates and full Syntrae access.</td>
-                        </tr>
-                    </tbody>
-                </table>
+                <h2 id="launchSoonTitle">Create more chat spaces at launch.</h2>
+                <p id="launchSoonCopy">You are at the point where Syntrae would normally open another private decision space for Daniel. Join the waitlist to get launch access when the full chat-space experience is ready.</p>
+                <div class="already-joined-note">
+                    <strong>Already joined the waitlist?</strong>
+                    <span>Thank you. Please wait for our launch, and we will send Syntrae updates to the email you used to join.</span>
+                </div>
                 <div class="launch-soon-actions">
-                    <button class="primary-btn" type="button" id="launchSoonOk"><i class="fas fa-heart"></i> Back to demo</button>
+                    <button class="secondary-btn" type="button" id="launchSoonOk"><i class="fas fa-arrow-left"></i> Back to demo</button>
+                    <a class="primary-btn" href="landing.html#founding"><i class="fas fa-user-plus"></i> Join waitlist</a>
                 </div>
             </div>
         </div>
@@ -1933,50 +2789,199 @@
                 personaKey: 'daniel',
                 title: 'Invite Daniel to talk',
                 meta: 'Current decision',
-                personaContext: personas.daniel,
-                prompt: "I want to invite Daniel to talk about where we're going, but I don't want the message to feel heavy. What are the possible consequences of different ways to ask?",
+                personaContext: {
+                    facts: ['Graduate student', 'Afternoon receptive', 'Shy with love', 'Private context'],
+                    headline: 'Warm, thoughtful, and most receptive when serious topics are introduced in a private afternoon window.',
+                    summary: 'Daniel responds better when Maya starts gently, leaves room to think, and avoids making the first message feel like an immediate relationship verdict.',
+                    logic: 'Syntrae Test should favor candidate actions that give Daniel warmth, privacy, and choice while still helping Maya move toward clarity.'
+                },
+                prompt: "I want to invite Daniel to talk about where we're going, but I don't want the message to feel heavy. What are some different ways to ask?",
                 introTitle: 'Best Way',
-                introCopy: 'Compare message styles before choosing the one action that goes out in real life.',
-                candidates: ['Warm and direct', 'Light and open-ended', 'Reflective and intentional'],
-                messages: [
-                    { role: 'user', speaker: 'Maya Chen', text: "I want to invite Daniel to talk about where we're going, but I don't want the message to feel heavy. What are the possible consequences of different ways to ask?" },
-                    { role: 'agent', speaker: 'Syntrae', text: 'I can compare warm, light, and reflective openings, then map the most likely outcomes and exact probability totals before the message is sent.' }
+                introCopy: 'Compare the exact messages before choosing the one action that goes out in real life.',
+                candidates: [
+                    {
+                        title: 'Option A: Warm and direct',
+                        content: "For example: I've really enjoyed spending time with you, and I'd love to see you again. Are you free this weekend?"
+                    },
+                    {
+                        title: 'Option B: Light and open-ended',
+                        content: 'For example: I had a lot of fun with you. What kind of adventure should we plan next?'
+                    },
+                    {
+                        title: 'Option C: Reflective and intentional',
+                        content: "For example: I've been thinking about the time we've spent together, and I really appreciate how comfortable and genuine things feel between us. How have you been feeling about us?"
+                    }
                 ],
+                messages: [
+                    { role: 'user', speaker: 'Maya Chen', text: "I want to invite Daniel to talk about where we're going, but I don't want the message to feel heavy. What are some different ways to ask?" },
+                    { role: 'agent', speaker: 'Syntrae', text: 'I can test three exact messages, classify the outcomes that repeat, and show which message creates the clearest upside with the least pressure.' }
+                ],
+                conversationLoop: {
+                    openingPrompt: "I want to invite Daniel to talk about where we're going, but I don't want the message to feel heavy. What are some different ways to ask?",
+                    openingResponse: 'Syntrae picked the light and open-ended message as the first move. The live conversation below shows how Maya can keep updating Syntrae after each real Daniel reply.',
+                    turns: [
+                        {
+                            label: 'Turn 1',
+                            maya: 'I had a lot of fun with you. What kind of adventure should we plan next?',
+                            daniel: 'Haha I had fun too. Maybe coffee and a walk next time?',
+                            syntrae: 'Best Way: "Coffee and a walk sounds perfect. Saturday afternoon?"',
+                            reason: 'Daniel answered warmly and offered a specific next step. This reply accepts his idea while keeping Maya\'s original goal intact: interested, clear, and not heavy.',
+                            detailSummary: 'Accept the coffee idea, suggest one calm time, and keep the message light.',
+                            detailTree: [
+                                {
+                                    title: 'Option A: Accept and suggest a calm time',
+                                    reply: 'Coffee and a walk sounds perfect. Saturday afternoon?',
+                                    best: true,
+                                    outcomes: [
+                                        { type: 'positive', text: 'Daniel can simply confirm the time because Maya accepted his idea.' },
+                                        { type: 'positive', text: 'The reply keeps the romantic pressure low while still moving the plan forward.' },
+                                        { type: 'unclear', text: 'If Saturday is busy, Daniel may offer another time instead of rejecting the idea.' }
+                                    ]
+                                },
+                                {
+                                    title: 'Option B: Ask what he means by walk',
+                                    reply: 'That sounds nice. Did you mean just as friends or more like a date?',
+                                    outcomes: [
+                                        { type: 'positive', text: 'Daniel may clarify his intention if he already feels confident.' },
+                                        { type: 'negative', text: 'The question can make the moment feel heavier than his casual reply.' },
+                                        { type: 'unclear', text: 'Daniel may pause because the topic shifts from planning to defining the relationship.' }
+                                    ]
+                                },
+                                {
+                                    title: 'Option C: Delay the plan',
+                                    reply: 'Maybe. Let me think and I will let you know.',
+                                    outcomes: [
+                                        { type: 'negative', text: 'Daniel may feel Maya is less interested after he offered a clear plan.' },
+                                        { type: 'unclear', text: 'The conversation stays open but loses momentum.' },
+                                        { type: 'positive', text: 'It gives Maya time if she is not ready to meet yet.' }
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            label: 'Turn 2',
+                            maya: 'Coffee and a walk sounds perfect. Saturday afternoon?',
+                            daniel: "Saturday afternoon works. I have a class project in the morning, but after 3 I'm free.",
+                            syntrae: 'Best Way: "After 3 works. Let\'s grab coffee near campus and walk by the garden."',
+                            reason: 'Daniel gave a clear yes and a time window. Maya should confirm the plan instead of turning the text into a serious relationship talk.',
+                            detailSummary: 'Confirm his available time and make the plan easy to picture.',
+                            detailTree: [
+                                {
+                                    title: 'Option A: Confirm the plan clearly',
+                                    reply: "After 3 works. Let's grab coffee near campus and walk by the garden.",
+                                    best: true,
+                                    outcomes: [
+                                        { type: 'positive', text: 'Daniel knows exactly when and where to meet.' },
+                                        { type: 'positive', text: 'The plan feels relaxed, so Maya can save the deeper talk for the right moment.' },
+                                        { type: 'unclear', text: 'Daniel may still need to adjust the location if his project runs late.' }
+                                    ]
+                                },
+                                {
+                                    title: 'Option B: Bring up the relationship now',
+                                    reply: 'Great. I also want to talk about where this is going when we meet.',
+                                    outcomes: [
+                                        { type: 'positive', text: 'Daniel understands Maya wants a serious conversation.' },
+                                        { type: 'negative', text: 'The date may feel heavier before it starts.' },
+                                        { type: 'unclear', text: 'Daniel may agree but become more guarded before meeting.' }
+                                    ]
+                                },
+                                {
+                                    title: 'Option C: Keep it too vague',
+                                    reply: 'Cool, see you then.',
+                                    outcomes: [
+                                        { type: 'positive', text: 'The message is low pressure and easy to answer.' },
+                                        { type: 'negative', text: 'It misses the chance to set a clear plan.' },
+                                        { type: 'unclear', text: 'Daniel may have to ask where they are meeting.' }
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            label: 'Turn 3',
+                            maya: "After 3 works. Let's grab coffee near campus and walk by the garden.",
+                            daniel: "That sounds nice. I'm looking forward to it.",
+                            syntrae: 'Best Way: meet as planned and bring up the deeper conversation only if the moment feels calm.',
+                            reason: 'Daniel stayed positive and the in-person plan is already set. Maya does not need to force a heavy text when a calmer moment is coming.',
+                            detailSummary: 'Do not add pressure by text; let the in-person moment carry the deeper talk.',
+                            detailTree: [
+                                {
+                                    title: 'Option A: Meet first, talk only if it feels calm',
+                                    reply: 'Sounds good. Looking forward to it too.',
+                                    best: true,
+                                    outcomes: [
+                                        { type: 'positive', text: 'Daniel arrives relaxed because nothing heavy was added by text.' },
+                                        { type: 'positive', text: 'Maya can read his mood in person before starting a deeper conversation.' },
+                                        { type: 'unclear', text: 'The relationship question may wait if the walk stays casual.' }
+                                    ]
+                                },
+                                {
+                                    title: 'Option B: Add the serious topic now',
+                                    reply: 'I am looking forward to it too. I want to talk about us when we meet.',
+                                    outcomes: [
+                                        { type: 'positive', text: 'Daniel knows the deeper topic is coming.' },
+                                        { type: 'negative', text: 'The plan may start to feel tense before they meet.' },
+                                        { type: 'unclear', text: 'Daniel may agree but spend the day worrying about what Maya means.' }
+                                    ]
+                                },
+                                {
+                                    title: 'Option C: Avoid the topic completely',
+                                    reply: 'Same here!',
+                                    outcomes: [
+                                        { type: 'positive', text: 'The tone stays easy and warm.' },
+                                        { type: 'negative', text: 'Maya may lose the chance to ask for clarity if she avoids it all day.' },
+                                        { type: 'unclear', text: 'The decision depends on whether a private moment naturally appears.' }
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                },
                 outcomes: [
                     {
                         title: 'Option A',
                         action: 'Warm and direct',
-                        probability: 0.37,
-                        items: [
-                            { label: 'Daniel respects the honesty', probability: 0.17, reason: 'Daniel scores high on sincerity and thoughtful communication, so a clear invitation is likely to read as respectful rather than confrontational.' },
-                            { label: 'Daniel asks for a little time to think', probability: 0.12, reason: 'Because he processes important topics carefully, direct language can prompt him to pause before answering.' },
-                            { label: 'The conversation happens with a more serious tone', probability: 0.08, reason: 'The direct framing increases clarity, but it can also make the moment feel more defining than casual.' }
+                        content: "For example: I've really enjoyed spending time with you, and I'd love to see you again. Are you free this weekend?",
+                        generatedOutcomes: [
+                            { classification: 'positive', recurrencePercent: 17, label: 'Daniel appreciates the honesty and agrees to talk.', example: "I've enjoyed spending time with you too. Yeah, let's talk this weekend.", explanation: "The direct wording makes Maya's interest clear, and Daniel respects that sincerity." },
+                            { classification: 'negative', recurrencePercent: 18, label: 'Daniel feels the message is too serious for the moment.', example: "Oh, I didn't realize we were talking about it like that already.", explanation: 'Daniel can get shy when love is named directly, so the message may feel sudden.' },
+                            { classification: 'unclear', recurrencePercent: 29, label: 'Daniel responds kindly but asks for more time.', example: 'I care about you, but I need a little time to think before I answer.', explanation: 'He does not reject Maya, but he needs room before answering clearly.' },
+                            { classification: 'positive', recurrencePercent: 20, label: 'Daniel opens up because the clarity reduces confusion.', example: "I'm glad you said this directly. I've been wondering how you felt too.", explanation: 'The message removes ambiguity and gives him permission to be honest back.' },
+                            { classification: 'negative', recurrencePercent: 16, label: 'Daniel becomes guarded because the timing feels sudden.', example: "Can we not get into this right now? I'm not really ready.", explanation: 'If he is busy or emotionally unprepared, directness can feel like pressure.' }
                         ]
                     },
                     {
                         title: 'Option B',
                         action: 'Light and open-ended',
-                        probability: 0.41,
-                        items: [
-                            { label: 'Daniel feels comfortable saying yes', probability: 0.18, reason: 'This matches Daniel\'s preference for warmth and autonomy, lowering the chance that the invitation feels like pressure.' },
-                            { label: 'He responds warmly but sets a slower pace', probability: 0.14, reason: 'The wording gives him room to engage, but his cautious style may still lead him to choose a gradual conversation.' },
-                            { label: 'The opening lands well, but needs one clearer follow-up', probability: 0.09, reason: 'A lighter tone preserves comfort, but it may leave the purpose slightly underdefined until Maya adds one concrete follow-up.' }
+                        content: 'For example: I had a lot of fun with you. What kind of adventure should we plan next?',
+                        generatedOutcomes: [
+                            { classification: 'positive', recurrencePercent: 22, label: 'Daniel feels relaxed and responds warmly.', example: 'Haha I had fun too. Maybe coffee and a walk next time?', explanation: 'The tone is playful enough that Daniel can answer without feeling cornered.' },
+                            { classification: 'positive', recurrencePercent: 20, label: 'Daniel accepts the invitation without feeling pressured.', example: "I'm down. Let's plan something for Saturday afternoon.", explanation: 'The message invites participation instead of demanding emotional commitment.' },
+                            { classification: 'negative', recurrencePercent: 21, label: 'Daniel misses the deeper meaning.', example: 'Yeah, that was fun. We should invite the others next time too.', explanation: 'The light wording may not clearly signal that Maya wants a private conversation.' },
+                            { classification: 'unclear', recurrencePercent: 19, label: 'Daniel keeps the tone casual but engaged.', example: "Adventure sounds dramatic, but I'm interested.", explanation: 'He stays warm, but Maya still does not know whether he understands the deeper ask.' },
+                            { classification: 'unclear', recurrencePercent: 18, label: 'Daniel replies warmly, giving Maya a chance to follow up.', example: 'I liked spending time with you too. What did you have in mind?', explanation: 'The answer opens the door, but Maya needs one clearer second message.' }
                         ]
                     },
                     {
                         title: 'Option C',
                         action: 'Reflective and intentional',
-                        probability: 0.22,
-                        items: [
-                            { label: 'Daniel recognizes the sincerity', probability: 0.10, reason: 'Daniel values emotional honesty, so a reflective message can register as genuine when the wording stays grounded.' },
-                            { label: 'The tone feels heavier than he wants right away', probability: 0.08, reason: 'His profile indicates sensitivity to emotional intensity, making this opening more likely to feel weighty at the start.' },
-                            { label: 'He replies later after processing the stakes', probability: 0.04, reason: 'When a message carries multiple emotional layers, Daniel is more likely to wait until he can respond carefully.' }
+                        content: "For example: I've been thinking about the time we've spent together, and I really appreciate how comfortable and genuine things feel between us. How have you been feeling about us?",
+                        generatedOutcomes: [
+                            { classification: 'positive', recurrencePercent: 21, label: 'Daniel appreciates the emotional maturity.', example: "That means a lot. I've felt comfortable with you too.", explanation: 'The message shows care and gives him a serious but respectful opening.' },
+                            { classification: 'negative', recurrencePercent: 15, label: 'Daniel feels overwhelmed by the depth.', example: "I don't know how to answer that right now.", explanation: 'The wording has a lot of emotional weight before Daniel has settled into the topic.' },
+                            { classification: 'unclear', recurrencePercent: 24, label: 'Daniel asks for clarification.', example: 'Are you asking if I see this becoming something more serious?', explanation: 'He engages with the question, but Maya still needs to clarify what she wants.' },
+                            { classification: 'unclear', recurrencePercent: 24, label: 'Daniel responds thoughtfully but slowly.', example: 'I want to answer honestly, but I need time to think.', explanation: 'He does not close the door, but the conversation slows down.' },
+                            { classification: 'negative', recurrencePercent: 16, label: 'Daniel becomes anxious because the message feels too planned.', example: 'This feels like a big conversation suddenly.', explanation: 'The careful phrasing can make the moment feel more formal than he is ready for.' }
                         ]
                     }
                 ],
                 recommendation: {
-                    title: 'Suggested first move: Option B.',
-                    text: 'It best fits Daniel\'s mix of sincerity and caution: warm enough to feel safe, clear enough to feel real, and open enough to preserve his sense of choice.'
+                    title: 'Best first move: Light and open-ended.',
+                    text: 'Send the lighter message in the afternoon, then use Daniel\'s reply to decide whether to make the next message more direct.',
+                    actions: [
+                        'Start with: "I had a lot of fun with you. What kind of adventure should we plan next?"',
+                        'If Daniel replies warmly, follow up with: "I would like it to be just us if you are comfortable with that."',
+                        'If Daniel stays vague, wait and ask the deeper relationship question later instead of forcing it immediately.'
+                    ]
                 }
             },
             timing: {
@@ -1991,68 +2996,192 @@
                 },
                 prompt: 'Would Saturday afternoon be a better time than a weeknight to ask Daniel for a deeper conversation?',
                 introTitle: 'Best Way',
-                introCopy: 'Compare timing options before choosing when to bring up the conversation.',
-                candidates: ['Saturday afternoon', 'Weeknight text', 'After a warm date'],
+                introCopy: 'Compare the exact timing choices before choosing when to bring up the conversation.',
+                candidates: [
+                    {
+                        title: 'Option A: Saturday afternoon',
+                        content: 'Ask in person on Saturday afternoon: "Could we talk for a bit today? I want to share how I feel without rushing you."'
+                    },
+                    {
+                        title: 'Option B: Weeknight text',
+                        content: 'Text on a weeknight: "Could we talk sometime soon about where things are going?"'
+                    },
+                    {
+                        title: 'Option C: After a warm date',
+                        content: 'Ask near the end of a good date: "Tonight felt really nice. Could we talk for a few minutes about us?"'
+                    }
+                ],
                 messages: [
                     { role: 'user', speaker: 'Maya Chen', text: 'Would Saturday afternoon be a better time than a weeknight to ask Daniel for a deeper conversation?' },
                     { role: 'agent', speaker: 'Syntrae', text: 'Saturday looks strongest because it gives Daniel calm conditions to engage thoughtfully. After a warm date can also work if the shift into the topic stays gentle.' }
                 ],
+                conversationLoop: {
+                    openingPrompt: 'Would Saturday afternoon be a better time than a weeknight to ask Daniel for a deeper conversation?',
+                    openingResponse: 'Syntrae picked Saturday afternoon as the strongest starting window. The live conversation below shows how Maya can update the timing after each real Daniel reply.',
+                    loadingCopy: 'Using Maya\'s timing goal, Daniel\'s latest reply, and the need to keep the deeper conversation calm instead of sudden.',
+                    turns: [
+                        {
+                            label: 'Turn 1',
+                            maya: 'Would Saturday afternoon be a better time than a weeknight to talk about where things are going?',
+                            daniel: 'Saturday afternoon is probably better. Weeknights have been packed with project work.',
+                            syntrae: 'Best Way: "That makes sense. Saturday afternoon works for me. We can keep it low pressure and talk when you have room."',
+                            reason: 'Daniel named weeknight pressure and gave Maya a better opening. This reply accepts his timing cue and reassures him that the talk does not need to feel urgent.',
+                            detailSummary: 'Confirm Saturday, lower the pressure, and make the timing feel easy to accept.',
+                            detailTree: [
+                                {
+                                    title: 'Option A: Confirm Saturday and lower pressure',
+                                    reply: 'That makes sense. Saturday afternoon works for me. We can keep it low pressure and talk when you have room.',
+                                    best: true,
+                                    outcomes: [
+                                        { type: 'positive', text: 'Daniel feels heard because Maya accepts the time he says is easier.' },
+                                        { type: 'positive', text: 'The message keeps the deeper topic calm instead of forcing it into a busy weeknight.' },
+                                        { type: 'unclear', text: 'Daniel may still narrow the exact time if school work changes.' }
+                                    ]
+                                },
+                                {
+                                    title: 'Option B: Push for a weeknight anyway',
+                                    reply: 'Could we still talk one night this week? I do not want to wait too long.',
+                                    outcomes: [
+                                        { type: 'negative', text: 'Daniel may feel Maya ignored the pressure he just named.' },
+                                        { type: 'negative', text: 'The conversation can start to feel urgent before he is ready.' },
+                                        { type: 'unclear', text: 'He may agree to a shorter text conversation but stay less open.' }
+                                    ]
+                                },
+                                {
+                                    title: 'Option C: Move it to after a date',
+                                    reply: 'Maybe we can wait until after our next date and see how the night feels.',
+                                    outcomes: [
+                                        { type: 'positive', text: 'The warm setting may make the conversation easier later.' },
+                                        { type: 'unclear', text: 'Daniel may not know whether Maya still wants the deeper talk.' },
+                                        { type: 'negative', text: 'Maya could lose the clear Saturday window he already offered.' }
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            label: 'Turn 2',
+                            maya: 'That makes sense. Saturday afternoon works for me. We can keep it low pressure and talk when you have room.',
+                            daniel: 'Thanks. I appreciate that. Maybe after lunch? I have to help my roommate later.',
+                            syntrae: 'Best Way: "After lunch works. We can take a short walk and stop whenever it feels like enough."',
+                            reason: 'Daniel gave a real time window and a boundary. Maya should make the plan easy to picture while showing she will not trap him in a long conversation.',
+                            detailSummary: 'Use his after-lunch window and set a short, comfortable plan.',
+                            detailTree: [
+                                {
+                                    title: 'Option A: Use his window and keep it short',
+                                    reply: 'After lunch works. We can take a short walk and stop whenever it feels like enough.',
+                                    best: true,
+                                    outcomes: [
+                                        { type: 'positive', text: 'Daniel knows the talk will fit inside the time he actually has.' },
+                                        { type: 'positive', text: 'A walk makes the setting private without feeling formal.' },
+                                        { type: 'unclear', text: 'If his roommate plan changes, Daniel can still suggest another time.' }
+                                    ]
+                                },
+                                {
+                                    title: 'Option B: Ask for a longer block',
+                                    reply: 'Could we keep the whole afternoon open? I think we may need more time.',
+                                    outcomes: [
+                                        { type: 'negative', text: 'Daniel may feel Maya is asking for more time than he offered.' },
+                                        { type: 'negative', text: 'The deeper talk can start to feel too large before it begins.' },
+                                        { type: 'unclear', text: 'He may agree but become more guarded about what Maya wants to say.' }
+                                    ]
+                                },
+                                {
+                                    title: 'Option C: Move the talk to night',
+                                    reply: 'If the afternoon is busy, maybe we can talk Saturday night instead.',
+                                    outcomes: [
+                                        { type: 'unclear', text: 'The evening may work, but it changes the calmer afternoon plan.' },
+                                        { type: 'negative', text: 'Daniel may be tired after helping his roommate.' },
+                                        { type: 'positive', text: 'It gives flexibility if the afternoon becomes crowded.' }
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            label: 'Turn 3',
+                            maya: 'After lunch works. We can take a short walk and stop whenever it feels like enough.',
+                            daniel: 'That sounds good. I like that it does not have to be a huge conversation.',
+                            syntrae: 'Best Way: keep the plan simple and do not add more explanation by text.',
+                            reason: 'Daniel is accepting the plan because it feels manageable. Extra explanation now would add weight after Maya already made the timing feel safe.',
+                            detailSummary: 'Do not over-text; let the calm Saturday plan carry the conversation.',
+                            detailTree: [
+                                {
+                                    title: 'Option A: Keep it simple',
+                                    reply: 'Sounds good. I am glad that feels easier.',
+                                    best: true,
+                                    outcomes: [
+                                        { type: 'positive', text: 'Daniel stays relaxed because Maya does not add pressure.' },
+                                        { type: 'positive', text: 'The plan remains clear and easy to follow.' },
+                                        { type: 'unclear', text: 'Maya still needs to bring up the deeper topic in person.' }
+                                    ]
+                                },
+                                {
+                                    title: 'Option B: Explain the whole topic now',
+                                    reply: 'I mainly want to talk about whether we are becoming something serious.',
+                                    outcomes: [
+                                        { type: 'negative', text: 'Daniel may feel the text made the conversation bigger again.' },
+                                        { type: 'positive', text: 'He understands the topic before arriving.' },
+                                        { type: 'unclear', text: 'He may start thinking carefully instead of staying relaxed.' }
+                                    ]
+                                },
+                                {
+                                    title: 'Option C: Avoid the topic completely',
+                                    reply: 'No worries, we can just hang out.',
+                                    outcomes: [
+                                        { type: 'positive', text: 'The plan feels very low pressure.' },
+                                        { type: 'negative', text: 'Maya may undercut her own goal of getting clarity.' },
+                                        { type: 'unclear', text: 'Daniel may not realize a deeper talk is still intended.' }
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                },
                 outcomes: [
                     {
                         title: 'Path A',
                         action: 'Saturday afternoon',
-                        probability: 0.48,
-                        syntraeTest: {
-                            variables: ['Daniel\'s weekend availability', 'deadline pressure', 'message clarity', 'emotional intensity', 'privacy of the moment'],
-                            favorableAssumptions: ['Daniel has a quiet Saturday window', 'Maya can ask in a calm, low-pressure way', 'the relationship topic is clear without feeling urgent'],
-                            riskAssumptions: ['Daniel already has weekend plans', 'the question sounds like an immediate label decision', 'the conversation becomes more serious than intended'],
-                            rewardLogic: 'This path maximizes the reward of a thoughtful answer and better relationship clarity because Daniel has time and attention available.',
-                            punishmentLogic: 'It minimizes the punishment risk of catching him during deadline pressure or making the ask feel rushed.'
-                        },
-                        items: [
-                            { label: 'Daniel has room to think and answer well', probability: 0.20, reason: 'Saturday gives Daniel more mental space than a school night, which fits his pattern of responding better when serious topics are not rushed.' },
-                            { label: 'The tone feels mutual instead of urgent', probability: 0.16, reason: 'A planned weekend window signals care and patience, so the request is less likely to feel like an immediate demand.' },
-                            { label: 'The moment still feels a little serious', probability: 0.12, reason: 'Even with good timing, the relationship topic itself carries weight, so some seriousness remains.' }
+                        content: 'Ask in person on Saturday afternoon: "Could we talk for a bit today? I want to share how I feel without rushing you."',
+                        generatedOutcomes: [
+                            { classification: 'positive', recurrencePercent: 28, label: 'Daniel has the afternoon free and opens up.', example: 'Saturday works. I have the afternoon free, so we can talk without rushing.', explanation: 'The timing gives him privacy and enough attention for a deeper conversation.' },
+                            { classification: 'positive', recurrencePercent: 24, label: 'Daniel appreciates the gentle timing.', example: "I appreciate you asking gently. Let's go for a walk and talk.", explanation: 'A planned weekend window feels less like a demand.' },
+                            { classification: 'negative', recurrencePercent: 12, label: 'Daniel is pulled into deadline work.', example: "I just got pulled into a project deadline, so I can't focus today.", explanation: 'Weekend availability is not guaranteed while school pressure is high.' },
+                            { classification: 'negative', recurrencePercent: 8, label: 'Daniel feels Saturday became too serious.', example: 'This feels like a lot for today. Can we not turn Saturday into a serious talk?', explanation: 'Even good timing can feel heavy if the transition is too sudden.' },
+                            { classification: 'unclear', recurrencePercent: 28, label: 'Daniel can start but may need a second conversation.', example: 'I can meet for a little bit, but I may need to continue next week.', explanation: 'The path begins well, but Daniel may still need more time.' }
                         ]
                     },
                     {
                         title: 'Path B',
                         action: 'Weeknight text',
-                        probability: 0.17,
-                        syntraeTest: {
-                            variables: ['Daniel\'s evening workload', 'reply speed', 'text-message clarity', 'emotional bandwidth', 'school deadlines'],
-                            favorableAssumptions: ['Daniel is already texting and available', 'the message stays short and easy to answer', 'Maya only needs a first scheduling signal'],
-                            riskAssumptions: ['Daniel is tired after deadlines', 'the topic needs more emotional attention than text can carry', 'the reply becomes practical instead of meaningful'],
-                            rewardLogic: 'This path can reward Maya with quick logistics when Daniel is available and the goal is only to open the door.',
-                            punishmentLogic: 'It carries more punishment risk because a weeknight text can compress an important conversation into tired timing and shallow context.'
-                        },
-                        items: [
-                            { label: 'Daniel gives a practical reply', probability: 0.07, reason: 'On a weeknight, Daniel is more likely to be task-focused, so he may answer logistics without fully engaging the emotional meaning.' },
-                            { label: 'Response slows because of deadlines', probability: 0.06, reason: 'His current workload makes evening replies less reliable when the message asks for careful emotional attention.' },
-                            { label: 'The topic gets reduced to logistics', probability: 0.04, reason: 'When timing competes with school pressure, the conversation can shift toward scheduling rather than relationship clarity.' }
+                        content: 'Text on a weeknight: "Could we talk sometime soon about where things are going?"',
+                        generatedOutcomes: [
+                            { classification: 'positive', recurrencePercent: 14, label: 'Daniel answers because the text is simple.', example: 'I can text for a bit tonight. What did you want to talk about?', explanation: 'The message is easy to answer if he is already available.' },
+                            { classification: 'positive', recurrencePercent: 11, label: 'Daniel appreciates that Maya does not overexplain.', example: 'Thanks for keeping it simple. I can answer one question now.', explanation: 'The short text respects his time on a busy night.' },
+                            { classification: 'negative', recurrencePercent: 26, label: 'Daniel is too tired to engage deeply.', example: "I'm exhausted from class. Can we not do this tonight?", explanation: 'A weeknight competes with deadlines and lowers emotional bandwidth.' },
+                            { classification: 'negative', recurrencePercent: 19, label: 'Daniel treats the topic like pressure.', example: 'This is not a good time to start that conversation over text.', explanation: 'The medium makes the deeper topic feel compressed.' },
+                            { classification: 'unclear', recurrencePercent: 30, label: 'Daniel moves the conversation to the weekend.', example: 'Can we talk about this on the weekend instead?', explanation: 'He does not reject the topic, but the timing delays clarity.' }
                         ]
                     },
                     {
                         title: 'Path C',
                         action: 'After a warm date',
-                        probability: 0.35,
-                        syntraeTest: {
-                            variables: ['warmth after the date', 'privacy', 'Daniel\'s emotional openness', 'topic intensity', 'transition timing'],
-                            favorableAssumptions: ['the date ends with obvious warmth', 'Daniel is emotionally open and unhurried', 'Maya transitions gently into the question'],
-                            riskAssumptions: ['the shift feels sudden', 'Daniel reads the question as a high-stakes label decision', 'the good mood is interrupted by too much intensity'],
-                            rewardLogic: 'This path has strong reward potential because recent warmth can make the conversation feel natural and mutual.',
-                            punishmentLogic: 'It loses runs when the same warmth becomes fragile and the serious topic feels like too much too soon.'
-                        },
-                        items: [
-                            { label: 'Conversation opens naturally', probability: 0.15, reason: 'A warm date creates relational safety, which increases the chance Daniel can enter the topic with openness.' },
-                            { label: 'The timing feels emotionally sudden', probability: 0.11, reason: 'If the mood was light, moving quickly into a defining conversation may feel abrupt despite the positive connection.' },
-                            { label: 'Warmth helps, but clarity still needs a follow-up', probability: 0.09, reason: 'The emotional context is favorable, but Maya may still need to state the actual question clearly.' }
+                        content: 'Ask near the end of a good date: "Tonight felt really nice. Could we talk for a few minutes about us?"',
+                        generatedOutcomes: [
+                            { classification: 'positive', recurrencePercent: 22, label: 'The warm mood helps Daniel open up.', example: "Tonight felt really good. Yeah, let's talk while we walk.", explanation: 'Recent warmth makes the topic feel mutual instead of abrupt.' },
+                            { classification: 'positive', recurrencePercent: 18, label: 'Daniel appreciates that Maya names the moment.', example: "I'm glad you brought it up now. I was feeling close to you too.", explanation: 'The setting gives him emotional evidence to respond from.' },
+                            { classification: 'negative', recurrencePercent: 15, label: 'Daniel wants to end the date lightly.', example: "I don't want to end a nice night with a heavy conversation.", explanation: 'The serious topic can interrupt a positive mood.' },
+                            { classification: 'negative', recurrencePercent: 13, label: 'Daniel feels the shift is sudden.', example: 'This shift feels sudden. I was not expecting this tonight.', explanation: 'Moving from fun to depth too quickly can make him guarded.' },
+                            { classification: 'unclear', recurrencePercent: 32, label: 'Daniel is open but asks to continue later.', example: 'I want to talk, but maybe next time when we are not at the end of the night.', explanation: 'Warmth helps, but the timing may still need a better window.' }
                         ]
                     }
                 ],
                 recommendation: {
                     title: 'Suggested first move: Saturday afternoon.',
-                    text: 'It best matches Daniel\'s steady pacing and current workload. After a warm date is a strong second path if the tone stays relaxed.'
+                    text: 'Saturday afternoon gives Daniel the best chance to stay present without turning the topic into a rushed text.',
+                    actions: [
+                        'Ask in person: "Could we talk for a bit today? I want to share how I feel without rushing you."',
+                        'Choose a private, calm setting like a walk or quiet coffee spot.',
+                        'If Daniel has deadlines, offer to continue the conversation next week instead of pushing for an immediate answer.'
+                    ]
                 }
             },
             followup: {
@@ -2067,47 +3196,192 @@
                 },
                 prompt: 'If Daniel says yes warmly, what should the next reply say without overexplaining?',
                 introTitle: 'Best Way',
-                introCopy: 'Compare follow-up responses after openness is shown.',
-                candidates: ['Short and clear', 'Affirming and grounded', 'Detailed context'],
+                introCopy: 'Compare exact follow-up replies after Daniel has already answered warmly.',
+                candidates: [
+                    {
+                        title: 'Move A: Short and clear',
+                        content: 'Thanks. Could we talk Saturday afternoon?'
+                    },
+                    {
+                        title: 'Move B: Affirming and grounded',
+                        content: "Thanks, that means a lot. I would like to talk in person Saturday if you are comfortable with that."
+                    },
+                    {
+                        title: 'Move C: Detailed context',
+                        content: "Thanks for being open. I have been thinking about how we spend time together, how comfortable I feel with you, and why I want to understand what this means before I assume too much."
+                    }
+                ],
                 messages: [
                     { role: 'user', speaker: 'Maya Chen', text: 'If Daniel says yes warmly, what should the next reply say without overexplaining?' },
                     { role: 'agent', speaker: 'Syntrae', text: 'The best follow-up is warm and grounded: thank him, name the topic once, and keep enough space for him to stay relaxed in the conversation.' }
                 ],
+                conversationLoop: {
+                    openingPrompt: 'If Daniel says yes warmly, what should the next reply say without overexplaining?',
+                    openingResponse: 'Syntrae picked an affirming and grounded follow-up. The live conversation below shows how Maya can keep the warmth while avoiding a heavy explanation.',
+                    loadingCopy: 'Using Maya\'s follow-up goal, Daniel\'s latest reply, and the need to stay warm without overexplaining.',
+                    turns: [
+                        {
+                            label: 'Turn 1',
+                            maya: 'Thanks, that means a lot. I would like to talk in person Saturday if you are comfortable with that.',
+                            daniel: "Yeah, I'm comfortable with that. I like that you're being thoughtful about it.",
+                            syntrae: 'Best Way: "I am glad. I just want us to understand each other better, no pressure for a perfect answer."',
+                            reason: 'Daniel responded warmly and named that the thoughtful tone helped. Maya should acknowledge that warmth and keep the purpose simple.',
+                            detailSummary: 'Thank him, name the purpose once, and reduce pressure around the answer.',
+                            detailTree: [
+                                {
+                                    title: 'Option A: Gentle purpose',
+                                    reply: 'I am glad. I just want us to understand each other better, no pressure for a perfect answer.',
+                                    best: true,
+                                    outcomes: [
+                                        { type: 'positive', text: 'Daniel understands the goal without feeling tested.' },
+                                        { type: 'positive', text: 'The reply keeps warmth from his message alive.' },
+                                        { type: 'unclear', text: 'He may still need the in-person talk before answering clearly.' }
+                                    ]
+                                },
+                                {
+                                    title: 'Option B: Ask directly how he feels',
+                                    reply: 'Do you feel the same way about me?',
+                                    outcomes: [
+                                        { type: 'negative', text: 'Daniel may feel pushed to answer before Saturday.' },
+                                        { type: 'positive', text: 'If he is already confident, he may answer honestly right away.' },
+                                        { type: 'unclear', text: 'He may say he wants to wait until they meet.' }
+                                    ]
+                                },
+                                {
+                                    title: 'Option C: Explain everything now',
+                                    reply: 'I have been thinking about us a lot, and I want to explain everything I have been feeling.',
+                                    outcomes: [
+                                        { type: 'negative', text: 'The follow-up can become heavier than Daniel just agreed to.' },
+                                        { type: 'unclear', text: 'Daniel may pause because the message asks him to absorb too much.' },
+                                        { type: 'positive', text: 'He may appreciate the honesty if he is emotionally ready.' }
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            label: 'Turn 2',
+                            maya: 'I am glad. I just want us to understand each other better, no pressure for a perfect answer.',
+                            daniel: 'That helps. I can talk Saturday, but I might be a little nervous.',
+                            syntrae: 'Best Way: "That is okay. We can keep it simple, and you can say as much or as little as you want."',
+                            reason: 'Daniel admitted nervousness instead of pulling away. Maya should make the conversation feel safe and flexible.',
+                            detailSummary: 'Normalize his nerves and give him control over how much he shares.',
+                            detailTree: [
+                                {
+                                    title: 'Option A: Normalize and give room',
+                                    reply: 'That is okay. We can keep it simple, and you can say as much or as little as you want.',
+                                    best: true,
+                                    outcomes: [
+                                        { type: 'positive', text: 'Daniel feels less pressure because Maya accepts his nervousness.' },
+                                        { type: 'positive', text: 'The conversation remains open without demanding a full answer.' },
+                                        { type: 'unclear', text: 'He may still be nervous, but he is more likely to show up honestly.' }
+                                    ]
+                                },
+                                {
+                                    title: 'Option B: Reassure too strongly',
+                                    reply: 'Do not be nervous. It is not a big deal at all.',
+                                    outcomes: [
+                                        { type: 'negative', text: 'Daniel may feel his nervousness was dismissed.' },
+                                        { type: 'unclear', text: 'The topic may sound less important than it really is to Maya.' },
+                                        { type: 'positive', text: 'The light tone may reduce fear if Daniel takes it as comfort.' }
+                                    ]
+                                },
+                                {
+                                    title: 'Option C: Ask for certainty now',
+                                    reply: 'I understand, but I really need to know where you stand.',
+                                    outcomes: [
+                                        { type: 'negative', text: 'Daniel may feel rushed right after being honest about nerves.' },
+                                        { type: 'negative', text: 'The Saturday talk may start to feel like a deadline.' },
+                                        { type: 'positive', text: 'Maya gets clarity faster if Daniel is ready.' }
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            label: 'Turn 3',
+                            maya: 'That is okay. We can keep it simple, and you can say as much or as little as you want.',
+                            daniel: 'Thanks. I think that makes it easier for me to be honest.',
+                            syntrae: 'Best Way: meet as planned, start with appreciation, then ask one clear question.',
+                            reason: 'Daniel is more willing to be honest when the tone stays calm. Maya should not add more text now because the in-person conversation is already safer.',
+                            detailSummary: 'Keep the text settled; use the actual meeting for one clear question.',
+                            detailTree: [
+                                {
+                                    title: 'Option A: Hold the plan',
+                                    reply: 'I am glad. We can talk Saturday and keep it honest but simple.',
+                                    best: true,
+                                    outcomes: [
+                                        { type: 'positive', text: 'Daniel arrives knowing the conversation will be respectful.' },
+                                        { type: 'positive', text: 'Maya keeps the topic clear without turning the text thread into the full talk.' },
+                                        { type: 'unclear', text: 'The final clarity still depends on how the in-person moment unfolds.' }
+                                    ]
+                                },
+                                {
+                                    title: 'Option B: Ask the clear question by text',
+                                    reply: 'Then can I ask: do you see us becoming something more?',
+                                    outcomes: [
+                                        { type: 'negative', text: 'Daniel may feel the careful setup turned into pressure.' },
+                                        { type: 'positive', text: 'He may answer directly if he feels ready.' },
+                                        { type: 'unclear', text: 'He may defer the answer until Saturday.' }
+                                    ]
+                                },
+                                {
+                                    title: 'Option C: Add a long appreciation message',
+                                    reply: 'I really appreciate how kind you have been and how comfortable things feel with you.',
+                                    outcomes: [
+                                        { type: 'positive', text: 'Daniel feels valued before the meeting.' },
+                                        { type: 'unclear', text: 'The message is warm but may not need a response.' },
+                                        { type: 'negative', text: 'Too much emotion by text may make him nervous again.' }
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                },
                 outcomes: [
                     {
                         title: 'Move A',
                         action: 'Short and clear',
-                        probability: 0.28,
-                        items: [
-                            { label: 'Daniel understands the next step quickly', probability: 0.11, reason: 'Daniel responds well to clear structure, so a concise follow-up makes the immediate next step easy to understand.' },
-                            { label: 'The tone stays calm and contained', probability: 0.09, reason: 'Keeping the reply brief lowers emotional pressure and preserves the steady tone Daniel tends to prefer.' },
-                            { label: 'The reply shifts straight into logistics', probability: 0.08, reason: 'A very short response can be efficient, but it may not reinforce enough warmth before moving into planning.' }
+                        content: 'Thanks. Could we talk Saturday afternoon?',
+                        generatedOutcomes: [
+                            { classification: 'positive', recurrencePercent: 18, label: 'Daniel understands the next step quickly.', example: 'Thanks, that means a lot. Saturday afternoon works for me.', explanation: 'The reply is easy to process and gives him a clear plan.' },
+                            { classification: 'positive', recurrencePercent: 14, label: 'Daniel appreciates that Maya stays simple.', example: 'I appreciate you being clear. That makes it easier to say yes.', explanation: 'Daniel likes calm structure when the topic is sensitive.' },
+                            { classification: 'negative', recurrencePercent: 13, label: 'Daniel feels the reply is abrupt.', example: 'That feels a little abrupt after my reply.', explanation: 'The message may move too quickly from warmth into logistics.' },
+                            { classification: 'negative', recurrencePercent: 12, label: 'Daniel is unsure what the talk is about.', example: "I don't know what you mean by talk.", explanation: 'The reply is clear about timing but not clear about purpose.' },
+                            { classification: 'unclear', recurrencePercent: 43, label: 'Daniel asks Maya to define the topic.', example: 'Sure, but what exactly did you want to talk about?', explanation: 'The path keeps things moving, but still requires one clarifying message.' }
                         ]
                     },
                     {
                         title: 'Move B',
                         action: 'Affirming and grounded',
-                        probability: 0.49,
-                        items: [
-                            { label: 'Daniel feels respected and unpressured', probability: 0.20, reason: 'This combines appreciation with room to choose, matching Daniel\'s strongest signals around sincerity, autonomy, and steady pacing.' },
-                            { label: 'Warmth stays high while the topic stays clear', probability: 0.17, reason: 'Affirming him first keeps the relational tone safe while a grounded sentence prevents the topic from becoming vague.' },
-                            { label: 'One concrete follow-up question is still needed', probability: 0.12, reason: 'The tone is strong, but Daniel may still need one simple question to know exactly what Maya wants to discuss.' }
+                        content: "Thanks, that means a lot. I would like to talk in person Saturday if you are comfortable with that.",
+                        generatedOutcomes: [
+                            { classification: 'positive', recurrencePercent: 28, label: 'Daniel feels respected and unpressured.', example: 'That sounds good. I appreciate you saying it calmly.', explanation: 'The message combines appreciation with a clear but optional next step.' },
+                            { classification: 'positive', recurrencePercent: 24, label: 'Daniel stays warm while accepting the plan.', example: "I like that you're not making this intense. Saturday works.", explanation: 'The tone matches his need for sincerity without pressure.' },
+                            { classification: 'negative', recurrencePercent: 11, label: 'Daniel becomes nervous about seriousness.', example: 'I am a little nervous this is becoming serious quickly.', explanation: 'Even gentle wording can raise the stakes once an in-person talk is named.' },
+                            { classification: 'negative', recurrencePercent: 10, label: 'Daniel hesitates before promising an answer.', example: "I don't want to promise how I'll feel before we talk.", explanation: 'He may agree to the conversation but resist committing emotionally yet.' },
+                            { classification: 'unclear', recurrencePercent: 27, label: 'Daniel agrees but asks to keep it casual.', example: 'I am open to it, but can we keep it casual at first?', explanation: 'The path is favorable, but Daniel still wants a low-pressure frame.' }
                         ]
                     },
                     {
                         title: 'Move C',
                         action: 'Detailed context',
-                        probability: 0.23,
-                        items: [
-                            { label: 'Daniel sees the care behind it', probability: 0.09, reason: 'Detailed context can demonstrate sincerity, which Daniel values when it is connected to a clear and considerate purpose.' },
-                            { label: 'The message feels bigger than the moment', probability: 0.08, reason: 'Too much explanation can raise the emotional stakes before he has had time to settle into the topic.' },
-                            { label: 'Daniel takes longer to reply thoughtfully', probability: 0.06, reason: 'A fuller message gives him more to interpret, so he is more likely to slow down and craft a careful response.' }
+                        content: "Thanks for being open. I have been thinking about how we spend time together, how comfortable I feel with you, and why I want to understand what this means before I assume too much.",
+                        generatedOutcomes: [
+                            { classification: 'positive', recurrencePercent: 16, label: 'Daniel sees the care behind the message.', example: 'I can tell you thought about this, and I appreciate that.', explanation: 'The detail makes Maya\'s sincerity obvious.' },
+                            { classification: 'positive', recurrencePercent: 12, label: 'Daniel understands why the topic matters.', example: 'The context helps me understand why it matters.', explanation: 'He can see that Maya is asking for clarity, not drama.' },
+                            { classification: 'negative', recurrencePercent: 21, label: 'Daniel feels there is too much to absorb.', example: 'This is a lot to read all at once.', explanation: 'The message may overwhelm him before he can answer naturally.' },
+                            { classification: 'negative', recurrencePercent: 18, label: 'Daniel feels pressure to answer perfectly.', example: 'I feel like I need to prepare the perfect answer now.', explanation: 'Detailed emotion can make him self-conscious.' },
+                            { classification: 'unclear', recurrencePercent: 33, label: 'Daniel delays so he can answer carefully.', example: 'I want to respond properly, so I may need some time.', explanation: 'The conversation remains possible, but the reply slows down.' }
                         ]
                     }
                 ],
                 recommendation: {
-                    title: 'Suggested first move: Move B.',
-                    text: 'It best matches Daniel\'s calm, respectful style: appreciative, low-pressure, and clear enough to keep the conversation moving.'
+                    title: 'Best first move: Affirming and grounded.',
+                    text: 'Thank Daniel first, ask for a specific time, and keep the wording short enough that he does not feel cornered.',
+                    actions: [
+                        'Send: "Thanks, that means a lot. I would like to talk in person Saturday if you are comfortable with that."',
+                        'If Daniel asks what the talk is about, answer in one sentence: "I just want to understand how we are both feeling."',
+                        'If he sounds nervous, reassure him that he does not need to have a perfect answer immediately.'
+                    ]
                 }
             },
             dadBirthday: {
@@ -2495,11 +3769,11 @@
             recommendationTitle: document.getElementById('recommendationTitle'),
             recommendationText: document.getElementById('recommendationText'),
             recurrenceSection: document.getElementById('recurrenceSection'),
-            recurrenceRunButton: document.getElementById('recurrenceRunButton'),
             recurrenceSummary: document.getElementById('recurrenceSummary'),
             recurrenceBars: document.getElementById('recurrenceBars'),
             visualChatForm: document.getElementById('visualChatForm'),
             visualChatInput: document.getElementById('visualChatInput'),
+            visualChatSubmit: document.getElementById('visualChatSubmit'),
             launchSoonModal: document.getElementById('launchSoonModal'),
             launchSoonClose: document.getElementById('launchSoonClose'),
             launchSoonOk: document.getElementById('launchSoonOk')
@@ -2509,10 +3783,18 @@
         let activeChatKey = 'main';
         let typingRun = 0;
         let syntraeRunTimer = null;
-        let recurrenceRenderTimer = null;
-        let recurrenceRunCount = 0;
+        let conversationLoopTimer = null;
+        let conversationLoopState = {
+            chatKey: null,
+            visibleTurns: 1,
+            completedTurns: 0,
+            loadingTurn: null,
+            openDetails: {}
+        };
         const recurrenceIterations = 1000;
-        const syntraeTestLoadMs = 3000;
+        const simulatedComputationLoadMs = 2500;
+        const syntraeTestLoadMs = simulatedComputationLoadMs;
+        const conversationLoopLoadMs = simulatedComputationLoadMs;
         const demoPromptInputs = {
             main: [
                 { text: "Daniel prefers private, low-pressure conversations.", effect: "a gentle approach helps him answer honestly" },
@@ -2809,6 +4091,44 @@
             return Math.max(0, Math.min(100, number <= 1 ? number * 100 : number));
         }
 
+        const classificationMeta = {
+            positive: {
+                label: 'Positive',
+                metricLabel: 'Positive outcomes',
+                className: 'positive',
+                icon: 'fa-check-circle'
+            },
+            negative: {
+                label: 'Negative',
+                metricLabel: 'Negative outcomes',
+                className: 'negative',
+                icon: 'fa-exclamation-circle'
+            },
+            unclear: {
+                label: 'Unclear / delayed',
+                metricLabel: 'Unclear / delayed outcomes',
+                className: 'unclear',
+                icon: 'fa-hourglass-half'
+            }
+        };
+
+        const classificationOrder = ['positive', 'negative', 'unclear'];
+
+        function normalizeClassification(value) {
+            const text = String(value || '').trim().toLowerCase();
+            if (text.startsWith('pos')) return 'positive';
+            if (text.startsWith('neg')) return 'negative';
+            return 'unclear';
+        }
+
+        function getCandidateTitle(candidate) {
+            return typeof candidate === 'string' ? candidate : (candidate?.title || candidate?.label || 'Candidate action');
+        }
+
+        function getCandidateContent(candidate) {
+            return typeof candidate === 'string' ? '' : (candidate?.content || candidate?.message || '');
+        }
+
         function hashString(value) {
             let hash = 2166136261;
             for (let i = 0; i < value.length; i += 1) {
@@ -2825,66 +4145,6 @@
                 return (state >>> 0) / 4294967296;
             };
         }
-
-        function normalizeSyntraePercentages(outcomes) {
-            const rawValues = outcomes.map((outcome) => {
-                const probability = Math.max(0, Number(outcome?.probability || 0));
-                return probability <= 1 ? probability * 100 : probability;
-            });
-            const total = rawValues.reduce((sum, value) => sum + value, 0) || 1;
-            const scaled = rawValues.map((value) => (value / total) * 100);
-            const floors = scaled.map(Math.floor);
-            let remaining = 100 - floors.reduce((sum, value) => sum + value, 0);
-            const order = scaled
-                .map((value, index) => ({ index, remainder: value - Math.floor(value) }))
-                .sort((a, b) => b.remainder - a.remainder);
-
-            for (let i = 0; i < remaining; i += 1) {
-                floors[order[i % order.length].index] += 1;
-            }
-
-            return floors;
-        }
-
-        function createBoundedRunOffsets(basePercents, random) {
-            const length = basePercents.length;
-            const offsets = Array.from({ length }, () => 0);
-            const subtractableIndexes = basePercents
-                .map((percent, index) => ({ percent, index }))
-                .filter(({ percent }) => percent > 0)
-                .map(({ index }) => index);
-            if (length < 2 || subtractableIndexes.length < 1 || random() < 0.18) return offsets;
-
-            const plusIndex = Math.floor(random() * length);
-            let minusIndex = subtractableIndexes[Math.floor(random() * subtractableIndexes.length)];
-            if (minusIndex === plusIndex) {
-                const fallbackIndexes = subtractableIndexes.filter((index) => index !== plusIndex);
-                if (!fallbackIndexes.length) return offsets;
-                minusIndex = fallbackIndexes[Math.floor(random() * fallbackIndexes.length)];
-            }
-
-            offsets[plusIndex] = 1;
-            offsets[minusIndex] = -1;
-            return offsets;
-        }
-
-        function summarizeSyntraeTestResult(chat, percents, iterations) {
-            const rows = chat.outcomes.map((branch, index) => ({
-                index,
-                title: branch.title,
-                action: branch.action,
-                count: Math.round((Number(percents[index] || 0) / 100) * iterations),
-                percent: Number(percents[index] || 0)
-            })).sort((a, b) => b.percent - a.percent);
-
-            const top = rows[0] || { title: 'No outcome', action: 'No action', count: 0, percent: 0, index: 0 };
-
-            return {
-                rows,
-                top
-            };
-        }
-
 
         function joinNaturalList(items) {
             const values = (items || [])
@@ -2965,17 +4225,6 @@
             return String(value || '').trim().replace(/[.。]+$/, '');
         }
 
-        function buildSyntraeTestExplanation(chat, branch, row) {
-            const justification = buildSyntraeTestJustification(chat, branch, row);
-            const favorable = plainCondition(justification.favorableAssumptions?.[0] || sentenceFromList(justification.favorableAssumptions));
-            const risks = plainCondition(justification.riskAssumptions?.[0] || sentenceFromList(justification.riskAssumptions));
-            const variables = shortSyntraeList(justification.variables);
-            return [
-                `Syntrae changed ${variables} to test this option in different situations.`,
-                `It reached ${row.percent}% because ${favorable}, but dropped when ${risks}.`
-            ].join(' ');
-        }
-
         function getDemoPromptInputs(chat) {
             const scenarioInputs = demoPromptInputs[activeChatKey];
             if (Array.isArray(scenarioInputs) && scenarioInputs.length >= 5) return scenarioInputs;
@@ -3002,23 +4251,200 @@
             return labels.concat(fallbackLabels).slice(0, 5);
         }
 
+        function normalizePercentList(values) {
+            const cleanValues = values.map((value) => {
+                const number = Math.max(0, Number(value || 0));
+                return number <= 1 ? number * 100 : number;
+            });
+            const total = cleanValues.reduce((sum, value) => sum + value, 0) || 1;
+            const scaled = cleanValues.map((value) => (value / total) * 100);
+            const floors = scaled.map(Math.floor);
+            let remaining = 100 - floors.reduce((sum, value) => sum + value, 0);
+            const order = scaled
+                .map((value, index) => ({ index, remainder: value - Math.floor(value) }))
+                .sort((a, b) => b.remainder - a.remainder);
+
+            for (let i = 0; i < remaining; i += 1) {
+                floors[order[i % order.length].index] += 1;
+            }
+
+            return floors;
+        }
+
+        function getFallbackOutcomeClass(index) {
+            return ['positive', 'unclear', 'negative', 'positive', 'unclear'][index] || 'unclear';
+        }
+
         function buildConsequenceTreeOutcomes(chat, branch) {
+            if (Array.isArray(branch?.generatedOutcomes) && branch.generatedOutcomes.length) {
+                const normalizedPercents = normalizePercentList(branch.generatedOutcomes.map((outcome) => outcome.recurrencePercent || outcome.probability || 0));
+                return branch.generatedOutcomes.slice(0, 5).map((outcome, index) => ({
+                    label: outcome.label || `Generated outcome ${index + 1}`,
+                    classification: normalizeClassification(outcome.classification),
+                    example: outcome.example || outcome.label || 'The response stays unresolved.',
+                    explanation: outcome.explanation || 'This can happen when the same action lands under a different condition.',
+                    probability: normalizedPercents[index] || 0,
+                    recurrencePercent: normalizedPercents[index] || 0
+                }));
+            }
+
             const inputs = getDemoPromptInputs(chat);
             const labels = consequenceOutcomeLabels[activeChatKey]?.[branch?.action] || buildDefaultConsequenceLabels(chat, branch);
             const completedLabels = labels.concat(buildDefaultConsequenceLabels(chat, branch)).slice(0, 5);
-            const fallbackWeights = [0.3, 0.24, 0.19, 0.15, 0.12];
+            const fallbackWeights = normalizePercentList([30, 24, 19, 15, 12]);
 
             return completedLabels.map((label, index) => {
                 const input = inputs[index % inputs.length] || inputs[0] || {};
-                const existingProbability = Number(branch?.items?.[index]?.probability);
-                const fallbackProbability = Math.max(0.01, Number(branch?.probability || 0) * fallbackWeights[index]);
+                const percent = fallbackWeights[index] || 0;
                 return {
                     label,
+                    classification: getFallbackOutcomeClass(index),
+                    example: branch?.items?.[index]?.label || label,
                     input: input.text || 'The situation may change before Maya acts.',
                     reason: input.effect || 'that changes how the option may land',
-                    probability: Number.isFinite(existingProbability) && existingProbability > 0 ? existingProbability : fallbackProbability
+                    explanation: `Input used: ${input.text || 'The situation may change before Maya acts.'} This matters because ${input.effect || 'that changes how the option may land'}.`,
+                    probability: percent,
+                    recurrencePercent: percent
                 };
             });
+        }
+
+        function getCategoryTotals(outcomes) {
+            const totals = { positive: 0, negative: 0, unclear: 0 };
+            outcomes.forEach((outcome) => {
+                const key = normalizeClassification(outcome.classification);
+                totals[key] += Number(outcome.recurrencePercent ?? outcome.probability ?? 0);
+            });
+
+            return classificationOrder.reduce((acc, key) => {
+                acc[key] = Math.round(totals[key]);
+                return acc;
+            }, {});
+        }
+
+        function getDecisionRows(chat) {
+            return (chat.outcomes || []).map((branch, index) => {
+                const outcomes = buildConsequenceTreeOutcomes(chat, branch);
+                const totals = getCategoryTotals(outcomes);
+                return {
+                    index,
+                    title: branch.title || `Option ${index + 1}`,
+                    action: branch.action || 'Candidate action',
+                    content: branch.content || getCandidateContent(chat.candidates?.[index]) || '',
+                    outcomes,
+                    totals
+                };
+            });
+        }
+
+        function getBestDecisionRow(rows) {
+            return rows.slice().sort((a, b) => {
+                const positiveDiff = b.totals.positive - a.totals.positive;
+                if (positiveDiff) return positiveDiff;
+                const negativeDiff = a.totals.negative - b.totals.negative;
+                if (negativeDiff) return negativeDiff;
+                return b.totals.unclear - a.totals.unclear;
+            })[0] || rows[0];
+        }
+
+        function renderCategoryPills(totals) {
+            return classificationOrder.map((key) => {
+                const meta = classificationMeta[key];
+                return `<span class="category-pill ${meta.className}"><i class="fas ${meta.icon}"></i>${meta.label}: ${totals[key]}% likelihood</span>`;
+            }).join('');
+        }
+
+        function quoteExample(value) {
+            return `"${String(value || '').trim()}"`;
+        }
+
+        function explainCategoryPercent(row, key) {
+            const meta = classificationMeta[key];
+            const examples = row.outcomes.filter((outcome) => normalizeClassification(outcome.classification) === key);
+            const exampleText = examples.slice(0, 2).map((outcome) => quoteExample(outcome.example)).join(' and ');
+            if (!examples.length) {
+                return `${meta.label} reactions occur ${row.totals[key]}% of the time in this option.`;
+            }
+            const reactionLabel = key === 'unclear' ? 'Unclear or delayed reactions' : `${meta.label} reactions`;
+            return `${reactionLabel} such as ${exampleText} occur ${row.totals[key]}% of the time.`;
+        }
+
+        function renderGeneratedOutcomeCards(outcomes) {
+            return outcomes.map((outcome, index) => {
+                const key = normalizeClassification(outcome.classification);
+                const meta = classificationMeta[key];
+                return `
+                    <article class="generated-outcome-card">
+                        <span class="category-pill ${meta.className}"><i class="fas ${meta.icon}"></i>${meta.label} · ${outcome.recurrencePercent}% likelihood</span>
+                        <strong>${index + 1}. ${escapeHtml(outcome.label)}</strong>
+                        <blockquote>${escapeHtml(quoteExample(outcome.example))}</blockquote>
+                        <p>${escapeHtml(outcome.explanation || outcome.reason || 'This outcome appears under one plausible version of the situation.')}</p>
+                    </article>
+                `;
+            }).join('');
+        }
+
+        function renderClassifiedExampleSummary(row) {
+            return `
+                <section class="option-summary-panel" aria-label="${escapeHtml(row.title)} summary">
+                    <span class="summary-column-label"><i class="fas fa-list-check"></i> Summary</span>
+                    <div class="classified-summary">
+                        ${classificationOrder.map((key) => {
+                            const meta = classificationMeta[key];
+                            const examples = row.outcomes.filter((outcome) => normalizeClassification(outcome.classification) === key);
+                            return `
+                                <section class="classified-summary-group ${meta.className}">
+                                    <h4><i class="fas ${meta.icon}"></i> ${escapeHtml(meta.label)} · ${row.totals[key]}% likelihood</h4>
+                                    <ul>
+                                        ${examples.length
+                                            ? examples.map((outcome) => `<li>${escapeHtml(quoteExample(outcome.example))}</li>`).join('')
+                                            : '<li>No examples in this run.</li>'}
+                                    </ul>
+                                </section>
+                            `;
+                        }).join('')}
+                    </div>
+                </section>
+            `;
+        }
+
+        function renderDecisionComparison(rows) {
+            return `
+                <section class="decision-comparison">
+                    <h3>Decision comparison</h3>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Option</th>
+                                <th><span class="comparison-heading positive"><i class="fas ${classificationMeta.positive.icon}"></i> Positive</span></th>
+                                <th><span class="comparison-heading negative"><i class="fas ${classificationMeta.negative.icon}"></i> Negative</span></th>
+                                <th><span class="comparison-heading unclear"><i class="fas ${classificationMeta.unclear.icon}"></i> Unclear</span></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${rows.map((row) => `
+                                <tr>
+                                    <td>${escapeHtml(`${row.title}: ${row.action}`)}</td>
+                                    <td><span class="comparison-value positive"><i class="fas ${classificationMeta.positive.icon}"></i>${row.totals.positive}% likelihood</span></td>
+                                    <td><span class="comparison-value negative"><i class="fas ${classificationMeta.negative.icon}"></i>${row.totals.negative}% likelihood</span></td>
+                                    <td><span class="comparison-value unclear"><i class="fas ${classificationMeta.unclear.icon}"></i>${row.totals.unclear}% likelihood</span></td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </section>
+            `;
+        }
+
+        function renderFinalRecommendation(chat) {
+            const actions = Array.isArray(chat.recommendation?.actions) ? chat.recommendation.actions : [];
+            return `
+                <section class="final-recommendation">
+                    <h3>${escapeHtml(chat.recommendation?.title || 'Best first move')}</h3>
+                    <p>${escapeHtml(chat.recommendation?.text || 'Use the option with the most positive outcomes and the most manageable downside.')}</p>
+                    ${actions.length ? `<ul class="final-action-list">${actions.map((action) => `<li>${escapeHtml(action)}</li>`).join('')}</ul>` : ''}
+                </section>
+            `;
         }
 
         function renderConsequenceTreeOutcomes(chat, branch) {
@@ -3027,7 +4453,7 @@
                     <span class="consequence-outcome-index">${index + 1}</span>
                     <div class="consequence-outcome-copy">
                         <strong>${escapeHtml(outcome.label)}</strong>
-                        <p><em>Input used:</em> ${escapeHtml(outcome.input)} This matters because ${escapeHtml(outcome.reason)}.</p>
+                        <p><em>${escapeHtml(classificationMeta[normalizeClassification(outcome.classification)].label)}:</em> ${escapeHtml(quoteExample(outcome.example))}</p>
                     </div>
                 </li>
             `).join('');
@@ -3035,34 +4461,15 @@
 
         function runSyntraeTestDemo(iterations = recurrenceIterations) {
             const chat = getActiveChat();
-            const seed = hashString(`${activePersonaKey}:${activeChatKey}:${recurrenceRunCount}:${chat.prompt}`);
-            const random = createSeededRandom(seed);
-            const basePercents = normalizeSyntraePercentages(chat.outcomes);
-            const offsets = createBoundedRunOffsets(basePercents, random);
-            const percents = basePercents.map((percent, index) => percent + offsets[index]);
+            const rows = getDecisionRows(chat);
+            const top = getBestDecisionRow(rows);
 
             return {
                 chat,
                 iterations,
-                percents,
-                counts: percents.map((percent) => Math.round((percent / 100) * iterations)),
-                ...summarizeSyntraeTestResult(chat, percents, iterations)
+                rows,
+                top
             };
-        }
-
-        function clearRecurrenceRenderTimer() {
-            if (!recurrenceRenderTimer) return;
-            window.clearTimeout(recurrenceRenderTimer);
-            recurrenceRenderTimer = null;
-        }
-
-        function setRecurrenceRunButtonReady() {
-            clearRecurrenceRenderTimer();
-            els.recurrenceSection?.classList.remove('is-loading');
-            if (!els.recurrenceRunButton) return;
-            els.recurrenceRunButton.disabled = false;
-            els.recurrenceRunButton.removeAttribute('aria-busy');
-            els.recurrenceRunButton.innerHTML = '<i class="fas fa-redo"></i> Run Syntrae Test';
         }
 
         function renderSyntraeTestLoading() {
@@ -3072,7 +4479,7 @@
                 <article class="recurrence-metric">
                     <span><i class="fas fa-sync-alt"></i> Running Syntrae Test</span>
                     <strong>Testing alternatives...</strong>
-                    <small>Reading the demo inputs and building five possible outcomes for each option.</small>
+                    <small>Reading the demo inputs and building the five most likely outcomes.</small>
                 </article>
             `;
             els.recurrenceBars.innerHTML = `
@@ -3089,26 +4496,36 @@
             els.recurrenceSection?.classList.remove('is-loading');
             const rowsByOriginalOrder = result.rows.slice().sort((a, b) => a.index - b.index);
             els.recurrenceSummary.innerHTML = `
-                <article class="recurrence-metric">
+                <article class="recurrence-metric metric-top">
                     <span><i class="fas fa-route"></i> Most recurring path</span>
                     <strong>${escapeHtml(result.top.title)}</strong>
-                    <small>${escapeHtml(result.top.action)} was the strongest recurring move at ${result.top.percent}%.</small>
+                    <small>Recommended option for most positive outcomes.</small>
                 </article>
+                ${classificationOrder.map((key) => {
+                    const meta = classificationMeta[key];
+                    return `
+                        <article class="recurrence-metric metric-${meta.className}">
+                            <span><i class="fas ${meta.icon}"></i> ${meta.metricLabel}</span>
+                            <strong>${result.top.totals[key]}%</strong>
+                            <small>${escapeHtml(explainCategoryPercent(result.top, key))}</small>
+                        </article>
+                    `;
+                }).join('')}
+                ${renderDecisionComparison(rowsByOriginalOrder)}
+                ${renderFinalRecommendation(result.chat)}
             `;
             els.recurrenceBars.innerHTML = rowsByOriginalOrder.map((row) => `
                 <article class="recurrence-bar-row">
-                    <div class="recurrence-bar-label">
-                        <span>${escapeHtml(row.title)}: ${escapeHtml(row.action)}</span>
-                        <strong>${row.percent}%</strong>
+                    <div class="recurrence-option-head">
+                        <div class="recurrence-bar-label">
+                            <span>${escapeHtml(row.title)}: ${escapeHtml(row.action)}</span>
+                            <strong>${row.totals.positive}% positive likelihood</strong>
+                        </div>
+                        ${row.content ? `<p>${escapeHtml(row.content)}</p>` : ''}
+                        <div class="category-pill-row">${renderCategoryPills(row.totals)}</div>
                     </div>
-                    <div class="probability-track recurrence-track"><div class="probability-fill" style="width:${row.percent}%;"></div></div>
-                    <div class="recurrence-test-explanation">
-                        <span><i class="fas fa-code-branch"></i> 5 possible outcomes</span>
-                        <p>${escapeHtml(buildSyntraeTestExplanation(result.chat, result.chat.outcomes[row.index], row))}</p>
-                        <ol class="consequence-outcome-list">
-                            ${renderConsequenceTreeOutcomes(result.chat, result.chat.outcomes[row.index])}
-                        </ol>
-                    </div>
+                    <div class="generated-outcome-grid">${renderGeneratedOutcomeCards(row.outcomes)}</div>
+                    ${renderClassifiedExampleSummary(row)}
                 </article>
             `).join('');
         }
@@ -3202,11 +4619,27 @@
             els.logic.textContent = context.logic || persona.logic;
         }
 
+        function renderCreateChatSpaceCard(persona) {
+            const personaName = persona?.name || 'this persona';
+            return `
+                <div class="chat-space-row create-chat-space">
+                    <button class="chat-space-btn" type="button" data-create-chat-space aria-label="Create a new chat space with ${escapeHtml(personaName)}">
+                        <span class="create-chat-icon" aria-hidden="true"><i class="fas fa-plus"></i></span>
+                        <div class="create-chat-copy">
+                            <strong>Create new chat space</strong>
+                            <span>Start another decision space with ${escapeHtml(personaName)}</span>
+                        </div>
+                    </button>
+                </div>
+            `;
+        }
+
         function renderChatSpaces() {
             const visible = Object.entries(chats).filter(([, chat]) => chat.personaKey === activePersonaKey);
+            const activePersona = personas[activePersonaKey] || personas.daniel;
             if (!visible.some(([key]) => key === activeChatKey)) activeChatKey = visible[0]?.[0] || activeChatKey;
 
-            els.chatSpaceList.innerHTML = visible.map(([key, chat]) => `
+            els.chatSpaceList.innerHTML = `${visible.map(([key, chat]) => `
                 <div class="chat-space-row${key === activeChatKey ? ' active' : ''}">
                     <button class="chat-space-btn" type="button" data-chat="${key}">
                         <strong>${escapeHtml(chat.title)}</strong>
@@ -3217,7 +4650,7 @@
                         <button class="mini-btn" type="button" aria-label="Delete chat space"><i class="fas fa-trash-alt"></i></button>
                     </div>
                 </div>
-            `).join('');
+            `).join('')}${renderCreateChatSpaceCard(activePersona)}`;
 
             els.chatSpaceList.querySelectorAll('[data-chat]').forEach((button) => {
                 button.addEventListener('click', () => {
@@ -3225,6 +4658,8 @@
                     renderAll({ resetTree: true, animateChat: true });
                 });
             });
+
+            els.chatSpaceList.querySelector('[data-create-chat-space]')?.addEventListener('click', openLaunchSoonNotice);
         }
 
         function wait(ms) {
@@ -3244,6 +4679,8 @@
         async function renderAnimatedTranscript(chat) {
             typingRun += 1;
             const token = typingRun;
+            if (renderConversationLoop(chat)) return;
+            updateConversationLoopButton(null);
             els.chatTranscript.innerHTML = '';
 
             for (const message of chat.messages) {
@@ -3273,6 +4710,8 @@
 
         function renderStaticTranscript(chat) {
             typingRun += 1;
+            if (renderConversationLoop(chat)) return;
+            updateConversationLoopButton(null);
             els.chatTranscript.innerHTML = chat.messages.map((message) => `
                 <div class="chat-bubble ${message.role === 'user' ? 'user' : 'agent'}" style="opacity:1;transform:none;">
                     <span class="bubble-speaker">${escapeHtml(message.speaker)}</span>
@@ -3281,27 +4720,259 @@
             `).join('');
         }
 
+        function clearConversationLoopTimer() {
+            if (!conversationLoopTimer) return;
+            window.clearTimeout(conversationLoopTimer);
+            conversationLoopTimer = null;
+        }
+
+        function resetConversationLoopState(chatKey = activeChatKey) {
+            clearConversationLoopTimer();
+            conversationLoopState = {
+                chatKey,
+                visibleTurns: 1,
+                completedTurns: 0,
+                loadingTurn: null,
+                openDetails: {}
+            };
+        }
+
+        function ensureConversationLoopState(loop) {
+            const totalTurns = Math.max(0, Array.isArray(loop?.turns) ? loop.turns.length : 0);
+            if (conversationLoopState.chatKey !== activeChatKey) {
+                resetConversationLoopState(activeChatKey);
+            }
+            conversationLoopState.visibleTurns = Math.max(1, Math.min(totalTurns || 1, conversationLoopState.visibleTurns || 1));
+            conversationLoopState.completedTurns = Math.max(0, Math.min(totalTurns, conversationLoopState.completedTurns || 0));
+            if (conversationLoopState.loadingTurn !== null) {
+                conversationLoopState.loadingTurn = Math.max(0, Math.min(totalTurns - 1, conversationLoopState.loadingTurn));
+            }
+            if (totalTurns && conversationLoopState.completedTurns < totalTurns && conversationLoopState.visibleTurns <= conversationLoopState.completedTurns) {
+                conversationLoopState.visibleTurns = Math.min(totalTurns, conversationLoopState.completedTurns + 1);
+            }
+        }
+
+        function collectConversationLoopEdits(loop) {
+            if (!Array.isArray(loop?.turns)) return;
+            loop.turns.forEach((turn, index) => {
+                const mayaValue = document.getElementById(`mayaTurn${index}`)?.value;
+                const danielValue = document.getElementById(`danielTurn${index}`)?.value;
+                if (mayaValue !== undefined) turn.maya = mayaValue;
+                if (danielValue !== undefined) turn.daniel = danielValue;
+            });
+        }
+
+        function updateConversationLoopButton(loop) {
+            if (!els.visualChatSubmit) return;
+            const totalTurns = Array.isArray(loop?.turns) ? loop.turns.length : 0;
+            els.visualChatSubmit.classList.toggle('is-loading', conversationLoopState.loadingTurn !== null);
+
+            if (!totalTurns) {
+                els.visualChatSubmit.disabled = false;
+                els.visualChatSubmit.removeAttribute('aria-busy');
+                els.visualChatSubmit.innerHTML = '<i class="fas fa-sync-alt"></i> Recur next reply';
+                els.visualChatInput.placeholder = 'Edit the bubbles above, then add a note for the next rerun...';
+                return;
+            }
+
+            if (conversationLoopState.loadingTurn !== null) {
+                els.visualChatSubmit.disabled = true;
+                els.visualChatSubmit.setAttribute('aria-busy', 'true');
+                els.visualChatSubmit.innerHTML = '<span class="syntrae-spinner" aria-hidden="true"></span> Generating Best Way...';
+                return;
+            }
+
+            els.visualChatSubmit.removeAttribute('aria-busy');
+            if (conversationLoopState.completedTurns >= totalTurns) {
+                els.visualChatSubmit.disabled = true;
+                els.visualChatSubmit.innerHTML = '<i class="fas fa-check"></i> Conversation demo complete';
+                els.visualChatInput.placeholder = 'The demo conversation loop is complete.';
+                return;
+            }
+
+            els.visualChatSubmit.disabled = false;
+            els.visualChatSubmit.innerHTML = '<i class="fas fa-sync-alt"></i> Recur next reply';
+            els.visualChatInput.placeholder = 'Optional note for this rerun...';
+        }
+
+        function getDetailOutcomeIcon(type) {
+            const normalized = normalizeClassification(type);
+            if (normalized === 'positive') return 'fa-check-circle';
+            if (normalized === 'negative') return 'fa-exclamation-circle';
+            return 'fa-hourglass-half';
+        }
+
+        function renderTurnDetailTree(turn) {
+            const detailTree = Array.isArray(turn.detailTree) ? turn.detailTree : [];
+            if (!detailTree.length) return '';
+
+            return `
+                <section class="turn-detail-tree">
+                    <h4><i class="fas fa-code-branch"></i> Detailed consequence tree</h4>
+                    <div class="turn-detail-grid">
+                        ${detailTree.map((option) => `
+                            <article class="turn-detail-option${option.best ? ' is-best' : ''}">
+                                <strong>${escapeHtml(option.title || 'Candidate reply')}</strong>
+                                ${option.reply ? `<p><em>${escapeHtml(option.reply)}</em></p>` : ''}
+                                <ul class="turn-detail-outcomes">
+                                    ${(option.outcomes || []).map((outcome) => {
+                                        const type = normalizeClassification(outcome.type);
+                                        return `
+                                            <li>
+                                                <i class="fas ${getDetailOutcomeIcon(type)} ${type}" aria-hidden="true"></i>
+                                                <span>${escapeHtml(outcome.text || '')}</span>
+                                            </li>
+                                        `;
+                                    }).join('')}
+                                </ul>
+                            </article>
+                        `).join('')}
+                    </div>
+                </section>
+            `;
+        }
+
+        function renderTurnResult(turn, index) {
+            const detailOpen = Boolean(conversationLoopState.openDetails?.[index]);
+            const detailSummary = turn.detailSummary || turn.reason || 'Syntrae keeps the reply aligned with the starting goal and Daniel\'s latest response.';
+            return `
+                <div class="syntrae-loop-card">
+                    <strong><i class="fas fa-route"></i> Next Best Way</strong>
+                    <span><em>${escapeHtml(turn.syntrae || 'Best Way: wait for the next real reply before choosing another message.')}</em></span>
+                    ${turn.reason ? `<span>${escapeHtml(turn.reason)}</span>` : ''}
+                    <div class="best-way-detail-actions">
+                        <button class="best-way-detail-toggle" type="button" data-loop-detail="${index}" aria-expanded="${detailOpen ? 'true' : 'false'}">
+                            <i class="fas ${detailOpen ? 'fa-eye-slash' : 'fa-eye'}"></i> ${detailOpen ? 'Hide details' : 'Show details'}
+                        </button>
+                        <span class="best-way-detail-hint" tabindex="0" aria-label="${escapeHtml(detailSummary)}">
+                            <i class="fas fa-exclamation-circle" aria-hidden="true"></i>
+                            <span class="best-way-tooltip">${escapeHtml(detailSummary)}</span>
+                        </span>
+                    </div>
+                </div>
+                ${detailOpen ? renderTurnDetailTree(turn) : ''}
+            `;
+        }
+
+        function renderTurnWaiting(turn, index) {
+            return `
+                <div class="syntrae-loop-card is-waiting">
+                    <strong><i class="fas fa-reply"></i> Daniel reply captured</strong>
+                    <span>Click <em>Recur next reply</em> to generate Maya's next best response from the starting request and Daniel's latest reply.</span>
+                </div>
+            `;
+        }
+
+        function renderTurnLoading(loop = {}) {
+            const loadingCopy = loop.loadingCopy || 'Using Maya\'s original goal, Daniel\'s latest reply, and the need to keep the message clear without making it feel heavy.';
+            return `
+                <div class="syntrae-loop-card is-loading" role="status" aria-live="polite">
+                    <strong><span class="syntrae-spinner" aria-hidden="true"></span> Syntrae is recurring the next reply</strong>
+                    <span>${escapeHtml(loadingCopy)}</span>
+                </div>
+            `;
+        }
+
+        function bindConversationLoopDetailToggles(loop) {
+            els.chatTranscript.querySelectorAll('[data-loop-detail]').forEach((button) => {
+                button.addEventListener('click', () => {
+                    collectConversationLoopEdits(loop);
+                    const index = Number(button.dataset.loopDetail);
+                    conversationLoopState.openDetails = {
+                        ...conversationLoopState.openDetails,
+                        [index]: !conversationLoopState.openDetails?.[index]
+                    };
+                    renderConversationLoop(getActiveChat());
+                    window.setTimeout(() => {
+                        els.chatTranscript
+                            .querySelector(`[data-turn-index="${index}"]`)
+                            ?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                    }, 30);
+                });
+            });
+        }
+
+        function renderConversationLoop(chat) {
+            const loop = chat.conversationLoop;
+            if (!loop) {
+                updateConversationLoopButton(null);
+                return false;
+            }
+            ensureConversationLoopState(loop);
+
+            const turns = Array.isArray(loop.turns) ? loop.turns : [];
+            const visibleTurns = turns.slice(0, conversationLoopState.visibleTurns);
+            const totalTurns = turns.length;
+            els.chatTranscript.innerHTML = `
+                <div class="conversation-flow">
+                    <section class="consultation-summary">
+                        <span class="bubble-speaker">Maya asks Syntrae</span>
+                        <h3>${escapeHtml(loop.openingPrompt)}</h3>
+                        <p>${escapeHtml(loop.openingResponse)}</p>
+                    </section>
+                    ${visibleTurns.map((turn, index) => {
+                        const isComplete = index < conversationLoopState.completedTurns;
+                        const isLoading = conversationLoopState.loadingTurn === index;
+                        const isCurrent = !isComplete && conversationLoopState.loadingTurn === null && index === conversationLoopState.completedTurns;
+                        return `
+                        <article class="actual-turn${isComplete ? ' is-complete' : ''}${isLoading ? ' is-loading' : ''}${isCurrent ? ' is-current' : ''}" data-turn-index="${index}">
+                            <div class="turn-heading">
+                                <h3>${escapeHtml(turn.label || `Turn ${index + 1}`)}</h3>
+                                <span><i class="fas ${isComplete ? 'fa-check-circle' : isLoading ? 'fa-sync-alt' : 'fa-reply'}"></i> ${isComplete ? 'Best Way generated' : isLoading ? 'Generating Best Way' : 'Ready to recur'}</span>
+                            </div>
+                            <div class="actual-bubble-row">
+                                <div class="actual-bubble maya">
+                                    <label for="mayaTurn${index}"><span>Maya actual message</span><i class="fas fa-user-edit"></i></label>
+                                    <textarea id="mayaTurn${index}" aria-label="Maya actual message for ${escapeHtml(turn.label || `turn ${index + 1}`)}">${escapeHtml(turn.maya || '')}</textarea>
+                                </div>
+                                <div class="actual-bubble daniel">
+                                    <label for="danielTurn${index}"><span>Daniel actual reply</span><i class="fas fa-reply"></i></label>
+                                    <textarea id="danielTurn${index}" aria-label="Daniel actual reply for ${escapeHtml(turn.label || `turn ${index + 1}`)}" placeholder="Leave blank until Daniel replies in real life.">${escapeHtml(turn.daniel || '')}</textarea>
+                                </div>
+                            </div>
+                            ${isComplete ? renderTurnResult(turn, index) : isLoading ? renderTurnLoading(loop) : renderTurnWaiting(turn, index)}
+                        </article>
+                        `;
+                    }).join('')}
+                    ${conversationLoopState.completedTurns >= totalTurns ? `
+                        <div class="conversation-complete-note">
+                            <span><i class="fas fa-check-circle"></i> Demo loop complete</span>
+                            <span>In the launched product, Maya would keep adding the real next reply and Syntrae would recur the next response from the updated conversation.</span>
+                        </div>
+                    ` : ''}
+                </div>
+            `;
+            updateConversationLoopButton(loop);
+            bindConversationLoopDetailToggles(loop);
+
+            return true;
+        }
+
         function renderSimulation({ resetTree = false } = {}) {
             const chat = getActiveChat();
             if (resetTree) {
-                recurrenceRunCount = 0;
-                clearRecurrenceRenderTimer();
                 els.recurrenceSection?.classList.remove('is-loading');
             }
             els.chatHeading.textContent = chat.title;
             els.simulationTitle.textContent = chat.introTitle;
             els.simulationCopy.textContent = chat.introCopy;
             els.promptBox.textContent = chat.prompt;
-            els.candidateGrid.innerHTML = chat.candidates.map((candidate) => `<div class="candidate">${escapeHtml(candidate)}</div>`).join('');
-            els.treeGrid.innerHTML = chat.outcomes.map((branch, branchIndex) => `
+            els.candidateGrid.innerHTML = chat.candidates.map((candidate) => `
+                <div class="candidate">
+                    <strong>${escapeHtml(getCandidateTitle(candidate))}</strong>
+                    ${getCandidateContent(candidate) ? `<p>${escapeHtml(getCandidateContent(candidate))}</p>` : ''}
+                </div>
+            `).join('');
+            const decisionRows = getDecisionRows(chat);
+            els.treeGrid.innerHTML = decisionRows.map((row, branchIndex) => `
                 <article class="tree-card">
                     <div class="tree-card-meta">
-                        <span>${escapeHtml(branch.title)}</span>
-                        <span class="probability">${formatProbability(branch.probability)}</span>
+                        <span>${escapeHtml(row.title)}</span>
+                        <span class="probability">${row.totals.positive}% positive</span>
                     </div>
-                    <h3>${escapeHtml(branch.action)}</h3>
+                    <h3>${escapeHtml(row.action)}</h3>
                     <ul class="outcome-list">
-                        ${buildConsequenceTreeOutcomes(chat, branch).map((item, itemIndex) => `
+                        ${row.outcomes.map((item, itemIndex) => `
                             <li>
                                 <button class="outcome-btn" type="button" data-branch="${branchIndex}" data-item="${itemIndex}" aria-expanded="false">
                                     <div class="outcome-head">
@@ -3327,7 +4998,6 @@
                 els.outcomeDetail.classList.remove('visible');
                 els.outcomeDetail.innerHTML = '';
                 setSyntraeButtonReady();
-                setRecurrenceRunButtonReady();
             }
         }
 
@@ -3336,20 +5006,21 @@
             const branch = chat.outcomes[branchIndex];
             const item = branch ? buildConsequenceTreeOutcomes(chat, branch)[itemIndex] : null;
             if (!branch || !item) return;
+            const meta = classificationMeta[normalizeClassification(item.classification)];
 
             els.treeGrid.querySelectorAll('.outcome-btn').forEach((button) => button.setAttribute('aria-expanded', 'false'));
             const activeButton = els.treeGrid.querySelector(`[data-branch="${branchIndex}"][data-item="${itemIndex}"]`);
             activeButton?.setAttribute('aria-expanded', 'true');
             els.outcomeDetail.innerHTML = `
                 <div class="detail-number">
-                    <span>Outcome likelihood</span>
+                    <span>Outcome recurrence</span>
                     <strong>${formatProbability(item.probability)}</strong>
                 </div>
                 <div class="detail-copy">
-                    <div class="detail-meta"><span>${escapeHtml(branch.title)}</span><span>${escapeHtml(branch.action)}</span></div>
+                    <div class="detail-meta"><span>${escapeHtml(branch.title)}</span><span>${escapeHtml(branch.action)}</span><span>${escapeHtml(meta.label)}</span></div>
                     <h3>${escapeHtml(item.label)}</h3>
-                    <p><strong>Input used:</strong> ${escapeHtml(item.input)}</p>
-                    <p>This outcome is possible because ${escapeHtml(item.reason)}.</p>
+                    <p><strong>Example:</strong> ${escapeHtml(quoteExample(item.example))}</p>
+                    <p>${escapeHtml(item.explanation || item.reason || 'This outcome is possible under one version of the situation.')}</p>
                 </div>
             `;
             els.outcomeDetail.classList.add('visible');
@@ -3357,6 +5028,7 @@
         }
 
         function renderAll({ resetTree = false, animateChat = false } = {}) {
+            if (resetTree) resetConversationLoopState(activeChatKey);
             renderPersonas();
             renderPersonaDetail();
             renderChatSpaces();
@@ -3410,7 +5082,6 @@
 
         els.syntraeButton.addEventListener('click', () => {
             if (els.syntraeButton.disabled) return;
-            clearRecurrenceRenderTimer();
             els.treeSection.classList.remove('visible');
             els.outcomeDetail.classList.remove('visible');
             els.outcomeDetail.innerHTML = '';
@@ -3426,28 +5097,50 @@
             }, syntraeTestLoadMs);
         });
 
-        els.recurrenceRunButton?.addEventListener('click', () => {
-            clearRecurrenceRenderTimer();
-            recurrenceRunCount += 1;
-            els.recurrenceRunButton.disabled = true;
-            els.recurrenceRunButton.setAttribute('aria-busy', 'true');
-            els.recurrenceRunButton.innerHTML = '<span class="syntrae-spinner" aria-hidden="true"></span> Running Syntrae Test...';
-            renderSyntraeTestLoading();
-            recurrenceRenderTimer = window.setTimeout(() => {
-                recurrenceRenderTimer = null;
-                renderSyntraeTestDemo(runSyntraeTestDemo(recurrenceIterations));
-                setRecurrenceRunButtonReady();
-            }, syntraeTestLoadMs);
-        });
+        function advanceConversationLoop(note = '') {
+            const chat = getActiveChat();
+            const loop = chat.conversationLoop;
+            if (!loop || !Array.isArray(loop.turns)) return;
+            ensureConversationLoopState(loop);
+            if (conversationLoopState.loadingTurn !== null) return;
+            if (conversationLoopState.completedTurns >= loop.turns.length) return;
+
+            collectConversationLoopEdits(loop);
+            const runChatKey = activeChatKey;
+            const turnIndex = conversationLoopState.completedTurns;
+            if (note) loop.turns[turnIndex].note = note;
+            conversationLoopState.loadingTurn = turnIndex;
+            renderConversationLoop(chat);
+
+            clearConversationLoopTimer();
+            conversationLoopTimer = window.setTimeout(() => {
+                conversationLoopTimer = null;
+                if (runChatKey !== activeChatKey) return;
+                conversationLoopState.completedTurns = Math.min(loop.turns.length, turnIndex + 1);
+                conversationLoopState.loadingTurn = null;
+                if (conversationLoopState.completedTurns < loop.turns.length) {
+                    conversationLoopState.visibleTurns = Math.min(loop.turns.length, conversationLoopState.completedTurns + 1);
+                }
+                renderConversationLoop(chat);
+                window.setTimeout(() => {
+                    const nextVisibleIndex = Math.min(conversationLoopState.visibleTurns - 1, loop.turns.length - 1);
+                    els.chatTranscript
+                        .querySelector(`[data-turn-index="${nextVisibleIndex}"]`)
+                        ?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                }, 40);
+            }, conversationLoopLoadMs);
+        }
 
         els.visualChatForm.addEventListener('submit', (event) => {
             event.preventDefault();
+            const note = els.visualChatInput.value.trim();
             els.visualChatInput.value = '';
-            openLaunchSoonNotice();
+            const activeChat = getActiveChat();
+            const transcript = els.chatTranscript;
+            if (!transcript || !activeChat.conversationLoop) return;
+            advanceConversationLoop(note);
         });
 
-        els.visualChatInput.addEventListener('focus', openLaunchSoonNotice);
-        els.visualChatInput.addEventListener('input', openLaunchSoonNotice);
         els.launchSoonClose?.addEventListener('click', closeLaunchSoonNotice);
         els.launchSoonOk?.addEventListener('click', closeLaunchSoonNotice);
         els.launchSoonModal?.addEventListener('click', (event) => {

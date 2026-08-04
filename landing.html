@@ -1651,6 +1651,7 @@
                 0 14px 30px rgba(32, 50, 54, 0.1),
                 inset 0 1px 0 rgba(255, 255, 255, 0.8);
             overflow: hidden;
+            transition: transform 0.22s ease, box-shadow 0.22s ease;
         }
 
         .join-access-badge::before {
@@ -1659,6 +1660,11 @@
             inset: 0 auto 0 0;
             width: 4px;
             background: linear-gradient(180deg, var(--leaf), var(--teal));
+        }
+
+        .join-access-badge:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 16px 34px rgba(32, 50, 54, 0.1);
         }
 
         .join-access-icon {
@@ -1687,8 +1693,8 @@
 
         .join-access-copy strong {
             display: block;
-            font-size: 30px;
-            line-height: 1;
+            font-size: 22px;
+            line-height: 1.18;
             font-weight: 900;
         }
 
@@ -2599,10 +2605,9 @@
                     <p class="lede">Use your email to join the founding list. You will get early updates, product previews, and short feedback invitations before launch.</p>
                     <div class="join-lockup">
                         <div class="join-access-badge" aria-hidden="true">
-                            <span class="join-access-icon"><i class="fas fa-check"></i></span>
+                            <span class="join-access-icon"><i class="fas fa-hand-holding-heart"></i></span>
                             <span class="join-access-copy">
-                                <span>Founding access</span>
-                                <strong>No Cost</strong>
+                                <strong>Join us in the mission of helping people make better decisions.</strong>
                             </span>
                         </div>
                     </div>
