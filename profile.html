@@ -228,6 +228,18 @@
             color:var(--muted);
             line-height:1.55;
         }
+        .persona-pdf-helper {
+            padding:12px 14px;
+            border-left:4px solid #2d9a84;
+            border-radius:12px;
+            background:rgba(231,248,241,0.76);
+            color:#58706d;
+            font-size:14px;
+            line-height:1.5;
+        }
+        .persona-pdf-helper strong {
+            color:#203236;
+        }
         .persona-pdf-actions {
             display:flex;
             gap:10px;
@@ -495,6 +507,7 @@
                         Your Persona
                     </h2>
                     <p>Upload a PDF summary of your persona. Syntrae can use this as a readable private context layer before the algorithm replays choices in decision tools.</p>
+                    <div class="persona-pdf-helper"><strong>Tip:</strong> You can ask the LLM you use most often to summarize your preferences, values, communication style, and decision context, then upload that summary as a PDF.</div>
                     <div class="persona-pdf-actions">
                         <label class="btn btn-primary" for="persona_pdf_upload">
                             <svg class="inline-icon" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">

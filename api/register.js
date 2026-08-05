@@ -102,69 +102,40 @@ function compactMetadata(metadata) {
   );
 }
 
-async function upsertWaitlistEntry(supabaseUrl, serviceRoleKey, entry) {
-  const url = `${supabaseUrl}/rest/v1/waitlist?on_conflict=email`;
+function isDuplicateWaitlistError(status, text) {
+  return status === 409 && /23505|duplicate key|waitlist.*email/i.test(text || '');
+}
+
+async function insertWaitlistEntry(supabaseUrl, apiKey, entry) {
+  const url = `${supabaseUrl}/rest/v1/waitlist`;
   const row = {
     email: entry.email,
     referral_source: entry.referralSource,
     status: entry.status || 'pending',
-    consent_to_updates: true,
-    updated_at: new Date().toISOString()
+    consent_to_updates: true
   };
   if (entry.fullName) row.full_name = entry.fullName;
 
   const response = await fetch(url, {
     method: 'POST',
     headers: {
-      apikey: serviceRoleKey,
-      Authorization: `Bearer ${serviceRoleKey}`,
+      apikey: apiKey,
+      Authorization: `Bearer ${apiKey}`,
       'Content-Type': 'application/json',
-      Prefer: 'resolution=merge-duplicates,return=minimal'
+      Prefer: 'return=minimal'
     },
     body: JSON.stringify(row)
   });
 
   if (!response.ok) {
     const txt = await response.text().catch(() => '');
-    throw new Error(`Waitlist upsert failed (${response.status}): ${txt}`);
-  }
-}
-
-async function sendWaitlistMagicLink(supabaseUrl, anonKey, entry, redirectTo, captchaToken = '') {
-  const url = `${supabaseUrl}/auth/v1/otp?redirect_to=${encodeURIComponent(redirectTo)}`;
-  const body = {
-    email: entry.email,
-    create_user: true,
-    data: compactMetadata({
-      full_name: entry.fullName,
-      waitlist: true,
-      referral_source: entry.referralSource,
-      profile_completed: false
-    })
-  };
-  if (captchaToken) {
-    body.gotrue_meta_security = { captcha_token: String(captchaToken) };
+    if (isDuplicateWaitlistError(response.status, txt)) {
+      return { inserted: false, duplicate: true };
+    }
+    throw new Error(`Waitlist insert failed (${response.status}): ${txt}`);
   }
 
-  const response = await fetch(url, {
-    method: 'POST',
-    headers: {
-      apikey: anonKey,
-      Authorization: `Bearer ${anonKey}`,
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify(body)
-  });
-
-  const payload = await response.json().catch(() => ({}));
-  if (!response.ok) {
-    const message = payload?.msg || payload?.error_description || payload?.error || 'Verification email could not be sent';
-    const err = new Error(message);
-    err.status = response.status;
-    throw err;
-  }
-
-  return payload;
+  return { inserted: true, duplicate: false };
 }
 
 function isDnsMissingError(err) {
@@ -272,7 +243,7 @@ module.exports = async function handler(req, res) {
   if (!isPlausibleEmail(normalizedEmail)) {
     return res.status(400).json({ error: 'Please enter a valid email address.' });
   }
-  if (hasPassword && trimmedPassword.length < 8) {
+  if (!isWaitlistSignup && hasPassword && trimmedPassword.length < 8) {
     return res.status(400).json({ error: 'Password must be at least 8 characters.' });
   }
   if (!isWaitlistSignup && !hasPassword) {
@@ -303,21 +274,19 @@ module.exports = async function handler(req, res) {
   }
 
   let exists = false;
-  if (serviceRoleKey) {
-    try {
+  try {
+    if (!isWaitlistSignup) {
       exists = await emailExists(supabaseUrl, serviceRoleKey, normalizedEmail);
-      if (exists && !isWaitlistSignup) {
+      if (exists) {
         return res.status(409).json({ code: 'email_exists', error: 'This account already exists.' });
       }
-    } catch (err) {
-      console.error('register email lookup failed:', err);
-      return res.status(500).json({ error: 'Could not verify email right now.' });
     }
+  } catch (err) {
+    console.error('register email lookup failed:', err);
+    return res.status(500).json({ error: 'Could not verify email right now.' });
   }
 
-  const emailRedirectTo = isWaitlistSignup
-    ? `${getOrigin(req)}/founding-welcome.html?verified=true`
-    : `${getOrigin(req)}/sign-in.html?verified=true`;
+  const emailRedirectTo = `${getOrigin(req)}/sign-in.html?verified=true`;
 
   const waitlistEntry = {
     email: normalizedEmail,
@@ -327,20 +296,18 @@ module.exports = async function handler(req, res) {
   };
 
   try {
-    const signupKey = anonKey;
-    if (isWaitlistSignup && (!hasPassword || exists)) {
-      await sendWaitlistMagicLink(supabaseUrl, signupKey, waitlistEntry, emailRedirectTo, captchaToken);
-      if (serviceRoleKey) {
-        await upsertWaitlistEntry(supabaseUrl, serviceRoleKey, waitlistEntry);
-      }
+    if (isWaitlistSignup) {
+      const waitlistResult = await insertWaitlistEntry(supabaseUrl, anonKey, waitlistEntry);
       return res.status(200).json({
         ok: true,
         waitlist: true,
-        passwordless: true,
-        requiresEmailConfirmation: true
+        stored: true,
+        alreadyJoined: !!waitlistResult.duplicate,
+        requiresEmailConfirmation: false
       });
     }
 
+    const signupKey = anonKey;
     const signupUrl = `${supabaseUrl}/auth/v1/signup?redirect_to=${encodeURIComponent(emailRedirectTo)}`;
     const userMetadata = compactMetadata({
       full_name: normalizedName,
@@ -379,15 +346,9 @@ module.exports = async function handler(req, res) {
       return res.status(signupRes.status).json({ error: message });
     }
 
-    if (isWaitlistSignup) {
-      if (serviceRoleKey) {
-        await upsertWaitlistEntry(supabaseUrl, serviceRoleKey, waitlistEntry);
-      }
-    }
-
     return res.status(200).json({
       ok: true,
-      waitlist: isWaitlistSignup,
+      waitlist: false,
       requiresEmailConfirmation: !payload?.session
     });
   } catch (err) {

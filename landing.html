@@ -516,46 +516,6 @@
             font-weight: 600;
         }
 
-        .hero-signup {
-            width: min(660px, 100%);
-            display: grid;
-            grid-template-columns: minmax(0, 1fr) auto;
-            gap: 10px;
-            padding: 10px;
-            border: 1px solid rgba(255, 255, 255, 0.28);
-            border-radius: 10px;
-            background: rgba(255, 255, 255, 0.16);
-            box-shadow: 0 24px 54px rgba(0, 0, 0, 0.2);
-            backdrop-filter: blur(12px);
-        }
-
-        .hero-signup input {
-            min-height: 52px;
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            background: rgba(255, 255, 255, 0.95);
-            font-size: 16px;
-        }
-
-        .hero-signup .button {
-            min-height: 52px;
-            padding-inline: 22px;
-            font-size: 15px;
-            white-space: nowrap;
-        }
-
-        .hero-form-status {
-            grid-column: 1 / -1;
-            min-height: 20px;
-            color: rgba(255, 255, 255, 0.94);
-            font-size: 13px;
-            font-weight: 800;
-            line-height: 1.45;
-        }
-
-        .hero-form-status[data-type="error"] {
-            color: #ffdad4;
-        }
-
         .hero-actions {
             display: flex;
             align-items: center;
@@ -1302,6 +1262,11 @@
             will-change: transform, opacity;
         }
 
+        .recurrence-panel.is-single-report .recurrence-window-content {
+            padding: 0;
+            perspective: none;
+        }
+
         .recurrence-result-card {
             grid-area: 1 / 1;
             min-width: 0;
@@ -1318,6 +1283,20 @@
                 box-shadow 0.62s ease;
             will-change: transform, opacity;
             pointer-events: none;
+        }
+
+        .recurrence-panel.is-single-report .recurrence-result-card {
+            position: relative;
+            display: grid;
+            gap: 16px;
+            pointer-events: auto;
+            opacity: 1;
+            filter: none;
+            transform: none;
+            background:
+                radial-gradient(circle at 10% 0%, rgba(229, 251, 244, 0.9), transparent 30%),
+                radial-gradient(circle at 92% 4%, rgba(255, 244, 190, 0.48), transparent 25%),
+                rgba(255, 255, 255, 0.97);
         }
 
         .recurrence-result-card.is-active {
@@ -1392,6 +1371,343 @@
                 transform: translate3d(34px, -34px, 0) rotate(1.3deg) scale(0.95);
                 filter: saturate(0.68);
             }
+        }
+
+        .landing-report-header {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) minmax(170px, 0.38fr);
+            gap: 16px;
+            align-items: start;
+        }
+
+        .landing-report-kicker {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            width: fit-content;
+            margin: 0 0 8px;
+            padding: 6px 11px;
+            border: 1px solid rgba(18, 150, 141, 0.2);
+            border-radius: 999px;
+            color: var(--leaf);
+            background: #e5f8f2;
+            font-size: 10px;
+            font-weight: 950;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+        }
+
+        .landing-report-header h3 {
+            margin: 0 0 8px;
+            font-family: "Fraunces", Georgia, serif;
+            color: var(--ink);
+            font-size: clamp(30px, 4.2vw, 48px);
+            line-height: 1;
+            letter-spacing: 0;
+        }
+
+        .landing-report-header p {
+            margin: 0;
+            color: var(--quiet);
+            font-size: 13px;
+            font-weight: 820;
+            line-height: 1.55;
+        }
+
+        .landing-report-run-id {
+            display: grid;
+            gap: 6px;
+            padding: 14px;
+            border: 1px solid rgba(32, 50, 54, 0.12);
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.86);
+            color: var(--quiet);
+            font-size: 10px;
+            font-weight: 950;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+        }
+
+        .landing-report-run-id strong {
+            color: var(--ink);
+            font-size: clamp(16px, 2vw, 21px);
+            line-height: 1.1;
+            text-transform: none;
+            word-break: break-word;
+        }
+
+        .landing-report-pinned-context {
+            position: sticky;
+            top: 0;
+            z-index: 3;
+            display: grid;
+            gap: 8px;
+            padding: 13px;
+            border: 1px solid rgba(30, 159, 140, 0.28);
+            border-radius: 8px;
+            background:
+                linear-gradient(135deg, rgba(239, 253, 248, 0.96), rgba(255, 252, 236, 0.94)),
+                rgba(255, 255, 255, 0.96);
+            box-shadow: 0 12px 28px rgba(32, 50, 54, 0.12);
+            backdrop-filter: blur(12px);
+        }
+
+        .landing-report-pinned-context span {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            color: var(--teal-dark);
+            font-size: 10px;
+            font-weight: 950;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+        }
+
+        .landing-report-pinned-context p {
+            margin: 0;
+            color: var(--ink);
+            font-size: 13px;
+            font-weight: 850;
+            line-height: 1.45;
+        }
+
+        .landing-report-pinned-context strong {
+            color: var(--ink);
+            font-weight: 950;
+        }
+
+        .landing-report-stat-grid,
+        .landing-report-chart-grid {
+            display: grid;
+            gap: 10px;
+        }
+
+        .landing-report-stat-grid {
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+        }
+
+        .landing-report-chart-grid {
+            grid-template-columns: minmax(0, 1.08fr) minmax(0, 0.92fr);
+        }
+
+        .landing-report-card {
+            display: grid;
+            gap: 9px;
+            min-width: 0;
+            padding: 14px;
+            border: 1px solid rgba(32, 50, 54, 0.12);
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.9);
+        }
+
+        .landing-report-card h4 {
+            margin: 0;
+            color: var(--ink);
+            font-size: 15px;
+            line-height: 1.2;
+        }
+
+        .landing-report-card span {
+            color: var(--quiet);
+            font-size: 10px;
+            font-weight: 950;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+        }
+
+        .landing-report-card strong {
+            color: var(--ink);
+            font-size: 27px;
+            line-height: 1;
+        }
+
+        .landing-report-card p {
+            margin: 0;
+            color: var(--quiet);
+            font-size: 12px;
+            font-weight: 780;
+            line-height: 1.45;
+        }
+
+        .landing-report-legend {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            color: var(--quiet);
+            font-size: 10px;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+
+        .landing-report-legend span {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .landing-report-legend span::before {
+            content: "";
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--dot);
+        }
+
+        .landing-report-distribution-list,
+        .landing-report-sensitivity-list,
+        .landing-report-scorecard {
+            display: grid;
+            gap: 10px;
+        }
+
+        .landing-report-distribution-row,
+        .landing-report-sensitivity-row {
+            display: grid;
+            gap: 7px;
+        }
+
+        .landing-report-row-label,
+        .landing-report-sensitivity-label {
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+            color: var(--ink);
+            font-size: 11px;
+            font-weight: 900;
+        }
+
+        .landing-report-distribution-bar {
+            display: grid;
+            grid-template-columns: var(--positive) var(--negative) var(--unclear);
+            height: 14px;
+            overflow: hidden;
+            border-radius: 999px;
+            background: rgba(32, 50, 54, 0.08);
+        }
+
+        .landing-report-distribution-bar span:nth-child(1) {
+            background: linear-gradient(90deg, #159b8f, #7adfca);
+        }
+
+        .landing-report-distribution-bar span:nth-child(2) {
+            background: linear-gradient(90deg, #d45d50, #f2a094);
+        }
+
+        .landing-report-distribution-bar span:nth-child(3) {
+            background: linear-gradient(90deg, #dba72d, #f6db85);
+        }
+
+        .landing-report-sensitivity-track {
+            height: 10px;
+            overflow: hidden;
+            border-radius: 999px;
+            background: rgba(32, 50, 54, 0.08);
+        }
+
+        .landing-report-sensitivity-fill {
+            display: block;
+            width: var(--width);
+            height: 100%;
+            border-radius: inherit;
+            background: linear-gradient(90deg, #159b8f, #f07061);
+        }
+
+        .landing-report-score-row {
+            display: grid;
+            grid-template-columns: minmax(0, 1.05fr) repeat(3, minmax(68px, auto)) minmax(132px, 0.8fr);
+            gap: 8px;
+            align-items: center;
+            padding: 9px;
+            border: 1px solid rgba(32, 50, 54, 0.1);
+            border-radius: 8px;
+            background: rgba(246, 251, 248, 0.82);
+            color: var(--quiet);
+            font-size: 11px;
+            font-weight: 850;
+        }
+
+        .landing-report-score-row.is-header {
+            color: var(--teal-dark);
+            background: rgba(226, 248, 242, 0.9);
+            font-size: 10px;
+            font-weight: 950;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .landing-report-score-row.is-best {
+            border-color: rgba(30, 159, 140, 0.4);
+            background: #effbf7;
+            box-shadow: inset 4px 0 0 rgba(30, 159, 140, 0.82);
+        }
+
+        .landing-report-score-row strong {
+            color: var(--ink);
+            font-size: 12px;
+            line-height: 1.25;
+        }
+
+        .landing-report-pill {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: fit-content;
+            min-height: 24px;
+            padding: 5px 8px;
+            border-radius: 999px;
+            font-size: 10px;
+            font-weight: 950;
+            white-space: nowrap;
+        }
+
+        .landing-report-pill.positive {
+            color: #247b66;
+            background: #e5f8f2;
+        }
+
+        .landing-report-pill.negative {
+            color: #b45143;
+            background: #fff1ed;
+        }
+
+        .landing-report-pill.unclear {
+            color: #8c6a12;
+            background: #fff8df;
+        }
+
+        .landing-report-final {
+            display: grid;
+            gap: 8px;
+            padding: 15px;
+            border: 1px solid #efd98f;
+            border-radius: 8px;
+            background: #fff8e6;
+        }
+
+        .landing-report-final span {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            color: #8c6a12;
+            font-size: 11px;
+            font-weight: 950;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+        }
+
+        .landing-report-final strong {
+            color: var(--ink);
+            font-size: 18px;
+            line-height: 1.2;
+        }
+
+        .landing-report-final p {
+            margin: 0;
+            color: var(--quiet);
+            font-size: 13px;
+            font-weight: 820;
+            line-height: 1.55;
         }
 
         .recurrence-panel-top {
@@ -2414,6 +2730,10 @@
             .principles {
                 grid-template-columns: repeat(2, minmax(0, 1fr));
             }
+
+            .landing-report-chart-grid {
+                grid-template-columns: 1fr;
+            }
         }
 
         @media (max-width: 680px) {
@@ -2471,8 +2791,27 @@
                 padding: 0 18px 22px 0;
             }
 
+            .recurrence-panel.is-single-report .recurrence-window-content {
+                padding: 0;
+            }
+
             .recurrence-result-card {
                 padding: 18px;
+            }
+
+            .landing-report-header,
+            .landing-report-stat-grid,
+            .landing-report-chart-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .landing-report-score-row {
+                grid-template-columns: 1fr;
+                align-items: start;
+            }
+
+            .landing-report-score-row.is-header {
+                display: none;
             }
 
             .recurrence-result-card.is-covered-one {
@@ -2503,14 +2842,9 @@
                 white-space: normal;
             }
 
-            .hero-actions,
-            .hero-signup {
+            .hero-actions {
                 align-items: stretch;
                 flex-direction: column;
-            }
-
-            .hero-signup {
-                grid-template-columns: 1fr;
             }
 
             .button {
@@ -2547,7 +2881,7 @@
         <a class="brand" href="landing.html" aria-label="Syntrae home">
             <img class="nav-logo-image" src="assets/syntrae-logo.svg" alt="Syntrae logo">
             <span class="brand-copy">
-                <span>Improve decision quality</span>
+                <span>Improve romantic relationship decision quality</span>
             </span>
         </a>
         <div class="nav-links">
@@ -2568,14 +2902,9 @@
     <main>
         <section class="hero" id="top">
             <div class="hero-inner">
-                <span class="eyebrow"><i class="fas fa-seedling"></i> Founding access is available at no cost</span>
-                <h1>Replay the decision before you live with it.</h1>
-                <p>Syntrae uses real inputs from your situation to simulate many plausible futures, so you can see which consequences keep returning before choosing a work, family, planning, or personal next step.</p>
-                <form class="hero-signup" action="founding-welcome.html" method="get" aria-label="Join Syntrae for free">
-                    <input type="email" name="email" autocomplete="email" placeholder="Enter your email" aria-label="Email address" required>
-                    <button class="button button-primary" type="submit"><i class="fas fa-user-plus"></i> Join for free</button>
-                    <div class="hero-form-status" id="heroFormStatus" role="status" aria-live="polite"></div>
-                </form>
+                <span class="eyebrow"><i class="fas fa-heart"></i> For thoughtful romantic relationship decisions</span>
+                <h1>Replay the relationship decision before you live with it.</h1>
+                <p>Syntrae helps you test sensitive romantic choices before you send the message, ask the question, or define where a relationship is going.</p>
             </div>
         </section>
 
@@ -2583,33 +2912,33 @@
             <div class="section-inner video-layout">
                 <div class="demo-launch-card" aria-label="Syntrae demo launch">
                     <p class="section-kicker">Feel the vision</p>
-                    <h2>Try the Syntrae Test demo.</h2>
-                    <p>Open the Syntrae demo to watch one decision tested across many plausible futures.</p>
+                    <h2>Try the romantic decision demo.</h2>
+                    <p>Open the Syntrae demo to watch one relationship decision tested across possible replies, timing issues, and emotional reactions.</p>
                     <a class="button vision-link demo-launch-btn" href="DashboardDemo.html?demo=decision-tree&amp;state=start&amp;tour=1&amp;flow=universal&amp;stage=start" data-demo-transition-link><i class="fas fa-play"></i> Feel the vision</a>
                 </div>
                 <div>
                     <p class="section-kicker">Demo preview</p>
-                    <h2>From one choice to recurring patterns.</h2>
-                    <p class="lede">The demo shows the basic Syntrae loop: enter a real situation, compare possible actions, replay them under slightly different assumptions, and choose the next step with more clarity.</p>
+                    <h2>From one message to clearer relationship signals.</h2>
+                    <p class="lede">The demo shows the basic Syntrae loop: enter one specific romantic situation, compare possible ways to act, replay the likely responses, and choose the next step with more care.</p>
                     <div class="video-points">
                         <article class="point">
                             <span class="point-icon" aria-hidden="true"><i class="fas fa-keyboard"></i></span>
                             <div>
-                                <h3>Add the situation</h3>
-                                <p>Give Syntrae the decision, options, context, goal, and constraints.</p>
+                                <h3>Add the relationship situation</h3>
+                                <p>Tell Syntrae who is involved, what you want to ask, and what outcome you hope to protect.</p>
                             </div>
                         </article>
                         <article class="point">
                             <span class="point-icon" aria-hidden="true"><i class="fas fa-chart-line"></i></span>
                             <div>
-                                <h3>Replay plausible futures</h3>
-                                <p>Run the same decision repeatedly to see which consequences return most often.</p>
+                                <h3>Replay possible replies</h3>
+                                <p>Compare how different tones, timing, and examples could change the response.</p>
                             </div>
                         </article>
                         <article class="point keep-agency">
                             <span class="point-icon" aria-hidden="true"><i class="fas fa-hand-holding-heart"></i></span>
                             <div>
-                                <h3>Keep agency</h3>
+                                <h3>Keep care and agency</h3>
                                 <p>Syntrae informs your decision. You still choose what to do.</p>
                             </div>
                         </article>
@@ -2621,26 +2950,26 @@
         <section class="section works-band" id="how-it-works">
             <div class="section-inner">
                 <p class="section-kicker">What Syntrae does</p>
-                <h2>Real input. Repeated simulations. Clearer next steps.</h2>
-                <p class="lede">Describe the situation honestly. Syntrae compares possible actions, replays them across plausible futures, and shows the consequence patterns that repeat while leaving the final decision with you.</p>
+                <h2>Real relationship context. Repeated response tests. Clearer next steps.</h2>
+                <p class="lede">Describe the romantic situation honestly. Syntrae compares possible messages, timing choices, and conversation styles, then shows which responses keep coming back while leaving the final decision with you.</p>
                 <div class="works-grid">
                     <article class="work-card">
                         <span class="work-icon" aria-hidden="true"><i class="fas fa-keyboard"></i></span>
                         <p class="work-step">Step 1</p>
-                        <h3>Enter real context</h3>
-                        <p>Add the options, timing, decision variables, goal, and constraints that shape what could happen next.</p>
+                        <h3>Enter romantic context</h3>
+                        <p>Add the person, relationship history, timing, emotional risk, and what you hope the conversation will protect.</p>
                     </article>
                     <article class="work-card">
                         <span class="work-icon" aria-hidden="true"><i class="fas fa-chart-pie"></i></span>
                         <p class="work-step">Step 2</p>
-                        <h3>Run repeated futures</h3>
-                        <p>Review how the practical consequences shift when timing, tone, pressure, and missing details vary.</p>
+                        <h3>Run response checks</h3>
+                        <p>Review how the likely replies shift when tone, timing, pressure, privacy, and uncertainty vary.</p>
                     </article>
                     <article class="work-card">
                         <span class="work-icon" aria-hidden="true"><i class="fas fa-hand-pointer"></i></span>
                         <p class="work-step">Step 3</p>
-                        <h3>Find the pattern</h3>
-                        <p>Use the recurring outcomes and sensitive assumptions to make a calmer decision. Syntrae informs your action; it does not choose for you.</p>
+                        <h3>Find the caring move</h3>
+                        <p>Use the recurring outcomes to choose a message or conversation path that feels clear, respectful, and emotionally safer.</p>
                     </article>
                 </div>
             </div>
@@ -2650,38 +2979,33 @@
             <div class="section-inner recurrence-layout">
                 <div>
                     <p class="section-kicker">Syntrae Test</p>
-                    <h2>The same decision, tested across alternative outcomes.</h2>
-                    <p class="lede">A single pros-and-cons list can miss how life unfolds. Syntrae Test handles the repeated outcome checks in the background, then shows decision context, response examples, and the best first move.</p>
+                    <h2>The same romantic decision, tested across alternative outcomes.</h2>
+                    <p class="lede">A single pros-and-cons list can miss how a sensitive relationship moment unfolds. Syntrae Test handles the repeated response checks in the background, then shows decision context, example replies, and the best first move.</p>
                     <div class="recurrence-steps">
                         <article class="recurrence-step">
                             <span aria-hidden="true"><i class="fas fa-sync-alt"></i></span>
                             <div>
                                 <h3>Set the decision</h3>
-                                <p>Start from the same situation, such as telling the truth at work or planning a family surprise.</p>
+                                <p>Start from one specific relationship choice, such as asking where things are going or choosing when to open a deeper conversation.</p>
                             </div>
                         </article>
                         <article class="recurrence-step">
                             <span aria-hidden="true"><i class="fas fa-sliders-h"></i></span>
                             <div>
                                 <h3>The algorithm varies assumptions and variables</h3>
-                                <p>Syntrae shifts timing, pressure, stakeholder needs, prior context, and missing facts behind the scenes.</p>
+                                <p>Syntrae shifts timing, message tone, emotional pressure, privacy, prior warmth, and missing facts behind the scenes.</p>
                             </div>
                         </article>
                         <article class="recurrence-step">
                             <span aria-hidden="true"><i class="fas fa-chart-bar"></i></span>
                             <div>
                                 <h3>Read the computation report</h3>
-                                <p>Review response examples and a clear best first move without sorting through raw probability numbers.</p>
+                                <p>Review specific reply examples and a clear best first move to act now.</p>
                             </div>
                         </article>
                     </div>
                 </div>
-                <div class="recurrence-panel" aria-label="Example Syntrae Test simulation" data-syntrae-test-preview>
-                    <div class="recurrence-window-status">
-                        <button class="recurrence-window-arrow" type="button" data-syntrae-preview-prev aria-label="Show previous Syntrae Test result window"><i class="fas fa-arrow-left"></i></button>
-                        <div class="recurrence-window-dots" data-syntrae-preview-dots aria-label="Syntrae Test result windows"></div>
-                        <button class="recurrence-window-arrow" type="button" data-syntrae-preview-next aria-label="Show next Syntrae Test result window"><i class="fas fa-arrow-right"></i></button>
-                    </div>
+                <div class="recurrence-panel is-single-report" aria-label="Example Syntrae Test computation report" data-syntrae-test-preview>
                     <div class="recurrence-window-content" data-syntrae-preview-content aria-live="polite"></div>
                 </div>
             </div>
@@ -2691,22 +3015,22 @@
             <div class="section-inner founding-layout">
                 <div>
                     <p class="section-kicker">Join Syntrae</p>
-                    <h2>Reserve no-cost founding access.</h2>
-                    <p class="lede">Use your email to join the founding list. You will get early updates, product previews, and short feedback invitations before launch.</p>
+                    <h2>Join the founding circle.</h2>
+                    <p class="lede">Use your email to follow Syntrae as we build tools for improving romantic relationship decision quality.</p>
                     <div class="join-lockup">
                         <div class="join-access-badge" aria-hidden="true">
                             <span class="join-access-icon"><i class="fas fa-hand-holding-heart"></i></span>
                             <span class="join-access-copy">
-                                <strong>Join us in the mission of helping people make better decisions.</strong>
+                                <strong>Join us in the mission of helping people make better romantic relationship decisions.</strong>
                             </span>
                         </div>
                     </div>
-                    <div class="mission-callout">Syntrae helps people replay important choices and identify the consequence patterns that keep coming back.</div>
+                    <div class="mission-callout">Syntrae helps people replay sensitive relationship choices and identify the response patterns that keep coming back.</div>
                 </div>
 
                 <form class="member-form" id="foundingForm" action="founding-welcome.html" method="get">
                     <h3>Join for free</h3>
-                    <p>Enter your email to reserve founding access with Syntrae.</p>
+                    <p>Enter your email to receive early Syntrae updates and product previews.</p>
                     <div class="field-grid">
                         <label>
                             Full name
@@ -2716,13 +3040,9 @@
                             Email
                             <input type="email" name="email" autocomplete="email" placeholder="you@example.com" required>
                         </label>
-                        <label>
-                            Password
-                            <input type="password" name="password" autocomplete="new-password" placeholder="Create a password" required>
-                        </label>
                         <label class="checkbox">
                             <input type="checkbox" name="foundingConsent" required>
-                            <span>I understand joining is available at no cost and includes early updates plus optional feedback invitations during development.</span>
+                            <span>I understand joining includes early updates plus optional feedback invitations during development.</span>
                         </label>
                     </div>
                     <div class="form-footer">
@@ -2730,7 +3050,7 @@
                         <button class="button button-primary" type="submit"><i class="fas fa-user-plus"></i> Join for free</button>
                         <div class="form-status" id="formStatus" role="status" aria-live="polite"></div>
                         <div class="account-switch">Have an account already? <a href="sign-in.html">Sign-in instead</a></div>
-                        <div class="disclaimer">Founding members receive early access updates and optional feedback invitations. Joining does not require a paid commitment.</div>
+                        <div class="disclaimer">Founding members receive early updates and optional feedback invitations while Syntrae prepares its romantic relationship decision tools.</div>
                     </div>
                 </form>
             </div>
@@ -2765,13 +3085,13 @@
 
                 <div class="landing-founder-story" id="founder-story-page">
                     <p class="section-kicker"><i class="fas fa-user"></i> Meeting the founder</p>
-                    <h2>A Mission Starts With A Human Story.</h2>
+                    <h2>A Mission Starts With A Relationship Story.</h2>
                     <div class="landing-founder-story-panel">
                         <p>Hi, I&rsquo;m Sebastian, the founder of Syntrae.</p>
-                        <p>Like everyone, I have lived a life filled with highs and lows&mdash;moments of success and failure, happiness and heartbreak, choices I am proud of and mistakes I still carry. Yet, it often feels as though regret has occupied more space in my heart than joy.</p>
-                        <p>There were moments when one different decision, a few kinder words, or a little more courage might have changed everything. In the silence that followed, I often wished for a chance to turn back, undo the pain, correct my mistakes, and finally make things right. But that chance never came, and the more tightly I held on to the past, the more incomplete I felt.</p>
-                        <p>Eventually, I began to understand that while we cannot change yesterday, we can determine tomorrow. Our actions now shape the people we become. Time does not move backward because life is asking us to move forward, and I wish there were a better way to advance with reduced frequency of mistakes.</p>
-                        <p class="landing-founder-emphasis"><strong>This is why I founded Syntrae: to help people replay important decisions across the alternative outcomes, notice which repeat, and turn the odds toward a better outcome before the real action is taken.</strong></p>
+                        <p>I built Syntrae from a familiar kind of uncertainty: liking someone, caring about the connection, and still not knowing what the next message should be. A few words can open the door to honesty, but the wrong timing or tone can make a good feeling suddenly feel pressured.</p>
+                        <p>In romantic relationships, the hardest decisions are often small on the screen and large in the heart. Should you be direct or gentle? Should you ask now or wait? Should you make your feelings clear, or give the other person more room to respond?</p>
+                        <p>I wanted a calmer way to think through those moments before sending the message, starting the conversation, or risking a misunderstanding. Not a tool that decides love for anyone, but one that helps people compare possible responses, notice repeated patterns, and choose with more care.</p>
+                        <p class="landing-founder-emphasis"><strong>This is why I founded Syntrae: to help people improve romantic relationship decisions by replaying important choices across alternative outcomes, seeing which responses repeat, and making the next move with more clarity before the real action is taken.</strong></p>
                     </div>
                 </div>
             </div>
@@ -2780,7 +3100,7 @@
 
     <footer class="footer">
         <div class="footer-inner">
-            <span>Improve decision quality</span>
+            <span>Improve romantic relationship decision quality</span>
             <div class="footer-links">
                 <a href="our-mission.html" target="_blank" rel="noopener noreferrer">Our mission</a>
                 <span aria-hidden="true">&middot;</span>
@@ -2800,11 +3120,9 @@
         </div>
     </div>
 
+    <script src="js/supabase-config.js"></script>
     <script src="js/page-tour.js"></script>
     <script>
-        const welcomeUrl = "founding-welcome.html";
-        const heroSignupForm = document.querySelector(".hero-signup");
-        const heroFormStatus = document.getElementById("heroFormStatus");
         const foundingForm = document.getElementById("foundingForm");
         const formStatus = document.getElementById("formStatus");
         const demoTransitionLink = document.querySelector("[data-demo-transition-link]");
@@ -2818,140 +3136,42 @@
         const founderStoryPage = document.getElementById("founder-story-page");
         const syntraeTestPreview = document.querySelector("[data-syntrae-test-preview]");
         const syntraePreviewContent = document.querySelector("[data-syntrae-preview-content]");
-        const syntraePreviewDots = document.querySelector("[data-syntrae-preview-dots]");
-        const syntraePreviewPrev = document.querySelector("[data-syntrae-preview-prev]");
-        const syntraePreviewNext = document.querySelector("[data-syntrae-preview-next]");
 
-        const syntraeResponseCategories = [
-            { key: "positive", label: "Positive responses", icon: "fa-check-circle" },
-            { key: "negative", label: "Negative responses", icon: "fa-exclamation-circle" },
-            { key: "unclear", label: "Unclear responses", icon: "fa-hourglass-half" }
-        ];
-
-        const syntraeTestResultWindows = [
-            {
-                chatSpace: "Invite Daniel to talk",
-                context: "Maya wants to invite Daniel to talk about where they are going, but she does not want the message to feel heavy.",
-                persona: "Daniel Smith responds best when the message feels warm, light, and private instead of formal.",
-                options: [
-                    {
-                        label: "Option A: Warm and direct",
-                        message: "For example: I've really enjoyed spending time with you, and I'd love to see you again. Are you free this weekend?",
-                        responses: {
-                            positive: [
-                                "I've enjoyed spending time with you too. Yeah, let's talk this weekend.",
-                                "I'm glad you said this directly. I've been wondering how you felt too."
-                            ],
-                            negative: [
-                                "Oh, I didn't realize we were talking about it like that already.",
-                                "Can we not get into this right now? I'm not really ready."
-                            ],
-                            unclear: [
-                                "I care about you, but I need a little time to think before I answer."
-                            ]
-                        }
-                    },
-                    {
-                        label: "Option B: Light and open-ended",
-                        message: "For example: I had a lot of fun with you. What kind of adventure should we plan next?",
-                        best: true,
-                        responses: {
-                            positive: [
-                                "Haha I had fun too. Maybe coffee and a walk next time?",
-                                "I'm down. Let's plan something for Saturday afternoon."
-                            ],
-                            negative: [
-                                "Yeah, that was fun. We should invite the others next time too."
-                            ],
-                            unclear: [
-                                "Adventure sounds dramatic, but I'm interested.",
-                                "I liked spending time with you too. What did you have in mind?"
-                            ]
-                        }
-                    },
-                    {
-                        label: "Option C: Reflective and intentional",
-                        message: "For example: I've been thinking about the time we've spent together, and I really appreciate how comfortable and genuine things feel between us. How have you been feeling about us?",
-                        responses: {
-                            positive: [
-                                "That means a lot. I've felt comfortable with you too."
-                            ],
-                            negative: [
-                                "I don't know how to answer that right now.",
-                                "This feels like a big conversation suddenly."
-                            ],
-                            unclear: [
-                                "Are you asking if I see this becoming something more serious?",
-                                "I want to answer honestly, but I need time to think."
-                            ]
-                        }
-                    }
-                ],
-                bestMove: "Best first move: Light and open-ended.",
-                advice: "Start with the light invitation, then use Daniel's real reply to decide whether the next message should stay playful or become clearer."
+        const landingComputationReport = {
+            runId: "SYN-BZX5-39PD-THFM-KR7V",
+            summary: "Detailed projection for Daniel Smith. The report shows how the current demo turns each candidate message into outcome percentages, score interpretation, and sensitivity signals.",
+            context: {
+                decision: "Maya wants to invite Daniel to talk about where they are going, but she does not want the message to feel heavy.",
+                persona: "Daniel Smith responds best when the message feels warm, light, and private instead of formal."
             },
-            {
-                chatSpace: "Choose the right timing",
-                context: "Maya wants to find a good time for a deeper conversation with Daniel without springing the topic on him.",
-                persona: "Daniel is more receptive when he has time, privacy, and a calm afternoon window.",
-                options: [
-                    {
-                        label: "Option A: Saturday afternoon",
-                        message: "For example: Would Saturday afternoon be a better time than a weeknight to talk about us?",
-                        best: true,
-                        responses: {
-                            positive: [
-                                "Saturday works. I have the afternoon free, so we can talk without rushing.",
-                                "I appreciate you asking gently. Let's go for a walk and talk."
-                            ],
-                            negative: [
-                                "I just got pulled into a project deadline, so I can't focus today.",
-                                "This feels like a lot for today. Can we not turn Saturday into a serious talk?"
-                            ],
-                            unclear: [
-                                "I can meet for a little bit, but I may need to continue next week."
-                            ]
-                        }
-                    },
-                    {
-                        label: "Option B: Weeknight text",
-                        message: "For example: Could we text tonight about where things are going?",
-                        responses: {
-                            positive: [
-                                "I can text for a bit tonight. What did you want to talk about?",
-                                "Thanks for keeping it simple. I can answer one question now."
-                            ],
-                            negative: [
-                                "I'm exhausted from class. Can we not do this tonight?",
-                                "This is not a good time to start that conversation over text."
-                            ],
-                            unclear: [
-                                "Can we talk about this on the weekend instead?"
-                            ]
-                        }
-                    },
-                    {
-                        label: "Option C: After a warm date",
-                        message: "For example: Tonight felt really good. Could we walk a little longer and talk?",
-                        responses: {
-                            positive: [
-                                "Tonight felt really good. Yeah, let's talk while we walk.",
-                                "I'm glad you brought it up now. I was feeling close to you too."
-                            ],
-                            negative: [
-                                "I don't want to end a nice night with a heavy conversation.",
-                                "This shift feels sudden. I was not expecting this tonight."
-                            ],
-                            unclear: [
-                                "I want to talk, but maybe next time when we are not at the end of the night."
-                            ]
-                        }
-                    }
-                ],
-                bestMove: "Best first move: Saturday afternoon.",
-                advice: "Ask for a calm Saturday window first because it gives Daniel more room to respond thoughtfully before the conversation becomes emotional."
+            stats: [
+                { label: "Candidate actions", value: "3", note: "Each action keeps Maya's exact message attached to the outcome pool." },
+                { label: "Runs per action", value: "1,000", note: "Every candidate action is run with slightly varied romantic conditions." },
+                { label: "Total projected runs", value: "3,000", note: "Total runs for this relationship report." }
+            ],
+            distribution: [
+                { option: "Option A", action: "Warm and direct", positive: 37, negative: 34, unclear: 29 },
+                { option: "Option B", action: "Light and open-ended", positive: 42, negative: 21, unclear: 37, best: true },
+                { option: "Option C", action: "Reflective and intentional", positive: 21, negative: 31, unclear: 48 }
+            ],
+            sensitivity: [
+                { label: "Afternoon timing fit", weight: 84, note: "Daniel is more open when serious topics start in a private afternoon window." },
+                { label: "Emotional pressure penalty", weight: 72, note: "Direct romantic wording can make him shy or guarded if it arrives too suddenly." },
+                { label: "Message clarity", weight: 68, note: "Clear wording helps Maya avoid vague signals, but too much clarity too early can feel heavy." },
+                { label: "Privacy match", weight: 63, note: "Private one-to-one wording performs better than anything that feels public or performative." },
+                { label: "Follow-up room", weight: 58, note: "Open-ended messages preserve space for Daniel to answer before Maya asks for more clarity." }
+            ],
+            scorecard: [
+                { option: "Option A", action: "Warm and direct", positive: 37, negative: 34, unclear: 29, score: "+3", interpretation: "Usable, but the upside and pressure risk stay close." },
+                { option: "Option B", action: "Light and open-ended", positive: 42, negative: 21, unclear: 37, score: "+21", interpretation: "Strongest first move because positive likelihood exceeds pressure risk.", best: true },
+                { option: "Option C", action: "Reflective and intentional", positive: 21, negative: 31, unclear: 48, score: "-10", interpretation: "Riskier because uncertainty and pressure show up more often." }
+            ],
+            finalMove: {
+                title: "Best first move: Light and open-ended.",
+                action: "Start with: \"I had a lot of fun with you. What kind of adventure should we plan next?\"",
+                note: "This keeps Daniel relaxed while giving Maya a clear opening to follow up if he responds warmly."
             }
-        ];
+        };
 
         const revealTargets = [
             ...document.querySelectorAll(".demo-launch-card, .video-points .point, .work-card, .recurrence-layout > div, .recurrence-step, .founding-layout > div, .member-form")
@@ -2964,150 +3184,116 @@
             .replace(/"/g, "&quot;")
             .replace(/'/g, "&#39;");
 
-        const renderSyntraeResponseGroup = (responses, category) => {
-            const examples = responses?.[category.key] || [];
-            return `
-                <section class="recurrence-response-group ${category.key}">
-                    <h4><i class="fas ${category.icon}" aria-hidden="true"></i> ${escapeHtml(category.label)}</h4>
-                    <ul>
-                        ${examples.length
-                            ? examples.map((example) => `<li>${escapeHtml(example)}</li>`).join("")
-                            : "<li>No clear example in this demo path.</li>"}
-                    </ul>
-                </section>
-            `;
-        };
-
-        const renderSyntraeReportOption = (option) => `
-            <article class="recurrence-report-option${option.best ? " is-best" : ""}">
-                <div class="recurrence-option-title">
-                    <h3>${escapeHtml(option.label)}</h3>
-                    ${option.best ? '<span class="recurrence-best-chip"><i class="fas fa-check-circle" aria-hidden="true"></i> Best first move</span>' : ""}
-                    <p>${escapeHtml(option.message)}</p>
+        const renderLandingReportDistribution = (rows) => `
+            <section class="landing-report-card">
+                <h4>Outcome Distribution</h4>
+                <p>Each candidate message is grouped into positive, negative, and unclear response percentages.</p>
+                <div class="landing-report-legend">
+                    <span style="--dot:#159b8f;">Positive</span>
+                    <span style="--dot:#d45d50;">Negative</span>
+                    <span style="--dot:#dba72d;">Unclear</span>
                 </div>
-                <div class="recurrence-response-columns">
-                    ${syntraeResponseCategories.map((category) => renderSyntraeResponseGroup(option.responses, category)).join("")}
+                <div class="landing-report-distribution-list">
+                    ${rows.map((row) => `
+                        <div class="landing-report-distribution-row">
+                            <div class="landing-report-row-label">
+                                <span>${escapeHtml(row.option)}: ${escapeHtml(row.action)}</span>
+                                <span>${row.positive}% / ${row.negative}% / ${row.unclear}%</span>
+                            </div>
+                            <div class="landing-report-distribution-bar" style="--positive:${row.positive}fr;--negative:${row.negative}fr;--unclear:${row.unclear}fr;" aria-label="${escapeHtml(row.action)} outcome distribution">
+                                <span></span><span></span><span></span>
+                            </div>
+                        </div>
+                    `).join("")}
                 </div>
-            </article>
+            </section>
         `;
 
-        const renderSyntraeTestWindowMarkup = (windowData, index) => `
-            <article class="recurrence-result-card" data-syntrae-preview-card="${index}" aria-hidden="true">
-                <div class="recurrence-panel-top">
-                    <div>
-                        <span>Computation report</span>
-                        <strong>${escapeHtml(windowData.chatSpace)}</strong>
+        const renderLandingReportSensitivity = (rows) => `
+            <section class="landing-report-card">
+                <h4>Variable Sensitivity</h4>
+                <p>Demo weights show which user-provided romantic context changed the result most often.</p>
+                <div class="landing-report-sensitivity-list">
+                    ${rows.map((row) => `
+                        <div class="landing-report-sensitivity-row">
+                            <div class="landing-report-sensitivity-label">
+                                <span>${escapeHtml(row.label)}</span>
+                                <span>${row.weight}/100</span>
+                            </div>
+                            <div class="landing-report-sensitivity-track"><span class="landing-report-sensitivity-fill" style="--width:${row.weight}%;"></span></div>
+                            <p>${escapeHtml(row.note)}</p>
+                        </div>
+                    `).join("")}
+                </div>
+            </section>
+        `;
+
+        const renderLandingReportScorecard = (rows) => `
+            <section class="landing-report-card">
+                <h4>Candidate Action Scorecard</h4>
+                <div class="landing-report-scorecard">
+                    <div class="landing-report-score-row is-header">
+                        <span>Candidate action</span>
+                        <span>Positive</span>
+                        <span>Negative</span>
+                        <span>Unclear</span>
+                        <span>Score</span>
                     </div>
+                    ${rows.map((row) => `
+                        <div class="landing-report-score-row${row.best ? " is-best" : ""}">
+                            <strong>${escapeHtml(row.option)}: ${escapeHtml(row.action)}</strong>
+                            <span class="landing-report-pill positive">${row.positive}% positive</span>
+                            <span class="landing-report-pill negative">${row.negative}% negative</span>
+                            <span class="landing-report-pill unclear">${row.unclear}% unclear</span>
+                            <span>${escapeHtml(row.score)} ${escapeHtml(row.interpretation)}</span>
+                        </div>
+                    `).join("")}
                 </div>
-                <div class="recurrence-context">
-                    <p><strong>Decision context:</strong> ${escapeHtml(windowData.context)}</p>
-                    <p><strong>Active persona:</strong> ${escapeHtml(windowData.persona)}</p>
-                </div>
-                <div class="recurrence-report-options" aria-label="Syntrae Test response examples">
-                    ${windowData.options.map((option) => renderSyntraeReportOption(option)).join("")}
-                </div>
-                <div class="recurrence-final-move">
+            </section>
+        `;
+
+        const renderLandingComputationReport = (report) => `
+            <article class="recurrence-result-card is-active" data-syntrae-preview-card="0" aria-hidden="false">
+                <header class="landing-report-header">
+                    <div>
+                        <span class="landing-report-kicker"><i class="fas fa-chart-line" aria-hidden="true"></i> Computation Report</span>
+                        <h3>Syntrae Test analytics.</h3>
+                        <p>${escapeHtml(report.summary)}</p>
+                    </div>
+                    <div class="landing-report-run-id">
+                        <span>Run ID</span>
+                        <strong>${escapeHtml(report.runId)}</strong>
+                    </div>
+                </header>
+                <section class="landing-report-pinned-context" aria-label="Pinned computation report decision context">
+                    <span><i class="fas fa-thumbtack" aria-hidden="true"></i> Pinned decision context</span>
+                    <p><strong>Decision context:</strong> ${escapeHtml(report.context.decision)}</p>
+                    <p><strong>Active persona:</strong> ${escapeHtml(report.context.persona)}</p>
+                </section>
+                <section class="landing-report-stat-grid">
+                    ${report.stats.map((stat) => `
+                        <article class="landing-report-card">
+                            <span>${escapeHtml(stat.label)}</span>
+                            <strong>${escapeHtml(stat.value)}</strong>
+                            <p>${escapeHtml(stat.note)}</p>
+                        </article>
+                    `).join("")}
+                </section>
+                <section class="landing-report-chart-grid">
+                    ${renderLandingReportDistribution(report.distribution)}
+                    ${renderLandingReportSensitivity(report.sensitivity)}
+                </section>
+                ${renderLandingReportScorecard(report.scorecard)}
+                <section class="landing-report-final">
                     <span><i class="fas fa-lightbulb" aria-hidden="true"></i> Best first move</span>
-                    <strong>${escapeHtml(windowData.bestMove)}</strong>
-                    <p>${escapeHtml(windowData.advice)}</p>
-                </div>
+                    <strong>${escapeHtml(report.finalMove.title)}</strong>
+                    <p>${escapeHtml(report.finalMove.action)} ${escapeHtml(report.finalMove.note)}</p>
+                </section>
             </article>
         `;
 
-        if (syntraeTestPreview && syntraePreviewContent && syntraePreviewDots) {
-            let syntraePreviewIndex = 0;
-            let syntraePreviewShuffleTimer = null;
-            const prefersReducedPreviewMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-
-            const getSyntraePreviewCards = () => [
-                ...syntraePreviewContent.querySelectorAll("[data-syntrae-preview-card]")
-            ];
-
-            const renderSyntraePreviewDeck = () => {
-                syntraePreviewContent.innerHTML = syntraeTestResultWindows
-                    .map((windowData, index) => renderSyntraeTestWindowMarkup(windowData, index))
-                    .join("");
-            };
-
-            const updateSyntraePreviewDots = () => {
-                syntraePreviewDots.innerHTML = syntraeTestResultWindows.map((_, index) => `
-                    <button
-                        class="recurrence-window-dot${index === syntraePreviewIndex ? " is-active" : ""}"
-                        type="button"
-                        aria-label="Show Syntrae Test result window ${index + 1}"
-                        aria-current="${index === syntraePreviewIndex ? "true" : "false"}"
-                        data-syntrae-preview-index="${index}">
-                    </button>
-                `).join("");
-
-                syntraePreviewDots.querySelectorAll("[data-syntrae-preview-index]").forEach((button) => {
-                    button.addEventListener("click", () => {
-                        setSyntraePreviewWindow(Number(button.dataset.syntraePreviewIndex));
-                    });
-                });
-            };
-
-            const updateSyntraePreviewCards = ({ previousIndex = syntraePreviewIndex, animate = false } = {}) => {
-                const cards = getSyntraePreviewCards();
-                const windowCount = syntraeTestResultWindows.length;
-                cards.forEach((card) => {
-                    const cardIndex = Number(card.dataset.syntraePreviewCard);
-                    const distance = (cardIndex - syntraePreviewIndex + windowCount) % windowCount;
-                    card.classList.remove(
-                        "is-active",
-                        "is-covered-one",
-                        "is-covered-two",
-                        "is-covered-three",
-                        "is-entering",
-                        "is-leaving"
-                    );
-                    if (distance === 0) {
-                        card.classList.add("is-active");
-                        card.setAttribute("aria-hidden", "false");
-                    } else {
-                        card.classList.add(`is-covered-${distance === 1 ? "one" : distance === 2 ? "two" : "three"}`);
-                        card.setAttribute("aria-hidden", "true");
-                    }
-                });
-
-                if (animate && !prefersReducedPreviewMotion && previousIndex !== syntraePreviewIndex) {
-                    const oldCard = cards.find((card) => Number(card.dataset.syntraePreviewCard) === previousIndex);
-                    const newCard = cards.find((card) => Number(card.dataset.syntraePreviewCard) === syntraePreviewIndex);
-                    oldCard?.classList.add("is-leaving");
-                    newCard?.classList.add("is-entering");
-                    syntraePreviewShuffleTimer = window.setTimeout(() => {
-                        oldCard?.classList.remove("is-leaving");
-                        newCard?.classList.remove("is-entering");
-                        syntraePreviewShuffleTimer = null;
-                    }, 820);
-                }
-
-                updateSyntraePreviewDots();
-            };
-
-            function setSyntraePreviewWindow(index, { animate = true } = {}) {
-                if (syntraePreviewShuffleTimer) {
-                    window.clearTimeout(syntraePreviewShuffleTimer);
-                    syntraePreviewShuffleTimer = null;
-                }
-                getSyntraePreviewCards().forEach((card) => {
-                    card.classList.remove("is-entering", "is-leaving");
-                });
-                const previousIndex = syntraePreviewIndex;
-                syntraePreviewIndex = ((index % syntraeTestResultWindows.length) + syntraeTestResultWindows.length) % syntraeTestResultWindows.length;
-                updateSyntraePreviewCards({ previousIndex, animate });
-            }
-
-            syntraePreviewPrev?.addEventListener("click", () => {
-                setSyntraePreviewWindow(syntraePreviewIndex - 1);
-            });
-
-            syntraePreviewNext?.addEventListener("click", () => {
-                setSyntraePreviewWindow(syntraePreviewIndex + 1);
-            });
-
-            renderSyntraePreviewDeck();
-            setSyntraePreviewWindow(0, { animate: false });
+        if (syntraeTestPreview && syntraePreviewContent) {
+            syntraePreviewContent.innerHTML = renderLandingComputationReport(landingComputationReport);
         }
 
         if ("IntersectionObserver" in window) {
@@ -3203,7 +3389,6 @@
             const data = new FormData(form);
             const email = String(data.get("email") || "").trim().toLowerCase();
             const fullName = String(data.get("name") || "").trim();
-            const password = String(data.get("password") || "");
             const consentInput = form.querySelector('[name="foundingConsent"]');
             const consentToUpdates = consentInput ? consentInput.checked : true;
 
@@ -3214,6 +3399,50 @@
                 throw new Error("Please confirm the founding access note before joining.");
             }
 
+            const insertWaitlistDirectly = async () => {
+                const supabaseUrl = window.SUPABASE_URL;
+                const anonKey = window.SUPABASE_ANON_KEY;
+                if (!supabaseUrl || !anonKey) {
+                    throw new Error("Waitlist database configuration missing.");
+                }
+
+                const row = {
+                    email,
+                    referral_source: referralSource,
+                    status: "pending",
+                    consent_to_updates: true
+                };
+                if (fullName) row.full_name = fullName;
+
+                const response = await fetch(`${supabaseUrl}/rest/v1/waitlist`, {
+                    method: "POST",
+                    headers: {
+                        apikey: anonKey,
+                        Authorization: `Bearer ${anonKey}`,
+                        "Content-Type": "application/json",
+                        Prefer: "return=minimal"
+                    },
+                    body: JSON.stringify(row)
+                });
+
+                if (response.ok) {
+                    return { ok: true, waitlist: true, stored: true };
+                }
+
+                const text = await response.text().catch(() => "");
+                let parsed = {};
+                try {
+                    parsed = JSON.parse(text);
+                } catch {
+                    parsed = {};
+                }
+                if (response.status === 409 && (parsed.code === "23505" || /duplicate key|waitlist.*email/i.test(text))) {
+                    return { ok: true, waitlist: true, stored: true, alreadyJoined: true };
+                }
+
+                throw new Error(parsed.message || parsed.error || "Could not join the waitlist. Please try again.");
+            };
+
             const response = await fetch("/api/register", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
@@ -3222,36 +3451,31 @@
                     referralSource,
                     fullName,
                     email,
-                    password,
                     consentToUpdates,
                     website: ""
                 })
             });
             const body = await response.json().catch(() => ({}));
             if (!response.ok) {
-                throw new Error(body.error || "Could not send the verification email. Please try again.");
+                if (response.status === 500 && body.error === "Server auth configuration missing") {
+                    await insertWaitlistDirectly();
+                    saveFoundingInterest(form);
+                    setWaitlistStatus(statusElement, "Reservation received. Opening your welcome page...", "success");
+                    window.setTimeout(() => {
+                        window.location.href = "founding-welcome.html?joined=true";
+                    }, 650);
+                    return { ok: true, waitlist: true, stored: true };
+                }
+                throw new Error(body.error || "Could not join the waitlist. Please try again.");
             }
 
             saveFoundingInterest(form);
-            setWaitlistStatus(statusElement, "Check your email for the verification link. The thank-you page opens after you confirm.", "success");
+            setWaitlistStatus(statusElement, "Reservation received. Opening your welcome page...", "success");
+            window.setTimeout(() => {
+                window.location.href = "founding-welcome.html?joined=true";
+            }, 650);
             return body;
         };
-
-        if (heroSignupForm) {
-            heroSignupForm.addEventListener("submit", async (event) => {
-                event.preventDefault();
-                setWaitlistStatus(heroFormStatus, "");
-                const submitButton = heroSignupForm.querySelector('button[type="submit"]');
-                try {
-                    await withLandingButtonState(submitButton, "Sending link...", () => submitWaitlistSignup(heroSignupForm, {
-                        referralSource: "landing_hero",
-                        statusElement: heroFormStatus
-                    }));
-                } catch (error) {
-                    setWaitlistStatus(heroFormStatus, error.message || "Could not send the verification email. Please try again.", "error");
-                }
-            });
-        }
 
         if (foundingForm && formStatus) {
             foundingForm.addEventListener("submit", async (event) => {
@@ -3259,12 +3483,12 @@
                 setWaitlistStatus(formStatus, "");
                 const submitButton = foundingForm.querySelector('button[type="submit"]');
                 try {
-                    await withLandingButtonState(submitButton, "Sending link...", () => submitWaitlistSignup(foundingForm, {
+                    await withLandingButtonState(submitButton, "Joining...", () => submitWaitlistSignup(foundingForm, {
                         referralSource: "founding_form",
                         statusElement: formStatus
                     }));
                 } catch (error) {
-                    setWaitlistStatus(formStatus, error.message || "Could not send the verification email. Please try again.", "error");
+                    setWaitlistStatus(formStatus, error.message || "Could not join the waitlist. Please try again.", "error");
                 }
             });
         }
