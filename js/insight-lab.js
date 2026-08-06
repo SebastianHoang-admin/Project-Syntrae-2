@@ -1295,7 +1295,7 @@ function evaluatePair(optionA, optionB) {
     return { ready: false, reason: 'Select both personas to continue.' };
   }
   if (optionA.key === optionB.key) {
-    return { ready: false, reason: 'Choose one comparison target for Comparison Test.' };
+    return { ready: false, reason: 'Choose one comparison target for the Compatibility Sheet.' };
   }
 
   const vectorA = getQuantitativeTraitVector(optionA);
@@ -1627,7 +1627,7 @@ async function runWithProgress(taskFn) {
     if (value < 45) return 'Computing quantitative compatibility…';
     if (value < 70) return 'Evaluating qualitative diversity…';
     if (value < 90) return 'Generating match and mismatch insights…';
-    return 'Finalizing Comparison Test report...';
+    return 'Finalizing Compatibility Sheet...';
   };
 
   const timer = setInterval(() => {
@@ -2097,13 +2097,14 @@ function buildDemoFitnessReport(optionA, optionB) {
       qualitativeMisalignmentPercent: 18,
       mutationRatePercent: 14,
       areas_match: [
-        'Both prefer considerate communication over pressure',
-        'Depth and honesty signals are strongly aligned',
-        'Timing sensitivity suggests a gentle opening is appropriate'
+        "Maya's warm specificity pairs well with Daniel's preference for gentle, private communication",
+        'Both value respect, honesty, and low-pressure follow-through',
+        'Quiet, intentional settings help both personas stay present instead of performative'
       ],
       areas_mismatch: [
-        'Maya seeks clarity sooner than Daniel may expect',
-        'Daniel may need more emotional room before defining next steps'
+        'Maya may seek clarity sooner than Daniel is ready to name it',
+        'Daniel can become reserved when a message feels like an immediate relationship verdict',
+        'The best path needs timing that gives Daniel room and wording that gives Maya clarity'
       ],
       top_matches_axes: [
         { axis_name: 'Respect / Dignity Boundary', deviation: 0.06, persona_a_value: 0.82, persona_b_value: 0.76 },
@@ -2194,7 +2195,7 @@ async function runDemoFitnessReview() {
     return buildDemoFitnessReport(optionA, optionB);
   });
   localStorage.setItem(FITNESS_RESULT_STORAGE_KEY, JSON.stringify(report));
-  setStatus(`Demo Comparison Test complete for Maya Chen and ${optionB.label}.`, 'success');
+  setStatus(`Demo Compatibility Sheet ready for Maya Chen and ${optionB.label}.`, 'success');
   window.setTimeout(() => {
     window.location.href = demoUrl('demo-fitness-test-results.html');
   }, 450);
@@ -2785,7 +2786,7 @@ runBtn.addEventListener('click', async () => {
     window.location.href = 'fitness-test-results.html';
   } catch (error) {
     setReadyState(false);
-    setStatus(`Comparison Test failed: ${error?.message || 'Unexpected error'}`, 'error');
+    setStatus(`Compatibility Sheet failed: ${error?.message || 'Unexpected error'}`, 'error');
   }
 });
 

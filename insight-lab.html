@@ -1009,7 +1009,7 @@
         <div class="grid">
             <section class="panel">
                 <div class="panel-head">
-                    <h2>Comparison Test</h2>
+                    <h2>Compatibility Test</h2>
                     <span class="badge not-ready" id="fitnessReadyBadge">
                         <span class="state-dot" aria-hidden="true"></span>
                         <span class="state-x" aria-hidden="true">×</span>
@@ -1039,7 +1039,7 @@
                     <svg class="inline-icon" viewBox="0 0 16 16" aria-hidden="true" fill="currentColor">
                         <path d="M4.25 3.35c0-.48.52-.78.94-.53l7.03 4.15c.41.24.41.83 0 1.07L5.19 12.18a.62.62 0 0 1-.94-.54V3.35Z"></path>
                     </svg>
-                    Run Comparison Test
+                    Create Compatibility Sheet
                 </button>
             </section>
         </div>
@@ -1049,7 +1049,7 @@
         <section class="run-card">
             <div class="run-head">
                 <span class="run-spinner" aria-hidden="true"></span>
-                <h3 class="run-title">Running Comparison Test</h3>
+                <h3 class="run-title">Creating Compatibility Sheet</h3>
             </div>
             <p class="run-stage" id="fitnessRunStage">Initializing profile comparison…</p>
             <div class="progress-track">
@@ -1063,7 +1063,7 @@
 
     <script src="js/supabase-config.js"></script>
     <script src="js/page-tour.js"></script>
-    <script type="module" src="js/insight-lab.js?v=20260710-comparison-test"></script>
+    <script type="module" src="js/insight-lab.js?v=20260806-compatibility-sheet-flow"></script>
     <script>
         if (new URLSearchParams(window.location.search).get('demo') !== 'decision-tree') {
             window.SyntraePageTour?.init({
@@ -1092,14 +1092,14 @@
                     },
                     {
                         selector: '.panel',
-                        title: 'Comparison Test',
-                        description: 'This main panel is the comparison workspace. It brings selected personas, readiness state, and the test action together in one place.',
+                        title: 'Compatibility Test',
+                        description: 'This main panel is the comparison workspace. It brings selected personas, readiness state, and the sheet action together in one place.',
                         placement: 'top'
                     },
                     {
                         selector: '#runFitnessBtn',
-                        title: 'Run review',
-                        description: 'This action starts the comparison test and opens the results page once the comparison is complete.',
+                        title: 'Create sheet',
+                        description: 'This action starts the comparison test and opens the Compatibility Sheet once the comparison is complete.',
                         placement: 'top',
                         highlightSelector: '.panel',
                         highlight: 'soft'

@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Demo Comparison Test Results - Syntrae</title>
+  <title>Compatibility Sheet | Maya Chen and Daniel Smith | Syntrae</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -734,11 +734,11 @@
 <body>
   <header class="topbar">
     <div class="topbar-inner">
-      <a class="brand" href="insight-lab.html?demo=decision-tree" aria-label="Back to Insight Lab">
+      <a class="brand" href="DashboardDemo.html?demo=decision-tree&amp;state=start" aria-label="Back to Syntrae dashboard">
         <img src="assets/syntrae-logo.svg" alt="Syntrae logo">
         <span class="brand-copy">
-          <strong>Demo Comparison Test</strong>
-          <span>Comparison signals for a clearer next step</span>
+          <strong>Compatibility Sheet</strong>
+          <span>Maya Chen and Daniel Smith persona comparison</span>
         </span>
       </a>
       <div class="top-actions">
@@ -750,9 +750,9 @@
   <main class="shell">
     <section class="hero">
       <article class="panel summary-panel">
-        <span class="kicker"><i class="fas fa-chart-pie"></i> Comparison Test Results</span>
-        <h1>A promising fit, made easier to understand.</h1>
-        <p class="lede" id="analyticSummary">This analysis suggests a positive compatibility pattern, with strong alignment in care, communication tone, and willingness to meet each other thoughtfully.</p>
+        <span class="kicker"><i class="fas fa-chart-pie"></i> Compatibility Sheet</span>
+        <h1>Daniel Smith and Maya Chen, compared.</h1>
+        <p class="lede" id="analyticSummary">This persona comparison suggests a positive compatibility pattern, with strong alignment in care, communication tone, and willingness to meet each other thoughtfully.</p>
 
         <div class="score-grid">
           <div class="score" id="compatibilityPercent">78%</div>
@@ -820,20 +820,21 @@
     const fallbackReport = {
       report_id: 'demo-fitness-test-compatibility',
       comparedAt: new Date().toISOString(),
-      personaA: { key: 'maya-chen-demo', label: 'Maya Chen (You)' },
+      personaA: { key: 'maya-chen-demo', label: 'Maya Chen' },
       personaB: { key: 'daniel-smith-demo', label: 'Daniel Smith' },
       compatibilityPercent: 78,
       quantitativeDeviationPercent: 22,
       qualitativeMisalignmentPercent: 18,
       mutationRatePercent: 14,
       areas_match: [
-        'Both prefer considerate communication over pressure',
-        'Depth and honesty signals are strongly aligned',
-        'Timing sensitivity suggests a gentle opening is appropriate'
+        "Maya's warm specificity pairs well with Daniel's preference for gentle, private communication",
+        'Both value respect, honesty, and low-pressure follow-through',
+        'Quiet, intentional settings help both personas stay present instead of performative'
       ],
       areas_mismatch: [
-        'Maya seeks clarity sooner than Daniel may expect',
-        'Daniel may need more emotional room before defining next steps'
+        'Maya may seek clarity sooner than Daniel is ready to name it',
+        'Daniel can become reserved when a message feels like an immediate relationship verdict',
+        'The best path needs timing that gives Daniel room and wording that gives Maya clarity'
       ],
       top_matches_axes: [
         { axis_name: 'Respect / Dignity Boundary', deviation: 0.06, persona_a_value: 0.82, persona_b_value: 0.76 },
@@ -886,6 +887,8 @@
 
     function loadReport() {
       try {
+        const params = new URLSearchParams(window.location.search || '');
+        if (params.get('pair') === 'maya-daniel') return fallbackReport;
         const raw = localStorage.getItem(STORAGE_KEY);
         if (!raw) return fallbackReport;
         const parsed = JSON.parse(raw);
@@ -1000,7 +1003,9 @@
       renderChart(report);
       renderList(matchListEl, report.areas_match, 'No match signals available yet.');
       renderList(mismatchListEl, report.areas_mismatch, 'No mismatch signals available yet.');
-      document.title = `Demo Comparison Test Results - ${String(report?.personaA?.label || 'Syntrae').replace(/\s+\(You\)$/, '')}`;
+      const titleA = String(report?.personaA?.label || 'Maya Chen').replace(/\s+\(You\)$/, '').trim() || 'Maya Chen';
+      const titleB = String(report?.personaB?.label || 'Daniel Smith').replace(/\s+\(You\)$/, '').trim() || 'Daniel Smith';
+      document.title = `Compatibility Sheet - ${titleA} and ${titleB} | Syntrae`;
     }
 
     initialize();

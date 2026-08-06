@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Compatibility Review Results - Syntrae</title>
+  <title>Compatibility Sheet Results - Syntrae</title>
   <script>
     (function redirectDemoFitnessResults() {
       try {
@@ -21,6 +21,9 @@
 
         const target = new URL('demo-fitness-test-results.html', window.location.href);
         target.searchParams.set('demo', 'decision-tree');
+        if (params.get('pair')) {
+          target.searchParams.set('pair', params.get('pair'));
+        }
         if (params.get('tour') === '1') {
           target.searchParams.set('tour', '1');
         }
@@ -513,7 +516,7 @@
     <div class="left-head">
       <a class="back-link" href="insight-lab.html"><i class="fas fa-arrow-left"></i>Back to Insight Lab</a>
       <img class="syntrae-logo-image" src="assets/syntrae-logo.svg" alt="Syntrae logo">
-      <h1 class="title">Compatibility Review Results</h1>
+      <h1 class="title">Compatibility Sheet Results</h1>
     </div>
     <button id="historyBtn" class="history-btn" type="button"><i class="fas fa-clock-rotate-left"></i>Report History</button>
   </header>
@@ -557,7 +560,7 @@
           <div id="mismatchesChartRows" class="chart-rows"></div>
         </article>
       </div>
-      <p id="resultsFallback" class="empty" hidden>No recent Compatibility Review result found. Run the review from Insight Lab first.</p>
+      <p id="resultsFallback" class="empty" hidden>No recent Compatibility Sheet result found. Run the review from Insight Lab first.</p>
     </section>
   </main>
 
