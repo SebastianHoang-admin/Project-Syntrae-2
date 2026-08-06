@@ -1861,11 +1861,6 @@
             gap: 6px;
         }
 
-        .bell-curve-card p {
-            font-size: 12px;
-            line-height: 1.45;
-        }
-
         .already-joined-note {
             display: grid;
             gap: 5px;
@@ -5468,23 +5463,11 @@
             return { width, height, left, right, base, center, points };
         }
 
-        function describeBellCurve(row, top) {
-            const score = getDecisionScore(row);
-            if (row.index === top.index) {
-                return `${row.action} has the strongest upside center because positive likelihood is highest and downside stays comparatively low.`;
-            }
-            if (score >= 0) {
-                return `${row.action} still leans positive, but its curve is closer to the middle because upside and downside are less separated.`;
-            }
-            return `${row.action} leans less favorably because negative likelihood is higher than positive likelihood in this report.`;
-        }
-
         function renderBellCurveSection(rows) {
             const top = getBestDecisionRow(rows);
             return `
                 <section class="computation-card full-span bell-curve-section">
-                    <h3>Option Bell Curves</h3>
-                    <p>Each curve shows how an option leans across possible outcomes. A curve farther right means stronger upside, while a wider curve means the result is less settled.</p>
+                    <p>Each curve shows how an option leans across possible replies. Farther right means stronger upside; wider means less settled.</p>
                     <div class="bell-curve-grid">
                         ${rows.map((row) => {
                             const score = getDecisionScore(row);
@@ -5523,46 +5506,9 @@
                                         <span class="computation-pill negative"><i class="fas fa-exclamation-circle"></i>${row.totals.negative}% negative likelihood</span>
                                         <span class="computation-pill unclear"><i class="fas fa-hourglass-half"></i>${row.totals.unclear}% unclear likelihood</span>
                                     </div>
-                                    <p>${escapeHtml(describeBellCurve(row, top))}</p>
                                 </article>
                             `;
                         }).join('')}
-                    </div>
-                </section>
-            `;
-        }
-
-        function renderFrequencyTable(rows, iterations) {
-            return `
-                <section class="computation-card full-span">
-                    <h3>Five Most Likely Outcomes By Option</h3>
-                    <div class="computation-table-wrap">
-                        <table class="computation-table">
-                            <thead>
-                                <tr>
-                                    <th>Option</th>
-                                    <th>Outcome</th>
-                                    <th>Class</th>
-                                    <th>Likelihood</th>
-                                    <th>Example response</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                ${rows.map((row) => row.outcomes.map((outcome) => {
-                                    const key = normalizeClassification(outcome.classification);
-                                    const meta = classificationMeta[key];
-                                    return `
-                                        <tr>
-                                            <td><strong>${escapeHtml(row.title)}</strong>${escapeHtml(row.action)}</td>
-                                            <td>${escapeHtml(outcome.label)}</td>
-                                            <td><span class="computation-pill ${meta.className}"><i class="fas ${meta.icon}"></i>${escapeHtml(meta.label)}</span></td>
-                                            <td><strong>${outcome.recurrencePercent}%</strong></td>
-                                            <td>${escapeHtml(quoteExample(outcome.example))}</td>
-                                        </tr>
-                                    `;
-                                }).join('')).join('')}
-                            </tbody>
-                        </table>
                     </div>
                 </section>
             `;
@@ -5719,7 +5665,6 @@
                 ${renderBellCurveSection(rows)}
                 ${renderTopFrequencyChart(rows, iterations)}
                 ${renderCandidateScoreTable(rows, iterations)}
-                ${renderFrequencyTable(rows, iterations)}
                 ${renderOptionsSummarySection(rows, result.top)}
                 <section class="computation-card full-span">
                     <h3>Configuration</h3>
@@ -5769,7 +5714,7 @@
                 <article class="recurrence-metric">
                     <span><i class="fas fa-sync-alt"></i> Running Syntrae Test</span>
                     <strong>Testing alternatives...</strong>
-                    <small>Reading the demo inputs and building the five most likely outcomes.</small>
+                    <small>Reading the demo inputs and building the outcome projection.</small>
                 </article>
             `;
             els.recurrenceBars.innerHTML = `

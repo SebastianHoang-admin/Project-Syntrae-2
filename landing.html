@@ -1796,14 +1796,6 @@
             letter-spacing: 0.04em;
         }
 
-        .landing-report-bell-card p {
-            margin: 0;
-            color: var(--quiet);
-            font-size: 10px;
-            font-weight: 780;
-            line-height: 1.4;
-        }
-
         .recurrence-panel-top {
             display: flex;
             align-items: center;
@@ -2457,6 +2449,7 @@
 
         .landing-founder-card {
             position: relative;
+            z-index: 2;
             display: grid;
             align-content: stretch;
             min-height: 720px;
@@ -2582,11 +2575,17 @@
         }
 
         .landing-founder-cover-foot {
+            position: relative;
+            z-index: 4;
             display: grid;
             gap: 18px;
+            pointer-events: auto;
         }
 
         .landing-founder-open {
+            position: relative;
+            z-index: 5;
+            overflow: visible;
             width: fit-content;
             display: inline-flex;
             align-items: center;
@@ -2600,7 +2599,23 @@
             font-size: 15px;
             font-weight: 900;
             box-shadow: 0 18px 36px rgba(243, 201, 79, 0.28);
+            cursor: pointer;
+            isolation: isolate;
+            pointer-events: auto;
+            touch-action: manipulation;
             transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .landing-founder-open::before {
+            content: "";
+            position: absolute;
+            inset: -10px;
+            border-radius: 16px;
+            pointer-events: auto;
+        }
+
+        .landing-founder-open i {
+            pointer-events: none;
         }
 
         .landing-founder-open:hover,
@@ -2650,6 +2665,7 @@
 
         .landing-founder-story {
             position: relative;
+            z-index: 1;
             display: grid;
             gap: 16px;
             align-content: start;
@@ -3292,7 +3308,7 @@
                     <h2>A Mission Starts With A Relationship Story.</h2>
                     <div class="landing-founder-story-panel">
                         <p>Hi, I&rsquo;m Sebastian, the founder of Syntrae.</p>
-                        <p>I built Syntrae because I know that familiar, quiet anxiety: liking someone, deeply caring about the connection, and having no idea what your next message should say. Most dating apps treat romance like a numbers game, but I wanted to build something for the moment generic options don&rsquo;t matter&mdash;when there is only one specific person you actually care to reach.</p>
+                        <p>I built Syntrae because I know that familiar, quiet anxiety: liking someone, deeply caring about the connection, and having no idea what your next message should say. Most dating apps treat romance like a numbers game, where winning means connecting with as many people as possible instead of building something deeper with a few. I wanted to build something for the moment generic options don&rsquo;t matter&mdash;when there is only one specific person you actually care to reach.</p>
                         <p>When a connection truly matters to you, even a simple text message feels like a massive crossroad. Should you be direct or gentle? Express how you feel, or give them space? I&rsquo;ve been there, knowing that a slight misstep in timing or tone can make a genuine feeling suddenly feel awkward or pressured.</p>
                         <p>I created Syntrae to give you a safe space to think through those high-stakes moments before you hit send. By helping you replay your communication choices across alternative outcomes, Syntrae lets you see which approaches feel right and spot your own patterns.</p>
                         <p class="landing-founder-emphasis"><strong>Instead of leaving your heart to chance or guessing in the dark, I want to give you the insight and confidence to bridge the gap between a distant crush and a real connection&mdash;helping you turn <em>&ldquo;what if&rdquo;</em> into something real with the person who actually has your heart.</strong></p>
@@ -3434,18 +3450,10 @@
             return { width, height, left, right, base, center, points };
         };
 
-        const describeLandingBellCurve = (row, top) => {
-            const score = getLandingDecisionScore(row);
-            if (row === top) return "Strongest upside with the lowest pressure risk.";
-            if (score >= 0) return "Usable, but upside and downside stay close.";
-            return "Less stable because downside shows up more often.";
-        };
-
         const renderLandingBellCurves = (rows) => {
             const top = getLandingBestRow(rows);
             return `
                 <section class="landing-report-card landing-report-bell-section">
-                    <h4>Option Bell Curves</h4>
                     <p>Each curve shows how an option leans across possible replies. Farther right means stronger upside; wider means less settled.</p>
                     <div class="landing-report-bell-grid">
                         ${rows.map((row, index) => {
@@ -3480,7 +3488,6 @@
                                         <span>More downside</span>
                                         <span>More upside</span>
                                     </div>
-                                    <p>${escapeHtml(describeLandingBellCurve(row, top))}</p>
                                 </article>
                             `;
                         }).join("")}
