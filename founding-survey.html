@@ -291,6 +291,25 @@
             animation: pageRise 0.35s ease both;
         }
 
+        .survey-email-note {
+            display: none;
+            padding: 14px 16px;
+            border: 1px solid rgba(18, 150, 141, 0.18);
+            border-radius: 14px;
+            background: rgba(223, 244, 237, 0.55);
+            color: var(--quiet);
+            font-weight: 850;
+            line-height: 1.55;
+        }
+
+        .survey-email-note.is-visible {
+            display: block;
+        }
+
+        .survey-email-note strong {
+            color: var(--leaf);
+        }
+
         .share-card {
             display: grid;
             grid-template-columns: auto minmax(0, 1fr) auto;
@@ -337,8 +356,46 @@
             line-height: 1.5;
         }
 
+        .share-actions {
+            display: grid;
+            justify-items: end;
+            gap: 10px;
+        }
+
         .share-button {
             white-space: nowrap;
+        }
+
+        .share-options {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: flex-end;
+            gap: 8px;
+        }
+
+        .share-options[hidden] {
+            display: none;
+        }
+
+        .share-option {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 7px;
+            min-height: 38px;
+            padding: 9px 12px;
+            border: 1px solid rgba(18, 150, 141, 0.22);
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.88);
+            color: var(--leaf);
+            font-weight: 900;
+            cursor: pointer;
+            box-shadow: 0 10px 24px rgba(32, 50, 54, 0.08);
+        }
+
+        .share-option:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 14px 28px rgba(32, 50, 54, 0.12);
         }
 
         .share-note {
@@ -440,6 +497,15 @@
                 justify-items: start;
             }
 
+            .share-actions {
+                justify-items: stretch;
+                width: 100%;
+            }
+
+            .share-options {
+                justify-content: flex-start;
+            }
+
             .field textarea {
                 min-height: 128px;
             }
@@ -494,7 +560,7 @@
                 <div class="survey-intro-copy">
                     <p class="kicker"><i class="fas fa-shield-alt"></i> Focused feedback</p>
                     <h2>Short and helpful.</h2>
-                    <p>Answer what you can. The goal is to learn how people think through crush-related uncertainty before acting, not to collect identifying details.</p>
+                    <p>Answer what you can. The goal is to learn how people think through crush-related uncertainty before acting, while avoiding names or unnecessary identifying details beyond your founding email link.</p>
                     <div class="survey-promise">
                         <div class="promise-item"><i class="fas fa-seedling"></i><span>Your answers help shape product direction, language, and early crush-related use cases.</span></div>
                     </div>
@@ -502,6 +568,9 @@
             </aside>
 
             <form class="survey-form" id="surveyForm">
+                <input type="hidden" name="waitlistEmail" id="waitlistEmail">
+                <p class="survey-email-note" id="surveyEmailNote" aria-live="polite"></p>
+
                 <div class="question-block">
                     <h3>1. Tell me about the last time you felt uncertain about a crush.</h3>
                     <p>Use a general example. Please avoid names or identifying details.</p>
@@ -592,7 +661,15 @@
                             <strong>Send them Syntrae.app</strong>
                             <span>Share the link with someone who is unsure what to say to their crush.</span>
                         </div>
-                        <button class="button button-secondary share-button" type="button" id="shareSyntraeButton" data-share-url="https://Syntrae.app"><i class="fas fa-share-alt"></i> Share Syntrae.app</button>
+                        <div class="share-actions">
+                            <button class="button button-secondary share-button" type="button" id="shareSyntraeButton" data-share-url="https://Syntrae.app"><i class="fas fa-share-alt"></i> Share Syntrae.app</button>
+                            <div class="share-options" id="shareOptions" hidden>
+                                <button class="share-option" type="button" data-share-target="messages"><i class="fas fa-comment-dots"></i> Messages</button>
+                                <button class="share-option" type="button" data-share-target="email"><i class="fas fa-envelope"></i> Email</button>
+                                <button class="share-option" type="button" data-share-target="native"><i class="fas fa-share-alt"></i> More</button>
+                                <button class="share-option" type="button" data-share-target="copy"><i class="fas fa-link"></i> Copy</button>
+                            </div>
+                        </div>
                     </div>
                     <input type="hidden" name="sharedSyntrae" id="sharedSyntrae" value="not_shared">
                     <p class="share-note" id="shareStatus" role="status" aria-live="polite"></p>
@@ -621,8 +698,17 @@
         const surveyForm = document.getElementById("surveyForm");
         const surveyStatus = document.getElementById("surveyStatus");
         const shareSyntraeButton = document.getElementById("shareSyntraeButton");
+        const shareOptions = document.getElementById("shareOptions");
         const sharedSyntraeField = document.getElementById("sharedSyntrae");
         const shareStatus = document.getElementById("shareStatus");
+        const waitlistEmailField = document.getElementById("waitlistEmail");
+        const surveyEmailNote = document.getElementById("surveyEmailNote");
+
+        const shareDetails = {
+            title: "Syntrae",
+            url: shareSyntraeButton?.dataset.shareUrl || "https://Syntrae.app",
+            text: "Syntrae helps people think through crush-related uncertainty before sending the message or making the next move."
+        };
 
         function updateShareStatus(message) {
             if (!shareStatus) return;
@@ -630,36 +716,138 @@
             shareStatus.classList.add("is-visible");
         }
 
-        shareSyntraeButton?.addEventListener("click", async () => {
-            const shareUrl = shareSyntraeButton.dataset.shareUrl || "https://Syntrae.app";
-            const shareText = "Syntrae helps people think through crush-related uncertainty before sending the message or making the next move.";
+        function readFoundingInterest() {
+            try {
+                return JSON.parse(localStorage.getItem("syntrae:founding-member-interest") || "{}");
+            } catch (_) {
+                return {};
+            }
+        }
+
+        function normalizeEmail(value) {
+            return String(value || "").trim().toLowerCase();
+        }
+
+        function setSurveyStatus(message, type = "info") {
+            if (!surveyStatus) return;
+            surveyStatus.textContent = message;
+            surveyStatus.dataset.type = type;
+            surveyStatus.classList.add("is-visible");
+            surveyStatus.scrollIntoView({ behavior: "smooth", block: "nearest" });
+        }
+
+        function setSurveyButtonLoading(button, loading) {
+            if (!button) return;
+            button.disabled = loading;
+            button.dataset.originalText = button.dataset.originalText || button.innerHTML;
+            button.innerHTML = loading ? '<i class="fas fa-spinner fa-spin"></i> Submitting...' : button.dataset.originalText;
+        }
+
+        const foundingInterest = readFoundingInterest();
+        const storedWaitlistEmail = normalizeEmail(foundingInterest.email);
+        if (waitlistEmailField) waitlistEmailField.value = storedWaitlistEmail;
+        if (surveyEmailNote) {
+            if (storedWaitlistEmail) {
+                surveyEmailNote.textContent = "This survey will be linked to your founding email: ";
+                const emailStrong = document.createElement("strong");
+                emailStrong.textContent = storedWaitlistEmail;
+                surveyEmailNote.append(emailStrong, ". Please still avoid names or identifying details in the answers.");
+            } else {
+                surveyEmailNote.textContent = "This survey will be linked to your confirmed founding email from this browser. Please avoid names or identifying details in the answers.";
+            }
+            surveyEmailNote.classList.add("is-visible");
+        }
+
+        function markShared(value = "shared_or_copied") {
+            if (sharedSyntraeField) sharedSyntraeField.value = value;
+        }
+
+        function shareMessage() {
+            return `${shareDetails.text}\n\n${shareDetails.url}`;
+        }
+
+        function canUseNativeShare() {
+            if (!navigator.share) return false;
+            if (typeof navigator.canShare !== "function") return true;
+            return navigator.canShare(shareDetails);
+        }
+
+        function showShareOptions() {
+            if (!shareOptions) return;
+            shareOptions.hidden = false;
+            const nativeOption = shareOptions.querySelector('[data-share-target="native"]');
+            const hasNativeShare = canUseNativeShare();
+            if (nativeOption) nativeOption.hidden = !hasNativeShare;
+            updateShareStatus(hasNativeShare ? "Choose Messages, Email, More, or Copy." : "Choose Messages, Email, or Copy.");
+        }
+
+        async function copyShareLink() {
+            if (navigator.clipboard) {
+                await navigator.clipboard.writeText(shareDetails.url);
+                markShared("copied");
+                updateShareStatus("Syntrae.app copied to your clipboard.");
+                return;
+            }
+            markShared("copy_needed");
+            updateShareStatus("Copy this link: Syntrae.app");
+        }
+
+        function openMessagesShare() {
+            const body = encodeURIComponent(shareMessage());
+            const isAppleDevice = /Mac|iPhone|iPad|iPod/i.test(navigator.platform || navigator.userAgent);
+            markShared("messages_opened");
+            updateShareStatus("Opening Messages...");
+            window.location.href = isAppleDevice ? `sms:&body=${body}` : `sms:?body=${body}`;
+        }
+
+        function openEmailShare() {
+            const subject = encodeURIComponent("Syntrae");
+            const body = encodeURIComponent(shareMessage());
+            markShared("email_opened");
+            updateShareStatus("Opening email...");
+            window.location.href = `mailto:?subject=${subject}&body=${body}`;
+        }
+
+        async function openNativeShare() {
+            if (!canUseNativeShare()) {
+                showShareOptions();
+                return;
+            }
 
             try {
-                if (navigator.share) {
-                    await navigator.share({
-                        title: "Syntrae",
-                        text: shareText,
-                        url: shareUrl
-                    });
-                    updateShareStatus("Thank you for sharing Syntrae.app.");
-                } else if (navigator.clipboard) {
-                    await navigator.clipboard.writeText("Syntrae.app");
-                    updateShareStatus("Syntrae.app copied to your clipboard.");
-                } else {
-                    updateShareStatus("Copy this link: Syntrae.app");
-                }
-
-                if (sharedSyntraeField) sharedSyntraeField.value = "shared_or_copied";
+                await navigator.share(shareDetails);
+                markShared("native_share_opened");
+                updateShareStatus("Thank you for sharing Syntrae.app.");
             } catch (error) {
                 if (error?.name === "AbortError") return;
-                updateShareStatus("Copy this link: Syntrae.app");
+                showShareOptions();
+            }
+        }
+
+        shareSyntraeButton?.addEventListener("click", () => {
+            showShareOptions();
+        });
+
+        shareOptions?.addEventListener("click", async (event) => {
+            const targetButton = event.target.closest("[data-share-target]");
+            if (!targetButton) return;
+            const target = targetButton.dataset.shareTarget;
+            if (target === "messages") {
+                openMessagesShare();
+            } else if (target === "email") {
+                openEmailShare();
+            } else if (target === "native") {
+                await openNativeShare();
+            } else if (target === "copy") {
+                await copyShareLink();
             }
         });
 
-        surveyForm?.addEventListener("submit", (event) => {
+        surveyForm?.addEventListener("submit", async (event) => {
             event.preventDefault();
             const data = new FormData(surveyForm);
             const payload = {
+                waitlistEmail: normalizeEmail(data.get("waitlistEmail")),
                 uncertainMoment: String(data.get("uncertainMoment") || "").trim(),
                 decisionArea: String(data.get("decisionArea") || "").trim(),
                 situationDetails: String(data.get("situationDetails") || "").trim(),
@@ -673,10 +861,31 @@
                 createdAt: new Date().toISOString()
             };
 
-            localStorage.setItem("syntrae:founding-member-survey", JSON.stringify(payload));
-            surveyStatus.textContent = "Thank you. Your crush-related survey response is saved for this demo, and it shows the kind of signal Syntrae will use to shape the product before launch.";
-            surveyStatus.classList.add("is-visible");
-            surveyStatus.scrollIntoView({ behavior: "smooth", block: "nearest" });
+            const submitButton = surveyForm.querySelector('button[type="submit"]');
+            setSurveyButtonLoading(submitButton, true);
+            try {
+                const response = await fetch("/api/founding-survey", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    credentials: "same-origin",
+                    body: JSON.stringify(payload)
+                });
+                const body = await response.json().catch(() => ({}));
+                if (!response.ok) {
+                    throw new Error(body.error || "Could not submit the survey. Please try again.");
+                }
+
+                localStorage.setItem("syntrae:founding-member-survey", JSON.stringify({
+                    ...payload,
+                    linkedEmail: body.linkedEmail || payload.waitlistEmail,
+                    syncedAt: new Date().toISOString()
+                }));
+                setSurveyStatus("Thank you. Your survey response is linked to the founding email you used to join Syntrae.", "success");
+            } catch (error) {
+                setSurveyStatus(error.message || "Could not submit the survey. Please try again.", "error");
+            } finally {
+                setSurveyButtonLoading(submitButton, false);
+            }
         });
     </script>
 </body>

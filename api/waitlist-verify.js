@@ -2,6 +2,8 @@ const crypto = require('node:crypto');
 const { resolveEnv } = require('./env-utils');
 
 const TOKEN_RE = /^[A-Za-z0-9_-]{32,128}$/;
+const SURVEY_COOKIE_NAME = 'syntrae_waitlist_survey';
+const SURVEY_COOKIE_MAX_AGE_SECONDS = 60 * 60 * 24 * 30;
 
 function getOrigin(req) {
   const proto = req.headers['x-forwarded-proto'] || 'https';
@@ -20,6 +22,14 @@ function pageUrl(req, pathname, params = {}, hash = '') {
 
 function hashToken(token) {
   return crypto.createHash('sha256').update(token, 'utf8').digest('hex');
+}
+
+function createSurveyAccessToken() {
+  const token = crypto.randomBytes(32).toString('base64url');
+  return {
+    token,
+    tokenHash: hashToken(token)
+  };
 }
 
 function requireSupabaseConfig() {
@@ -74,6 +84,20 @@ function redirect(res, location) {
   res.end();
 }
 
+function buildSurveyCookie(req, token) {
+  const origin = getOrigin(req);
+  const secure = /^https:/i.test(origin) && !/^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?/i.test(origin);
+  const parts = [
+    `${SURVEY_COOKIE_NAME}=${encodeURIComponent(token)}`,
+    'Path=/',
+    `Max-Age=${SURVEY_COOKIE_MAX_AGE_SECONDS}`,
+    'HttpOnly',
+    'SameSite=Lax'
+  ];
+  if (secure) parts.push('Secure');
+  return parts.join('; ');
+}
+
 module.exports = async function handler(req, res) {
   if (req.method !== 'GET') return res.status(405).json({ error: 'GET only' });
 
@@ -106,6 +130,7 @@ module.exports = async function handler(req, res) {
       return redirect(res, pageUrl(req, '/landing.html', { waitlist: 'expired' }, 'founding'));
     }
 
+    const surveyAccess = createSurveyAccessToken();
     await supabaseRest(`waitlist?id=eq.${encodeURIComponent(row.id)}`, {
       method: 'PATCH',
       body: {
@@ -113,11 +138,14 @@ module.exports = async function handler(req, res) {
         verified_at: new Date().toISOString(),
         verification_token_hash: null,
         verification_expires_at: null,
+        survey_token_hash: surveyAccess.tokenHash,
+        survey_token_created_at: new Date().toISOString(),
         updated_at: new Date().toISOString()
       },
       prefer: 'return=minimal'
     });
 
+    res.setHeader('Set-Cookie', buildSurveyCookie(req, surveyAccess.token));
     return redirect(res, pageUrl(req, '/founding-welcome.html', { verified: 'true' }));
   } catch (err) {
     console.error('waitlist verification failed:', err);

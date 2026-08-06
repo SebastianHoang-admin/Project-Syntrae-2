@@ -10,6 +10,7 @@ const EMAIL_LIMIT = 3;
 const DOMAIN_LIMIT = 15;
 const VERIFY_TTL_HOURS = 48;
 const PENDING_RETENTION_DAYS = 30;
+const DEFAULT_EMAIL_LOGO_URL = 'https://www.syntrae.app/assets/syntrae-logo.png';
 const ipHits = new Map();
 const emailHits = new Map();
 const domainHits = new Map();
@@ -206,6 +207,33 @@ function createVerificationToken(req) {
   };
 }
 
+function escapeHtml(value) {
+  const entities = {
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    '"': '&quot;',
+    "'": '&#39;'
+  };
+  return String(value).replace(/[&<>"']/g, (char) => entities[char]);
+}
+
+function getEmailAssetUrl(baseUrl, assetPath) {
+  try {
+    return new URL(assetPath, baseUrl).toString();
+  } catch (_) {
+    return assetPath;
+  }
+}
+
+function getEmailLogoUrl(baseUrl) {
+  const configured = resolveEnv(['WAITLIST_EMAIL_LOGO_URL', 'SYNTRAE_EMAIL_LOGO_URL', 'PUBLIC_LOGO_URL']);
+  if (!configured) return DEFAULT_EMAIL_LOGO_URL;
+  if (configured.startsWith('http')) return configured;
+  const assetPath = configured.startsWith('/') ? configured : `/${configured}`;
+  return getEmailAssetUrl(baseUrl, assetPath);
+}
+
 async function getWaitlistRow(email) {
   const rows = await supabaseRest(`waitlist?email=eq.${encodeURIComponent(email)}&select=id,status`, {
     prefer: 'return=representation'
@@ -255,6 +283,9 @@ async function sendConfirmationEmail({ email, fullName, verificationUrl }) {
   const from = resolveEnv(['WAITLIST_FROM_EMAIL', 'SYNTRAE_FROM_EMAIL', 'RESEND_FROM_EMAIL']) || 'Syntrae <hello@syntrae.app>';
   const firstName = String(fullName || '').trim().split(/\s+/)[0];
   const greeting = firstName ? `Hi ${firstName},` : 'Hi,';
+  const safeGreeting = escapeHtml(greeting);
+  const safeVerificationUrl = escapeHtml(verificationUrl);
+  const safeLogoUrl = escapeHtml(getEmailLogoUrl(verificationUrl));
   const response = await fetch('https://api.resend.com/emails', {
     method: 'POST',
     headers: {
@@ -264,16 +295,58 @@ async function sendConfirmationEmail({ email, fullName, verificationUrl }) {
     body: JSON.stringify({
       from,
       to: [email],
-      subject: 'Confirm your Syntrae founding circle email',
+      subject: 'Confirm your Syntrae waitlist email',
       html: `
-        <div style="font-family:Inter,Arial,sans-serif;line-height:1.6;color:#203236">
-          <p>${greeting}</p>
-          <p>Confirm this email to finish joining the Syntrae founding circle for romantic relationship decision tools.</p>
-          <p><a href="${verificationUrl}" style="display:inline-block;padding:12px 18px;border-radius:8px;background:#f3c94f;color:#203236;font-weight:800;text-decoration:none">Confirm my email</a></p>
-          <p>This link expires in ${VERIFY_TTL_HOURS} hours. If you did not request this, you can ignore this email.</p>
-        </div>
+        <!doctype html>
+        <html>
+          <body style="margin:0;background:#f6faf6;padding:0;font-family:Inter,Arial,sans-serif;color:#203236;">
+            <div style="display:none;max-height:0;overflow:hidden;opacity:0;color:transparent;">
+              Confirm your email to join the Syntrae waitlist.
+            </div>
+            <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#f6faf6;padding:36px 16px;">
+              <tr>
+                <td align="center">
+                  <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:620px;background:#ffffff;border:1px solid #dce9e3;border-radius:18px;overflow:hidden;box-shadow:0 18px 46px rgba(31,74,68,0.12);">
+                    <tr>
+                      <td style="padding:34px 34px 18px;text-align:center;background:#fbfdf8;">
+                        <img src="${safeLogoUrl}" width="168" alt="Syntrae - Less guessing. More caring." style="display:block;margin:0 auto 18px;max-width:168px;height:auto;border:0;">
+                        <p style="margin:0;color:#218879;font-size:12px;font-weight:800;letter-spacing:0.08em;text-transform:uppercase;">Founding Waitlist</p>
+                        <h1 style="margin:12px 0 0;color:#203236;font-size:30px;line-height:1.15;font-weight:800;">Confirm your Syntrae waitlist email</h1>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td style="padding:8px 34px 34px;">
+                        <p style="margin:0 0 16px;color:#506865;font-size:16px;line-height:1.65;">${safeGreeting}</p>
+                        <p style="margin:0 0 18px;color:#506865;font-size:16px;line-height:1.65;">Please confirm this email to finish joining the Syntrae waitlist for romantic relationship decision tools.</p>
+                        <p style="margin:0 0 26px;color:#506865;font-size:16px;line-height:1.65;">After confirmation, you will be on the verified list for early Syntrae updates, product previews, and optional feedback invitations.</p>
+                        <table role="presentation" cellspacing="0" cellpadding="0" style="margin:0 auto 26px;">
+                          <tr>
+                            <td style="border-radius:10px;background:#f3c94f;box-shadow:0 8px 20px rgba(243,201,79,0.28);">
+                              <a href="${safeVerificationUrl}" style="display:inline-block;padding:14px 24px;color:#203236;font-size:15px;font-weight:800;text-decoration:none;border-radius:10px;">Confirm my email</a>
+                            </td>
+                          </tr>
+                        </table>
+                        <div style="background:#ecf8f4;border:1px solid #cbe7df;border-radius:12px;padding:14px 16px;margin:0 0 18px;">
+                          <p style="margin:0;color:#3f5f5a;font-size:14px;line-height:1.55;">This link expires in ${VERIFY_TTL_HOURS} hours. If you did not request this, you can safely ignore this email.</p>
+                        </div>
+                        <p style="margin:0 0 8px;color:#6b7c79;font-size:13px;line-height:1.55;">If the button does not work, open this link:</p>
+                        <p style="margin:0;word-break:break-all;font-size:13px;line-height:1.55;"><a href="${safeVerificationUrl}" style="color:#1b8174;text-decoration:underline;">${safeVerificationUrl}</a></p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td style="padding:20px 34px;background:#f0f8f4;border-top:1px solid #dce9e3;text-align:center;">
+                        <p style="margin:0;color:#506865;font-size:13px;line-height:1.5;font-weight:700;">Syntrae LLC</p>
+                        <p style="margin:4px 0 0;color:#7c8b88;font-size:12px;line-height:1.5;">Less guessing. More caring.</p>
+                      </td>
+                    </tr>
+                  </table>
+                </td>
+              </tr>
+            </table>
+          </body>
+        </html>
       `,
-      text: `${greeting}\n\nConfirm this email to finish joining the Syntrae founding circle:\n${verificationUrl}\n\nThis link expires in ${VERIFY_TTL_HOURS} hours.`
+      text: `${greeting}\n\nPlease confirm this email to finish joining the Syntrae waitlist for romantic relationship decision tools:\n${verificationUrl}\n\nThis link expires in ${VERIFY_TTL_HOURS} hours. If you did not request this, you can ignore this email.\n\nSyntrae LLC\nLess guessing. More caring.`
     })
   });
 
