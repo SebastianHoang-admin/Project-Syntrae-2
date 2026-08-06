@@ -1526,7 +1526,7 @@
 
         .computation-chart-grid {
             display: grid;
-            grid-template-columns: minmax(0, 1.2fr) minmax(0, 0.8fr);
+            grid-template-columns: 1fr;
             gap: 12px;
             align-items: stretch;
         }
@@ -5449,27 +5449,6 @@
             `;
         }
 
-        function renderSensitivityChart(chat) {
-            return `
-                <section class="computation-card">
-                    <h3>Variable Sensitivity</h3>
-                    <p>Demo weights show which user-provided context changed the result most often.</p>
-                    <div class="sensitivity-list">
-                        ${getSensitivityFactors(chat).map((factor) => `
-                            <div class="sensitivity-row">
-                                <div class="sensitivity-label">
-                                    <span>${escapeHtml(factor.label)}</span>
-                                    <span>${factor.weight}/100</span>
-                                </div>
-                                <div class="sensitivity-track"><span class="sensitivity-fill" style="--width:${factor.weight}%;"></span></div>
-                                <p>${escapeHtml(factor.note)}</p>
-                            </div>
-                        `).join('')}
-                    </div>
-                </section>
-            `;
-        }
-
         function getBellCurveGeometry(score, spread) {
             const width = 300;
             const height = 118;
@@ -5703,7 +5682,7 @@
                     <div>
                         <span class="kicker"><i class="fas fa-chart-line"></i> Computation Report</span>
                         <h2 id="computationReportTitle">Syntrae Test analytics.</h2>
-                        <p>Detailed projection for ${escapeHtml(getResponseContextName(result.chat))}. The report shows how the current demo turns each candidate message into outcome percentages, score interpretation, and sensitivity signals.</p>
+                        <p>Detailed projection for ${escapeHtml(getResponseContextName(result.chat))}. The report shows how the current demo turns each candidate message into outcome percentages and score interpretation.</p>
                     </div>
                     <div class="computation-run-id">
                         <span>Run ID</span>
@@ -5736,7 +5715,6 @@
                 </section>
                 <section class="computation-chart-grid">
                     ${renderDistributionChart(rows, iterations)}
-                    ${renderSensitivityChart(result.chat)}
                 </section>
                 ${renderBellCurveSection(rows)}
                 ${renderTopFrequencyChart(rows, iterations)}

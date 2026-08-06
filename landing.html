@@ -1487,7 +1487,7 @@
         }
 
         .landing-report-chart-grid {
-            grid-template-columns: minmax(0, 1.08fr) minmax(0, 0.92fr);
+            grid-template-columns: 1fr;
         }
 
         .landing-report-card {
@@ -1708,6 +1708,100 @@
             font-size: 13px;
             font-weight: 820;
             line-height: 1.55;
+        }
+
+        .landing-report-bell-section {
+            gap: 12px;
+        }
+
+        .landing-report-bell-section > p {
+            margin: 0;
+            color: var(--quiet);
+            font-size: 12px;
+            font-weight: 780;
+            line-height: 1.45;
+        }
+
+        .landing-report-bell-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 10px;
+        }
+
+        .landing-report-bell-card {
+            display: grid;
+            gap: 8px;
+            min-width: 0;
+            padding: 12px;
+            border: 1px solid rgba(32, 50, 54, 0.11);
+            border-radius: 8px;
+            background: linear-gradient(145deg, rgba(255, 255, 255, 0.95), rgba(242, 251, 247, 0.84));
+        }
+
+        .landing-report-bell-card.is-best {
+            border-color: rgba(30, 159, 140, 0.44);
+            box-shadow: inset 4px 0 0 rgba(30, 159, 140, 0.82);
+        }
+
+        .landing-report-bell-head {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 8px;
+        }
+
+        .landing-report-bell-head span {
+            color: var(--quiet);
+            font-size: 9px;
+            font-weight: 950;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .landing-report-bell-head strong {
+            display: block;
+            margin-top: 3px;
+            color: var(--ink);
+            font-size: 12px;
+            line-height: 1.2;
+            letter-spacing: 0;
+        }
+
+        .landing-report-bell-score {
+            flex: 0 0 auto;
+            padding: 5px 7px;
+            border-radius: 999px;
+            color: var(--teal-dark);
+            background: rgba(226, 248, 242, 0.94);
+            font-size: 9px;
+            font-weight: 950;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+
+        .landing-report-bell-svg {
+            display: block;
+            width: 100%;
+            height: auto;
+        }
+
+        .landing-report-bell-axis {
+            display: flex;
+            justify-content: space-between;
+            gap: 8px;
+            color: var(--quiet);
+            font-size: 8px;
+            font-weight: 950;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+
+        .landing-report-bell-card p {
+            margin: 0;
+            color: var(--quiet);
+            font-size: 10px;
+            font-weight: 780;
+            line-height: 1.4;
         }
 
         .recurrence-panel-top {
@@ -1998,6 +2092,67 @@
             color: var(--quiet);
             line-height: 1.75;
             font-weight: 600;
+        }
+
+        .science-ref {
+            margin-top: 18px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .science-ref a,
+        .science-citations a {
+            color: var(--teal-dark);
+            font-weight: 900;
+            text-decoration: underline;
+            text-decoration-thickness: 2px;
+            text-underline-offset: 3px;
+        }
+
+        .science-note {
+            margin-top: 20px;
+            padding: 20px 22px;
+            border-left: 5px solid var(--sun);
+            border-radius: 8px;
+            background:
+                radial-gradient(circle at 92% 18%, rgba(243, 201, 79, 0.16), transparent 24%),
+                #f5fbf7;
+            color: var(--ink);
+            font-size: 17px;
+            font-weight: 800;
+            line-height: 1.65;
+        }
+
+        .science-note strong {
+            color: var(--leaf);
+        }
+
+        .science-citations {
+            margin-top: 18px;
+            padding: 22px;
+            border: 1px solid rgba(32, 50, 54, 0.12);
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.82);
+            box-shadow: 0 12px 34px rgba(32, 50, 54, 0.06);
+        }
+
+        .science-citations h3 {
+            margin: 0 0 14px;
+            font-size: 18px;
+        }
+
+        .science-citations ol {
+            margin: 0;
+            padding-left: 22px;
+            color: var(--quiet);
+            font-size: 13px;
+            line-height: 1.65;
+            font-weight: 700;
+        }
+
+        .science-citations li + li {
+            margin-top: 9px;
         }
 
         .principles {
@@ -3011,6 +3166,56 @@
             </div>
         </section>
 
+        <section class="section science-band" id="research">
+            <div class="section-inner">
+                <p class="section-kicker">Decision science readings</p>
+                <h2>Why Syntrae looks at hard outcomes before you act.</h2>
+                <p class="lede">The research does not say people should spiral into worry. It suggests that thinking through obstacles and unwanted outcomes can help when the reflection is specific, tied to action, and used to prepare a better next move.</p>
+                <div class="science-grid">
+                    <article class="science-card">
+                        <span class="number">1</span>
+                        <h3>Rehearsing setbacks can improve preparation.</h3>
+                        <p>Defensive-pessimism research found that some anxious people perform better when they can mentally rehearse possible problems before acting, especially when that thinking points toward coping or correcting mistakes.</p>
+                        <div class="science-ref" aria-label="Supporting sources">
+                            <a href="https://scholar.google.com/scholar?hl=en&amp;as_sdt=0%2C43&amp;q=Norem%2C+Julie+K.%2C+and+Nancy+Cantor.+%E2%80%9CDefensive+Pessimism%3A+Harnessing+Anxiety+as+Motivation.%E2%80%9D+Journal+of+Personality+and+Social+Psychology%2C+1986.&amp;btnG=" target="_blank" rel="noopener noreferrer">[1]</a>
+                            <a href="https://scholar.google.com/scholar?hl=en&amp;as_sdt=0%2C43&amp;q=Spencer%2C+Steven+M.%2C+and+Julie+K.+Norem.+%E2%80%9CReflection+and+Distraction%3A+Defensive+Pessimism%2C+Strategic+Optimism%2C+and+Performance.%E2%80%9D+Personality+and+Social+Psychology+Bulletin%2C+1996.&amp;btnG=" target="_blank" rel="noopener noreferrer">[2]</a>
+                        </div>
+                    </article>
+                    <article class="science-card">
+                        <span class="number">2</span>
+                        <h3>Obstacles become useful when paired with action.</h3>
+                        <p>Mental contrasting studies show that comparing a desired future with present obstacles can link the obstacle to useful behavior. A later meta-analysis found mental contrasting with implementation intentions improves goal attainment.</p>
+                        <div class="science-ref" aria-label="Supporting sources">
+                            <a href="https://scholar.google.com/scholar?hl=en&amp;as_sdt=0%2C43&amp;q=Kappes%2C+Andreas%2C+Henrik+Singmann%2C+and+Gabriele+Oettingen.+%E2%80%9CMental+Contrasting+Instigates+Goal+Pursuit+by+Linking+Obstacles+of+Reality+with+Instrumental+Behavior.%E2%80%9D+Journal+of+Experimental+Social+Psychology%2C+2012.&amp;btnG=" target="_blank" rel="noopener noreferrer">[3]</a>
+                            <a href="https://scholar.google.com/scholar?hl=en&amp;as_sdt=0%2C43&amp;q=Wang%2C+Guoxia%2C+Yi+Wang%2C+and+Xiaosong+Gai.+%E2%80%9CA+Meta-Analysis+of+the+Effects+of+Mental+Contrasting+with+Implementation+Intentions+on+Goal+Attainment.%E2%80%9D+Frontiers+in+Psychology%2C+2021.&amp;btnG=" target="_blank" rel="noopener noreferrer">[4]</a>
+                        </div>
+                    </article>
+                    <article class="science-card">
+                        <span class="number">3</span>
+                        <h3>Relationship conflict research points the same way.</h3>
+                        <p>Recent romantic-relationship studies found that mental contrasting can help people engage with solvable conflicts and show more sensible conciliatory behavior when repairing a relationship is realistic.</p>
+                        <div class="science-ref" aria-label="Supporting sources">
+                            <a href="https://scholar.google.com/scholar?hl=en&amp;as_sdt=0%2C43&amp;q=J%C3%B6hnk%2C+Henrik%2C+A.+T.+Sevincer%2C+and+Gabriele+Oettingen.+%E2%80%9CMental+Contrasting+and+Conflict+Management+in+Satisfied+and+Unsatisfied+Romantic+Relationships.%E2%80%9D+Journal+of+Social+and+Personal+Relationships%2C+2024.&amp;btnG=" target="_blank" rel="noopener noreferrer">[5]</a>
+                            <a href="https://scholar.google.com/scholar?hl=en&amp;as_sdt=0%2C43&amp;q=Schrage%2C+Jana%2C+Bettina+Schw%C3%B6rer%2C+N.+Krott%2C+and+Gabriele+Oettingen.+%E2%80%9CMental+Contrasting+and+Conciliatory+Behavior+in+Romantic+Relationships.%E2%80%9D+Motivation+and+Emotion%2C+2020.&amp;btnG=" target="_blank" rel="noopener noreferrer">[6]</a>
+                        </div>
+                    </article>
+                </div>
+                <p class="science-note"><strong>How this shapes Syntrae:</strong> the goal is not to predict love or encourage fear. Syntrae turns possible negative replies into preparation signals, then keeps the user focused on clearer, kinder action. Premortem research also cautions that imagining failure can over-focus attention on things outside a person's control, so Syntrae emphasizes controllable choices like timing, tone, privacy, and follow-up room. <a href="https://scholar.google.com/scholar?hl=en&amp;as_sdt=0%2C43&amp;q=Gandhi%2C+Linnea%2C+Annie+Duke%2C+and+Maurice+E.+Schweitzer.+%E2%80%9CProblems+with+Premortems%3A+Self-Serving+Attribution+Bias+in+a+Popular+Debiasing+Strategy.%E2%80%9D+Academy+of+Management+Proceedings%2C+2022.&amp;btnG=" target="_blank" rel="noopener noreferrer">[7]</a></p>
+                <aside class="science-citations" aria-label="Works cited source list">
+                    <h3>Works Cited</h3>
+                    <ol>
+                        <li><a href="https://scholar.google.com/scholar?hl=en&amp;as_sdt=0%2C43&amp;q=Norem%2C+Julie+K.%2C+and+Nancy+Cantor.+%E2%80%9CDefensive+Pessimism%3A+Harnessing+Anxiety+as+Motivation.%E2%80%9D+Journal+of+Personality+and+Social+Psychology%2C+1986.&amp;btnG=" target="_blank" rel="noopener noreferrer">Norem, Julie K., and Nancy Cantor. &ldquo;Defensive Pessimism: Harnessing Anxiety as Motivation.&rdquo;</a> <em>Journal of Personality and Social Psychology</em>, 1986.</li>
+                        <li><a href="https://scholar.google.com/scholar?hl=en&amp;as_sdt=0%2C43&amp;q=Spencer%2C+Steven+M.%2C+and+Julie+K.+Norem.+%E2%80%9CReflection+and+Distraction%3A+Defensive+Pessimism%2C+Strategic+Optimism%2C+and+Performance.%E2%80%9D+Personality+and+Social+Psychology+Bulletin%2C+1996.&amp;btnG=" target="_blank" rel="noopener noreferrer">Spencer, Steven M., and Julie K. Norem. &ldquo;Reflection and Distraction: Defensive Pessimism, Strategic Optimism, and Performance.&rdquo;</a> <em>Personality and Social Psychology Bulletin</em>, 1996.</li>
+                        <li><a href="https://scholar.google.com/scholar?hl=en&amp;as_sdt=0%2C43&amp;q=Kappes%2C+Andreas%2C+Henrik+Singmann%2C+and+Gabriele+Oettingen.+%E2%80%9CMental+Contrasting+Instigates+Goal+Pursuit+by+Linking+Obstacles+of+Reality+with+Instrumental+Behavior.%E2%80%9D+Journal+of+Experimental+Social+Psychology%2C+2012.&amp;btnG=" target="_blank" rel="noopener noreferrer">Kappes, Andreas, Henrik Singmann, and Gabriele Oettingen. &ldquo;Mental Contrasting Instigates Goal Pursuit by Linking Obstacles of Reality with Instrumental Behavior.&rdquo;</a> <em>Journal of Experimental Social Psychology</em>, 2012.</li>
+                        <li><a href="https://scholar.google.com/scholar?hl=en&amp;as_sdt=0%2C43&amp;q=Wang%2C+Guoxia%2C+Yi+Wang%2C+and+Xiaosong+Gai.+%E2%80%9CA+Meta-Analysis+of+the+Effects+of+Mental+Contrasting+with+Implementation+Intentions+on+Goal+Attainment.%E2%80%9D+Frontiers+in+Psychology%2C+2021.&amp;btnG=" target="_blank" rel="noopener noreferrer">Wang, Guoxia, Yi Wang, and Xiaosong Gai. &ldquo;A Meta-Analysis of the Effects of Mental Contrasting with Implementation Intentions on Goal Attainment.&rdquo;</a> <em>Frontiers in Psychology</em>, 2021.</li>
+                        <li><a href="https://scholar.google.com/scholar?hl=en&amp;as_sdt=0%2C43&amp;q=J%C3%B6hnk%2C+Henrik%2C+A.+T.+Sevincer%2C+and+Gabriele+Oettingen.+%E2%80%9CMental+Contrasting+and+Conflict+Management+in+Satisfied+and+Unsatisfied+Romantic+Relationships.%E2%80%9D+Journal+of+Social+and+Personal+Relationships%2C+2024.&amp;btnG=" target="_blank" rel="noopener noreferrer">J&ouml;hnk, Henrik, A. T. Sevincer, and Gabriele Oettingen. &ldquo;Mental Contrasting and Conflict Management in Satisfied and Unsatisfied Romantic Relationships.&rdquo;</a> <em>Journal of Social and Personal Relationships</em>, 2024.</li>
+                        <li><a href="https://scholar.google.com/scholar?hl=en&amp;as_sdt=0%2C43&amp;q=Schrage%2C+Jana%2C+Bettina+Schw%C3%B6rer%2C+N.+Krott%2C+and+Gabriele+Oettingen.+%E2%80%9CMental+Contrasting+and+Conciliatory+Behavior+in+Romantic+Relationships.%E2%80%9D+Motivation+and+Emotion%2C+2020.&amp;btnG=" target="_blank" rel="noopener noreferrer">Schrage, Jana, Bettina Schw&ouml;rer, N. Krott, and Gabriele Oettingen. &ldquo;Mental Contrasting and Conciliatory Behavior in Romantic Relationships.&rdquo;</a> <em>Motivation and Emotion</em>, 2020.</li>
+                        <li><a href="https://scholar.google.com/scholar?hl=en&amp;as_sdt=0%2C43&amp;q=Gandhi%2C+Linnea%2C+Annie+Duke%2C+and+Maurice+E.+Schweitzer.+%E2%80%9CProblems+with+Premortems%3A+Self-Serving+Attribution+Bias+in+a+Popular+Debiasing+Strategy.%E2%80%9D+Academy+of+Management+Proceedings%2C+2022.&amp;btnG=" target="_blank" rel="noopener noreferrer">Gandhi, Linnea, Annie Duke, and Maurice E. Schweitzer. &ldquo;Problems with Premortems: Self-Serving Attribution Bias in a Popular Debiasing Strategy.&rdquo;</a> <em>Academy of Management Proceedings</em>, 2022.</li>
+                    </ol>
+                </aside>
+            </div>
+        </section>
+
         <section class="section founding-band" id="founding">
             <div class="section-inner founding-layout">
                 <div>
@@ -3049,7 +3254,6 @@
                         <div class="privacy-note"><i class="fas fa-shield-alt"></i><span>No spam. We will only send Syntrae launch updates, founding access details, and product feedback opportunities.</span></div>
                         <button class="button button-primary" type="submit"><i class="fas fa-user-plus"></i> Join for free</button>
                         <div class="form-status" id="formStatus" role="status" aria-live="polite"></div>
-                        <div class="account-switch">Have an account already? <a href="sign-in.html">Sign-in instead</a></div>
                         <div class="disclaimer">Founding members receive early updates and optional feedback invitations while Syntrae prepares its romantic relationship decision tools.</div>
                     </div>
                 </form>
@@ -3074,7 +3278,7 @@
                                 <span>Founder, Syntrae LLC</span>
                             </div>
                             <blockquote class="landing-founder-quote">
-                                &ldquo;Time does not move backward because life is asking us to move forward&mdash;and while we cannot change yesterday, we can shape tomorrow.&rdquo;
+                                &ldquo;What&rsquo;s the meaning of a forest when all you want is just a tree?&rdquo;
                             </blockquote>
                             <button class="landing-founder-open" type="button" data-open-founder-book aria-controls="founder-story-page" aria-expanded="false">
                                 <i class="fas fa-book-open"></i> Open the book
@@ -3088,10 +3292,10 @@
                     <h2>A Mission Starts With A Relationship Story.</h2>
                     <div class="landing-founder-story-panel">
                         <p>Hi, I&rsquo;m Sebastian, the founder of Syntrae.</p>
-                        <p>I built Syntrae from a familiar kind of uncertainty: liking someone, caring about the connection, and still not knowing what the next message should be. A few words can open the door to honesty, but the wrong timing or tone can make a good feeling suddenly feel pressured.</p>
-                        <p>In romantic relationships, the hardest decisions are often small on the screen and large in the heart. Should you be direct or gentle? Should you ask now or wait? Should you make your feelings clear, or give the other person more room to respond?</p>
-                        <p>I wanted a calmer way to think through those moments before sending the message, starting the conversation, or risking a misunderstanding. Not a tool that decides love for anyone, but one that helps people compare possible responses, notice repeated patterns, and choose with more care.</p>
-                        <p class="landing-founder-emphasis"><strong>This is why I founded Syntrae: to help people improve romantic relationship decisions by replaying important choices across alternative outcomes, seeing which responses repeat, and making the next move with more clarity before the real action is taken.</strong></p>
+                        <p>I built Syntrae because I know that familiar, quiet anxiety: liking someone, deeply caring about the connection, and having no idea what your next message should say. Most dating apps treat romance like a numbers game, but I wanted to build something for the moment generic options don&rsquo;t matter&mdash;when there is only one specific person you actually care to reach.</p>
+                        <p>When a connection truly matters to you, even a simple text message feels like a massive crossroad. Should you be direct or gentle? Express how you feel, or give them space? I&rsquo;ve been there, knowing that a slight misstep in timing or tone can make a genuine feeling suddenly feel awkward or pressured.</p>
+                        <p>I created Syntrae to give you a safe space to think through those high-stakes moments before you hit send. By helping you replay your communication choices across alternative outcomes, Syntrae lets you see which approaches feel right and spot your own patterns.</p>
+                        <p class="landing-founder-emphasis"><strong>Instead of leaving your heart to chance or guessing in the dark, I want to give you the insight and confidence to bridge the gap between a distant crush and a real connection&mdash;helping you turn <em>&ldquo;what if&rdquo;</em> into something real with the person who actually has your heart.</strong></p>
                     </div>
                 </div>
             </div>
@@ -3139,7 +3343,7 @@
 
         const landingComputationReport = {
             runId: "SYN-BZX5-39PD-THFM-KR7V",
-            summary: "Detailed projection for Daniel Smith. The report shows how the current demo turns each candidate message into outcome percentages, score interpretation, and sensitivity signals.",
+            summary: "Detailed projection for Daniel Smith. The report shows how the current demo turns each candidate message into outcome percentages and score interpretation.",
             context: {
                 decision: "Maya wants to invite Daniel to talk about where they are going, but she does not want the message to feel heavy.",
                 persona: "Daniel Smith responds best when the message feels warm, light, and private instead of formal."
@@ -3154,13 +3358,6 @@
                 { option: "Option B", action: "Light and open-ended", positive: 42, negative: 21, unclear: 37, best: true },
                 { option: "Option C", action: "Reflective and intentional", positive: 21, negative: 31, unclear: 48 }
             ],
-            sensitivity: [
-                { label: "Afternoon timing fit", weight: 84, note: "Daniel is more open when serious topics start in a private afternoon window." },
-                { label: "Emotional pressure penalty", weight: 72, note: "Direct romantic wording can make him shy or guarded if it arrives too suddenly." },
-                { label: "Message clarity", weight: 68, note: "Clear wording helps Maya avoid vague signals, but too much clarity too early can feel heavy." },
-                { label: "Privacy match", weight: 63, note: "Private one-to-one wording performs better than anything that feels public or performative." },
-                { label: "Follow-up room", weight: 58, note: "Open-ended messages preserve space for Daniel to answer before Maya asks for more clarity." }
-            ],
             scorecard: [
                 { option: "Option A", action: "Warm and direct", positive: 37, negative: 34, unclear: 29, score: "+3", interpretation: "Usable, but the upside and pressure risk stay close." },
                 { option: "Option B", action: "Light and open-ended", positive: 42, negative: 21, unclear: 37, score: "+21", interpretation: "Strongest first move because positive likelihood exceeds pressure risk.", best: true },
@@ -3174,7 +3371,7 @@
         };
 
         const revealTargets = [
-            ...document.querySelectorAll(".demo-launch-card, .video-points .point, .work-card, .recurrence-layout > div, .recurrence-step, .founding-layout > div, .member-form")
+            ...document.querySelectorAll(".demo-launch-card, .video-points .point, .work-card, .recurrence-layout > div, .recurrence-step, .science-card, .science-note, .science-citations, .founding-layout > div, .member-form")
         ];
 
         const escapeHtml = (value) => String(value ?? "")
@@ -3209,24 +3406,88 @@
             </section>
         `;
 
-        const renderLandingReportSensitivity = (rows) => `
-            <section class="landing-report-card">
-                <h4>Variable Sensitivity</h4>
-                <p>Demo weights show which user-provided romantic context changed the result most often.</p>
-                <div class="landing-report-sensitivity-list">
-                    ${rows.map((row) => `
-                        <div class="landing-report-sensitivity-row">
-                            <div class="landing-report-sensitivity-label">
-                                <span>${escapeHtml(row.label)}</span>
-                                <span>${row.weight}/100</span>
-                            </div>
-                            <div class="landing-report-sensitivity-track"><span class="landing-report-sensitivity-fill" style="--width:${row.weight}%;"></span></div>
-                            <p>${escapeHtml(row.note)}</p>
-                        </div>
-                    `).join("")}
-                </div>
-            </section>
-        `;
+        const getLandingDecisionScore = (row) => row.positive - row.negative;
+
+        const getLandingBestRow = (rows) => rows.slice().sort((a, b) => {
+            const positiveDiff = b.positive - a.positive;
+            if (positiveDiff) return positiveDiff;
+            const negativeDiff = a.negative - b.negative;
+            if (negativeDiff) return negativeDiff;
+            return b.unclear - a.unclear;
+        })[0] || rows[0];
+
+        const getLandingBellCurveGeometry = (score, spread) => {
+            const width = 220;
+            const height = 82;
+            const left = 12;
+            const right = width - 12;
+            const base = height - 18;
+            const peak = 12;
+            const sigma = Math.max(17, Math.min(37, spread));
+            const center = Math.max(left, Math.min(right, left + ((score + 50) / 100) * (right - left)));
+            const points = Array.from({ length: 58 }, (_, index) => {
+                const x = left + (index / 57) * (right - left);
+                const distance = (x - center) / sigma;
+                const y = base - Math.exp(-0.5 * distance * distance) * (base - peak);
+                return `${x.toFixed(1)},${y.toFixed(1)}`;
+            }).join(" ");
+            return { width, height, left, right, base, center, points };
+        };
+
+        const describeLandingBellCurve = (row, top) => {
+            const score = getLandingDecisionScore(row);
+            if (row === top) return "Strongest upside with the lowest pressure risk.";
+            if (score >= 0) return "Usable, but upside and downside stay close.";
+            return "Less stable because downside shows up more often.";
+        };
+
+        const renderLandingBellCurves = (rows) => {
+            const top = getLandingBestRow(rows);
+            return `
+                <section class="landing-report-card landing-report-bell-section">
+                    <h4>Option Bell Curves</h4>
+                    <p>Each curve shows how an option leans across possible replies. Farther right means stronger upside; wider means less settled.</p>
+                    <div class="landing-report-bell-grid">
+                        ${rows.map((row, index) => {
+                            const score = getLandingDecisionScore(row);
+                            const spread = 20 + (row.unclear * 0.36) + (row.negative * 0.1);
+                            const curve = getLandingBellCurveGeometry(score, spread);
+                            const gradientId = `landingBellCurveGradient${index}`;
+                            return `
+                                <article class="landing-report-bell-card${row === top ? " is-best" : ""}">
+                                    <div class="landing-report-bell-head">
+                                        <div>
+                                            <span>${escapeHtml(row.option)}</span>
+                                            <strong>${escapeHtml(row.action)}</strong>
+                                        </div>
+                                        <span class="landing-report-bell-score">${score > 0 ? "+" : ""}${score}</span>
+                                    </div>
+                                    <svg class="landing-report-bell-svg" viewBox="0 0 ${curve.width} ${curve.height}" role="img" aria-label="${escapeHtml(`${row.action} bell curve`)}">
+                                        <defs>
+                                            <linearGradient id="${gradientId}" x1="0%" y1="0%" x2="100%" y2="0%">
+                                                <stop offset="0%" stop-color="#d45d50"></stop>
+                                                <stop offset="47%" stop-color="#dba72d"></stop>
+                                                <stop offset="100%" stop-color="#159b8f"></stop>
+                                            </linearGradient>
+                                        </defs>
+                                        <line x1="${curve.left}" y1="${curve.base}" x2="${curve.right}" y2="${curve.base}" stroke="rgba(32, 50, 54, 0.12)" stroke-width="3" stroke-linecap="round"></line>
+                                        <line x1="110" y1="14" x2="110" y2="${curve.base}" stroke="rgba(32, 50, 54, 0.1)" stroke-width="1" stroke-dasharray="4 6"></line>
+                                        <polyline points="${curve.points}" fill="none" stroke="url(#${gradientId})" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"></polyline>
+                                        <line x1="${curve.center.toFixed(1)}" y1="15" x2="${curve.center.toFixed(1)}" y2="${curve.base}" stroke="rgba(30, 159, 140, 0.72)" stroke-width="2" stroke-dasharray="4 5"></line>
+                                        <circle cx="${curve.center.toFixed(1)}" cy="${curve.base}" r="4" fill="#159b8f"></circle>
+                                    </svg>
+                                    <div class="landing-report-bell-axis">
+                                        <span>More downside</span>
+                                        <span>More upside</span>
+                                    </div>
+                                    <p>${escapeHtml(describeLandingBellCurve(row, top))}</p>
+                                </article>
+                            `;
+                        }).join("")}
+                    </div>
+                </section>
+            `;
+        };
 
         const renderLandingReportScorecard = (rows) => `
             <section class="landing-report-card">
@@ -3281,8 +3542,8 @@
                 </section>
                 <section class="landing-report-chart-grid">
                     ${renderLandingReportDistribution(report.distribution)}
-                    ${renderLandingReportSensitivity(report.sensitivity)}
                 </section>
+                ${renderLandingBellCurves(report.distribution)}
                 ${renderLandingReportScorecard(report.scorecard)}
                 <section class="landing-report-final">
                     <span><i class="fas fa-lightbulb" aria-hidden="true"></i> Best first move</span>
@@ -3399,55 +3660,10 @@
                 throw new Error("Please confirm the founding access note before joining.");
             }
 
-            const insertWaitlistDirectly = async () => {
-                const supabaseUrl = window.SUPABASE_URL;
-                const anonKey = window.SUPABASE_ANON_KEY;
-                if (!supabaseUrl || !anonKey) {
-                    throw new Error("Waitlist database configuration missing.");
-                }
-
-                const row = {
-                    email,
-                    referral_source: referralSource,
-                    status: "pending",
-                    consent_to_updates: true
-                };
-                if (fullName) row.full_name = fullName;
-
-                const response = await fetch(`${supabaseUrl}/rest/v1/waitlist`, {
-                    method: "POST",
-                    headers: {
-                        apikey: anonKey,
-                        Authorization: `Bearer ${anonKey}`,
-                        "Content-Type": "application/json",
-                        Prefer: "return=minimal"
-                    },
-                    body: JSON.stringify(row)
-                });
-
-                if (response.ok) {
-                    return { ok: true, waitlist: true, stored: true };
-                }
-
-                const text = await response.text().catch(() => "");
-                let parsed = {};
-                try {
-                    parsed = JSON.parse(text);
-                } catch {
-                    parsed = {};
-                }
-                if (response.status === 409 && (parsed.code === "23505" || /duplicate key|waitlist.*email/i.test(text))) {
-                    return { ok: true, waitlist: true, stored: true, alreadyJoined: true };
-                }
-
-                throw new Error(parsed.message || parsed.error || "Could not join the waitlist. Please try again.");
-            };
-
-            const response = await fetch("/api/register", {
+            const response = await fetch("/api/waitlist", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
-                    waitlist: true,
                     referralSource,
                     fullName,
                     email,
@@ -3457,25 +3673,31 @@
             });
             const body = await response.json().catch(() => ({}));
             if (!response.ok) {
-                if (response.status === 500 && body.error === "Server auth configuration missing") {
-                    await insertWaitlistDirectly();
-                    saveFoundingInterest(form);
-                    setWaitlistStatus(statusElement, "Reservation received. Opening your welcome page...", "success");
-                    window.setTimeout(() => {
-                        window.location.href = "founding-welcome.html?joined=true";
-                    }, 650);
-                    return { ok: true, waitlist: true, stored: true };
-                }
                 throw new Error(body.error || "Could not join the waitlist. Please try again.");
             }
 
             saveFoundingInterest(form);
-            setWaitlistStatus(statusElement, "Reservation received. Opening your welcome page...", "success");
-            window.setTimeout(() => {
-                window.location.href = "founding-welcome.html?joined=true";
-            }, 650);
+            if (body.requiresEmailConfirmation) {
+                if (body.devVerificationUrl) {
+                    statusElement.innerHTML = `Local test mode: confirmation email is not configured. <a href="${escapeHtml(body.devVerificationUrl)}">Open the verification link</a> to finish joining.`;
+                    statusElement.dataset.type = "success";
+                } else {
+                    setWaitlistStatus(statusElement, "Check your email for a confirmation link to finish joining.", "success");
+                }
+            } else {
+                setWaitlistStatus(statusElement, "This email is already confirmed for the founding circle.", "success");
+            }
             return body;
         };
+
+        const waitlistState = new URLSearchParams(window.location.search).get("waitlist");
+        if (formStatus && waitlistState === "expired") {
+            setWaitlistStatus(formStatus, "That confirmation link expired. Submit your email again and we will send a new one.", "error");
+        } else if (formStatus && waitlistState === "invalid") {
+            setWaitlistStatus(formStatus, "That confirmation link is invalid. Submit your email again to receive a fresh link.", "error");
+        } else if (formStatus && waitlistState === "error") {
+            setWaitlistStatus(formStatus, "Could not verify that confirmation link. Please try again.", "error");
+        }
 
         if (foundingForm && formStatus) {
             foundingForm.addEventListener("submit", async (event) => {

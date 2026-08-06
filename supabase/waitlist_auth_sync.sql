@@ -31,7 +31,7 @@ begin
     return new;
   end if;
 
-  next_status := case when new.email_confirmed_at is not null then 'joined' else 'pending' end;
+  next_status := case when new.email_confirmed_at is not null then 'verified' else 'pending' end;
 
   insert into public.waitlist (email, full_name, referral_source, status, consent_to_updates, created_at, updated_at)
   values (
@@ -47,7 +47,7 @@ begin
   set full_name = coalesce(excluded.full_name, public.waitlist.full_name),
       referral_source = coalesce(public.waitlist.referral_source, excluded.referral_source),
       status = case
-        when excluded.status = 'joined' then 'joined'
+        when excluded.status = 'verified' then 'verified'
         else public.waitlist.status
       end,
       consent_to_updates = true,
