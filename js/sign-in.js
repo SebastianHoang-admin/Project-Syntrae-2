@@ -3,7 +3,8 @@ import { supabase, withButtonState, redirectIfSignedIn } from './supabase-client
 const form = document.getElementById('email-signin-form');
 const messageEl = document.getElementById('auth-message');
 const submitButton = form.querySelector('button[type="submit"]');
-const magicLinkButton = document.getElementById('magic-link-btn');
+const params = new URLSearchParams(window.location.search);
+const redirectTarget = params.get('next') || 'Chat.html';
 let captchaWidgetId = null;
 
 function showMessage(text, type = 'info') {
@@ -63,69 +64,22 @@ async function handleSignIn(event) {
   }
 
   showMessage('Signed in! Redirecting…', 'success');
-  setTimeout(() => { window.location.href = 'Chat.html'; }, 600);
+  setTimeout(() => { window.location.href = redirectTarget; }, 600);
 }
 
-async function handleMagicLinkSignIn() {
-  clearMessage();
-  if (!ensureCaptchaRendered()) return;
-
-  const formData = new FormData(form);
-  const email = String(formData.get('email') || '').trim().toLowerCase();
-  if (!email) {
-    showMessage('Please enter your email before requesting a magic link.', 'error');
-    return;
-  }
-
-  const captchaToken = window.turnstile.getResponse(captchaWidgetId);
-  if (!captchaToken) {
-    showMessage('Please complete the CAPTCHA before requesting a magic link.', 'error');
-    return;
-  }
-
-  const emailRedirectTo = `${window.location.origin}/sign-in.html?magic=verified`;
-  const result = await withButtonState(magicLinkButton, () => supabase.auth.signInWithOtp({
-    email,
-    options: {
-      emailRedirectTo,
-      shouldCreateUser: false,
-      captchaToken
-    }
-  }))();
-
-  if (result.error) {
-    showMessage(result.error.message, 'error');
-    if (captchaWidgetId !== null && window.turnstile) {
-      window.turnstile.reset(captchaWidgetId);
-    }
-    return;
-  }
-
-  showMessage('Magic link sent. Check your email and open the link to sign in.', 'success');
-  if (captchaWidgetId !== null && window.turnstile) {
-    window.turnstile.reset(captchaWidgetId);
-  }
-}
-
-redirectIfSignedIn();
+redirectIfSignedIn(redirectTarget);
 form.addEventListener('submit', handleSignIn);
-if (magicLinkButton) {
-  magicLinkButton.addEventListener('click', handleMagicLinkSignIn);
-}
 window.addEventListener('load', () => {
   ensureCaptchaRendered();
 });
 
 // If the verification link redirected here, show a friendly note.
-const params = new URLSearchParams(window.location.search);
 if (params.get('verified') === 'true') {
   showMessage('Email verified! You can now sign in with your credentials.', 'success');
 } else if (params.get('reset') === 'success') {
   showMessage('Password updated. Sign in with your new password.', 'success');
 } else if (params.get('signed_out') === 'true') {
   showMessage('You have signed out successfully.', 'success');
-} else if (params.get('magic') === 'verified') {
-  showMessage('Magic link verified. Redirecting to your account...', 'success');
 } else if (params.get('auth') === 'required') {
   showMessage('Sign in to continue to your private decision studio.', 'info');
 }

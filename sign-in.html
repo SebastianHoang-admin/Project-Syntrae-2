@@ -2,6 +2,9 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+    <link rel="alternate icon" href="/favicon.png" type="image/png">
+    <link rel="apple-touch-icon" href="/favicon.png">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="Cache-Control" content="no-store">
     <title>Sign In - Syntrae</title>
@@ -175,8 +178,6 @@
                 <div id="turnstile-widget" class="captcha-wrap" aria-label="CAPTCHA verification"></div>
                 <div class="actions">
                     <button type="submit" class="btn btn-primary"><i class="fas fa-sign-in-alt"></i>Sign in with email</button>
-                    <button type="button" class="btn btn-ghost" id="magic-link-btn"><i class="fas fa-envelope"></i>Send magic link</button>
-                    <button type="button" class="btn btn-ghost"><i class="fas fa-mobile-alt"></i>Enter your phone number</button>
                     <div class="link-row">
                         <a href="forgot-password.html">Forgot your password?</a>
                         <a href="sign-up.html">Create an account</a>
@@ -189,6 +190,6 @@
     <div class="footer">© 2026 Syntrae LLC. Improve decision quality</div>
     <script src="js/supabase-config.js"></script>
     <script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit" async defer></script>
-    <script type="module" src="js/sign-in.js?v=20260701"></script>
+    <script type="module" src="js/sign-in.js?v=20260807-email-only"></script>
 </body>
 </html>

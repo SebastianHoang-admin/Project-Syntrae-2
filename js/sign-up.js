@@ -1,8 +1,13 @@
-import { withButtonState, redirectIfSignedIn } from './supabase-client.js';
+import { supabase, withButtonState, redirectIfSignedIn } from './supabase-client.js';
 
 const form = document.getElementById('signup-form');
 const messageEl = document.getElementById('auth-message');
 const submitButton = form.querySelector('button[type="submit"]');
+const nameInput = document.getElementById('name');
+const emailInput = document.getElementById('email');
+const params = new URLSearchParams(window.location.search);
+const isVerifiedWaitlistSignup = params.get('waitlist') === 'verified';
+const redirectTarget = params.get('next') || (isVerifiedWaitlistSignup ? 'founding-welcome.html?verified=true' : 'Chat.html');
 let captchaWidgetId = null;
 
 function showMessage(text, type = 'info', asHtml = false) {
@@ -47,6 +52,7 @@ async function handleSignUp(event) {
     email: (formData.get('email') || '').trim().toLowerCase(),
     password: formData.get('password'),
     website: (formData.get('website') || '').trim(),
+    waitlistVerified: isVerifiedWaitlistSignup,
     captchaToken: ''
   };
 
@@ -83,12 +89,54 @@ async function handleSignUp(event) {
     return;
   }
 
-  showMessage('Almost there! Check your email for a verification link. Open it, verify, then return here to sign in.', 'success');
+  if (body.autoSignIn) {
+    const result = await supabase.auth.signInWithPassword({
+      email: payload.email,
+      password: payload.password,
+      options: { captchaToken: payload.captchaToken }
+    });
+
+    if (result.error) {
+      const html = 'Your account was created. Please <a href="sign-in.html" style="color:inherit;text-decoration:underline;">sign in</a> to continue.';
+      showMessage(html, 'success', true);
+      if (captchaWidgetId !== null && window.turnstile) {
+        window.turnstile.reset(captchaWidgetId);
+      }
+      return;
+    }
+
+    showMessage('Account ready. Redirecting...', 'success');
+    window.location.href = body.redirectTo || redirectTarget;
+    return;
+  }
+
+  if (body.requiresEmailConfirmation) {
+    showMessage('Almost there! Check your email for a verification link. Open it, verify, then return here to sign in.', 'success');
+    return;
+  }
+
+  showMessage('Account ready. Redirecting...', 'success');
+  window.location.href = body.redirectTo || redirectTarget;
 }
 
 window.addEventListener('load', () => {
   ensureCaptchaRendered();
 });
 
-redirectIfSignedIn();
+if (isVerifiedWaitlistSignup) {
+  const verifiedEmail = String(params.get('email') || '').trim().toLowerCase();
+  const verifiedName = String(params.get('name') || '').trim();
+  if (verifiedEmail && emailInput) {
+    emailInput.value = verifiedEmail;
+    emailInput.readOnly = true;
+  }
+  if (verifiedName && nameInput && !nameInput.value) {
+    nameInput.value = verifiedName;
+  }
+  showMessage('Email confirmed. Create your Syntrae account to finish joining the founding circle.', 'success');
+}
+
+if (!isVerifiedWaitlistSignup) {
+  redirectIfSignedIn(redirectTarget);
+}
 form.addEventListener('submit', handleSignUp);

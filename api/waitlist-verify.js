@@ -108,7 +108,7 @@ module.exports = async function handler(req, res) {
     }
 
     const tokenHash = hashToken(token);
-    const rows = await supabaseRest(`waitlist?verification_token_hash=eq.${tokenHash}&select=id,status,verification_expires_at&limit=1`);
+    const rows = await supabaseRest(`waitlist?verification_token_hash=eq.${tokenHash}&select=id,email,full_name,status,verification_expires_at&limit=1`);
     const row = Array.isArray(rows) ? rows[0] : null;
     if (!row) {
       return redirect(res, pageUrl(req, '/landing.html', { waitlist: 'invalid' }, 'founding'));
@@ -146,7 +146,11 @@ module.exports = async function handler(req, res) {
     });
 
     res.setHeader('Set-Cookie', buildSurveyCookie(req, surveyAccess.token));
-    return redirect(res, pageUrl(req, '/founding-welcome.html', { verified: 'true' }));
+    return redirect(res, pageUrl(req, '/sign-up.html', {
+      waitlist: 'verified',
+      email: row.email,
+      name: row.full_name || ''
+    }));
   } catch (err) {
     console.error('waitlist verification failed:', err);
     return redirect(res, pageUrl(req, '/landing.html', { waitlist: 'error' }, 'founding'));

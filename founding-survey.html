@@ -2,6 +2,9 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+    <link rel="alternate icon" href="/favicon.png" type="image/png">
+    <link rel="apple-touch-icon" href="/favicon.png">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Founding Member Survey | Syntrae</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -652,7 +655,9 @@
         </div>
     </footer>
 
-    <script>
+    <script type="module">
+        import { supabase } from "./js/supabase-client.js";
+
         const surveyForm = document.getElementById("surveyForm");
         const surveyStatus = document.getElementById("surveyStatus");
         const shareSyntraeButton = document.getElementById("shareSyntraeButton");
@@ -700,17 +705,27 @@
             button.innerHTML = loading ? '<i class="fas fa-spinner fa-spin"></i> Submitting...' : button.dataset.originalText;
         }
 
+        let activeSession = null;
+        try {
+            const { data } = await supabase.auth.getSession();
+            activeSession = data?.session || null;
+        } catch (_) {
+            activeSession = null;
+        }
+
         const foundingInterest = readFoundingInterest();
         const storedWaitlistEmail = normalizeEmail(foundingInterest.email);
-        if (waitlistEmailField) waitlistEmailField.value = storedWaitlistEmail;
+        const signedInEmail = normalizeEmail(activeSession?.user?.email);
+        if (waitlistEmailField) waitlistEmailField.value = signedInEmail || storedWaitlistEmail;
         if (surveyEmailNote) {
-            if (storedWaitlistEmail) {
-                surveyEmailNote.textContent = "This survey will be linked to your founding email: ";
+            if (signedInEmail) {
+                surveyEmailNote.textContent = "This survey will be linked to your Syntrae account: ";
                 const emailStrong = document.createElement("strong");
-                emailStrong.textContent = storedWaitlistEmail;
+                emailStrong.textContent = signedInEmail;
                 surveyEmailNote.append(emailStrong, ". Please still avoid names or identifying details in the answers.");
             } else {
-                surveyEmailNote.textContent = "This survey will be linked to your confirmed founding email from this browser. Please avoid names or identifying details in the answers.";
+                surveyEmailNote.textContent = "Please sign in with the Syntrae account you created from your confirmed founding email before submitting the survey.";
+                surveyForm?.querySelector('button[type="submit"]')?.setAttribute("disabled", "");
             }
             surveyEmailNote.classList.add("is-visible");
         }
@@ -742,9 +757,15 @@
 
         surveyForm?.addEventListener("submit", async (event) => {
             event.preventDefault();
+            if (!activeSession?.access_token) {
+                const next = encodeURIComponent("founding-survey.html");
+                window.location.href = `sign-in.html?auth=required&next=${next}`;
+                return;
+            }
+
             const data = new FormData(surveyForm);
             const payload = {
-                waitlistEmail: normalizeEmail(data.get("waitlistEmail")),
+                waitlistEmail: signedInEmail || normalizeEmail(data.get("waitlistEmail")),
                 uncertainMoment: String(data.get("uncertainMoment") || "").trim(),
                 decisionArea: String(data.get("decisionArea") || "").trim(),
                 situationDetails: String(data.get("situationDetails") || "").trim(),
@@ -763,7 +784,10 @@
             try {
                 const response = await fetch("/api/founding-survey", {
                     method: "POST",
-                    headers: { "Content-Type": "application/json" },
+                    headers: {
+                        "Content-Type": "application/json",
+                        "Authorization": `Bearer ${activeSession.access_token}`
+                    },
                     credentials: "same-origin",
                     body: JSON.stringify(payload)
                 });
@@ -777,7 +801,7 @@
                     linkedEmail: body.linkedEmail || payload.waitlistEmail,
                     syncedAt: new Date().toISOString()
                 }));
-                setSurveyStatus("Thank you. Your survey response is linked to the founding email you used to join Syntrae.", "success");
+                setSurveyStatus("Thank you. Your survey response is linked to your Syntrae account.", "success");
             } catch (error) {
                 setSurveyStatus(error.message || "Could not submit the survey. Please try again.", "error");
             } finally {

@@ -1,0 +1,53 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Syntrae">
+  <defs>
+    <linearGradient id="markGradient" x1="430" y1="210" x2="1110" y2="610" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#063f3e"/>
+      <stop offset="0.48" stop-color="#0d5a55"/>
+      <stop offset="1" stop-color="#7c9275"/>
+    </linearGradient>
+    <radialGradient id="tileGlow" cx="50%" cy="38%" r="62%">
+      <stop offset="0" stop-color="#ffffff"/>
+      <stop offset="0.62" stop-color="#f7fbf7"/>
+      <stop offset="1" stop-color="#e7f3ef"/>
+    </radialGradient>
+  </defs>
+  <rect width="512" height="512" rx="112" fill="url(#tileGlow)"/>
+  <path d="M90 421c69-44 260-46 332 0" fill="none" stroke="#0a514d" stroke-width="18" stroke-linecap="round" opacity="0.14"/>
+  <g transform="translate(-256 -68) scale(.64)">
+    <circle cx="630" cy="213" r="31" fill="#074542"/>
+    <circle cx="970" cy="213" r="31" fill="#7d9175"/>
+    <path
+      d="M777 343
+         C712 252 552 244 520 365
+         C493 468 596 589 704 665
+         C750 697 784 716 802 716
+         C787 714 763 706 734 691
+         C608 625 487 508 471 406
+         C458 321 509 267 579 256
+         C663 243 733 286 777 343Z"
+      fill="url(#markGradient)"/>
+    <path
+      d="M823 343
+         C888 252 1048 244 1080 365
+         C1107 468 1004 589 896 665
+         C850 697 816 716 798 716
+         C813 714 837 706 866 691
+         C992 625 1113 508 1129 406
+         C1142 321 1091 267 1021 256
+         C937 243 867 286 823 343Z"
+      fill="url(#markGradient)"/>
+    <path
+      d="M800 395
+         L815 473
+         L895 489
+         L815 505
+         L800 584
+         L785 505
+         L705 489
+         L785 473Z"
+      fill="none"
+      stroke="#f5cb44"
+      stroke-width="16"
+      stroke-linejoin="miter"/>
+  </g>
+</svg>

@@ -20,9 +20,11 @@ const ANSWER_FIELDS = Object.freeze({
 
 function requireSupabaseConfig() {
   const supabaseUrl = resolveEnv(['SUPABASE_URL']);
+  const anonKey = resolveEnv(['SUPABASE_ANON_KEY', 'SUPABASE_ANON_KEY_LOCAL']);
   const serviceRoleKey = resolveEnv(['SUPABASE_SERVICE_ROLE_KEY', 'SUPABASE_SERVICE_ROLE_KEY_LOCAL']);
   const missing = [];
   if (!supabaseUrl) missing.push('SUPABASE_URL');
+  if (!anonKey) missing.push('SUPABASE_ANON_KEY');
   if (!serviceRoleKey) missing.push('SUPABASE_SERVICE_ROLE_KEY');
   if (missing.length > 0) {
     const error = new Error('Survey server configuration missing.');
@@ -30,7 +32,7 @@ function requireSupabaseConfig() {
     error.missing = missing;
     throw error;
   }
-  return { supabaseUrl: supabaseUrl.replace(/\/+$/, ''), serviceRoleKey };
+  return { supabaseUrl: supabaseUrl.replace(/\/+$/, ''), anonKey, serviceRoleKey };
 }
 
 async function supabaseRest(path, { method = 'GET', body, prefer = 'return=representation' } = {}) {
@@ -63,6 +65,37 @@ async function supabaseRest(path, { method = 'GET', body, prefer = 'return=repre
     throw error;
   }
   return json;
+}
+
+function getBearerToken(req) {
+  const header = String(req.headers.authorization || req.headers.Authorization || '');
+  const match = header.match(/^Bearer\s+(.+)$/i);
+  return match ? match[1].trim() : '';
+}
+
+async function getAuthenticatedUser(req) {
+  const accessToken = getBearerToken(req);
+  if (!accessToken) {
+    const error = new Error('Please sign in before submitting the founding survey.');
+    error.status = 401;
+    throw error;
+  }
+
+  const { supabaseUrl, anonKey } = requireSupabaseConfig();
+  const response = await fetch(`${supabaseUrl}/auth/v1/user`, {
+    method: 'GET',
+    headers: {
+      apikey: anonKey,
+      Authorization: `Bearer ${accessToken}`
+    }
+  });
+  const payload = await response.json().catch(() => ({}));
+  if (!response.ok || !payload?.id) {
+    const error = new Error('Your sign-in session expired. Please sign in again before submitting the survey.');
+    error.status = 401;
+    throw error;
+  }
+  return payload;
 }
 
 function parseCookies(header) {
@@ -104,23 +137,57 @@ function getSurveyAnswers(body) {
   return row;
 }
 
-async function findWaitlistRow(req, fallbackEmail) {
+async function linkWaitlistRowToUser(waitlistId, userId) {
+  await supabaseRest(`waitlist?id=eq.${encodeURIComponent(waitlistId)}`, {
+    method: 'PATCH',
+    body: {
+      user_id: userId,
+      updated_at: new Date().toISOString()
+    },
+    prefer: 'return=minimal'
+  });
+}
+
+async function findWaitlistRow(req, fallbackEmail, user) {
+  const userId = String(user?.id || '').trim();
+  const userEmail = normalizeEmail(user?.email || fallbackEmail);
+  if (!userId || !userEmail) return null;
+
+  const userRows = await supabaseRest(
+    `waitlist?user_id=eq.${encodeURIComponent(userId)}&status=eq.verified&select=id,email,status,user_id&limit=1`
+  );
+  if (Array.isArray(userRows) && userRows[0]) return userRows[0];
+
+  const emailRows = await supabaseRest(
+    `waitlist?email=eq.${encodeURIComponent(userEmail)}&status=eq.verified&select=id,email,status,user_id&limit=1`
+  );
+  const emailRow = Array.isArray(emailRows) ? emailRows[0] || null : null;
+  if (emailRow && (!emailRow.user_id || emailRow.user_id === userId)) {
+    if (!emailRow.user_id) {
+      await linkWaitlistRowToUser(emailRow.id, userId);
+      emailRow.user_id = userId;
+    }
+    return emailRow;
+  }
+
   const cookies = parseCookies(req.headers.cookie);
   const surveyToken = String(cookies[SURVEY_COOKIE_NAME] || '').trim();
   if (/^[A-Za-z0-9_-]{32,128}$/.test(surveyToken)) {
     const tokenHash = hashToken(surveyToken);
-    const rows = await supabaseRest(
-      `waitlist?survey_token_hash=eq.${tokenHash}&status=eq.verified&select=id,email,status&limit=1`
+    const tokenRows = await supabaseRest(
+      `waitlist?survey_token_hash=eq.${tokenHash}&status=eq.verified&email=eq.${encodeURIComponent(userEmail)}&select=id,email,status,user_id&limit=1`
     );
-    if (Array.isArray(rows) && rows[0]) return rows[0];
+    const tokenRow = Array.isArray(tokenRows) ? tokenRows[0] || null : null;
+    if (tokenRow && (!tokenRow.user_id || tokenRow.user_id === userId)) {
+      if (!tokenRow.user_id) {
+        await linkWaitlistRowToUser(tokenRow.id, userId);
+        tokenRow.user_id = userId;
+      }
+      return tokenRow;
+    }
   }
 
-  const normalizedEmail = normalizeEmail(fallbackEmail);
-  if (!normalizedEmail) return null;
-  const rows = await supabaseRest(
-    `waitlist?email=eq.${encodeURIComponent(normalizedEmail)}&status=eq.verified&select=id,email,status&limit=1`
-  );
-  return Array.isArray(rows) ? rows[0] || null : null;
+  return null;
 }
 
 function getRequestMeta(req) {
@@ -134,15 +201,17 @@ module.exports = async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'POST only' });
 
   try {
+    const user = await getAuthenticatedUser(req);
     const fallbackEmail = req.body?.waitlistEmail || req.body?.email;
-    const waitlistRow = await findWaitlistRow(req, fallbackEmail);
+    const waitlistRow = await findWaitlistRow(req, fallbackEmail, user);
     if (!waitlistRow) {
       return res.status(403).json({
-        error: 'Please join and confirm your founding email before submitting the survey.'
+        error: 'Please confirm your founding email and sign in with that Syntrae account before submitting the survey.'
       });
     }
 
     const surveyRow = {
+      user_id: user.id,
       waitlist_id: waitlistRow.id,
       waitlist_email: waitlistRow.email,
       ...getSurveyAnswers(req.body),
@@ -150,7 +219,7 @@ module.exports = async function handler(req, res) {
       updated_at: new Date().toISOString()
     };
 
-    const rows = await supabaseRest('founding_survey_responses?on_conflict=waitlist_id&select=id,waitlist_email,updated_at', {
+    const rows = await supabaseRest('founding_survey_responses?on_conflict=waitlist_id&select=id,waitlist_email,user_id,updated_at', {
       method: 'POST',
       body: surveyRow,
       prefer: 'resolution=merge-duplicates,return=representation'
@@ -160,7 +229,8 @@ module.exports = async function handler(req, res) {
     return res.status(200).json({
       ok: true,
       survey: true,
-      linkedEmail: saved?.waitlist_email || waitlistRow.email
+      linkedEmail: saved?.waitlist_email || waitlistRow.email,
+      linkedUser: saved?.user_id || user.id
     });
   } catch (err) {
     console.error('founding survey submit failed:', err);
