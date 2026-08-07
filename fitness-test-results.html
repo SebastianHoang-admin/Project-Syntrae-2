@@ -21,6 +21,9 @@
 
         const target = new URL('demo-fitness-test-results.html', window.location.href);
         target.searchParams.set('demo', 'decision-tree');
+        if (params.get('pair')) {
+          target.searchParams.set('pair', params.get('pair'));
+        }
         if (params.get('tour') === '1') {
           target.searchParams.set('tour', '1');
         }

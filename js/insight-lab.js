@@ -2097,13 +2097,14 @@ function buildDemoFitnessReport(optionA, optionB) {
       qualitativeMisalignmentPercent: 18,
       mutationRatePercent: 14,
       areas_match: [
-        'Both prefer considerate communication over pressure',
-        'Depth and honesty signals are strongly aligned',
-        'Timing sensitivity suggests a gentle opening is appropriate'
+        "Maya's warm specificity pairs well with Daniel's preference for gentle, private communication",
+        'Both value respect, honesty, and low-pressure follow-through',
+        'Quiet, intentional settings help both personas stay present instead of performative'
       ],
       areas_mismatch: [
-        'Maya seeks clarity sooner than Daniel may expect',
-        'Daniel may need more emotional room before defining next steps'
+        'Maya may seek clarity sooner than Daniel is ready to name it',
+        'Daniel can become reserved when a message feels like an immediate relationship verdict',
+        'The best path needs timing that gives Daniel room and wording that gives Maya clarity'
       ],
       top_matches_axes: [
         { axis_name: 'Respect / Dignity Boundary', deviation: 0.06, persona_a_value: 0.82, persona_b_value: 0.76 },
