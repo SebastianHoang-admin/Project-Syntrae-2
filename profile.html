@@ -228,6 +228,18 @@
             color:var(--muted);
             line-height:1.55;
         }
+        .persona-pdf-helper {
+            padding:12px 14px;
+            border-left:4px solid #2d9a84;
+            border-radius:12px;
+            background:rgba(231,248,241,0.76);
+            color:#58706d;
+            font-size:14px;
+            line-height:1.5;
+        }
+        .persona-pdf-helper strong {
+            color:#203236;
+        }
         .persona-pdf-actions {
             display:flex;
             gap:10px;
@@ -494,7 +506,8 @@
                         </svg>
                         Your Persona
                     </h2>
-                    <p>Upload a PDF summary of your persona. Syntrae can use this as a readable private context layer before you compare paths in decision tools.</p>
+                    <p>Upload a PDF summary of your persona. Syntrae can use this as a readable private context layer before the algorithm replays choices in decision tools.</p>
+                    <div class="persona-pdf-helper"><strong>Tip:</strong> You can ask the LLM you use most often to summarize your preferences, values, communication style, and decision context, then upload that summary as a PDF.</div>
                     <div class="persona-pdf-actions">
                         <label class="btn btn-primary" for="persona_pdf_upload">
                             <svg class="inline-icon" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
@@ -672,12 +685,12 @@
             }
         };
 
-        if (!isDecisionTreeProfileDemo || isUniversalGuideFlow) {
+        if (!isDecisionTreeProfileDemo || isUniversalGuideFlow || profileGuideParams.get('tour') === '1') {
             const universalProfileSteps = [
                 {
                     selector: '.persona-pdf-space',
                     title: 'Step 1: Add your own persona',
-                    description: 'Start here. Upload a PDF that summarizes you, and Syntrae will turn that document into private context for future decisions.',
+                    description: 'Start here. You can use the LLM you rely on most to summarize yourself, save that summary as a PDF, then upload it to the Syntrae portal as private context for future decisions.',
                     placement: 'bottom'
                 },
                 {
@@ -696,7 +709,7 @@
                 {
                     selector: '#profile-form .section:nth-of-type(2)',
                     title: 'Add useful personal context',
-                    description: 'Goals, strengths, constraints, and communication style help Syntrae estimate consequences in a way that fits you, not a generic user.',
+                    description: 'Goals, strengths, constraints, and communication style help Syntrae replay consequences in a way that fits you, not a generic user.',
                     placement: 'top'
                 },
                 {
@@ -745,9 +758,9 @@
             window.SyntraePageTour?.init({
                 pageKey: isUniversalGuideFlow ? 'universal-profile' : 'profile',
                 title: isUniversalGuideFlow ? 'Step 1: Your Persona' : 'Profile guide',
-                triggerText: 'Page guide',
+                triggerText: 'Persona guide',
                 showTrigger: !isUniversalGuideFlow,
-                autoStartOnce: !isUniversalGuideFlow,
+                autoStartOnce: false,
                 autoStart: () => {
                     if (isUniversalGuideFlow) return profileGuideParams.get('stage') === 'profile';
                     return profileGuideParams.get('tour') === '1';

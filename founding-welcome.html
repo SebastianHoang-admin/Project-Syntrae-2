@@ -459,11 +459,12 @@
                     </a>
                     <p class="kicker"><i class="fas fa-star"></i> Reservation received</p>
                     <h1>Thank you for joining the founding circle.</h1>
-                    <p class="lede" id="welcomeMessage">Your founding access request is in. Please wait for Syntrae launch while we prepare the first experience for early members.</p>
+                    <p class="lede" id="welcomeMessage">Your founding access request is in. Please wait for Syntrae launch while we prepare the first romantic relationship decision experience for early members.</p>
                     <div class="launch-note">
                         <strong>What happens next?</strong>
                         <div class="survey-prompt">
                             <span>You are on the founding member list. We will keep in touch with launch updates, early product notes, and optional feedback invitations while Syntrae gets ready. No action is needed right now.</span>
+                            <a class="survey-link" href="founding-survey.html"><i class="fas fa-clipboard-list"></i> Take the survey</a>
                         </div>
                     </div>
                     <div class="actions">
@@ -497,9 +498,14 @@
 
         try {
             const payload = JSON.parse(localStorage.getItem("syntrae:founding-member-interest") || "{}");
+            const verified = new URLSearchParams(window.location.search).get("verified") === "true";
             const name = String(payload.name || "").trim().split(/\s+/)[0];
-            if (name) {
-                document.getElementById("welcomeMessage").textContent = `${name}, your founding access request is in. Please wait for Syntrae launch while we prepare the first experience for early members.`;
+            if (verified && name) {
+                document.getElementById("welcomeMessage").textContent = `${name}, your email is verified and your founding access request is in. Please wait for Syntrae launch while we prepare the first romantic relationship decision experience for early members.`;
+            } else if (verified) {
+                document.getElementById("welcomeMessage").textContent = "Your email is verified and your founding access request is in. Please wait for Syntrae launch while we prepare the first romantic relationship decision experience for early members.";
+            } else if (name) {
+                document.getElementById("welcomeMessage").textContent = `${name}, your founding access request is in. Please wait for Syntrae launch while we prepare the first romantic relationship decision experience for early members.`;
             }
         } catch (_) {
             /* Keep the default message if local storage is unavailable. */

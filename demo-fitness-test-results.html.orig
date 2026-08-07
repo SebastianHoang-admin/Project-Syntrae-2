@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Compatibility Sheet | Maya Chen and Daniel Smith | Syntrae</title>
+  <title>Compatibility Review | Maya Chen and Daniel Smith | Syntrae</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -734,15 +734,16 @@
 <body>
   <header class="topbar">
     <div class="topbar-inner">
-      <a class="brand" href="DashboardDemo.html?demo=decision-tree&amp;state=start" aria-label="Back to Syntrae dashboard">
+      <a class="brand" href="landing.html" aria-label="Back to Syntrae home">
         <img src="assets/syntrae-logo.svg" alt="Syntrae logo">
         <span class="brand-copy">
-          <strong>Compatibility Sheet</strong>
+          <strong>Compatibility Review</strong>
           <span>Maya Chen and Daniel Smith persona comparison</span>
         </span>
       </a>
       <div class="top-actions">
-        <a class="back-link" href="insight-lab.html?demo=decision-tree"><i class="fas fa-arrow-left"></i> Back to Insight Lab</a>
+        <a class="back-link" href="landing.html"><i class="fas fa-arrow-left"></i> Back to landing page</a>
+        <a class="back-link" href="insight-lab.html?demo=decision-tree"><i class="fas fa-flask"></i> Open Insight Lab</a>
       </div>
     </div>
   </header>
@@ -750,7 +751,7 @@
   <main class="shell">
     <section class="hero">
       <article class="panel summary-panel">
-        <span class="kicker"><i class="fas fa-chart-pie"></i> Compatibility Sheet</span>
+        <span class="kicker"><i class="fas fa-chart-pie"></i> Compatibility Review</span>
         <h1>Daniel Smith and Maya Chen, compared.</h1>
         <p class="lede" id="analyticSummary">This persona comparison suggests a positive compatibility pattern, with strong alignment in care, communication tone, and willingness to meet each other thoughtfully.</p>
 
@@ -1005,7 +1006,7 @@
       renderList(mismatchListEl, report.areas_mismatch, 'No mismatch signals available yet.');
       const titleA = String(report?.personaA?.label || 'Maya Chen').replace(/\s+\(You\)$/, '').trim() || 'Maya Chen';
       const titleB = String(report?.personaB?.label || 'Daniel Smith').replace(/\s+\(You\)$/, '').trim() || 'Daniel Smith';
-      document.title = `Compatibility Sheet - ${titleA} and ${titleB} | Syntrae`;
+      document.title = `Compatibility Review - ${titleA} and ${titleB} | Syntrae`;
     }
 
     initialize();

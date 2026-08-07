@@ -810,6 +810,7 @@ Authority figure</div>
         const PERSONA_PORTRAITS_BUCKET = 'persona-portraits';
         const PORTRAIT_STORAGE_KEY = 'persona-portrait-storage-path';
         const DECISION_TREE_DEMO = 'decision-tree';
+        const HIDDEN_DEMO_PERSONA_KEYS = new Set(['aaron-chen-demo', 'naomi-brooks-demo']);
         const syntraeSupabase = window.syntraeSupabaseClient || null;
         let cloudHydrated = false;
         let cloudHydrating = false;
@@ -1737,7 +1738,6 @@ Authority figure</div>
         const personaCheckOverlay = document.getElementById('personaCheckOverlay');
         const personaYesBtn = document.getElementById('personaYesBtn');
         const personaNoBtn = document.getElementById('personaNoBtn');
-        const personaLaterBtn = document.getElementById('personaLaterBtn');
         const personaStepChoice = document.getElementById('personaStepChoice');
         const personaStepAvatar = document.getElementById('personaStepAvatar');
         const personaStepRedirect = document.getElementById('personaStepRedirect');
@@ -1748,7 +1748,7 @@ Authority figure</div>
         const avatarLater = document.getElementById('avatarLater');
         const avatarChangePhoto = document.getElementById('avatarChangePhoto');
         const avatarConfirmAndContinue = document.getElementById('avatarConfirmAndContinue');
-        const personaCheckBtn = document.getElementById('personaCheckBtn');
+        const personaLaterBtn = document.getElementById('personaLaterBtn');
         const editPersonaLink = document.querySelector('.edit-btn');
         personaKey = resolvePersonaKey();
         if (editPersonaLink) editPersonaLink.href = buildPersonaUrl('edit-persona.html');
@@ -2664,8 +2664,13 @@ Authority figure</div>
         function getRequestedDemoPersonaKey() {
             const params = new URLSearchParams(window.location.search || '');
             const requested = sanitizePersonaKey(params.get(PERSONA_QUERY_PARAM));
-            const definitions = window.SYNTRAE_DEMO_PERSONAS || {};
-            return definitions[requested] ? requested : 'daniel-smith-demo';
+            const definitions = getVisibleDemoPersonaDefinitions();
+            return definitions.some((item) => item.key === requested) ? requested : 'daniel-smith-demo';
+        }
+
+        function getVisibleDemoPersonaDefinitions() {
+            return Object.values(window.SYNTRAE_DEMO_PERSONAS || {})
+                .filter((item) => item?.key && !HIDDEN_DEMO_PERSONA_KEYS.has(item.key));
         }
 
         function setupDemoPersona() {
@@ -2698,7 +2703,7 @@ Authority figure</div>
             applyPersonaState(demoState);
 
             if (personaSelectorEl) {
-                const definitions = Object.values(window.SYNTRAE_DEMO_PERSONAS || {});
+                const definitions = getVisibleDemoPersonaDefinitions();
                 personaSelectorEl.innerHTML = definitions.map((item) => (
                     `<option value="${item.key}">${item.name}</option>`
                 )).join('');
@@ -2777,7 +2782,7 @@ Authority figure</div>
                 }
             };
 
-            if (isDecisionTreeDemo() && !isUniversalGuideFlow) return;
+            if (isDecisionTreeDemo() && !isUniversalGuideFlow && analyzeGuideParams.get('tour') !== '1') return;
 
             const universalAnalyzeSteps = [
                 {
@@ -2852,9 +2857,9 @@ Authority figure</div>
             window.SyntraePageTour?.init({
                 pageKey: isUniversalGuideFlow ? 'universal-analyze' : 'analyze',
                 title: isUniversalGuideFlow ? 'Step 2: Build Persona' : 'Analyze guide',
-                triggerText: 'Page guide',
+                triggerText: 'Analyze guide',
                 showTrigger: !isUniversalGuideFlow,
-                autoStartOnce: !isUniversalGuideFlow,
+                autoStartOnce: false,
                 autoStart: () => {
                     if (isUniversalGuideFlow) return analyzeGuideParams.get('stage') === 'analyze';
                     return analyzeGuideParams.get('tour') === '1';

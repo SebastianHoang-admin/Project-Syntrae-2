@@ -1512,7 +1512,6 @@
             <div class="dropdown-menu" id="dropdownMenu">
                 <a href="./analyze.html" class="dropdown-item" data-destination="analyze"><i class="fas fa-user-pen"></i>Analyze and Edit Your Persona</a>
                 <a href="./profile.html" class="dropdown-item" data-destination="profile"><i class="fas fa-id-card"></i>Your Persona</a>
-                <a href="./insight-lab.html" class="dropdown-item" data-destination="lab"><i class="fas fa-desktop"></i>Insight Lab</a>
                 <a href="sign-out.html" class="dropdown-item sign-out" id="signOutLink"><i class="fas fa-sign-out-alt"></i>Sign Out</a>
             </div>
         </div>
@@ -1556,7 +1555,7 @@
     </main>
 
     <footer class="footer">
-        © 2026 Syntrae LLC. Predictive social science for considerate decisions.
+        © 2026 Syntrae LLC. Decision rehearsal for considerate decisions.
     </footer>
 
     <script src="js/supabase-config.js"></script>
@@ -2449,7 +2448,6 @@
             accountIndicator.dataset.state = 'signed-in';
             document.querySelector('[data-destination="analyze"]').setAttribute('href', demoUrl('analyze.html', { persona: 'daniel-smith-demo' }));
             document.querySelector('[data-destination="profile"]').setAttribute('href', demoUrl('profile.html'));
-            document.querySelector('[data-destination="lab"]').setAttribute('href', demoUrl('insight-lab.html'));
 
             const demoPersonas = {
                 daniel: {
@@ -2934,11 +2932,11 @@
                         Explore pathways consequence...
                     </div>
 
-                    <section class="consequence-tree" id="consequenceTree" aria-label="Consequence tree" data-tour-step="tree">
+                    <section class="consequence-tree" id="consequenceTree" aria-label="Best Way - Consequence Tree" data-tour-step="tree">
                         <div class="tree-root">
                             <div>
-                                <strong>Consequence Tree</strong>
-                                <div>Syntrae consequence map</div>
+                                <strong>Best Way - Consequence Tree</strong>
+                                <div>Syntrae recurring consequence pattern map</div>
                             </div>
                             <span>Probability totals</span>
                         </div>
@@ -3294,13 +3292,13 @@
                     {
                         selector: '[data-tour-step="settings"]',
                         title: 'Syntrae Settings',
-                        description: 'This smaller column confirms which persona is active and runs the Syntrae consequence mapping flow for the current decision.',
+                        description: 'This smaller column confirms which persona is active and runs the Syntrae Test flow for the current decision.',
                         placement: 'left'
                     },
                     {
                         selector: '[data-tour-step="tree"]',
-                        title: 'Consequence Tree',
-                        description: 'This section expands the chosen scenario into exact probability totals and three possible outcomes for each option, so the user can see what tradeoffs each path is buying.',
+                        title: 'Best Way - Consequence Tree',
+                        description: 'This section replays the chosen scenario into probability totals and recurring outcome patterns for each option, so the user can see what tradeoffs each path is buying.',
                         placement: 'top',
                         allowHidden: true,
                         highlight: 'soft',
@@ -3313,7 +3311,7 @@
                     {
                         selector: '#moreBtn',
                         title: 'More Pages',
-                        description: 'This menu is the jump point to the rest of the workflow: Analyze and Edit Your Persona, Your Persona, and Insight Lab.',
+                        description: 'This menu is the jump point to the rest of the workflow: Analyze and Edit Your Persona and Your Persona.',
                         placement: 'left',
                         highlightSelector: 'header',
                         highlight: 'soft'
@@ -3526,7 +3524,7 @@
                     {
                         selector: '#moreBtn',
                         title: 'Navigation',
-                        description: 'Use this menu to move to the rest of Syntrae: persona analysis, the account-level persona page, and Insight Lab.',
+                        description: 'Use this menu to move to the rest of Syntrae: persona analysis and the account-level persona page.',
                         placement: 'left',
                         highlightSelector: 'header',
                         highlight: 'soft'

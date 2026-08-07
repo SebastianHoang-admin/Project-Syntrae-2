@@ -6,6 +6,7 @@ const IP_LIMIT = 20;
 const EMAIL_LIMIT = 3;
 const DOMAIN_LIMIT = 10;
 const ADMIN_PAGE_SIZE = 200;
+const WAITLIST_REFERRAL_RE = /^[a-z0-9_-]{1,64}$/i;
 const ipHits = new Map();
 const emailHits = new Map();
 const domainHits = new Map();
@@ -83,6 +84,60 @@ async function emailExists(supabaseUrl, serviceRoleKey, email) {
   }
 }
 
+function isTruthy(value) {
+  if (value === true) return true;
+  if (typeof value !== 'string') return false;
+  return ['1', 'true', 'yes', 'on'].includes(value.trim().toLowerCase());
+}
+
+function sanitizeReferralSource(value, fallback = 'founding_waitlist') {
+  const text = String(value || '').trim();
+  if (!text || !WAITLIST_REFERRAL_RE.test(text)) return fallback;
+  return text.toLowerCase();
+}
+
+function compactMetadata(metadata) {
+  return Object.fromEntries(
+    Object.entries(metadata).filter(([, value]) => value !== undefined && value !== null && value !== '')
+  );
+}
+
+function isDuplicateWaitlistError(status, text) {
+  return status === 409 && /23505|duplicate key|waitlist.*email/i.test(text || '');
+}
+
+async function insertWaitlistEntry(supabaseUrl, apiKey, entry) {
+  const url = `${supabaseUrl}/rest/v1/waitlist`;
+  const row = {
+    email: entry.email,
+    referral_source: entry.referralSource,
+    status: entry.status || 'pending',
+    consent_to_updates: true
+  };
+  if (entry.fullName) row.full_name = entry.fullName;
+
+  const response = await fetch(url, {
+    method: 'POST',
+    headers: {
+      apikey: apiKey,
+      Authorization: `Bearer ${apiKey}`,
+      'Content-Type': 'application/json',
+      Prefer: 'return=minimal'
+    },
+    body: JSON.stringify(row)
+  });
+
+  if (!response.ok) {
+    const txt = await response.text().catch(() => '');
+    if (isDuplicateWaitlistError(response.status, txt)) {
+      return { inserted: false, duplicate: true };
+    }
+    throw new Error(`Waitlist insert failed (${response.status}): ${txt}`);
+  }
+
+  return { inserted: true, duplicate: false };
+}
+
 function isDnsMissingError(err) {
   return ['ENOTFOUND', 'ENODATA', 'NODATA', 'ENONAME', 'NOTFOUND', 'NXDOMAIN'].includes(err?.code);
 }
@@ -150,37 +205,49 @@ async function classifyEmailDomain(domain) {
 module.exports = async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'POST only' });
 
+  const { fullName, email, password, website, captchaToken, waitlist, referralSource, consentToUpdates } = req.body || {};
+  const isWaitlistSignup = isTruthy(waitlist) || sanitizeReferralSource(referralSource, '') !== '';
   const supabaseUrl = process.env.SUPABASE_URL;
   const anonKey = process.env.SUPABASE_ANON_KEY || process.env.SUPABASE_ANON_KEY_LOCAL;
   const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY_LOCAL;
   const missing = [];
   if (!supabaseUrl) missing.push('SUPABASE_URL');
-  if (!serviceRoleKey) missing.push('SUPABASE_SERVICE_ROLE_KEY');
   if (!anonKey) missing.push('SUPABASE_ANON_KEY');
-  if (!supabaseUrl || !serviceRoleKey) {
+  if (!isWaitlistSignup && !serviceRoleKey) missing.push('SUPABASE_SERVICE_ROLE_KEY');
+  if (!supabaseUrl || !anonKey || (!isWaitlistSignup && !serviceRoleKey)) {
     return res.status(500).json({
       error: 'Server auth configuration missing',
       missing
     });
   }
 
-  const { fullName, email, password, website, captchaToken } = req.body || {};
   if (website) {
     // Honeypot field for simple bot traffic.
     return res.status(400).json({ error: 'Invalid request' });
   }
-  if (!fullName || !email || !password || !captchaToken) {
+  if (!email) {
+    return res.status(400).json({ error: 'Email is required' });
+  }
+  if (!isWaitlistSignup && (!fullName || !password || !captchaToken)) {
     return res.status(400).json({ error: 'fullName, email, password, and captchaToken are required' });
+  }
+  if (isWaitlistSignup && consentToUpdates === false) {
+    return res.status(400).json({ error: 'Consent to updates is required to join the waitlist.' });
   }
 
   const normalizedEmail = String(email).trim().toLowerCase();
-  const normalizedName = String(fullName).trim();
-  const trimmedPassword = String(password);
+  const normalizedName = String(fullName || '').trim();
+  const trimmedPassword = password === undefined || password === null ? '' : String(password);
+  const hasPassword = trimmedPassword.length > 0;
+  const normalizedReferralSource = sanitizeReferralSource(referralSource, 'founding_waitlist');
   if (!isPlausibleEmail(normalizedEmail)) {
     return res.status(400).json({ error: 'Please enter a valid email address.' });
   }
-  if (trimmedPassword.length < 8) {
+  if (!isWaitlistSignup && hasPassword && trimmedPassword.length < 8) {
     return res.status(400).json({ error: 'Password must be at least 8 characters.' });
+  }
+  if (!isWaitlistSignup && !hasPassword) {
+    return res.status(400).json({ error: 'Password is required' });
   }
 
   const ip = getIp(req);
@@ -206,10 +273,13 @@ module.exports = async function handler(req, res) {
     return res.status(503).json({ error: 'Email domain could not be verified right now. Please try again.' });
   }
 
+  let exists = false;
   try {
-    const exists = await emailExists(supabaseUrl, serviceRoleKey, normalizedEmail);
-    if (exists) {
-      return res.status(409).json({ code: 'email_exists', error: 'This account already exists.' });
+    if (!isWaitlistSignup) {
+      exists = await emailExists(supabaseUrl, serviceRoleKey, normalizedEmail);
+      if (exists) {
+        return res.status(409).json({ code: 'email_exists', error: 'This account already exists.' });
+      }
     }
   } catch (err) {
     console.error('register email lookup failed:', err);
@@ -218,9 +288,48 @@ module.exports = async function handler(req, res) {
 
   const emailRedirectTo = `${getOrigin(req)}/sign-in.html?verified=true`;
 
+  const waitlistEntry = {
+    email: normalizedEmail,
+    fullName: normalizedName,
+    referralSource: normalizedReferralSource,
+    status: 'pending'
+  };
+
   try {
-    const signupKey = anonKey || serviceRoleKey;
+    if (isWaitlistSignup) {
+      const waitlistResult = await insertWaitlistEntry(supabaseUrl, anonKey, waitlistEntry);
+      return res.status(200).json({
+        ok: true,
+        waitlist: true,
+        stored: true,
+        alreadyJoined: !!waitlistResult.duplicate,
+        requiresEmailConfirmation: false
+      });
+    }
+
+    const signupKey = anonKey;
     const signupUrl = `${supabaseUrl}/auth/v1/signup?redirect_to=${encodeURIComponent(emailRedirectTo)}`;
+    const userMetadata = compactMetadata({
+      full_name: normalizedName,
+      profile_completed: false,
+      waitlist: isWaitlistSignup,
+      referral_source: isWaitlistSignup ? normalizedReferralSource : undefined
+    });
+    const signupBody = {
+      email: normalizedEmail,
+      password: trimmedPassword,
+      data: userMetadata,
+      options: {
+        data: userMetadata
+      }
+    };
+    if (captchaToken) {
+      signupBody.gotrue_meta_security = {
+        captcha_token: String(captchaToken)
+      };
+      signupBody.options.captchaToken = String(captchaToken);
+    }
+
     const signupRes = await fetch(signupUrl, {
       method: 'POST',
       headers: {
@@ -228,17 +337,7 @@ module.exports = async function handler(req, res) {
         Authorization: `Bearer ${signupKey}`,
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify({
-        email: normalizedEmail,
-        password: trimmedPassword,
-        gotrue_meta_security: {
-          captcha_token: String(captchaToken)
-        },
-        options: {
-          data: { full_name: normalizedName, profile_completed: false },
-          captchaToken: String(captchaToken)
-        }
-      })
+      body: JSON.stringify(signupBody)
     });
 
     const payload = await signupRes.json().catch(() => ({}));
@@ -249,6 +348,7 @@ module.exports = async function handler(req, res) {
 
     return res.status(200).json({
       ok: true,
+      waitlist: false,
       requiresEmailConfirmation: !payload?.session
     });
   } catch (err) {

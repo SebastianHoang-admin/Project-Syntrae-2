@@ -2254,9 +2254,7 @@ function setupDemoInsightLab() {
       [ACCOUNT_OUTCOME_QUEUE_KEY]: []
     }
   };
-  personaOptions = buildDemoOptions().filter((option) => (
-    option.key === SYNTHETIC_USER_KEY || option.key === 'daniel-smith-demo'
-  ));
+  personaOptions = buildDemoOptions();
   optionByKey = new Map(personaOptions.map((item) => [item.key, item]));
   populateSelectors();
   if (selectA) selectA.value = SYNTHETIC_USER_KEY;

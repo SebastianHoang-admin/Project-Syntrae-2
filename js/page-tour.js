@@ -15,6 +15,8 @@
         position: fixed;
         left: 24px;
         bottom: 24px;
+        right: auto;
+        top: auto;
         z-index: 1200;
         display: inline-flex;
         align-items: center;
@@ -27,7 +29,9 @@
         font: 700 14px/1.1 "Space Grotesk", "Inter", sans-serif;
         letter-spacing: 0.01em;
         box-shadow: 0 22px 46px rgba(18, 53, 58, 0.24);
-        cursor: pointer;
+        cursor: grab;
+        user-select: none;
+        touch-action: none;
         transition: transform .22s ease, box-shadow .22s ease, opacity .22s ease;
       }
       .syntrae-tour-trigger:hover,
@@ -35,6 +39,11 @@
         transform: translateY(-2px);
         box-shadow: 0 26px 54px rgba(18, 53, 58, 0.3);
         outline: none;
+      }
+      .syntrae-tour-trigger.is-dragging {
+        cursor: grabbing;
+        transform: translateY(-2px) scale(1.015);
+        box-shadow: 0 30px 62px rgba(18, 53, 58, 0.34);
       }
       .syntrae-tour-trigger svg {
         width: 18px;
@@ -226,9 +235,9 @@
       @media (max-width: 860px) {
         .syntrae-tour-trigger {
           left: 16px;
-          right: 16px;
           bottom: 16px;
           justify-content: center;
+          max-width: calc(100vw - 32px);
         }
         .syntrae-tour-card {
           width: min(340px, calc(100vw - 24px));
@@ -302,6 +311,9 @@
       this.highlightTarget = null;
       this.highlightTargetStyles = null;
       this.targetClickHandler = null;
+      this.triggerDragState = null;
+      this.triggerWasDragged = false;
+      this.triggerLastDragEndedAt = 0;
 
       injectStyles();
       this.buildUi();
@@ -336,7 +348,7 @@
         <h3></h3>
         <p></p>
         <div class="syntrae-tour-actions">
-          <button type="button" class="syntrae-tour-btn syntrae-tour-btn--ghost" data-tour-action="skip">Skip</button>
+          <button type="button" class="syntrae-tour-btn syntrae-tour-btn--ghost" data-tour-action="skip">Stop</button>
           <div class="syntrae-tour-actions-group">
             <button type="button" class="syntrae-tour-btn syntrae-tour-btn--ghost" data-tour-action="back">Back</button>
             <button type="button" class="syntrae-tour-btn syntrae-tour-btn--primary" data-tour-action="next">Next</button>
@@ -362,11 +374,23 @@
       this.trigger.setAttribute('aria-label', this.config.title || this.config.triggerText || 'Page guide');
       this.trigger.innerHTML = `${buildTriggerIcon()}<span>${this.config.triggerText || 'Page guide'}</span>`;
       document.body.appendChild(this.trigger);
+      window.requestAnimationFrame(() => this.restoreTriggerPosition());
     }
 
     attachEvents() {
       if (this.trigger) {
-        this.trigger.addEventListener('click', () => this.start());
+        this.trigger.addEventListener('click', (event) => {
+          const now = window.performance?.now?.() || Date.now();
+          const wasJustDragged = this.triggerWasDragged || (now - this.triggerLastDragEndedAt < 240);
+          if (wasJustDragged) {
+            event.preventDefault();
+            event.stopPropagation();
+            this.triggerWasDragged = false;
+            return;
+          }
+          this.start();
+        });
+        this.attachTriggerDrag();
       }
       this.skipButton.addEventListener('click', (event) => {
         event.preventDefault();
@@ -387,6 +411,9 @@
         this.finish('dismiss');
       });
       window.addEventListener('resize', () => {
+        if (this.trigger) {
+          this.clampTriggerToViewport({ persist: true });
+        }
         if (!this.active) return;
         this.positionCard();
       });
@@ -409,6 +436,124 @@
           if (!this.backButton.hidden) this.backButton.click();
         }
       });
+    }
+
+    triggerPositionStorageKey() {
+      return `syntrae.pageTour.trigger.${this.config.pageKey || 'page'}`;
+    }
+
+    readStoredTriggerPosition() {
+      const storage = getLocalStorage();
+      if (!storage) return null;
+      try {
+        const parsed = JSON.parse(storage.getItem(this.triggerPositionStorageKey()) || 'null');
+        if (!parsed || !Number.isFinite(parsed.left) || !Number.isFinite(parsed.top)) return null;
+        return parsed;
+      } catch (_) {
+        return null;
+      }
+    }
+
+    storeTriggerPosition(left, top) {
+      const storage = getLocalStorage();
+      if (!storage) return;
+      try {
+        storage.setItem(this.triggerPositionStorageKey(), JSON.stringify({
+          left: Math.round(left),
+          top: Math.round(top)
+        }));
+      } catch (_) {
+        // Non-critical: the guide button is still movable during this session.
+      }
+    }
+
+    setTriggerPosition(left, top, { persist = false } = {}) {
+      if (!this.trigger) return;
+      const rect = this.trigger.getBoundingClientRect();
+      const margin = 12;
+      const maxLeft = Math.max(margin, window.innerWidth - rect.width - margin);
+      const maxTop = Math.max(margin, window.innerHeight - rect.height - margin);
+      const safeLeft = clamp(left, margin, maxLeft);
+      const safeTop = clamp(top, margin, maxTop);
+      Object.assign(this.trigger.style, {
+        left: `${Math.round(safeLeft)}px`,
+        top: `${Math.round(safeTop)}px`,
+        right: 'auto',
+        bottom: 'auto'
+      });
+      if (persist) {
+        this.storeTriggerPosition(safeLeft, safeTop);
+      }
+    }
+
+    restoreTriggerPosition() {
+      if (!this.trigger) return;
+      const position = this.readStoredTriggerPosition();
+      if (position) {
+        this.setTriggerPosition(position.left, position.top);
+      } else {
+        this.clampTriggerToViewport();
+      }
+    }
+
+    clampTriggerToViewport({ persist = false } = {}) {
+      if (!this.trigger) return;
+      const rect = this.trigger.getBoundingClientRect();
+      this.setTriggerPosition(rect.left, rect.top, { persist });
+    }
+
+    attachTriggerDrag() {
+      if (!this.trigger) return;
+
+      const endDrag = (event) => {
+        if (!this.triggerDragState || event.pointerId !== this.triggerDragState.pointerId) return;
+        const didMove = this.triggerDragState.moved;
+        this.trigger.classList.remove('is-dragging');
+        try {
+          this.trigger.releasePointerCapture(event.pointerId);
+        } catch (_) {
+          // Pointer capture can already be released by the browser.
+        }
+        if (didMove) {
+          const rect = this.trigger.getBoundingClientRect();
+          this.storeTriggerPosition(rect.left, rect.top);
+          this.triggerWasDragged = true;
+          this.triggerLastDragEndedAt = window.performance?.now?.() || Date.now();
+          window.setTimeout(() => {
+            this.triggerWasDragged = false;
+          }, 260);
+        }
+        this.triggerDragState = null;
+      };
+
+      this.trigger.addEventListener('pointerdown', (event) => {
+        if (event.pointerType === 'mouse' && event.button !== 0) return;
+        const rect = this.trigger.getBoundingClientRect();
+        this.triggerDragState = {
+          pointerId: event.pointerId,
+          startX: event.clientX,
+          startY: event.clientY,
+          startLeft: rect.left,
+          startTop: rect.top,
+          moved: false
+        };
+        this.trigger.setPointerCapture?.(event.pointerId);
+        this.trigger.classList.add('is-dragging');
+      });
+
+      this.trigger.addEventListener('pointermove', (event) => {
+        const state = this.triggerDragState;
+        if (!state || event.pointerId !== state.pointerId) return;
+        const deltaX = event.clientX - state.startX;
+        const deltaY = event.clientY - state.startY;
+        if (!state.moved && Math.hypot(deltaX, deltaY) < 5) return;
+        state.moved = true;
+        event.preventDefault();
+        this.setTriggerPosition(state.startLeft + deltaX, state.startTop + deltaY);
+      });
+
+      this.trigger.addEventListener('pointerup', endDrag);
+      this.trigger.addEventListener('pointercancel', endDrag);
     }
 
     shouldAutoStart() {
@@ -657,7 +802,7 @@
       this.copy.hidden = !description;
       const waitForTargetClick = step.waitForTargetClick === true;
       this.backButton.hidden = waitForTargetClick || index === 0;
-      this.skipButton.hidden = waitForTargetClick || step.hideSkip === true;
+      this.skipButton.hidden = step.hideSkip === true;
       this.nextButton.hidden = waitForTargetClick || step.hideNext === true;
       this.nextButton.textContent = step.nextLabel || (index === this.steps.length - 1 ? 'Finish' : 'Next');
       const actionsHidden = this.skipButton.hidden && this.backButton.hidden && this.nextButton.hidden;

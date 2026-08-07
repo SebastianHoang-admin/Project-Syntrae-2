@@ -1063,7 +1063,7 @@
 
     <script src="js/supabase-config.js"></script>
     <script src="js/page-tour.js"></script>
-    <script type="module" src="js/insight-lab.js?v=20260806-hide-extra-demo-personas"></script>
+    <script type="module" src="js/insight-lab.js?v=20260710-comparison-test"></script>
     <script>
         if (new URLSearchParams(window.location.search).get('demo') !== 'decision-tree') {
             window.SyntraePageTour?.init({
