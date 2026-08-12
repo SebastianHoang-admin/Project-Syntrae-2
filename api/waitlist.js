@@ -317,7 +317,7 @@ async function sendConfirmationEmail({ email, fullName, verificationUrl }) {
                     <tr>
                       <td style="padding:8px 34px 34px;">
                         <p style="margin:0 0 16px;color:#506865;font-size:16px;line-height:1.65;">${safeGreeting}</p>
-                        <p style="margin:0 0 18px;color:#506865;font-size:16px;line-height:1.65;">Please confirm this email to finish joining the Syntrae waitlist for romantic relationship decision tools.</p>
+                        <p style="margin:0 0 18px;color:#506865;font-size:16px;line-height:1.65;">Please confirm this email to finish joining the Syntrae waitlist for tools that match you better with your crushes.</p>
                         <p style="margin:0 0 26px;color:#506865;font-size:16px;line-height:1.65;">After confirmation, you will be on the verified list for early Syntrae updates, product previews, and optional feedback invitations.</p>
                         <table role="presentation" cellspacing="0" cellpadding="0" style="margin:0 auto 26px;">
                           <tr>
@@ -346,7 +346,7 @@ async function sendConfirmationEmail({ email, fullName, verificationUrl }) {
           </body>
         </html>
       `,
-      text: `${greeting}\n\nPlease confirm this email to finish joining the Syntrae waitlist for romantic relationship decision tools:\n${verificationUrl}\n\nThis link expires in ${VERIFY_TTL_HOURS} hours. If you did not request this, you can ignore this email.\n\nSyntrae LLC\nLess guessing. More caring.`
+      text: `${greeting}\n\nPlease confirm this email to finish joining the Syntrae waitlist for tools that match you better with your crushes:\n${verificationUrl}\n\nThis link expires in ${VERIFY_TTL_HOURS} hours. If you did not request this, you can ignore this email.\n\nSyntrae LLC\nLess guessing. More caring.`
     })
   });
 

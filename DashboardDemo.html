@@ -2,9 +2,10 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <link rel="icon" href="/favicon.svg" type="image/svg+xml">
-    <link rel="alternate icon" href="/favicon.png" type="image/png">
-    <link rel="apple-touch-icon" href="/favicon.png">
+    <link rel="icon" href="/favicon.ico?v=20260811" sizes="any">
+    <link rel="icon" href="/favicon.svg?v=20260811" type="image/svg+xml">
+    <link rel="alternate icon" href="/favicon.png?v=20260811" type="image/png">
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png?v=20260811">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Syntrae - Dashboard Demo</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -3073,7 +3074,7 @@
                 <div class="guide-mark">S</div>
                 <div>
                     <h1>Syntrae Guide <span class="status-dot" aria-hidden="true"></span></h1>
-                    <p>Private decision context for clearer relationship choices</p>
+                    <p>Private crush context for clearer next moves</p>
                 </div>
             </div>
 
@@ -3194,7 +3195,7 @@
                 demoKey: 'daniel-smith-demo',
                 role: 'Relationship persona',
                 avatar: 'assets/daniel-smith-cartoon-avatar.png',
-                listLabel: 'Use Daniel\'s relationship context',
+                listLabel: 'Use Daniel\'s crush context',
                 facts: ['Graduate student', 'Male', '23 yrs old'],
                 headline: 'Warm, thoughtful, and responsive when serious topics are introduced with room to think.',
                 summary: 'Daniel responds best when the topic is named clearly without making the conversation feel like a demand.',
@@ -6552,26 +6553,33 @@
             {
                 selector: '[data-tour-step="chatspaces"]',
                 title: 'Step 3: Start with the uncertain situation',
-                description: 'Back on the dashboard, choose the real situation you are unsure about. Use the message, timing, relationship context, and goal as the input Syntrae should reason from.',
+                description: 'Back on the dashboard, choose the real situation you are unsure about. Use the message, timing, crush context, and goal as the input Syntrae should reason from.',
                 placement: 'left'
             },
             {
+                selector: '[data-tour-step="embedded-chat"]',
+                title: 'Step 4: Recur from real replies',
+                description: 'After you send one real message, paste your actual message and your significant other\'s actual reply here. Keep clicking Recur next reply to find the best next way as the conversation changes.',
+                placement: 'left',
+                highlight: 'soft'
+            },
+            {
                 selector: '[data-tour-step="bestway"]',
-                title: 'Compare likely consequence paths',
+                title: 'Step 5: Compare likely consequence paths',
                 description: 'This section frames the possible next moves. Syntrae is meant to compare likely real-life consequences before you send, ask, wait, or choose another action.',
                 placement: 'left',
                 highlight: 'soft'
             },
             {
                 selector: '[data-tour-step="settings"]',
-                title: 'Run Syntrae Test, then keep agency',
+                title: 'Step 6: Run Syntrae Test, then keep agency',
                 description: 'Use the Syntrae Test button to generate the consequence tree. The dashboard informs the decision; you still choose what to do in real life.',
                 placement: 'left',
                 highlight: 'soft'
             },
             {
                 selector: '[data-tour-step="recurrence"]',
-                title: 'Read the Syntrae Test',
+                title: 'Step 7: Read the Syntrae Test',
                 description: 'Syntrae Test runs the same decision under slightly different variables, then shows which consequence patterns return most often.',
                 placement: 'top',
                 highlight: 'soft',

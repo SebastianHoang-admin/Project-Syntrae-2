@@ -104,7 +104,7 @@
   const DANIEL_DEMO_EXTRAS = {
     "basic-profile": "Daniel Smith. Male. 23 yrs old. Graduate student in product design living in the Bay Area.",
     "relationship-role": "Romantic interest and close relationship focus for Maya Chen.",
-    "time-life": "23-year-old graduate student in product design, balancing academic deadlines, freelance work, and early adult relationship decisions.",
+    "time-life": "23-year-old graduate student in product design, balancing academic deadlines, freelance work, and early adult crush uncertainty.",
     "current-context": "Maya and Daniel have been spending more intentional time together. The relationship feels promising, but neither person has clearly named where it is going yet.",
     "communication-pattern": "Responds well to warmth, sincerity, and specific invitations. He can become reserved when the tone feels like an urgent decision must be made immediately.",
     "emotional-needs": "Needs room to think, a sense that his answer is welcome either way, and a conversation that feels mutual rather than like a test.",

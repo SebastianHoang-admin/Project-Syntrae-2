@@ -2,9 +2,10 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <link rel="icon" href="/favicon.svg" type="image/svg+xml">
-    <link rel="alternate icon" href="/favicon.png" type="image/png">
-    <link rel="apple-touch-icon" href="/favicon.png">
+    <link rel="icon" href="/favicon.ico?v=20260811" sizes="any">
+    <link rel="icon" href="/favicon.svg?v=20260811" type="image/svg+xml">
+    <link rel="alternate icon" href="/favicon.png?v=20260811" type="image/png">
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png?v=20260811">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Syntrae - Dashboard</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -2843,7 +2844,7 @@
                 <div class="demo-persona-row${key === activeDemoPersonaKey ? ' active' : ''}" data-demo-persona-row="${escapeHtml(key)}">
                     <button type="button" class="demo-persona-select" data-demo-persona="${escapeHtml(key)}">
                         <strong data-demo-persona-name="${escapeHtml(key)}">${escapeHtml(persona.name)}</strong>
-                        <span>${escapeHtml(key === 'aaron' ? 'Use family context with Maya\'s dad' : 'Use Daniel\'s relationship context')}</span>
+                        <span>${escapeHtml(key === 'aaron' ? 'Use family context with Maya\'s dad' : 'Use Daniel\'s crush context')}</span>
                     </button>
                     <span class="demo-row-actions">
                         <button type="button" class="demo-mini-btn" data-demo-persona-edit="${escapeHtml(key)}" title="Edit persona name">${demoIcon('pen')}</button>
@@ -2883,7 +2884,7 @@
                     <div class="agent-avatar">S</div>
                     <div class="agent-info">
                         <h3>Syntrae Guide <span class="status-indicator"></span></h3>
-                        <p>Private decision context for clearer relationship choices</p>
+                        <p>Private crush context for clearer next moves</p>
                     </div>
                 </div>
 
@@ -3277,7 +3278,7 @@
                     {
                         selector: '.persona-column',
                         title: 'Your Persona',
-                        description: 'This left column holds the persona you built about the other person. It keeps the relationship context, communication pattern, and decision logic visible while you work.',
+                        description: 'This left column holds the persona you built about the other person. It keeps the crush context, communication pattern, and decision logic visible while you work.',
                         placement: 'right'
                     },
                     {
