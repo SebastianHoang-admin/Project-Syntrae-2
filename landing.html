@@ -1970,6 +1970,24 @@
             width: 100%;
         }
 
+        .returning-account {
+            display: grid;
+            gap: 8px;
+            padding: 12px;
+            border: 1px solid rgba(18, 150, 141, 0.16);
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.62);
+            color: var(--quiet);
+            font-size: 13px;
+            font-weight: 800;
+            text-align: center;
+        }
+
+        .returning-account .button {
+            min-height: 40px;
+            box-shadow: none;
+        }
+
         .form-status {
             min-height: 22px;
             color: var(--leaf);
@@ -2854,6 +2872,10 @@
                     <div class="form-footer">
                         <div class="privacy-note"><i class="fas fa-shield-alt"></i><span>No spam. We will only send Syntrae launch updates, founding access details, and product feedback opportunities.</span></div>
                         <button class="button button-primary" type="submit"><i class="fas fa-user-plus"></i> Join for free</button>
+                        <div class="returning-account">
+                            <span>Already have a Syntrae account?</span>
+                            <a class="button button-secondary" href="sign-in.html?next=founding-survey.html"><i class="fas fa-sign-in-alt"></i> Sign in</a>
+                        </div>
                         <div class="form-status" id="formStatus" role="status" aria-live="polite"></div>
                         <div class="disclaimer">Founding members receive early updates and optional feedback invitations while Syntrae prepares tools to match people better with their crushes.</div>
                     </div>
